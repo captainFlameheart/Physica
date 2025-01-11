@@ -4,92 +4,123 @@
 #include <openglDebug.h>
 #include <demoShaderLoader.h>
 #include <iostream>
+#include <iomanip>
+#include <sstream>
+#include "util/string.h"
 
+#define RELEASE 0
+#define DEBUG 1
 
-#define USE_GPU_ENGINE 0
+#define MODE DEBUG
+
+#define USE_GPU_ENGINE 1
 extern "C"
 {
 	__declspec(dllexport) unsigned long NvOptimusEnablement = USE_GPU_ENGINE;
 	__declspec(dllexport) int AmdPowerXpressRequestHighPerformance = USE_GPU_ENGINE;
 }
 
+#define OPENGL_NO_DEBUG 0
+#define OPENGL_ASYNCH_DEBUG 1
+#define OPENGL_SYNCH_DEBUG 2
 
-static void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
+#define OPENGL_DEBUG_MODE MODE == DEBUG ? OPENGL_SYNCH_DEBUG : OPENGL_NO_DEBUG
+
+static void on_key_event(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
-	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, GLFW_TRUE);
+	if (action == GLFW_PRESS)
+	{
+		switch (key)
+		{
+		case GLFW_KEY_ESCAPE:
+			glfwSetWindowShouldClose(window, GLFW_TRUE);
+			break;
+		case GLFW_KEY_F11:
+			GLFWmonitor *monitor{ glfwGetPrimaryMonitor() };
+			GLFWvidmode const *video_mode{ glfwGetVideoMode(monitor) };
+			if (glfwGetWindowMonitor(window) == nullptr)
+			{
+				glfwSetWindowMonitor(window, monitor, 0, 0, video_mode->width, video_mode->height, video_mode->refreshRate);
+			}
+			else
+			{
+				int const width{ 640 }, height{ 320 };
+				int const x{ (video_mode->width - width) / 2 }, y{ (video_mode->height - height) / 2 };
+				glfwSetWindowMonitor(window, nullptr, x, y, width, height, GLFW_DONT_CARE);
+			}
+			break;
+		}
+	}
+}
+
+void on_glfw_error(int error_code, const char* description)
+{
+	std::cerr << "GLFW error " << util::string::to_hex(error_code) << ": " << description << std::endl;
 }
 
 int main(void)
 {
+	glfwSetErrorCallback(on_glfw_error);
 
-	if (!glfwInit())
-		return -1;
-
-
-#pragma region report opengl errors to std
-	//enable opengl debugging output.
-	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
-#pragma endregion
-
-
-	//glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	//glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
-	//glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); //you might want to do this when testing the game for shipping
-
-
-	GLFWwindow *window = window = glfwCreateWindow(640, 480, "Simple example", NULL, NULL);
-	if (!window)
+	if (glfwInit() == GLFW_FALSE)
 	{
-		glfwTerminate();
-		return -1;
+		return EXIT_FAILURE;
 	}
 
-	glfwSetKeyCallback(window, key_callback);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
+
+#if OPENGL_DEBUG_MODE != OPENGL_NO_DEBUG
+	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
+#endif
+	GLFWmonitor* monitor{ glfwGetPrimaryMonitor() };
+	GLFWvidmode const* video_mode{ glfwGetVideoMode(monitor) };
+	glfwWindowHint(GLFW_RED_BITS, video_mode->redBits);
+	glfwWindowHint(GLFW_GREEN_BITS, video_mode->greenBits);
+	glfwWindowHint(GLFW_BLUE_BITS, video_mode->blueBits);
+	glfwWindowHint(GLFW_REFRESH_RATE, video_mode->refreshRate);
+
+	GLFWwindow* window = glfwCreateWindow(video_mode->width, video_mode->height, "Physica", monitor, NULL);
+	if (window == nullptr)
+	{
+		glfwTerminate();
+		return EXIT_FAILURE;
+	}
+
+	glfwSetKeyCallback(window, on_key_event);
 
 	glfwMakeContextCurrent(window);
+
 	gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
+	
 	glfwSwapInterval(1);
 
-
-#pragma region report opengl errors to std
-	glEnable(GL_DEBUG_OUTPUT);
-	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-	glDebugMessageCallback(glDebugOutput, 0);
-	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
-#pragma endregion
-
-	//shader loading example
-	Shader s;
-	s.loadShaderProgramFromFile(RESOURCES_PATH "vertex.vert", RESOURCES_PATH "fragment.frag");
-	s.bind();
+	#if OPENGL_DEBUG_MODE != OPENGL_NO_DEBUG
+		glEnable(GL_DEBUG_OUTPUT);
+		#if OPENGL_DEBUG_MODE == OPENGL_SYNCH_DEBUG
+			glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+		#endif
+		glDebugMessageCallback(glDebugOutput, nullptr);
+		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+	#endif
 
 	while (!glfwWindowShouldClose(window))
 	{
-		int width = 0, height = 0;
+		int width{ 0 }, height{ 0 };
 
 		glfwGetFramebufferSize(window, &width, &height);
 		glViewport(0, 0, width, height);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		//I'm using the old pipeline here just to test, you shouldn't learn this,
-		//Also It might not work on apple
-		glBegin(GL_TRIANGLES);
-		glColor3f(1, 0, 0);
-		glVertex2f(0,1);
-		glColor3f(0, 1, 0);
-		glVertex2f(1,-1);
-		glColor3f(0, 0, 1);
-		glVertex2f(-1,-1);
-		glEnd();
-
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
 
-	//there is no need to call the clear function for the libraries since the os will do that for us.
-	//by calling this functions we are just wasting time.
-	//glfwDestroyWindow(window);
-	//glfwTerminate();
-	return 0;
+	glfwDestroyWindow(window);
+	glfwTerminate();
+	return EXIT_SUCCESS;
 }
