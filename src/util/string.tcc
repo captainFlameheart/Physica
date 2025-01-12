@@ -1,3 +1,4 @@
+#pragma once
 #include "util/string.h"
 
 template<typename T>

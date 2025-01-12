@@ -7,6 +7,8 @@
 #include <iomanip>
 #include <sstream>
 #include "util/string.h"
+#include "game_loop.h"
+#include "test.cpp"
 
 #define RELEASE 0
 #define DEBUG 1
@@ -108,17 +110,7 @@ int main(void)
 		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
 	#endif
 
-	while (!glfwWindowShouldClose(window))
-	{
-		int width{ 0 }, height{ 0 };
-
-		glfwGetFramebufferSize(window, &width, &height);
-		glViewport(0, 0, width, height);
-		glClear(GL_COLOR_BUFFER_BIT);
-
-		glfwSwapBuffers(window);
-		glfwPollEvents();
-	}
+	run_game_loop(window);
 
 	glfwDestroyWindow(window);
 	glfwTerminate();
