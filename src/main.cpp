@@ -28,33 +28,6 @@ extern "C"
 
 #define OPENGL_DEBUG_MODE MODE == DEBUG ? OPENGL_SYNCH_DEBUG : OPENGL_NO_DEBUG
 
-static void on_key_event(GLFWwindow *window, int key, int scancode, int action, int mods)
-{
-	if (action == GLFW_PRESS)
-	{
-		switch (key)
-		{
-		case GLFW_KEY_ESCAPE:
-			glfwSetWindowShouldClose(window, GLFW_TRUE);
-			break;
-		case GLFW_KEY_F11:
-			GLFWmonitor *monitor{ glfwGetPrimaryMonitor() };
-			GLFWvidmode const *video_mode{ glfwGetVideoMode(monitor) };
-			if (glfwGetWindowMonitor(window) == nullptr)
-			{
-				glfwSetWindowMonitor(window, monitor, 0, 0, video_mode->width, video_mode->height, video_mode->refreshRate);
-			}
-			else
-			{
-				int const width{ 640 }, height{ 320 };
-				int const x{ (video_mode->width - width) / 2 }, y{ (video_mode->height - height) / 2 };
-				glfwSetWindowMonitor(window, nullptr, x, y, width, height, GLFW_DONT_CARE);
-			}
-			break;
-		}
-	}
-}
-
 void on_glfw_error(int error_code, const char* description)
 {
 	std::cerr << "GLFW error " << util::string::to_hex(error_code) << ": " << description << std::endl;
@@ -86,14 +59,12 @@ int main(void)
 	glfwWindowHint(GLFW_BLUE_BITS, video_mode->blueBits);
 	glfwWindowHint(GLFW_REFRESH_RATE, video_mode->refreshRate);
 
-	GLFWwindow* window = glfwCreateWindow(video_mode->width, video_mode->height, "Physica", monitor, NULL);
+	GLFWwindow* window = glfwCreateWindow(600, 300, "Physica", nullptr, nullptr);
 	if (window == nullptr)
 	{
 		glfwTerminate();
 		return EXIT_FAILURE;
 	}
-
-	glfwSetKeyCallback(window, on_key_event);
 
 	glfwMakeContextCurrent(window);
 
