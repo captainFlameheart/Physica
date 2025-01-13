@@ -10,7 +10,12 @@ struct Game_State
 	GLuint vao;
 };
 
-void initialize_game_state(double &tick_delta_time, unsigned &max_ticks_per_frame, Game_State &game_state);
+void initialize_game_state(
+	GLFWwindow *window,
+	double &tick_delta_time, 
+	unsigned &max_ticks_per_frame, 
+	Game_State &game_state
+);
 
 void on_key_event(
 	GLFWwindow *window,
@@ -22,6 +27,37 @@ void on_key_event(
 	int const scancode,
 	int const action,
 	int const mods
+);
+
+void on_cursor_event(
+	GLFWwindow *window,
+	double const tick_delta_time,
+	unsigned const max_ticks_per_frame,
+	Game_State &game_state,
+	double const processed_time,
+	double const x_pos,
+	double const y_pos
+);
+
+void on_mouse_button_event(
+	GLFWwindow *window,
+	double const tick_delta_time,
+	unsigned const max_ticks_per_frame,
+	Game_State &game_state,
+	double const processed_time,
+	int const button,
+	int const action,
+	int const mods
+);
+
+void on_scroll_event(
+	GLFWwindow *window,
+	double const tick_delta_time,
+	unsigned const max_ticks_per_frame,
+	Game_State &game_state,
+	double const processed_time,
+	double const x_offset,
+	double const y_offset
 );
 
 void tick(
@@ -42,4 +78,10 @@ void render(
 	double lag
 );
 
-void free_game_state(Game_State &game_state);
+void free_game_state(
+	GLFWwindow *window,
+	double const tick_delta_time,
+	unsigned const max_ticks_per_frame,
+	Game_State &game_state,
+	double const processed_time
+);
