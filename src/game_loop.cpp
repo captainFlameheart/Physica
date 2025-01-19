@@ -5,13 +5,8 @@
 
 static void on_glfw_key_event(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
-	Full_Game_State &full_game_state{ get_full_game_state(window) };
 	on_key_event(
-		window, 
-		full_game_state.tick_delta_time, 
-		full_game_state.max_ticks_per_frame,
-		full_game_state.game_state, 
-		full_game_state.processed_time, 
+		get_full_game_state(window),
 		key, 
 		scancode, 
 		action, 
@@ -21,13 +16,8 @@ static void on_glfw_key_event(GLFWwindow *window, int key, int scancode, int act
 
 static void on_glfw_cursor_event(GLFWwindow *window, double xpos, double ypos)
 {
-	Full_Game_State &full_game_state{ get_full_game_state(window) };
 	on_cursor_event(
-		window,
-		full_game_state.tick_delta_time,
-		full_game_state.max_ticks_per_frame,
-		full_game_state.game_state,
-		full_game_state.processed_time,
+		get_full_game_state(window),
 		xpos,
 		ypos
 	);
@@ -35,13 +25,8 @@ static void on_glfw_cursor_event(GLFWwindow *window, double xpos, double ypos)
 
 static void on_glfw_mouse_button_event(GLFWwindow* window, int button, int action, int mods)
 {
-	Full_Game_State& full_game_state{ get_full_game_state(window) };
 	on_mouse_button_event(
-		window,
-		full_game_state.tick_delta_time,
-		full_game_state.max_ticks_per_frame,
-		full_game_state.game_state,
-		full_game_state.processed_time,
+		get_full_game_state(window),
 		button,
 		action,
 		mods
@@ -50,63 +35,61 @@ static void on_glfw_mouse_button_event(GLFWwindow* window, int button, int actio
 
 static void on_glfw_scroll_event(GLFWwindow* window, double xoffset, double yoffset)
 {
-	Full_Game_State& full_game_state{ get_full_game_state(window) };
 	on_scroll_event(
-		window,
-		full_game_state.tick_delta_time,
-		full_game_state.max_ticks_per_frame,
-		full_game_state.game_state,
-		full_game_state.processed_time,
+		get_full_game_state(window),
 		xoffset,
 		yoffset
 	);
 }
 
-void run_game_loop(GLFWwindow* window)
+void run_game_loop(GLFWwindow *window)
 {
-	double tick_delta_time{ 1.0 / 90.0 };
-	unsigned max_ticks_per_frame{ 10 };
-	Game_State game_state;
-	double processed_time{ 0.0 };
+	Full_Game_State game_state;
+	glfwSetWindowUserPointer(window, &game_state);
 
 	glfwSetKeyCallback(window, on_glfw_key_event);
 	glfwSetCursorPosCallback(window, on_glfw_cursor_event);
 	glfwSetMouseButtonCallback(window, on_glfw_mouse_button_event);
 	glfwSetScrollCallback(window, on_glfw_scroll_event);
 
-	Full_Game_State full_game_state{tick_delta_time, max_ticks_per_frame, game_state, processed_time};
-	glfwSetWindowUserPointer(window, &full_game_state);
+	game_state.window = window;
+	game_state.real_time = 0.0;
+	game_state.processed_time = 0.0;
+	game_state.lag = 0.0;
+	game_state.ticks = 0;
+	initialize_game_state(game_state);
 
-	initialize_game_state(window, tick_delta_time, max_ticks_per_frame, game_state);
-
-	glfwSetTime(processed_time);
+	glfwSetTime(0.0);
 	
 	int width, height;
 	glfwGetFramebufferSize(window, &width, &height);
 	glViewport(0, 0, width, height);
-	render(window, tick_delta_time, max_ticks_per_frame, game_state, processed_time, 0.0);
+	render(game_state);
 
 	glfwPollEvents();
 	while (!glfwWindowShouldClose(window))
 	{
-		double time_now{ glfwGetTime() };
-		double lag;
-		unsigned ticks{ 0 };
-		while ((lag = time_now - processed_time) >= tick_delta_time && ticks < max_ticks_per_frame)
+		game_state.real_time = glfwGetTime();
+		game_state.ticks = 0;
+		while 
+		(
+			(game_state.lag = game_state.real_time - game_state.processed_time) >= game_state.tick_delta_time && 
+			game_state.ticks < game_state.max_ticks_per_frame
+		)
 		{
-			tick(window, tick_delta_time, max_ticks_per_frame, game_state, processed_time, ticks);
-			processed_time += tick_delta_time;
-			++ticks;
+			tick(game_state);
+			game_state.processed_time += game_state.tick_delta_time;
+			++game_state.ticks;
 		}
 
 		glfwGetFramebufferSize(window, &width, &height);
 		glViewport(0, 0, width, height);
-		render(window, tick_delta_time, max_ticks_per_frame, game_state, processed_time, 0.0);
+		render(game_state);
 		glfwSwapBuffers(window);
 
 		glfwPollEvents();
 	}
 
-	free_game_state(window, tick_delta_time, max_ticks_per_frame, game_state, processed_time);
+	free_game_state(game_state);
 	glfwSetWindowUserPointer(window, nullptr);
 }

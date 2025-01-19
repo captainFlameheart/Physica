@@ -1,87 +1,38 @@
 #pragma once
 #include <GLFW/glfw3.h>
+#include "full_game_state.h"
 
-struct Game_State
-{
-	double x;
-	GLuint shader;
-	GLuint x_uniform;
-	GLuint vbo;
-	GLuint vao;
-};
-
-void initialize_game_state(
-	GLFWwindow *window,
-	double &tick_delta_time, 
-	unsigned &max_ticks_per_frame, 
-	Game_State &game_state
-);
+void initialize_game_state(Full_Game_State &game_state);
 
 void on_key_event(
-	GLFWwindow *window,
-	double const tick_delta_time,
-	unsigned const max_ticks_per_frame,
-	Game_State &game_state, 
-	double const processed_time,
-	int const key, 
+	Full_Game_State &game_state,
+	int const key,
 	int const scancode,
 	int const action,
 	int const mods
 );
 
 void on_cursor_event(
-	GLFWwindow *window,
-	double const tick_delta_time,
-	unsigned const max_ticks_per_frame,
-	Game_State &game_state,
-	double const processed_time,
+	Full_Game_State &game_state,
 	double const x_pos,
 	double const y_pos
 );
 
 void on_mouse_button_event(
-	GLFWwindow *window,
-	double const tick_delta_time,
-	unsigned const max_ticks_per_frame,
-	Game_State &game_state,
-	double const processed_time,
+	Full_Game_State &game_state,
 	int const button,
 	int const action,
 	int const mods
 );
 
 void on_scroll_event(
-	GLFWwindow *window,
-	double const tick_delta_time,
-	unsigned const max_ticks_per_frame,
-	Game_State &game_state,
-	double const processed_time,
+	Full_Game_State &game_state,
 	double const x_offset,
 	double const y_offset
 );
 
-void tick(
-	GLFWwindow *window,
-	double const delta_time,
-	unsigned const max_ticks_per_frame,
-	Game_State &game_state, 
-	double const processed_time,
-	unsigned const ticks_this_frame
-);
+void tick(Full_Game_State &game_state);
 
-void render(
-	GLFWwindow const* window,
-	double const tick_delta_time, 
-	unsigned const max_ticks_per_frame,
-	Game_State const& game_state,
-	double const processed_time, 
-	double lag
-);
+void render(Full_Game_State &game_state);
 
-void free_game_state(
-	GLFWwindow *window,
-	double const tick_delta_time,
-	unsigned const max_ticks_per_frame,
-	Game_State &game_state,
-	double const processed_time
-);
+void free_game_state(Full_Game_State &game_state);
