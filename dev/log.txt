@@ -1,0 +1,2 @@
+Investigate and implement correct handling of OpenGL data types and C++ data types 
+(e.g. GLfloat vs float, endianness, etc.)

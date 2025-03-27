@@ -2,9 +2,9 @@
 
 struct Game_State
 {
-	double x;
-	GLuint shader;
-	GLuint x_uniform;
 	GLuint vbo;
+	GLuint projection_buffer;
+	GLuint camera_buffer;
+	GLuint shader;
 	GLuint vao;
 };

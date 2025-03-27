@@ -8,23 +8,25 @@ void initialize_game_state(Full_Game_State &game_state)
 	game_state.tick_delta_time = 1.0 / 90.0;
 	game_state.max_ticks_per_frame = 10;
 
-	game_state.state.x = 0.0;
+	//glGenBuffers(1, &game_state.state.projection_buffer);
+	//glNamedBufferStorage(game_state.state.projection_buffer, )
 
-	game_state.state.shader = util::shader::link_files("vertex.vert", "fragment.frag");
-	game_state.state.x_uniform = glGetUniformLocation(game_state.state.shader, "x");
+	game_state.state.shader = util::shader::link_files("util/unique_world_position.vert", "util/static_color.frag");
 
 	glGenVertexArrays(1, &game_state.state.vao);
 	glBindVertexArray(game_state.state.vao);
-	float vertices[]{
-		-0.5f, -0.5f, 0.0f,
-		0.5f, -0.5f, 0.0f,
-		0.0f, 0.5f, 0.0f,
+	GLfloat vertices[]{
+		-0.5f, -0.5f,
+		0.5f, -0.5f,
+		0.0f, 0.5f,
 	};
 	glGenBuffers(1, &game_state.state.vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, game_state.state.vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (void*)0);
 	glEnableVertexAttribArray(0);
+
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 }
 
 void on_key_event(
@@ -90,16 +92,13 @@ void on_scroll_event(
 
 void tick(Full_Game_State &game_state)
 {
-	game_state.state.x += 1.0 * game_state.tick_delta_time;
 }
 
 void render(Full_Game_State &game_state)
 {
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	glUseProgram(game_state.state.shader);
-	glUniform1f(game_state.state.x_uniform, 0.1 * game_state.state.x);
 	glBindVertexArray(game_state.state.vao);
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 }

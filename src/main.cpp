@@ -9,13 +9,8 @@
 #include "util/string.h"
 #include "game_loop.h"
 #include "test.cpp"
+#include "macros.h"
 
-#define RELEASE 0
-#define DEBUG 1
-
-#define MODE DEBUG
-
-#define USE_GPU_ENGINE 1
 extern "C"
 {
 	__declspec(dllexport) unsigned long NvOptimusEnablement = USE_GPU_ENGINE;

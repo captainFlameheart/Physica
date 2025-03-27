@@ -4,10 +4,11 @@
 #include <iterator>
 #include <iostream>
 #include <string>
+#include "macros.h"
 
 std::string util::shader::file_to_string(std::string const &file_path)
 {
-	std::ifstream file_stream{ RESOURCES_PATH + file_path };
+	std::ifstream file_stream{ SHADER_PATH + file_path};
 	if (!file_stream.is_open())
 	{
 		std::cerr << "Failed to open \"" << file_path << '"' << std::endl;
