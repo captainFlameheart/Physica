@@ -1,13 +1,10 @@
 #include <glad/glad.h>
-#include "game.h"
+#include "game/game.h"
 #include <GLFW/glfw3.h>
 #include "util/shader.h"
 
 void initialize_game_state(Full_Game_State &game_state)
 {
-	game_state.tick_delta_time = 1.0 / 90.0;
-	game_state.max_ticks_per_frame = 10;
-
 	//glGenBuffers(1, &game_state.state.projection_buffer);
 	//glNamedBufferStorage(game_state.state.projection_buffer, )
 
@@ -92,10 +89,13 @@ void on_scroll_event(
 
 void tick(Full_Game_State &game_state)
 {
+	std::cout << "Tick" << std::endl;
 }
 
 void render(Full_Game_State &game_state)
 {
+	std::cout << "Render" << std::endl;
+
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	glUseProgram(game_state.state.shader);

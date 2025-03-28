@@ -1,7 +1,8 @@
 #include <glad/glad.h>
 #include "game_loop.h"
-#include "game.h"
+#include "game/game.h"
 #include "full_game_state.h"
+#include "macros.h"
 
 static void on_glfw_key_event(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
@@ -53,10 +54,7 @@ void run_game_loop(GLFWwindow *window)
 	glfwSetScrollCallback(window, on_glfw_scroll_event);
 
 	game_state.window = window;
-	game_state.real_time = 0.0;
-	game_state.processed_time = 0.0;
-	game_state.lag = 0.0;
-	game_state.ticks = 0;
+	game_state.lag = 0;
 	initialize_game_state(game_state);
 
 	glfwSetTime(0.0);
@@ -69,17 +67,23 @@ void run_game_loop(GLFWwindow *window)
 	glfwPollEvents();
 	while (!glfwWindowShouldClose(window))
 	{
-		game_state.real_time = glfwGetTime();
-		game_state.ticks = 0;
+		game_state.ticks_this_frame = 0u;
 		while 
 		(
-			(game_state.lag = game_state.real_time - game_state.processed_time) >= game_state.tick_delta_time && 
-			game_state.ticks < game_state.max_ticks_per_frame
+			(game_state.lag = glfwGetTime() * game_SECOND(game_state)) >= game_TICK(game_state) && 
+			game_state.ticks_this_frame < game_MAX_TICKS_PER_FRAME(game_state)
 		)
 		{
 			tick(game_state);
-			game_state.processed_time += game_state.tick_delta_time;
-			++game_state.ticks;
+			glfwSetTime(glfwGetTime() - game_TICK(game_state) / game_SECOND(game_state));
+			++game_state.ticks_this_frame;
+		}
+
+		if (game_state.lag >= game_TICK(game_state))
+		{
+			glfwSetTime(0.0);
+			game_state.lag = 0.0;
+			DEBUG_LOG("Game loop tick limit hit!");
 		}
 
 		glfwGetFramebufferSize(window, &width, &height);

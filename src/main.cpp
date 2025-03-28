@@ -17,12 +17,6 @@ extern "C"
 	__declspec(dllexport) int AmdPowerXpressRequestHighPerformance = USE_GPU_ENGINE;
 }
 
-#define OPENGL_NO_DEBUG 0
-#define OPENGL_ASYNCH_DEBUG 1
-#define OPENGL_SYNCH_DEBUG 2
-
-#define OPENGL_DEBUG_MODE MODE == DEBUG ? OPENGL_SYNCH_DEBUG : OPENGL_NO_DEBUG
-
 void on_glfw_error(int error_code, const char* description)
 {
 	std::cerr << "GLFW error " << util::string::to_hex(error_code) << ": " << description << std::endl;

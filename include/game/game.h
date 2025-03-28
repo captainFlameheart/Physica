@@ -1,6 +1,7 @@
 #pragma once
 #include <GLFW/glfw3.h>
 #include "full_game_state.h"
+#include "game_macros.h"
 
 void initialize_game_state(Full_Game_State &game_state);
 
