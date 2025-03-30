@@ -1,39 +1,42 @@
 #pragma once
 #include <GLFW/glfw3.h>
-#include "full_game_state.h"
-#include "game_macros.h"
+#include "game_environment/environment.h"
+#include "macros.h"
 
-void initialize_game_state(Full_Game_State &game_state);
+namespace game
+{
+	void initialize(game_environment::Environment &environment);
 
-void on_key_event(
-	Full_Game_State &game_state,
-	int const key,
-	int const scancode,
-	int const action,
-	int const mods
-);
+	void on_key_event(
+		game_environment::Environment& environment,
+		int const key,
+		int const scancode,
+		int const action,
+		int const mods
+	);
 
-void on_cursor_event(
-	Full_Game_State &game_state,
-	double const x_pos,
-	double const y_pos
-);
+	void on_cursor_event(
+		game_environment::Environment& environment,
+		double const x_pos,
+		double const y_pos
+	);
 
-void on_mouse_button_event(
-	Full_Game_State &game_state,
-	int const button,
-	int const action,
-	int const mods
-);
+	void on_mouse_button_event(
+		game_environment::Environment& environment,
+		int const button,
+		int const action,
+		int const mods
+	);
 
-void on_scroll_event(
-	Full_Game_State &game_state,
-	double const x_offset,
-	double const y_offset
-);
+	void on_scroll_event(
+		game_environment::Environment& environment, 
+		double const x_offset,
+		double const y_offset
+	);
 
-void tick(Full_Game_State &game_state);
+	void tick(game_environment::Environment& environment);
 
-void render(Full_Game_State &game_state);
+	void render(game_environment::Environment& environment);
 
-void free_game_state(Full_Game_State &game_state);
+	void free(game_environment::Environment& environment);
+}

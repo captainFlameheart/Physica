@@ -6,10 +6,10 @@
 #include <iostream>
 #include <iomanip>
 #include <sstream>
-#include "util/string.h"
-#include "game_loop.h"
+#include "util/string/string.h"
+#include "game_runner/game_loop.h"
 #include "test.cpp"
-#include "macros.h"
+#include "macros/macros.h"
 
 extern "C"
 {
@@ -70,7 +70,7 @@ int main(void)
 		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
 	#endif
 
-	run_game_loop(window);
+	game_runner::run_game_loop(window);
 
 	glfwDestroyWindow(window);
 	glfwTerminate();

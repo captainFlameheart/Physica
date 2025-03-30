@@ -1,5 +1,5 @@
 #pragma once
-
+/*
 struct Game_State
 {
 	GLuint vbo;
@@ -7,4 +7,4 @@ struct Game_State
 	GLuint camera_buffer;
 	GLuint shader;
 	GLuint vao;
-};
+};*/

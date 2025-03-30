@@ -1,5 +1,3 @@
-#version 460 core
-
 #define PROJECTION_BINDING 0
 #define CAMERA_BINDING 1
 
