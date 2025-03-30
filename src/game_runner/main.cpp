@@ -1,14 +1,12 @@
 #include <glad/glad.h>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
-#include <openglDebug.h>
-#include <demoShaderLoader.h>
+#include "game_runner/opengl_debug.h"
 #include <iostream>
 #include <iomanip>
 #include <sstream>
 #include "util/string/string.h"
 #include "game_runner/game_loop.h"
-#include "test.cpp"
 #include "macros/macros.h"
 
 extern "C"
@@ -17,62 +15,70 @@ extern "C"
 	__declspec(dllexport) int AmdPowerXpressRequestHighPerformance = USE_GPU_ENGINE;
 }
 
-void on_glfw_error(int error_code, const char* description)
+namespace game_runner
 {
-	std::cerr << "GLFW error " << util::string::to_hex(error_code) << ": " << description << std::endl;
-}
-
-int main(void)
-{
-	glfwSetErrorCallback(on_glfw_error);
-
-	if (glfwInit() == GLFW_FALSE)
+	void on_glfw_error(int error_code, const char* description)
 	{
-		return EXIT_FAILURE;
+		std::cerr << "GLFW error " << util::string::to_hex(error_code) << ": " << description << std::endl;
 	}
 
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+	int main()
+	{
+		glfwSetErrorCallback(on_glfw_error);
 
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+		if (glfwInit() == GLFW_FALSE)
+		{
+			return EXIT_FAILURE;
+		}
 
-	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+
+		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+		glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
 
 #if OPENGL_DEBUG_MODE != OPENGL_NO_DEBUG
-	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
+		glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
 #endif
-	GLFWmonitor* monitor{ glfwGetPrimaryMonitor() };
-	GLFWvidmode const* video_mode{ glfwGetVideoMode(monitor) };
-	glfwWindowHint(GLFW_RED_BITS, video_mode->redBits);
-	glfwWindowHint(GLFW_GREEN_BITS, video_mode->greenBits);
-	glfwWindowHint(GLFW_BLUE_BITS, video_mode->blueBits);
-	glfwWindowHint(GLFW_REFRESH_RATE, video_mode->refreshRate);
+		GLFWmonitor* monitor{ glfwGetPrimaryMonitor() };
+		GLFWvidmode const* video_mode{ glfwGetVideoMode(monitor) };
+		glfwWindowHint(GLFW_RED_BITS, video_mode->redBits);
+		glfwWindowHint(GLFW_GREEN_BITS, video_mode->greenBits);
+		glfwWindowHint(GLFW_BLUE_BITS, video_mode->blueBits);
+		glfwWindowHint(GLFW_REFRESH_RATE, video_mode->refreshRate);
 
-	GLFWwindow* window = glfwCreateWindow(600, 300, "Physica", nullptr, nullptr);
-	if (window == nullptr)
-	{
-		glfwTerminate();
-		return EXIT_FAILURE;
-	}
+		GLFWwindow* window = glfwCreateWindow(600, 300, "Physica", nullptr, nullptr);
+		if (window == nullptr)
+		{
+			glfwTerminate();
+			return EXIT_FAILURE;
+		}
 
-	glfwMakeContextCurrent(window);
+		glfwMakeContextCurrent(window);
 
-	gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
-	
-	glfwSwapInterval(1);
+		gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 
-	#if OPENGL_DEBUG_MODE != OPENGL_NO_DEBUG
+		glfwSwapInterval(1);
+
+#if OPENGL_DEBUG_MODE != OPENGL_NO_DEBUG
 		glEnable(GL_DEBUG_OUTPUT);
-		#if OPENGL_DEBUG_MODE == OPENGL_SYNCH_DEBUG
-			glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-		#endif
-		glDebugMessageCallback(glDebugOutput, nullptr);
+#if OPENGL_DEBUG_MODE == OPENGL_SYNCH_DEBUG
+		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+#endif
+		glDebugMessageCallback(gl_debug_output, nullptr);
 		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
-	#endif
+#endif
 
-	game_runner::run_game_loop(window);
+		run_game_loop(window);
 
-	glfwDestroyWindow(window);
-	glfwTerminate();
-	return EXIT_SUCCESS;
+		glfwDestroyWindow(window);
+		glfwTerminate();
+		return EXIT_SUCCESS;
+	}
+}
+
+int main()
+{
+	return game_runner::main();
 }

@@ -1,13 +1,10 @@
 #pragma once
 #include <string>
 
-namespace util
+namespace util::string
 {
-	namespace string
-	{
-		template<typename T>
-		std::string to_hex(T i);
-	}
+	template<typename T>
+	std::string to_hex(T i);
 }
 
 #include "util/string/string.tcc"

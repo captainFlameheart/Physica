@@ -1,7 +1,10 @@
 #include "game_environment/environment.h"
 #include <GLFW/glfw3.h>
 
-game_environment::Environment& game_environment::from(GLFWwindow* window)
+namespace game_environment
 {
-	return *static_cast<game_environment::Environment*>(glfwGetWindowUserPointer(window));
+	Environment& from(GLFWwindow* window)
+	{
+		return *static_cast<Environment*>(glfwGetWindowUserPointer(window));
+	}
 }
