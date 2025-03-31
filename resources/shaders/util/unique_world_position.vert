@@ -1,19 +1,32 @@
-#define PROJECTION_BINDING 0
-#define CAMERA_BINDING 1
-
-layout(shared, binding = PROJECTION_BINDING) uniform Projection
-{
-	vec2 scaling;
-} projection;
-
 layout(shared, binding = CAMERA_BINDING) uniform Camera
 {
-	vec4 transform;
+	ivec2 xy;
+	vec2 right;
+	int z;
 } camera;
 
-layout(location = 0) in vec2 world_position;
+layout(location = 0) in ivec2 world_position;
 
 void main()
 {
-	gl_Position = vec4(world_position.x, world_position.y, 0.0, 1.0);
+	ivec2 camera_relative_xy = world_position - camera.xy;
+	mat2 view_rotation = mat2
+	(
+		camera.right.x, -camera.right.y
+		camera.right.y, camera.right.x
+	);
+	gl_Position = vec4(view_rotation * camera_relative_xy * PROJECTION_SCALE, 0.0, camera.z);
+	/*ivec2 view_position = ivec2
+	(
+		camera_relative_xy.x * camera.right.x + camera_relative_xy.y * camera.right.y, 
+		camera_relative_xy.y * camera.right.x - camera_relative_xy.x * camera.right.y
+	);*/
+	/*if (gl_VertexID == 0)
+	{
+		gl_Position = vec4(ivec2(-1000, -1000) * PROJECTION_SCALE, 0.0, camera.z);
+	}
+	else
+	{
+		gl_Position = vec4(view_position * PROJECTION_SCALE, 0.0, camera.z);
+	}*/
 }

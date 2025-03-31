@@ -2,8 +2,11 @@
 #include <string>
 #include <type_traits>
 
-#define util_shader_VERSION "#version 460 core\n"
-#define util_shader_DEFINE(...) "#define "#__VA_ARGS__"\n"
+#define util_shader_PREPROCESSOR_DIRECTIVE(identifier, arguments) "#" identifier " " arguments "\n"
+#define util_shader_VERSION util_shader_PREPROCESSOR_DIRECTIVE("version", "460 core")//"#version 460 core\n"
+#define util_shader_DEFINE(identifier, replacement) \
+	util_shader_PREPROCESSOR_DIRECTIVE("define", identifier " " replacement) //"#define " identifier " " replacement "\n"
+//#define util_shader_DEFINE(...) "#define "#__VA_ARGS__"\n"
 
 namespace util::shader
 {

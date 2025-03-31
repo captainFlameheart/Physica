@@ -27,13 +27,15 @@
 #define game_TO_UNIT_VALUE(value, unit) value / unit
 
 #define game_TO_METERS(environment, length) \
-	game_TO_UNIT_VALUE(value, game_METER(environment))
+	game_TO_UNIT_VALUE(length, game_METER(environment))
 
 #define game_TO_RADIANS(environment, angle) \
-	game_TO_UNIT_VALUE(value, game_RADIAN(environment))
+	game_TO_UNIT_VALUE(angle, game_RADIAN(environment))
 
 #define game_TO_KILOGRAMS(environment, mass) \
-	game_TO_UNIT_VALUE(value, game_KILOGRAM(environment))
+	game_TO_UNIT_VALUE(mass, game_KILOGRAM(environment))
 
 #define game_TO_SECONDS(environment, time) \
-	game_TO_UNIT_VALUE(value, game_SECOND(environment))
+	game_TO_UNIT_VALUE(time, game_SECOND(environment))
+
+#define game_CAMERA_BINDING 0

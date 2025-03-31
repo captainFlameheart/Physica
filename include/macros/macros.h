@@ -3,6 +3,9 @@
 
 #define SHADER_PATH RESOURCES_PATH "/shaders/"
 
+#define STRINGIFY_DIRECTLY(...) #__VA_ARGS__
+#define STRINGIFY(...) STRINGIFY_DIRECTLY(__VA_ARGS__)
+
 #define RELEASE 0
 #define DEBUG 1
 

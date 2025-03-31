@@ -107,7 +107,7 @@ namespace util::shader
 		static void f(GLuint const program, First_Shader&& first_shader, Rest_Shaders&&... rest_shaders)
 		{
 			glDetachShader(program, first_shader);
-			Attach<Rest_Shaders...>::f(program, rest_shaders...);
+			Detach<Rest_Shaders...>::f(program, rest_shaders...);
 		}
 	};
 

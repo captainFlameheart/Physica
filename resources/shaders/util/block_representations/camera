@@ -1,0 +1,6 @@
+#define CAMERA_BINDING 0
+
+layout(shared, binding = CAMERA_BINDING) uniform Camera
+{
+	ivec4 transform;
+} camera;
