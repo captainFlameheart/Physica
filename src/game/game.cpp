@@ -43,7 +43,6 @@ namespace game
 				environment.state.shader, GL_UNIFORM_BLOCK, block_index, 
 				1, &buffer_size_label, 1, nullptr, &environment.state.camera_buffer_size
 			);
-			std::cout << environment.state.camera_buffer_size << std::endl;
 
 			environment.state.camera_send_buffer = new unsigned char[environment.state.camera_buffer_size];
 
@@ -82,10 +81,6 @@ namespace game
 				environment.state.shader, GL_UNIFORM, view_rotation_index,
 				1, &matrix_stride_label, 1, nullptr, &environment.state.camera_buffer_view_rotation_stride
 			);
-
-			std::cout << environment.state.camera_buffer_transform_offset << std::endl;
-			std::cout << environment.state.camera_buffer_view_rotation_offset << std::endl;
-			std::cout << environment.state.camera_buffer_view_rotation_stride << std::endl;
 		}
 
 		glGenVertexArrays(1, &environment.state.vao);
@@ -173,10 +168,7 @@ namespace game
 
 	void tick(game_environment::Environment& environment)
 	{
-		// v * dt
-		// 
-		environment.state.camera.xy.y = game_FROM_METERS(environment, 1.0f);//game_FROM_METERS(environment, 0.1f * 1.0f / 120.0f);
-		//environment.state.camera.z += game_FROM_METERS(environment, 0.1f * 1.0f / 120.0f);
+		environment.state.camera.xy.y = game_FROM_METERS(environment, 1.0f);
 		environment.state.camera.angle += game_FROM_RADIANS(environment, 1.0f * 1.0f / 120.0f);
 	}
 
@@ -184,7 +176,6 @@ namespace game
 	{
 		// TODO: Pass data directly to persistently mapped memory to avoid data copying
 		// TODO: Store pointers instead of offsets to avoid additions
-		std::cout << environment.state.camera.xy << std::endl;
 		std::memcpy
 		(
 			environment.state.camera_send_buffer + environment.state.camera_buffer_transform_offset, 
@@ -194,13 +185,9 @@ namespace game
 
 		// TODO: Separate into functions
 		// TODO: Make sure to not loose precision due to large angles
-		// TODO: Multiplication instead of division for TO_UNIT macro
-		// TODO: Make float variant of game_TO_UNIT
 		GLfloat const radians{ game_TO_RADIANS(environment, environment.state.camera.angle) };
 		GLfloat const right[]{ cos(radians), sin(radians) };
 		GLfloat const up[]{ -right[1], right[0] };
-
-		std::cout << '(' << right[0] << ", " << right[1] << ')' << ", " << '(' << up[0] << ", " << up[1] << ')' << std::endl;
 
 		std::memcpy
 		(
