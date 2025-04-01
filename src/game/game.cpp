@@ -15,7 +15,7 @@ namespace game
 		(
 			vertex_shader,
 			util_shader_VERSION,
-			util_shader_DEFINE("PROJECTION_SCALE", "vec2(1.0, 1.0)"),
+			util_shader_DEFINE("PROJECTION_SCALE", "vec2(0.5, 1.0)"),
 			util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
 			util::shader::file_to_string("util/unique_world_position.vert")
 		);
@@ -101,7 +101,7 @@ namespace game
 
 		environment.state.camera.xy.x = 0;
 		environment.state.camera.xy.y = 0;
-		environment.state.camera.z = game_FROM_METERS(environment, 1.0f);
+		environment.state.camera.z = game_FROM_METERS(environment, 2.0f);
 		environment.state.camera.angle = 0;
 	}
 
@@ -168,7 +168,7 @@ namespace game
 
 	void tick(game_environment::Environment& environment)
 	{
-		environment.state.camera.xy.y = game_FROM_METERS(environment, 1.0f);
+		//environment.state.camera.xy.y = game_FROM_METERS(environment, 1.0f);
 		environment.state.camera.angle += game_FROM_RADIANS(environment, 1.0f * 1.0f / 120.0f);
 	}
 
@@ -186,21 +186,23 @@ namespace game
 		// TODO: Separate into functions
 		// TODO: Make sure to not loose precision due to large angles
 		GLfloat const radians{ game_TO_RADIANS(environment, environment.state.camera.angle) };
-		GLfloat const right[]{ cos(radians), sin(radians) };
-		GLfloat const up[]{ -right[1], right[0] };
+		GLfloat const right_x{ cos(radians) };
+		GLfloat const right_y{ sin(radians) };
+		GLfloat const view_rotation_column_0[]{ right_x, -right_y };
+		GLfloat const view_rotation_column_1[]{ right_y, right_x };
 
 		std::memcpy
 		(
 			environment.state.camera_send_buffer + environment.state.camera_buffer_view_rotation_offset,
-			&right,
-			sizeof(right)
+			&view_rotation_column_0,
+			sizeof(view_rotation_column_0)
 		);
 
 		std::memcpy
 		(
 			environment.state.camera_send_buffer + environment.state.camera_buffer_view_rotation_offset + environment.state.camera_buffer_view_rotation_stride,
-			&up,
-			sizeof(up)
+			&view_rotation_column_1,
+			sizeof(view_rotation_column_1)
 		);
 
 		glNamedBufferSubData
