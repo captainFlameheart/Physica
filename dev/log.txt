@@ -1,2 +1,11 @@
-Investigate and implement correct handling of OpenGL data types and C++ data types 
+TODO: Investigate and implement correct handling of OpenGL data types and C++ data types 
 (e.g. GLfloat vs float, endianness, etc.)
+
+TODO: Implement a way to convert a fixed-point angle in the range [-M, M[ to a floating-point angle 
+in the range [-PI, PI[ so that we can get cos and sin values with equal precision regardless of 
+angle scale.
+
+Part of the model: When a fixed-point value (such as x-coordinate or angle) goes out of bounds 
+it will wrap around. We embrace this as a FEATURE, NOT a BUG, since its a feature of ints. 
+Late game players that know of this can use this to their advantage to teleport themselves/other 
+objects from one side of the map to the opposite side of the map.

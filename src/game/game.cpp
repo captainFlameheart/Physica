@@ -57,39 +57,35 @@ namespace game
 
 			GLenum const offset_label{ GL_OFFSET };
 
-			GLuint const xy_index
+			GLuint const transform_index
 			{
-				glGetProgramResourceIndex(environment.state.shader, GL_UNIFORM, "Camera.xy")
+				glGetProgramResourceIndex(environment.state.shader, GL_UNIFORM, "Camera.transform")
 			};
 			glGetProgramResourceiv
 			(
-				environment.state.shader, GL_UNIFORM, xy_index, 
-				1, &offset_label, 1, nullptr, &environment.state.camera_buffer_xy_offset
+				environment.state.shader, GL_UNIFORM, transform_index,
+				1, &offset_label, 1, nullptr, &environment.state.camera_buffer_transform_offset
 			);
 
-			GLuint const right_index
+			GLuint const view_rotation_index
 			{
-				glGetProgramResourceIndex(environment.state.shader, GL_UNIFORM, "Camera.right")
+				glGetProgramResourceIndex(environment.state.shader, GL_UNIFORM, "Camera.view_rotation")
 			};
 			glGetProgramResourceiv
 			(
-				environment.state.shader, GL_UNIFORM, right_index, 
-				1, &offset_label, 1, nullptr, &environment.state.camera_buffer_right_offset
+				environment.state.shader, GL_UNIFORM, view_rotation_index, 
+				1, &offset_label, 1, nullptr, &environment.state.camera_buffer_view_rotation_offset
 			);
-
-			GLuint const z_index
-			{
-				glGetProgramResourceIndex(environment.state.shader, GL_UNIFORM, "Camera.z")
-			};
+			GLenum matrix_stride_label{ GL_MATRIX_STRIDE };
 			glGetProgramResourceiv
 			(
-				environment.state.shader, GL_UNIFORM, z_index, 
-				1, &offset_label, 1, nullptr, &environment.state.camera_buffer_z_offset
+				environment.state.shader, GL_UNIFORM, view_rotation_index,
+				1, &matrix_stride_label, 1, nullptr, &environment.state.camera_buffer_view_rotation_stride
 			);
 
-			std::cout << environment.state.camera_buffer_xy_offset << std::endl;
-			std::cout << environment.state.camera_buffer_right_offset << std::endl;
-			std::cout << environment.state.camera_buffer_z_offset << std::endl;
+			std::cout << environment.state.camera_buffer_transform_offset << std::endl;
+			std::cout << environment.state.camera_buffer_view_rotation_offset << std::endl;
+			std::cout << environment.state.camera_buffer_view_rotation_stride << std::endl;
 		}
 
 		glGenVertexArrays(1, &environment.state.vao);
@@ -98,9 +94,9 @@ namespace game
 		glBindBuffer(GL_ARRAY_BUFFER, environment.state.vbo);
 		GLint vertices[]
 		{
-			-2, -1,
-			0, 1,
-			1, -1,
+			game_FROM_METERS(environment, -1.0f), game_FROM_METERS(environment, -1.0f),
+			0, game_FROM_METERS(environment, 1.0f),
+			game_FROM_METERS(environment, 1.0f), game_FROM_METERS(environment, -1.0f),
 		};
 		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 		glVertexAttribIPointer(0, 2, GL_INT, 2 * sizeof(GLint), static_cast<void const*>(0));
@@ -110,8 +106,8 @@ namespace game
 
 		environment.state.camera.xy.x = 0;
 		environment.state.camera.xy.y = 0;
+		environment.state.camera.z = game_FROM_METERS(environment, 1.0f);
 		environment.state.camera.angle = 0;
-		environment.state.camera.z = game_FROM_METERS(environment, 2.0);
 	}
 
 	void on_key_event(
@@ -179,7 +175,9 @@ namespace game
 	{
 		// v * dt
 		// 
-		//environment.state.camera.xy.x = game_FROM_METERS(environment, 0.1);
+		environment.state.camera.xy.y = game_FROM_METERS(environment, 1.0f);//game_FROM_METERS(environment, 0.1f * 1.0f / 120.0f);
+		//environment.state.camera.z += game_FROM_METERS(environment, 0.1f * 1.0f / 120.0f);
+		environment.state.camera.angle += game_FROM_RADIANS(environment, 1.0f * 1.0f / 120.0f);
 	}
 
 	void update_GPU_camera(game_environment::Environment& environment)
@@ -189,33 +187,35 @@ namespace game
 		std::cout << environment.state.camera.xy << std::endl;
 		std::memcpy
 		(
-			environment.state.camera_send_buffer + environment.state.camera_buffer_xy_offset, 
-			&environment.state.camera.xy,
-			2 * sizeof(GLfloat)
+			environment.state.camera_send_buffer + environment.state.camera_buffer_transform_offset, 
+			&environment.state.camera,
+			sizeof(environment.state.camera)
 		);
 
 		// TODO: Separate into functions
-		double radians{game_TO_RADIANS(environment, environment.state.camera.angle)};
-		util::math::Vector_2D right
-		{ 
-			game_FROM_METERS(environment, cos(radians)), 
-			game_FROM_METERS(environment, sin(radians)) 
-		};
+		// TODO: Make sure to not loose precision due to large angles
+		// TODO: Multiplication instead of division for TO_UNIT macro
+		// TODO: Make float variant of game_TO_UNIT
+		GLfloat const radians{ game_TO_RADIANS(environment, environment.state.camera.angle) };
+		GLfloat const right[]{ cos(radians), sin(radians) };
+		GLfloat const up[]{ -right[1], right[0] };
+
+		std::cout << '(' << right[0] << ", " << right[1] << ')' << ", " << '(' << up[0] << ", " << up[1] << ')' << std::endl;
 
 		std::memcpy
 		(
-			environment.state.camera_send_buffer + environment.state.camera_buffer_right_offset,
+			environment.state.camera_send_buffer + environment.state.camera_buffer_view_rotation_offset,
 			&right,
-			sizeof(util::math::Vector_2D)
+			sizeof(right)
 		);
 
 		std::memcpy
 		(
-			environment.state.camera_send_buffer + environment.state.camera_buffer_z_offset,
-			&environment.state.camera.z,
-			sizeof(GLfloat)
+			environment.state.camera_send_buffer + environment.state.camera_buffer_view_rotation_offset + environment.state.camera_buffer_view_rotation_stride,
+			&up,
+			sizeof(up)
 		);
-		
+
 		glNamedBufferSubData
 		(
 			environment.state.camera_buffer, 0ll, environment.state.camera_buffer_size,

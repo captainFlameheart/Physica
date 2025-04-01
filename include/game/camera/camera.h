@@ -6,7 +6,7 @@ namespace game::camera
 	struct Camera
 	{
 		util::math::Vector_2D xy;
-		GLint angle;
 		GLint z;
+		GLint angle;
 	};
 }
