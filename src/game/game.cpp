@@ -99,10 +99,14 @@ namespace game
 
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-		environment.state.camera.xy.x = 0;
-		environment.state.camera.xy.y = 0;
-		environment.state.camera.z = game_FROM_METERS(environment, 2.0f);
-		environment.state.camera.angle = 0;
+		environment.state.camera.transform.xy.x = 0;
+		environment.state.camera.transform.xy.y = 0;
+		environment.state.camera.transform.z = game_FROM_METERS(environment, 2.0f);
+		environment.state.camera.transform.angle = 0;
+		environment.state.camera.view_rotation.column_0[0] = 1.0;
+		environment.state.camera.view_rotation.column_0[1] = 0.0;
+		environment.state.camera.view_rotation.column_1[0] = 0.0;
+		environment.state.camera.view_rotation.column_1[1] = 1.0;
 	}
 
 	void on_key_event(
@@ -168,8 +172,90 @@ namespace game
 
 	void tick(game_environment::Environment& environment)
 	{
-		//environment.state.camera.xy.y = game_FROM_METERS(environment, 1.0f);
-		environment.state.camera.angle += game_FROM_RADIANS(environment, 1.0f * 1.0f / 120.0f);
+		GLint const fast_key_pressed{ glfwGetKey(environment.window, GLFW_KEY_LEFT_SHIFT) };
+		GLint const slow_key_pressed{ glfwGetKey(environment.window, GLFW_KEY_LEFT_CONTROL) };
+		GLfloat const distance
+		{ 
+			game_CAMERA_DEFAULT_DISTANCE_PER_TICK(environment) +
+			fast_key_pressed * game_CAMERA_FAST_DISTANCE_PER_TICK_INCREASE(environment) - 
+			slow_key_pressed * game_CAMERA_SLOW_DISTANCE_PER_TICK_DECREASE(environment) 
+		};
+		GLint const z_distance
+		{ 
+			game_CAMERA_DEFAULT_Z_DISTANCE_PER_TICK(environment) + 
+			fast_key_pressed * game_CAMERA_FAST_Z_DISTANCE_PER_TICK_INCREASE(environment) - 
+			slow_key_pressed * game_CAMERA_SLOW_Z_DISTANCE_PER_TICK_DECREASE(environment) 
+		};
+		GLint const angle
+		{ 
+			game_CAMERA_DEFAULT_ANGLE_PER_TICK(environment) + 
+			fast_key_pressed * game_CAMERA_FAST_ANGLE_PER_TICK_INCREASE(environment) -
+			slow_key_pressed * game_CAMERA_SLOW_ANGLE_PER_TICK_DECREASE(environment) 
+		};
+
+		GLint const x_sign
+		{
+			glfwGetKey(environment.window, GLFW_KEY_D) -
+			glfwGetKey(environment.window, GLFW_KEY_A)
+		};
+		GLint const x_displacement_x
+		{ 
+			x_sign * 
+			static_cast<GLint>(environment.state.camera.view_rotation.column_0[0] * distance) 
+		};
+		GLint const x_displacement_y
+		{ 
+			x_sign * 
+			static_cast<GLint>(environment.state.camera.view_rotation.column_1[0] * distance)
+		};
+		environment.state.camera.transform.xy.x += x_displacement_x;
+		environment.state.camera.transform.xy.y += x_displacement_y;
+
+		GLint const y_sign
+		{
+			glfwGetKey(environment.window, GLFW_KEY_W) -
+			glfwGetKey(environment.window, GLFW_KEY_S)
+		};
+		GLint const y_displacement_x
+		{
+			y_sign *
+			static_cast<GLint>(environment.state.camera.view_rotation.column_0[1] * distance)
+		};
+		GLint const y_displacement_y
+		{
+			y_sign *
+			static_cast<GLint>(environment.state.camera.view_rotation.column_1[1] * distance)
+		};
+		environment.state.camera.transform.xy.x += y_displacement_x;
+		environment.state.camera.transform.xy.y += y_displacement_y;
+
+		if (glfwGetKey(environment.window, GLFW_KEY_LEFT))
+		{
+			environment.state.camera.transform.angle += angle;
+		}
+		if (glfwGetKey(environment.window, GLFW_KEY_RIGHT))
+		{
+			environment.state.camera.transform.angle -= angle;
+		}
+
+		if (glfwGetKey(environment.window, GLFW_KEY_DOWN))
+		{
+			environment.state.camera.transform.z += z_distance;
+		}
+		if (glfwGetKey(environment.window, GLFW_KEY_UP))
+		{
+			environment.state.camera.transform.z -= z_distance;
+		}
+
+		// TODO: Separate into functions
+		// TODO: Make sure to not loose precision due to large angles
+		GLfloat const radians{ game_TO_RADIANS(environment, environment.state.camera.transform.angle) };
+		GLfloat const right_x{ cos(radians) };
+		GLfloat const right_y{ sin(radians) };
+		environment.state.camera.view_rotation.column_0[0] = right_x;
+		environment.state.camera.view_rotation.column_0[1] = -right_y;
+		environment.state.camera.view_rotation.column_1[0] = right_y;
+		environment.state.camera.view_rotation.column_1[1] = right_x;
 	}
 
 	void update_GPU_camera(game_environment::Environment& environment)
@@ -179,30 +265,22 @@ namespace game
 		std::memcpy
 		(
 			environment.state.camera_send_buffer + environment.state.camera_buffer_transform_offset, 
-			&environment.state.camera,
-			sizeof(environment.state.camera)
+			&environment.state.camera.transform,
+			sizeof(environment.state.camera.transform)
 		);
-
-		// TODO: Separate into functions
-		// TODO: Make sure to not loose precision due to large angles
-		GLfloat const radians{ game_TO_RADIANS(environment, environment.state.camera.angle) };
-		GLfloat const right_x{ cos(radians) };
-		GLfloat const right_y{ sin(radians) };
-		GLfloat const view_rotation_column_0[]{ right_x, -right_y };
-		GLfloat const view_rotation_column_1[]{ right_y, right_x };
 
 		std::memcpy
 		(
 			environment.state.camera_send_buffer + environment.state.camera_buffer_view_rotation_offset,
-			&view_rotation_column_0,
-			sizeof(view_rotation_column_0)
+			&environment.state.camera.view_rotation.column_0,
+			sizeof(environment.state.camera.view_rotation.column_0)
 		);
 
 		std::memcpy
 		(
 			environment.state.camera_send_buffer + environment.state.camera_buffer_view_rotation_offset + environment.state.camera_buffer_view_rotation_stride,
-			&view_rotation_column_1,
-			sizeof(view_rotation_column_1)
+			&environment.state.camera.view_rotation.column_1,
+			sizeof(environment.state.camera.view_rotation.column_1)
 		);
 
 		glNamedBufferSubData
@@ -210,6 +288,8 @@ namespace game
 			environment.state.camera_buffer, 0ll, environment.state.camera_buffer_size,
 			environment.state.camera_send_buffer
 		);
+
+		// TODO: Check if memory barrier is needed to fix tearing
 	}
 
 	void render(game_environment::Environment& environment)

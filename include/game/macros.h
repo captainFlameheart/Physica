@@ -45,4 +45,44 @@
 #define game_TO_SECONDS(environment, time) \
 	game_TO_UNIT_VALUE(time, game_SECOND_INVERSE(environment))
 
+#define game_METERS_PER_SECOND_TO_FLOAT_LENGTH_PER_TICK(environment, meters_per_second) \
+	meters_per_second * game_METER(environment) * game_SECOND_INVERSE(environment) * game_TICK(environment)
+
+#define game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, meters_per_second) \
+	static_cast<GLint>(game_METERS_PER_SECOND_TO_FLOAT_LENGTH_PER_TICK(environment, meters_per_second))
+
+#define game_RADIANS_PER_SECOND_TO_ANGLE_PER_TICK(environment, radians_per_second) \
+	game_FROM_UNIT_VALUE\
+	(\
+		radians_per_second, \
+		game_RADIAN(environment) * game_SECOND_INVERSE(environment) * game_TICK(environment)\
+	)
+
 #define game_CAMERA_BINDING 0
+
+#define game_CAMERA_DEFAULT_DISTANCE_PER_TICK(environment) \
+	game_METERS_PER_SECOND_TO_FLOAT_LENGTH_PER_TICK(environment, 5.0f)
+
+#define game_CAMERA_FAST_DISTANCE_PER_TICK_INCREASE(environment) \
+	game_METERS_PER_SECOND_TO_FLOAT_LENGTH_PER_TICK(environment, 5.0f)
+
+#define game_CAMERA_SLOW_DISTANCE_PER_TICK_DECREASE(environment) \
+	game_METERS_PER_SECOND_TO_FLOAT_LENGTH_PER_TICK(environment, 4.0f)
+
+#define game_CAMERA_DEFAULT_Z_DISTANCE_PER_TICK(environment) \
+	game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, 5.0f)
+
+#define game_CAMERA_FAST_Z_DISTANCE_PER_TICK_INCREASE(environment) \
+	game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, 15.0f)
+
+#define game_CAMERA_SLOW_Z_DISTANCE_PER_TICK_DECREASE(environment) \
+	game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, 4.0f)
+
+#define game_CAMERA_DEFAULT_ANGLE_PER_TICK(environment) \
+	game_RADIANS_PER_SECOND_TO_ANGLE_PER_TICK(environment, 2.0f)
+
+#define game_CAMERA_FAST_ANGLE_PER_TICK_INCREASE(environment) \
+	game_RADIANS_PER_SECOND_TO_ANGLE_PER_TICK(environment, 2.0f)
+
+#define game_CAMERA_SLOW_ANGLE_PER_TICK_DECREASE(environment) \
+	game_RADIANS_PER_SECOND_TO_ANGLE_PER_TICK(environment, 1.5f)
