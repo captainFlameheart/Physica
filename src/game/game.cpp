@@ -7,6 +7,115 @@
 
 namespace game
 {
+	// TODO: Make these conversion functions available at a broader level
+	
+	void window_screen_position_to_camera_local_position
+	(
+		game_environment::Environment const& environment,
+		double const window_screen_x, double const window_screen_y,
+		GLint const z,
+		GLfloat* camera_local_x, GLfloat* camera_local_y
+	)
+	{
+		int window_screen_width;
+		int window_screen_height;
+		glfwGetWindowSize(environment.window, &window_screen_width, &window_screen_height);
+		double const normalized_window_screen_x
+		{ 
+			(window_screen_x / window_screen_width) * 2.0 - 1.0 
+		};
+		double const normalized_window_screen_y
+		{
+			1.0 - (window_screen_y / window_screen_height) * 2.0
+		};
+
+		GLfloat const float_z{ static_cast<GLfloat>(z) };
+		*camera_local_x =
+		(
+			static_cast<GLfloat>(normalized_window_screen_x) * 
+			game_INVERSE_PROJECTION_SCALE_X(environment) * 
+			float_z
+		);
+		*camera_local_y =
+		(
+			static_cast<GLfloat>(normalized_window_screen_y) *
+			game_INVERSE_PROJECTION_SCALE_Y(environment) *
+			float_z
+		);
+	}
+
+	void camera_local_vector_to_world_vector
+	(
+		game_environment::Environment const& environment, 
+		GLfloat const camera_local_x, GLfloat const camera_local_y,
+		GLint* world_vector_x, GLint* world_vector_y
+	)
+	{
+		*world_vector_x = static_cast<GLint>
+		(
+			camera_local_x * environment.state.camera.view_rotation.column_0[0] +
+			camera_local_y * environment.state.camera.view_rotation.column_0[1]
+		);
+		*world_vector_y = static_cast<GLint>
+		(
+			camera_local_x * environment.state.camera.view_rotation.column_1[0] +
+			camera_local_y * environment.state.camera.view_rotation.column_1[1]
+		);
+	}
+
+	void camera_offset_to_world_position
+	(
+		game_environment::Environment const& environment,
+		GLint const camera_offset_x, GLint const camera_offset_y,
+		GLint* world_position_x, GLint* world_position_y
+	)
+	{
+		// TODO: Implement and use Vector_2D add function for this
+		*world_position_x = environment.state.camera.transform.xy.x + camera_offset_x;
+		*world_position_y = environment.state.camera.transform.xy.y + camera_offset_y;
+	}
+
+	void camera_local_position_to_world_position(
+		game_environment::Environment const& environment,
+		GLfloat const camera_local_x, GLfloat const camera_local_y,
+		GLint* world_x, GLint* world_y
+	)
+	{
+		camera_local_vector_to_world_vector
+		(
+			environment, camera_local_x, camera_local_y, world_x, world_y
+		);
+		camera_offset_to_world_position
+		(
+			environment, *world_x, *world_y, world_x, world_y
+		);
+	}
+
+	void window_screen_position_to_world_position
+	(
+		game_environment::Environment const& environment,
+		double const window_screen_x, double const window_screen_y,
+		GLint const z,
+		GLint* world_x, GLint* world_y
+	)
+	{
+		GLfloat camera_local_x;
+		GLfloat camera_local_y;
+		window_screen_position_to_camera_local_position
+		(
+			environment, 
+			window_screen_x, window_screen_y, 
+			z,
+			&camera_local_x, &camera_local_y
+		);
+		camera_local_position_to_world_position
+		(
+			environment, 
+			camera_local_x, camera_local_y, 
+			world_x, world_y
+		);
+	}
+
 	void initialize(game_environment::Environment& environment)
 	{
 		GLuint vertex_shader{ util::shader::create_shader(GL_VERTEX_SHADER) };
@@ -15,7 +124,7 @@ namespace game
 		(
 			vertex_shader,
 			util_shader_VERSION,
-			util_shader_DEFINE("PROJECTION_SCALE", "vec2(0.5, 1.0)"),
+			game_PROJECTION_SCALE_DEFINITION(environment),
 			util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
 			util::shader::file_to_string("util/unique_world_position.vert")
 		);
@@ -103,10 +212,10 @@ namespace game
 		environment.state.camera.transform.xy.y = 0;
 		environment.state.camera.transform.z = game_FROM_METERS(environment, 2.0f);
 		environment.state.camera.transform.angle = 0;
-		environment.state.camera.view_rotation.column_0[0] = 1.0;
-		environment.state.camera.view_rotation.column_0[1] = 0.0;
-		environment.state.camera.view_rotation.column_1[0] = 0.0;
-		environment.state.camera.view_rotation.column_1[1] = 1.0;
+		environment.state.camera.view_rotation.column_0[0] = 1.0f;
+		environment.state.camera.view_rotation.column_0[1] = 0.0f;
+		environment.state.camera.view_rotation.column_1[0] = 0.0f;
+		environment.state.camera.view_rotation.column_1[1] = 1.0f;
 	}
 
 	void on_key_event(
@@ -148,7 +257,7 @@ namespace game
 		double const y_pos
 	)
 	{
-		std::cout << x_pos << ", " << y_pos << std::endl;
+		//	std::cout << x_pos << ", " << y_pos << std::endl;
 	}
 
 	void on_mouse_button_event(
@@ -159,6 +268,18 @@ namespace game
 	)
 	{
 		std::cout << button << std::endl;
+		double cursor_x;
+		double cursor_y;
+		glfwGetCursorPos(environment.window, &cursor_x, &cursor_y);
+		GLint world_x;
+		GLint world_y;
+		window_screen_position_to_world_position(
+			environment,
+			cursor_x, cursor_y,
+			environment.state.camera.transform.z,
+			&world_x, &world_y
+		);
+		std::cout << game_TO_METERS(environment, world_x) << ", " << game_TO_METERS(environment, world_y) << std::endl;
 	}
 
 	void on_scroll_event(

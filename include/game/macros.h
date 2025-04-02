@@ -1,5 +1,7 @@
 #pragma once
 #include <cmath>
+#include "macros/macros.h"
+#include "util/shader/shader.h"
 
 #define game_INITIAL_TICK 100
 #define game_TICK(environment) game_INITIAL_TICK
@@ -56,6 +58,21 @@
 	(\
 		radians_per_second, \
 		game_RADIAN(environment) * game_SECOND_INVERSE(environment) * game_TICK(environment)\
+	)
+
+#define game_INVERSE_PROJECTION_SCALE_X(environment) 2.0f
+#define game_INVERSE_PROJECTION_SCALE_Y(environment) 1.0f
+#define game_PROJECTION_SCALE_X(environment) 1.0f / game_INVERSE_PROJECTION_SCALE_X(environment)
+#define game_PROJECTION_SCALE_Y(environment) 1.0f / game_INVERSE_PROJECTION_SCALE_Y(environment)
+#define game_PROJECTION_SCALE_DEFINITION(environment) \
+	util_shader_DEFINE\
+	(\
+		"PROJECTION_SCALE", \
+		"vec2" \
+		"("\
+			STRINGIFY(game_PROJECTION_SCALE_X(environment)) ", " \
+			STRINGIFY(game_PROJECTION_SCALE_Y(environment))\
+		")"\
 	)
 
 #define game_CAMERA_BINDING 0

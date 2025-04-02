@@ -83,7 +83,7 @@ namespace game_runner
 			if (game_environment.lag >= game_TICK(game_environment))
 			{
 				glfwSetTime(0.0);
-				game_environment.lag = 0.0;
+				game_environment.lag = 0;
 				DEBUG_LOG("Game loop tick limit hit!");
 			}
 
