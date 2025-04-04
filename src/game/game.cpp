@@ -316,7 +316,7 @@ namespace game
 			fast_key_pressed * game_CAMERA_FAST_DISTANCE_PER_TICK_INCREASE(environment) - 
 			slow_key_pressed * game_CAMERA_SLOW_DISTANCE_PER_TICK_DECREASE(environment) 
 		};
-		GLint const z_distance
+		GLfloat const z_distance
 		{ 
 			game_CAMERA_DEFAULT_Z_DISTANCE_PER_TICK(environment) + 
 			fast_key_pressed * game_CAMERA_FAST_Z_DISTANCE_PER_TICK_INCREASE(environment) - 
@@ -374,7 +374,6 @@ namespace game
 			environment.state.camera.angle -= angle;
 		}
 
-		// TODO: Make z_distance float
 		if (glfwGetKey(environment.window, GLFW_KEY_DOWN))
 		{
 			environment.state.camera.z += z_distance;

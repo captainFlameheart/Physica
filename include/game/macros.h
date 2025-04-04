@@ -87,13 +87,13 @@
 	game_METERS_PER_SECOND_TO_FLOAT_LENGTH_PER_TICK(environment, 4.0f)
 
 #define game_CAMERA_DEFAULT_Z_DISTANCE_PER_TICK(environment) \
-	game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, 5.0f)
+	game_METERS_PER_SECOND_TO_FLOAT_LENGTH_PER_TICK(environment, 5.0f)
 
 #define game_CAMERA_FAST_Z_DISTANCE_PER_TICK_INCREASE(environment) \
-	game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, 15.0f)
+	game_METERS_PER_SECOND_TO_FLOAT_LENGTH_PER_TICK(environment, 15.0f)
 
 #define game_CAMERA_SLOW_Z_DISTANCE_PER_TICK_DECREASE(environment) \
-	game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, 4.0f)
+	game_METERS_PER_SECOND_TO_FLOAT_LENGTH_PER_TICK(environment, 4.0f)
 
 #define game_CAMERA_DEFAULT_ANGLE_PER_TICK(environment) \
 	game_RADIANS_PER_SECOND_TO_ANGLE_PER_TICK(environment, 2.0f)
