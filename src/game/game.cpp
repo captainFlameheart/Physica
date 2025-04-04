@@ -13,7 +13,6 @@ namespace game
 	(
 		game_environment::Environment const& environment,
 		double const window_screen_x, double const window_screen_y,
-		GLint const z,
 		GLfloat* camera_local_x, GLfloat* camera_local_y
 	)
 	{
@@ -29,18 +28,17 @@ namespace game
 			1.0 - (window_screen_y / window_screen_height) * 2.0
 		};
 
-		GLfloat const float_z{ static_cast<GLfloat>(z) };
 		*camera_local_x =
 		(
 			static_cast<GLfloat>(normalized_window_screen_x) * 
 			game_INVERSE_PROJECTION_SCALE_X(environment) * 
-			float_z
+			environment.state.camera.z
 		);
 		*camera_local_y =
 		(
 			static_cast<GLfloat>(normalized_window_screen_y) *
 			game_INVERSE_PROJECTION_SCALE_Y(environment) *
-			float_z
+			environment.state.camera.z
 		);
 	}
 
@@ -71,8 +69,8 @@ namespace game
 	)
 	{
 		// TODO: Implement and use Vector_2D add function for this
-		*world_position_x = environment.state.camera.transform.xy.x + camera_offset_x;
-		*world_position_y = environment.state.camera.transform.xy.y + camera_offset_y;
+		*world_position_x = environment.state.camera.xy.x + camera_offset_x;
+		*world_position_y = environment.state.camera.xy.y + camera_offset_y;
 	}
 
 	void camera_local_position_to_world_position(
@@ -95,7 +93,6 @@ namespace game
 	(
 		game_environment::Environment const& environment,
 		double const window_screen_x, double const window_screen_y,
-		GLint const z,
 		GLint* world_x, GLint* world_y
 	)
 	{
@@ -105,7 +102,6 @@ namespace game
 		(
 			environment, 
 			window_screen_x, window_screen_y, 
-			z,
 			&camera_local_x, &camera_local_y
 		);
 		camera_local_position_to_world_position
@@ -165,14 +161,34 @@ namespace game
 
 			GLenum const offset_label{ GL_OFFSET };
 
-			GLuint const transform_index
+			GLuint const xy_index
 			{
-				glGetProgramResourceIndex(environment.state.shader, GL_UNIFORM, "Camera.transform")
+				glGetProgramResourceIndex(environment.state.shader, GL_UNIFORM, "Camera.xy")
 			};
 			glGetProgramResourceiv
 			(
-				environment.state.shader, GL_UNIFORM, transform_index,
-				1, &offset_label, 1, nullptr, &environment.state.camera_buffer_transform_offset
+				environment.state.shader, GL_UNIFORM, xy_index,
+				1, &offset_label, 1, nullptr, &environment.state.camera_buffer_xy_offset
+			);
+
+			GLuint const angle_index
+			{
+				glGetProgramResourceIndex(environment.state.shader, GL_UNIFORM, "Camera.angle")
+			};
+			glGetProgramResourceiv
+			(
+				environment.state.shader, GL_UNIFORM, angle_index,
+				1, &offset_label, 1, nullptr, &environment.state.camera_buffer_angle_offset
+			);
+
+			GLuint const z_index
+			{
+				glGetProgramResourceIndex(environment.state.shader, GL_UNIFORM, "Camera.z")
+			};
+			glGetProgramResourceiv
+			(
+				environment.state.shader, GL_UNIFORM, z_index,
+				1, &offset_label, 1, nullptr, &environment.state.camera_buffer_z_offset
 			);
 
 			GLuint const view_rotation_index
@@ -208,10 +224,10 @@ namespace game
 
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-		environment.state.camera.transform.xy.x = 0;
-		environment.state.camera.transform.xy.y = 0;
-		environment.state.camera.transform.z = game_FROM_METERS(environment, 2.0f);
-		environment.state.camera.transform.angle = 0;
+		environment.state.camera.xy.x = 0;
+		environment.state.camera.xy.y = 0;
+		environment.state.camera.angle = 0;
+		environment.state.camera.z = game_FROM_METERS(environment, 2.0f);
 		environment.state.camera.view_rotation.column_0[0] = 1.0f;
 		environment.state.camera.view_rotation.column_0[1] = 0.0f;
 		environment.state.camera.view_rotation.column_1[0] = 0.0f;
@@ -276,7 +292,6 @@ namespace game
 		window_screen_position_to_world_position(
 			environment,
 			cursor_x, cursor_y,
-			environment.state.camera.transform.z,
 			&world_x, &world_y
 		);
 		std::cout << game_TO_METERS(environment, world_x) << ", " << game_TO_METERS(environment, world_y) << std::endl;
@@ -329,8 +344,8 @@ namespace game
 			x_sign * 
 			static_cast<GLint>(environment.state.camera.view_rotation.column_1[0] * distance)
 		};
-		environment.state.camera.transform.xy.x += x_displacement_x;
-		environment.state.camera.transform.xy.y += x_displacement_y;
+		environment.state.camera.xy.x += x_displacement_x;
+		environment.state.camera.xy.y += x_displacement_y;
 
 		GLint const y_sign
 		{
@@ -347,30 +362,31 @@ namespace game
 			y_sign *
 			static_cast<GLint>(environment.state.camera.view_rotation.column_1[1] * distance)
 		};
-		environment.state.camera.transform.xy.x += y_displacement_x;
-		environment.state.camera.transform.xy.y += y_displacement_y;
+		environment.state.camera.xy.x += y_displacement_x;
+		environment.state.camera.xy.y += y_displacement_y;
 
 		if (glfwGetKey(environment.window, GLFW_KEY_LEFT))
 		{
-			environment.state.camera.transform.angle += angle;
+			environment.state.camera.angle += angle;
 		}
 		if (glfwGetKey(environment.window, GLFW_KEY_RIGHT))
 		{
-			environment.state.camera.transform.angle -= angle;
+			environment.state.camera.angle -= angle;
 		}
 
+		// TODO: Make z_distance float
 		if (glfwGetKey(environment.window, GLFW_KEY_DOWN))
 		{
-			environment.state.camera.transform.z += z_distance;
+			environment.state.camera.z += z_distance;
 		}
 		if (glfwGetKey(environment.window, GLFW_KEY_UP))
 		{
-			environment.state.camera.transform.z -= z_distance;
+			environment.state.camera.z -= z_distance;
 		}
 
 		// TODO: Separate into functions
 		// TODO: Make sure to not loose precision due to large angles
-		GLfloat const radians{ game_TO_RADIANS(environment, environment.state.camera.transform.angle) };
+		GLfloat const radians{ game_TO_RADIANS(environment, environment.state.camera.angle) };
 		GLfloat const right_x{ cos(radians) };
 		GLfloat const right_y{ sin(radians) };
 		environment.state.camera.view_rotation.column_0[0] = right_x;
@@ -385,9 +401,23 @@ namespace game
 		// TODO: Store pointers instead of offsets to avoid additions
 		std::memcpy
 		(
-			environment.state.camera_send_buffer + environment.state.camera_buffer_transform_offset, 
-			&environment.state.camera.transform,
-			sizeof(environment.state.camera.transform)
+			environment.state.camera_send_buffer + environment.state.camera_buffer_xy_offset, 
+			&environment.state.camera.xy,
+			sizeof(environment.state.camera.xy)
+		);
+
+		std::memcpy
+		(
+			environment.state.camera_send_buffer + environment.state.camera_buffer_angle_offset,
+			&environment.state.camera.angle,
+			sizeof(environment.state.camera.angle)
+		);
+
+		std::memcpy
+		(
+			environment.state.camera_send_buffer + environment.state.camera_buffer_z_offset,
+			&environment.state.camera.z,
+			sizeof(environment.state.camera.z)
 		);
 
 		std::memcpy

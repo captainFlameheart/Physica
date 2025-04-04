@@ -3,13 +3,6 @@
 
 namespace game::camera
 {
-	struct Transform
-	{
-		util::math::Vector_2D xy;
-		GLint z;
-		GLint angle;
-	};
-
 	struct View_Rotation
 	{
 		GLfloat column_0[2];
@@ -18,7 +11,9 @@ namespace game::camera
 
 	struct Camera
 	{
-		Transform transform;
+		util::math::Vector_2D xy;
+		GLint angle;
+		GLfloat z;
 		View_Rotation view_rotation;
 	};
 }
