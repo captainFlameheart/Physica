@@ -198,6 +198,36 @@ namespace game
 	)
 	{
 		std::cout << "(" << x_offset << ", " << y_offset << ")" << std::endl;
+		
+		GLfloat const zoom_scroll{ static_cast<GLfloat>(y_offset) };
+		GLfloat const zoom_scroll_distance
+		{ 
+			zoom_scroll * game_CAMERA_SCROLL_ZOOM_DISTANCE(environment) 
+		};
+		GLfloat camera_local_cursor_unit_z_x, camera_local_cursor_unit_z_y;
+		window_to_camera::window_screen_cursor_position_to_camera_local_unit_z_vector
+		(
+			environment, 
+			&camera_local_cursor_unit_z_x, &camera_local_cursor_unit_z_y
+		);
+		GLfloat const delta_z{ 
+			zoom_scroll_distance / 
+			sqrtf
+			(
+				camera_local_cursor_unit_z_x * camera_local_cursor_unit_z_x +
+				camera_local_cursor_unit_z_y * camera_local_cursor_unit_z_y +
+				1.0f
+			) 
+		};
+
+		GLfloat camera_local_world_grab_x, camera_local_world_grab_y;
+
+		GLfloat const camera_local_delta_x{ camera_local_cursor_unit_z_x * delta_z };
+
+		GLfloat const camera_local_delta_y{ camera_local_cursor_unit_z_y * delta_z };
+
+		GLfloat const angle_scroll{ static_cast<GLfloat>(x_offset) };
+
 		/*GLfloat camera_unit_delta_x;
 		GLfloat unit_delta_y;
 		window_screen_position_to_camera_local_unit_vector(

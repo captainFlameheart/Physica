@@ -2,6 +2,7 @@
 #include "game/window_to_camera/window_to_camera.h"
 #include "game/macros.h"
 #include "game/glfw/glfw.h"
+#include "game/camera_util/util.h"
 
 namespace game::window_to_camera
 {
@@ -89,8 +90,12 @@ namespace game::window_to_camera
 			&camera_local_unit_z_x, &camera_local_unit_z_y
 		);
 
-		*camera_local_world_x = camera_local_unit_z_x * environment.state.camera.z;
-		*camera_local_world_y = camera_local_unit_z_y * environment.state.camera.z;
+		game::camera_util::camera_local_unit_z_vector_to_camera_local_world_vector
+		(
+			environment, 
+			camera_local_unit_z_x, camera_local_unit_z_y, 
+			camera_local_world_x, camera_local_world_y
+		);
 	}
 
 	void window_screen_cursor_position_to_camera_local_world_vector

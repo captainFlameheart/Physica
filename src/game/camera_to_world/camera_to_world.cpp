@@ -11,15 +11,15 @@ namespace game::camera_to_world
 	)
 	{
 		*world_vector_x = static_cast<GLint>
-			(
-				camera_local_world_x * environment.state.camera.view_rotation.column_0[0] +
-				camera_local_world_y * environment.state.camera.view_rotation.column_0[1]
-				);
+		(
+			camera_local_world_x * environment.state.camera.view_rotation.column_0[0] +
+			camera_local_world_y * environment.state.camera.view_rotation.column_0[1]
+		);
 		*world_vector_y = static_cast<GLint>
-			(
-				camera_local_world_x * environment.state.camera.view_rotation.column_1[0] +
-				camera_local_world_y * environment.state.camera.view_rotation.column_1[1]
-				);
+		(
+			camera_local_world_x * environment.state.camera.view_rotation.column_1[0] +
+			camera_local_world_y * environment.state.camera.view_rotation.column_1[1]
+		);
 	}
 
 	void camera_world_offset_to_world_position
