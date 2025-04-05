@@ -19,7 +19,22 @@
 #define game_KILOGRAM_INVERSE(environment) game_UNIT_INVERSE(game_KILOGRAM(environment))
 #define game_SECOND_INVERSE(environment) game_UNIT_INVERSE(game_SECOND(environment))
 
-#define game_FROM_UNIT_VALUE(value, unit) static_cast<GLint>(value * unit)
+#define game_FLOAT_FROM_UNIT_VALUE(value, unit) value * unit
+
+#define game_FLOAT_FROM_METERS(environment, meters) \
+	game_FLOAT_FROM_UNIT_VALUE(meters, game_METER(environment))
+
+#define game_FLOAT_FROM_RADIANS(environment, radians) \
+	game_FLOAT_FROM_UNIT_VALUE(radians, game_RADIAN(environment))
+
+#define game_FLOAT_FROM_KILOGRAMS(environment, kilograms) \
+	game_FLOAT_FROM_UNIT_VALUE(kilograms, game_KILOGRAM(environment))
+
+#define game_FLOAT_FROM_SECONDS(environment, seconds) \
+	game_FLOAT_FROM_UNIT_VALUE(seconds, game_SECOND(environment))
+
+#define game_FROM_UNIT_VALUE(value, unit) \
+	static_cast<GLint>(game_FLOAT_FROM_UNIT_VALUE(value, unit))
 
 #define game_FROM_METERS(environment, meters) \
 	game_FROM_UNIT_VALUE(meters, game_METER(environment))
@@ -103,3 +118,6 @@
 
 #define game_CAMERA_SLOW_ANGLE_PER_TICK_DECREASE(environment) \
 	game_RADIANS_PER_SECOND_TO_ANGLE_PER_TICK(environment, 1.5f)
+
+#define game_CAMERA_SCROLL_ZOOM_DISTANCE(environment) \
+	game_FLOAT_FROM_METERS(environment, 0.5f)

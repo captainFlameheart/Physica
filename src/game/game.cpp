@@ -4,88 +4,209 @@
 #include "util/shader/shader.h"
 #include <iostream>
 #include "macros/macros.h"
+#include "game/glfw/glfw.h"
 
 namespace game
 {
-	// TODO: Make these conversion functions available at a broader level
+	// TODO: Make these functions available at a broader level
 	
-	void window_screen_position_to_camera_local_position
+	// TODO: Separate into window-to-camera package
+
+	void window_screen_x_to_camera_local_unit_z_x
+	(
+		game_environment::Environment const& environment,
+		int const window_screen_width, double const window_screen_x,
+		GLfloat* camera_local_unit_x
+	)
+	{
+		*camera_local_unit_x =
+		(
+			static_cast<GLfloat>((window_screen_x / window_screen_width) * 2.0 - 1.0) *
+			game_INVERSE_PROJECTION_SCALE_X(environment)
+		);
+	}
+
+	void window_screen_y_to_camera_local_unit_z_y
+	(
+		game_environment::Environment const& environment,
+		int const window_screen_height, double const window_screen_y,
+		GLfloat* camera_local_unit_y
+	)
+	{
+		*camera_local_unit_y =
+		(
+			static_cast<GLfloat>(1.0 - (window_screen_y / window_screen_height) * 2.0) *
+			game_INVERSE_PROJECTION_SCALE_Y(environment)
+		);
+	}
+
+	void window_screen_position_to_camera_local_unit_z_vector
 	(
 		game_environment::Environment const& environment,
 		double const window_screen_x, double const window_screen_y,
-		GLfloat* camera_local_x, GLfloat* camera_local_y
+		GLfloat* camera_local_unit_z_x, GLfloat* camera_local_unit_z_y
 	)
 	{
 		int window_screen_width;
 		int window_screen_height;
-		glfwGetWindowSize(environment.window, &window_screen_width, &window_screen_height);
-		double const normalized_window_screen_x
-		{ 
-			(window_screen_x / window_screen_width) * 2.0 - 1.0 
-		};
-		double const normalized_window_screen_y
-		{
-			1.0 - (window_screen_y / window_screen_height) * 2.0
-		};
-
-		*camera_local_x =
+		glfw::get_window_screen_size(environment, &window_screen_width, &window_screen_height);
+		
+		window_screen_x_to_camera_local_unit_z_x
 		(
-			static_cast<GLfloat>(normalized_window_screen_x) * 
-			game_INVERSE_PROJECTION_SCALE_X(environment) * 
-			environment.state.camera.z
+			environment, window_screen_width, window_screen_x, camera_local_unit_z_x
 		);
-		*camera_local_y =
+		window_screen_y_to_camera_local_unit_z_y
 		(
-			static_cast<GLfloat>(normalized_window_screen_y) *
-			game_INVERSE_PROJECTION_SCALE_Y(environment) *
-			environment.state.camera.z
+			environment, window_screen_height, window_screen_y, camera_local_unit_z_y
 		);
 	}
 
-	void camera_local_vector_to_world_vector
+	void window_screen_cursor_position_to_camera_local_unit_z_vector
+	(
+		game_environment::Environment const& environment,
+		GLfloat* camera_local_unit_z_x, GLfloat* camera_local_unit_z_y
+	)
+	{
+		double window_screen_cursor_x, window_screen_cursor_y;
+		glfw::get_window_screen_cursor_position
+		(
+			environment, &window_screen_cursor_x, &window_screen_cursor_y
+		);
+		window_screen_position_to_camera_local_unit_z_vector
+		(
+			environment, 
+			window_screen_cursor_x, window_screen_cursor_y, 
+			camera_local_unit_z_x, camera_local_unit_z_y
+		);
+	}
+
+	void window_screen_position_to_camera_local_world_vector
+	(
+		game_environment::Environment const& environment,
+		double const window_screen_x, double const window_screen_y,
+		GLfloat* camera_local_world_x, GLfloat* camera_local_world_y
+	)
+	{
+		GLfloat camera_local_unit_z_x;
+		GLfloat camera_local_unit_z_y;
+		window_screen_position_to_camera_local_unit_z_vector
+		(
+			environment,
+			window_screen_x, window_screen_y, 
+			&camera_local_unit_z_x, &camera_local_unit_z_y
+		);
+
+		*camera_local_world_x = camera_local_unit_z_x * environment.state.camera.z;
+		*camera_local_world_y = camera_local_unit_z_y * environment.state.camera.z;
+	}
+
+	void window_screen_cursor_position_to_camera_local_world_vector
+	(
+		game_environment::Environment const& environment,
+		GLfloat* camera_local_world_x, GLfloat* camera_local_world_y
+	)
+	{
+		double window_screen_cursor_x, window_screen_cursor_y;
+		glfw::get_window_screen_cursor_position
+		(
+			environment, &window_screen_cursor_x, &window_screen_cursor_y
+		);
+		window_screen_position_to_camera_local_world_vector
+		(
+			environment, 
+			window_screen_cursor_x, window_screen_cursor_y, 
+			camera_local_world_x, camera_local_world_y
+		);
+	}
+
+	// TODO: Put in camera-to-world package
+
+	void camera_local_world_vector_to_world_vector
 	(
 		game_environment::Environment const& environment, 
-		GLfloat const camera_local_x, GLfloat const camera_local_y,
+		GLfloat const camera_local_world_x, GLfloat const camera_local_world_y,
 		GLint* world_vector_x, GLint* world_vector_y
 	)
 	{
 		*world_vector_x = static_cast<GLint>
 		(
-			camera_local_x * environment.state.camera.view_rotation.column_0[0] +
-			camera_local_y * environment.state.camera.view_rotation.column_0[1]
+			camera_local_world_x * environment.state.camera.view_rotation.column_0[0] +
+			camera_local_world_y * environment.state.camera.view_rotation.column_0[1]
 		);
 		*world_vector_y = static_cast<GLint>
 		(
-			camera_local_x * environment.state.camera.view_rotation.column_1[0] +
-			camera_local_y * environment.state.camera.view_rotation.column_1[1]
+			camera_local_world_x * environment.state.camera.view_rotation.column_1[0] +
+			camera_local_world_y * environment.state.camera.view_rotation.column_1[1]
 		);
 	}
 
-	void camera_offset_to_world_position
+	void camera_world_offset_to_world_position
 	(
 		game_environment::Environment const& environment,
-		GLint const camera_offset_x, GLint const camera_offset_y,
+		GLint const camera_world_offset_x, GLint const camera_world_offset_y,
 		GLint* world_position_x, GLint* world_position_y
 	)
 	{
 		// TODO: Implement and use Vector_2D add function for this
-		*world_position_x = environment.state.camera.xy.x + camera_offset_x;
-		*world_position_y = environment.state.camera.xy.y + camera_offset_y;
+		*world_position_x = environment.state.camera.xy.x + camera_world_offset_x;
+		*world_position_y = environment.state.camera.xy.y + camera_world_offset_y;
 	}
 
-	void camera_local_position_to_world_position(
+	void camera_local_world_position_to_world_position(
 		game_environment::Environment const& environment,
-		GLfloat const camera_local_x, GLfloat const camera_local_y,
+		GLfloat const camera_local_world_x, GLfloat const camera_local_world_y,
 		GLint* world_x, GLint* world_y
 	)
 	{
-		camera_local_vector_to_world_vector
+		camera_local_world_vector_to_world_vector
 		(
-			environment, camera_local_x, camera_local_y, world_x, world_y
+			environment, camera_local_world_x, camera_local_world_y, world_x, world_y
 		);
-		camera_offset_to_world_position
+		camera_world_offset_to_world_position
 		(
 			environment, *world_x, *world_y, world_x, world_y
+		);
+	}
+
+	// TODO: Put in window-to-world package
+
+	void window_screen_position_to_world_vector
+	(
+		game_environment::Environment const& environment,
+		GLfloat const window_screen_x, GLfloat const window_screen_y, 
+		GLint* world_x, GLint* world_y
+	)
+	{
+		GLfloat camera_local_world_x, camera_local_world_y;
+		window_screen_position_to_camera_local_world_vector
+		(
+			environment,
+			window_screen_x, window_screen_y,
+			&camera_local_world_x, &camera_local_world_y
+		);
+		camera_local_world_vector_to_world_vector
+		(
+			environment, 
+			camera_local_world_x, camera_local_world_y, 
+			world_x, world_y
+		);
+	}
+
+	void window_screen_cursor_position_to_world_vector
+	(
+		game_environment::Environment const& environment,
+		GLint* world_x, GLint* world_y
+	)
+	{
+		double window_screen_cursor_x, window_screen_cursor_y;
+		glfw::get_window_screen_cursor_position
+		(
+			environment, &window_screen_cursor_x, &window_screen_cursor_y
+		);
+		window_screen_position_to_world_vector(
+			environment,
+			window_screen_cursor_x, window_screen_cursor_y,
+			world_x, world_y
 		);
 	}
 
@@ -96,18 +217,18 @@ namespace game
 		GLint* world_x, GLint* world_y
 	)
 	{
-		GLfloat camera_local_x;
-		GLfloat camera_local_y;
-		window_screen_position_to_camera_local_position
+		GLfloat camera_local_world_x;
+		GLfloat camera_local_world_y;
+		window_screen_position_to_camera_local_world_vector
 		(
 			environment, 
 			window_screen_x, window_screen_y, 
-			&camera_local_x, &camera_local_y
+			&camera_local_world_x, &camera_local_world_y
 		);
-		camera_local_position_to_world_position
+		camera_local_world_position_to_world_position
 		(
 			environment, 
-			camera_local_x, camera_local_y, 
+			camera_local_world_x, camera_local_world_y,
 			world_x, world_y
 		);
 	}
@@ -304,6 +425,17 @@ namespace game
 	)
 	{
 		std::cout << "(" << x_offset << ", " << y_offset << ")" << std::endl;
+		/*GLfloat camera_unit_delta_x;
+		GLfloat unit_delta_y;
+		window_screen_position_to_camera_local_unit_vector(
+			environment, 
+		)
+		GLfloat const delta_z
+		{
+			game_CAMERA_SCROLL_ZOOM_DISTANCE(environment) / 
+			sqrtf()
+		};*/
+		//environment.state.camera.z -= y_offset * game_CAMERA_SCROLL_ZOOM_DISTANCE(environment);
 	}
 
 	void tick(game_environment::Environment& environment)
