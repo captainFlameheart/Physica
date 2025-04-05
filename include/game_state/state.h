@@ -1,5 +1,4 @@
 #pragma once
-
 #include "game/camera/camera.h"
 
 namespace game_state

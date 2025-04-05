@@ -1,5 +1,6 @@
 #pragma once
-#include <GLFW/glfw3.h>
+#include <glad_glfw.h>
+//#include <GLFW/glfw3.h>
 
 namespace game_runner
 {

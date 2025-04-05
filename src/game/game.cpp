@@ -1,238 +1,15 @@
-#include <glad/glad.h>
+#include "glad_glfw.h"
 #include "game/game.h"
-#include <GLFW/glfw3.h>
 #include "util/shader/shader.h"
 #include <iostream>
 #include "macros/macros.h"
 #include "game/glfw/glfw.h"
+#include "game/window_to_camera/window_to_camera.h"
+#include "game/camera_to_world/camera_to_world.h"
+#include "game/window_to_world/window_to_world.h"
 
 namespace game
 {
-	// TODO: Make these functions available at a broader level
-	
-	// TODO: Separate into window-to-camera package
-
-	void window_screen_x_to_camera_local_unit_z_x
-	(
-		game_environment::Environment const& environment,
-		int const window_screen_width, double const window_screen_x,
-		GLfloat* camera_local_unit_x
-	)
-	{
-		*camera_local_unit_x =
-		(
-			static_cast<GLfloat>((window_screen_x / window_screen_width) * 2.0 - 1.0) *
-			game_INVERSE_PROJECTION_SCALE_X(environment)
-		);
-	}
-
-	void window_screen_y_to_camera_local_unit_z_y
-	(
-		game_environment::Environment const& environment,
-		int const window_screen_height, double const window_screen_y,
-		GLfloat* camera_local_unit_y
-	)
-	{
-		*camera_local_unit_y =
-		(
-			static_cast<GLfloat>(1.0 - (window_screen_y / window_screen_height) * 2.0) *
-			game_INVERSE_PROJECTION_SCALE_Y(environment)
-		);
-	}
-
-	void window_screen_position_to_camera_local_unit_z_vector
-	(
-		game_environment::Environment const& environment,
-		double const window_screen_x, double const window_screen_y,
-		GLfloat* camera_local_unit_z_x, GLfloat* camera_local_unit_z_y
-	)
-	{
-		int window_screen_width;
-		int window_screen_height;
-		glfw::get_window_screen_size(environment, &window_screen_width, &window_screen_height);
-		
-		window_screen_x_to_camera_local_unit_z_x
-		(
-			environment, window_screen_width, window_screen_x, camera_local_unit_z_x
-		);
-		window_screen_y_to_camera_local_unit_z_y
-		(
-			environment, window_screen_height, window_screen_y, camera_local_unit_z_y
-		);
-	}
-
-	void window_screen_cursor_position_to_camera_local_unit_z_vector
-	(
-		game_environment::Environment const& environment,
-		GLfloat* camera_local_unit_z_x, GLfloat* camera_local_unit_z_y
-	)
-	{
-		double window_screen_cursor_x, window_screen_cursor_y;
-		glfw::get_window_screen_cursor_position
-		(
-			environment, &window_screen_cursor_x, &window_screen_cursor_y
-		);
-		window_screen_position_to_camera_local_unit_z_vector
-		(
-			environment, 
-			window_screen_cursor_x, window_screen_cursor_y, 
-			camera_local_unit_z_x, camera_local_unit_z_y
-		);
-	}
-
-	void window_screen_position_to_camera_local_world_vector
-	(
-		game_environment::Environment const& environment,
-		double const window_screen_x, double const window_screen_y,
-		GLfloat* camera_local_world_x, GLfloat* camera_local_world_y
-	)
-	{
-		GLfloat camera_local_unit_z_x;
-		GLfloat camera_local_unit_z_y;
-		window_screen_position_to_camera_local_unit_z_vector
-		(
-			environment,
-			window_screen_x, window_screen_y, 
-			&camera_local_unit_z_x, &camera_local_unit_z_y
-		);
-
-		*camera_local_world_x = camera_local_unit_z_x * environment.state.camera.z;
-		*camera_local_world_y = camera_local_unit_z_y * environment.state.camera.z;
-	}
-
-	void window_screen_cursor_position_to_camera_local_world_vector
-	(
-		game_environment::Environment const& environment,
-		GLfloat* camera_local_world_x, GLfloat* camera_local_world_y
-	)
-	{
-		double window_screen_cursor_x, window_screen_cursor_y;
-		glfw::get_window_screen_cursor_position
-		(
-			environment, &window_screen_cursor_x, &window_screen_cursor_y
-		);
-		window_screen_position_to_camera_local_world_vector
-		(
-			environment, 
-			window_screen_cursor_x, window_screen_cursor_y, 
-			camera_local_world_x, camera_local_world_y
-		);
-	}
-
-	// TODO: Put in camera-to-world package
-
-	void camera_local_world_vector_to_world_vector
-	(
-		game_environment::Environment const& environment, 
-		GLfloat const camera_local_world_x, GLfloat const camera_local_world_y,
-		GLint* world_vector_x, GLint* world_vector_y
-	)
-	{
-		*world_vector_x = static_cast<GLint>
-		(
-			camera_local_world_x * environment.state.camera.view_rotation.column_0[0] +
-			camera_local_world_y * environment.state.camera.view_rotation.column_0[1]
-		);
-		*world_vector_y = static_cast<GLint>
-		(
-			camera_local_world_x * environment.state.camera.view_rotation.column_1[0] +
-			camera_local_world_y * environment.state.camera.view_rotation.column_1[1]
-		);
-	}
-
-	void camera_world_offset_to_world_position
-	(
-		game_environment::Environment const& environment,
-		GLint const camera_world_offset_x, GLint const camera_world_offset_y,
-		GLint* world_position_x, GLint* world_position_y
-	)
-	{
-		// TODO: Implement and use Vector_2D add function for this
-		*world_position_x = environment.state.camera.xy.x + camera_world_offset_x;
-		*world_position_y = environment.state.camera.xy.y + camera_world_offset_y;
-	}
-
-	void camera_local_world_position_to_world_position(
-		game_environment::Environment const& environment,
-		GLfloat const camera_local_world_x, GLfloat const camera_local_world_y,
-		GLint* world_x, GLint* world_y
-	)
-	{
-		camera_local_world_vector_to_world_vector
-		(
-			environment, camera_local_world_x, camera_local_world_y, world_x, world_y
-		);
-		camera_world_offset_to_world_position
-		(
-			environment, *world_x, *world_y, world_x, world_y
-		);
-	}
-
-	// TODO: Put in window-to-world package
-
-	void window_screen_position_to_world_vector
-	(
-		game_environment::Environment const& environment,
-		GLfloat const window_screen_x, GLfloat const window_screen_y, 
-		GLint* world_x, GLint* world_y
-	)
-	{
-		GLfloat camera_local_world_x, camera_local_world_y;
-		window_screen_position_to_camera_local_world_vector
-		(
-			environment,
-			window_screen_x, window_screen_y,
-			&camera_local_world_x, &camera_local_world_y
-		);
-		camera_local_world_vector_to_world_vector
-		(
-			environment, 
-			camera_local_world_x, camera_local_world_y, 
-			world_x, world_y
-		);
-	}
-
-	void window_screen_cursor_position_to_world_vector
-	(
-		game_environment::Environment const& environment,
-		GLint* world_x, GLint* world_y
-	)
-	{
-		double window_screen_cursor_x, window_screen_cursor_y;
-		glfw::get_window_screen_cursor_position
-		(
-			environment, &window_screen_cursor_x, &window_screen_cursor_y
-		);
-		window_screen_position_to_world_vector(
-			environment,
-			window_screen_cursor_x, window_screen_cursor_y,
-			world_x, world_y
-		);
-	}
-
-	void window_screen_position_to_world_position
-	(
-		game_environment::Environment const& environment,
-		double const window_screen_x, double const window_screen_y,
-		GLint* world_x, GLint* world_y
-	)
-	{
-		GLfloat camera_local_world_x;
-		GLfloat camera_local_world_y;
-		window_screen_position_to_camera_local_world_vector
-		(
-			environment, 
-			window_screen_x, window_screen_y, 
-			&camera_local_world_x, &camera_local_world_y
-		);
-		camera_local_world_position_to_world_position
-		(
-			environment, 
-			camera_local_world_x, camera_local_world_y,
-			world_x, world_y
-		);
-	}
-
 	void initialize(game_environment::Environment& environment)
 	{
 		GLuint vertex_shader{ util::shader::create_shader(GL_VERTEX_SHADER) };
@@ -405,14 +182,10 @@ namespace game
 	)
 	{
 		std::cout << button << std::endl;
-		double cursor_x;
-		double cursor_y;
-		glfwGetCursorPos(environment.window, &cursor_x, &cursor_y);
 		GLint world_x;
 		GLint world_y;
-		window_screen_position_to_world_position(
+		window_to_world::window_screen_cursor_position_to_world_position(
 			environment,
-			cursor_x, cursor_y,
 			&world_x, &world_y
 		);
 		std::cout << game_TO_METERS(environment, world_x) << ", " << game_TO_METERS(environment, world_y) << std::endl;
