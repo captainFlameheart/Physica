@@ -2,22 +2,19 @@
 #include <cmath>
 #include "macros/macros.h"
 #include "util/shader/shader.h"
-
-#define game_INITIAL_TICK 100
-#define game_TICK(environment) game_INITIAL_TICK
-#define game_MAX_TICKS_PER_FRAME(environment) 10u
+#include "game_logic/util/SECOND.h"
+#include "game_logic/util/TICK.h"
 
 #define game_METER(environment) 1000000.0f
 #define game_RADIAN(environment) 1000000.0f
 #define game_KILOGRAM(environment) 1000.0f
-#define game_SECOND(environment) (120.0f * game_INITIAL_TICK)
 
 #define game_UNIT_INVERSE(unit) 1.0f / unit
 
 #define game_METER_INVERSE(environment) game_UNIT_INVERSE(game_METER(environment))
 #define game_RADIAN_INVERSE(environment) game_UNIT_INVERSE(game_RADIAN(environment))
 #define game_KILOGRAM_INVERSE(environment) game_UNIT_INVERSE(game_KILOGRAM(environment))
-#define game_SECOND_INVERSE(environment) game_UNIT_INVERSE(game_SECOND(environment))
+#define game_SECOND_INVERSE(environment) game_UNIT_INVERSE(game_logic__util_SECOND(environment))
 
 #define game_FLOAT_FROM_UNIT_VALUE(value, unit) value * unit
 
@@ -63,7 +60,7 @@
 	game_TO_UNIT_VALUE(time, game_SECOND_INVERSE(environment))
 
 #define game_METERS_PER_SECOND_TO_FLOAT_LENGTH_PER_TICK(environment, meters_per_second) \
-	meters_per_second * game_METER(environment) * game_SECOND_INVERSE(environment) * game_TICK(environment)
+	meters_per_second * game_METER(environment) * game_SECOND_INVERSE(environment) * game_logic__util_TICK(environment)
 
 #define game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, meters_per_second) \
 	static_cast<GLint>(game_METERS_PER_SECOND_TO_FLOAT_LENGTH_PER_TICK(environment, meters_per_second))
@@ -72,7 +69,7 @@
 	game_FROM_UNIT_VALUE\
 	(\
 		radians_per_second, \
-		game_RADIAN(environment) * game_SECOND_INVERSE(environment) * game_TICK(environment)\
+		game_RADIAN(environment) * game_SECOND_INVERSE(environment) * game_logic__util_TICK(environment)\
 	)
 
 #define game_INVERSE_PROJECTION_SCALE_X(environment) 2.0f

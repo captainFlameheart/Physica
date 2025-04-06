@@ -1,6 +1,9 @@
 #include <glad/glad.h>
 #include "game_runner/game_loop.h"
 #include "game_logic/game.h"
+#include "game_logic/util/SECOND.h"
+#include "game_logic/util/TICK.h"
+#include "game_logic/util/MAX_TICKS_PER_FRAME.h"
 #include "macros/macros.h"
 
 namespace game_runner
@@ -71,16 +74,16 @@ namespace game_runner
 			game_environment.ticks_this_frame = 0u;
 			while 
 			(
-				(game_environment.lag = glfwGetTime() * game_SECOND(game_environment)) >= game_TICK(game_environment) &&
+				(game_environment.lag = glfwGetTime() * game_logic__util_SECOND(game_environment)) >= game_logic__util_TICK(game_environment) &&
 				game_environment.ticks_this_frame < game_MAX_TICKS_PER_FRAME(game_environment)
 			)
 			{
 				game_logic::tick(game_environment);
-				glfwSetTime(glfwGetTime() - game_TICK(game_environment) / game_SECOND(game_environment));
+				glfwSetTime(glfwGetTime() - game_logic__util_TICK(game_environment) / game_logic__util_SECOND(game_environment));
 				++game_environment.ticks_this_frame;
 			}
 
-			if (game_environment.lag >= game_TICK(game_environment))
+			if (game_environment.lag >= game_logic__util_TICK(game_environment))
 			{
 				glfwSetTime(0.0);
 				game_environment.lag = 0;
