@@ -1,5 +1,5 @@
 #include "glad_glfw.h"
-#include "game_logic/logic.h"
+#include "game_logic/game.h"
 #include "util/shader/shader.h"
 #include <iostream>
 #include "macros/macros.h"

@@ -1,6 +1,6 @@
 #include <glad/glad.h>
 #include "game_runner/game_loop.h"
-#include "game_logic/logic.h"
+#include "game_logic/game.h"
 #include "macros/macros.h"
 
 namespace game_runner

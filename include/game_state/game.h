@@ -5,7 +5,9 @@
 
 namespace game_state
 {
-	struct State
+	// TODO: Organize based on access patterns 
+	// (initialize -> render -> events -> tick * n -> render -> events -> tick * n -> render -> ...)
+	struct Game
 	{
 		GLFWcursor* grab_cursor;
 

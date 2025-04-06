@@ -1,7 +1,7 @@
 #pragma once
 //#include <GLFW/glfw3.h>
 #include "glad_glfw.h"
-#include "game_state/state.h"
+#include "game_state/game.h"
 
 namespace game_environment
 {
@@ -10,7 +10,7 @@ namespace game_environment
 		GLFWwindow* window;
 		GLint lag;
 		GLuint ticks_this_frame;
-		game_state::State state;
+		game_state::Game state;
 	};
 
 	Environment& from(GLFWwindow* window);
