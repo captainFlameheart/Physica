@@ -1,7 +1,7 @@
 #pragma once
 #include "game_environment/environment.h"
 
-namespace game::camera_to_world
+namespace game_logic::camera_to_world
 {
 	void camera_local_world_vector_to_world_vector
 	(

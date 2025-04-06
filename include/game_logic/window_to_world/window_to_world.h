@@ -1,7 +1,7 @@
 #pragma once
 #include "game_environment/environment.h"
 
-namespace game::window_to_world
+namespace game_logic::window_to_world
 {
 	void window_screen_position_to_world_vector
 	(

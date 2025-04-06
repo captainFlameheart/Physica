@@ -1,10 +1,11 @@
 #pragma once
 #include "game_logic/window_to_camera/window_to_camera.h"
 #include "game_logic/macros.h"
-#include "game_logic/glfw/glfw.h"
+#include "game_logic/util/glfw/window_screen_size.h"
+#include "game_logic/util/glfw/window_screen_cursor_position.h"
 #include "game_logic/camera_util/util.h"
 
-namespace game::window_to_camera
+namespace game_logic::window_to_camera
 {
 	void window_screen_x_to_camera_local_unit_z_x
 	(
@@ -43,7 +44,7 @@ namespace game::window_to_camera
 	{
 		int window_screen_width;
 		int window_screen_height;
-		glfw::get_window_screen_size(environment, &window_screen_width, &window_screen_height);
+		game_logic::util::glfw::window_screen_size(environment, &window_screen_width, &window_screen_height);
 
 		window_screen_x_to_camera_local_unit_z_x
 		(
@@ -62,7 +63,7 @@ namespace game::window_to_camera
 	)
 	{
 		double window_screen_cursor_x, window_screen_cursor_y;
-		glfw::get_window_screen_cursor_position
+		game_logic::util::glfw::window_screen_cursor_position
 		(
 			environment, &window_screen_cursor_x, &window_screen_cursor_y
 		);
@@ -90,7 +91,7 @@ namespace game::window_to_camera
 			&camera_local_unit_z_x, &camera_local_unit_z_y
 		);
 
-		game::camera_util::camera_local_unit_z_vector_to_camera_local_world_vector
+		game_logic::camera_util::camera_local_unit_z_vector_to_camera_local_world_vector
 		(
 			environment, 
 			camera_local_unit_z_x, camera_local_unit_z_y, 
@@ -105,7 +106,7 @@ namespace game::window_to_camera
 	)
 	{
 		double window_screen_cursor_x, window_screen_cursor_y;
-		glfw::get_window_screen_cursor_position
+		game_logic::util::glfw::window_screen_cursor_position
 		(
 			environment, &window_screen_cursor_x, &window_screen_cursor_y
 		);

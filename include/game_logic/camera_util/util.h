@@ -2,7 +2,7 @@
 #include "glad_glfw.h"
 #include "game_environment/environment.h"
 
-namespace game::camera_util
+namespace game_logic::camera_util
 {
 	void camera_local_unit_z_coordinate_to_camera_local_coordinate
 	(

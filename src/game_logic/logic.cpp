@@ -1,15 +1,15 @@
 #include "glad_glfw.h"
-#include "game_logic/game.h"
+#include "game_logic/logic.h"
 #include "util/shader/shader.h"
 #include <iostream>
 #include "macros/macros.h"
-#include "game_logic/glfw/glfw.h"
+#include "game_logic/util/glfw/window_screen_size.h"
 #include "game_logic/window_to_camera/window_to_camera.h"
 #include "game_logic/camera_to_world/camera_to_world.h"
 #include "game_logic/window_to_world/window_to_world.h"
 #include "game_logic/camera_util/util.h"
 
-namespace game
+namespace game_logic
 {
 	void initialize(game_environment::Environment& environment)
 	{
@@ -26,28 +26,28 @@ namespace game
 		
 		environment.state.point_grabbed = false;
 
-		GLuint vertex_shader{ util::shader::create_shader(GL_VERTEX_SHADER) };
-		GLuint fragment_shader{ util::shader::create_shader(GL_FRAGMENT_SHADER) };
-		util::shader::set_shader_statically
+		GLuint vertex_shader{ ::util::shader::create_shader(GL_VERTEX_SHADER) };
+		GLuint fragment_shader{ ::util::shader::create_shader(GL_FRAGMENT_SHADER) };
+		::util::shader::set_shader_statically
 		(
 			vertex_shader,
 			util_shader_VERSION,
 			game_PROJECTION_SCALE_DEFINITION(environment),
 			util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
-			util::shader::file_to_string("util/unique_world_position.vert")
+			::util::shader::file_to_string("util/unique_world_position.vert")
 		);
-		util::shader::set_shader_statically
+		::util::shader::set_shader_statically
 		(
 			fragment_shader,
 			util_shader_VERSION,
 			util_shader_DEFINE("COLOR", "vec4(0.0, 1.0, 0.0, 1.0)"),
-			util::shader::file_to_string("util/static_color.frag")
+			::util::shader::file_to_string("util/static_color.frag")
 		);
 
-		environment.state.shader = util::shader::create_program(vertex_shader, fragment_shader);
+		environment.state.shader = ::util::shader::create_program(vertex_shader, fragment_shader);
 
-		util::shader::delete_shader(vertex_shader);
-		util::shader::delete_shader(fragment_shader);
+		::util::shader::delete_shader(vertex_shader);
+		::util::shader::delete_shader(fragment_shader);
 
 		{
 			GLuint const block_index
@@ -469,7 +469,7 @@ namespace game
 
 	void free(game_environment::Environment& environment)
 	{
-		util::shader::delete_program(environment.state.shader);
+		::util::shader::delete_program(environment.state.shader);
 
 		delete[] environment.state.camera_send_buffer;
 		glDeleteBuffers(1, &environment.state.camera_buffer);

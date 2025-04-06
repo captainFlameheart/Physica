@@ -1,7 +1,7 @@
 #include "game_logic/camera_util/util.h"
 #include "game_logic/macros.h"
 
-namespace game::camera_util
+namespace game_logic::camera_util
 {
 	void camera_local_unit_z_coordinate_to_camera_local_coordinate
 	(

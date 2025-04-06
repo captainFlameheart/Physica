@@ -1,7 +1,7 @@
 #pragma once
 #include "util/math/vector_2D.h"
 
-namespace game::camera
+namespace game_logic::camera
 {
 	struct View_Rotation
 	{

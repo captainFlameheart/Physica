@@ -1,7 +1,7 @@
 #pragma once
 #include "game_environment/environment.h"
 
-namespace game::window_to_camera
+namespace game_logic::window_to_camera
 {
 	void window_screen_x_to_camera_local_unit_z_x
 	(

@@ -1,9 +1,9 @@
 #include "game_logic/window_to_world/window_to_world.h"
-#include "game_logic/glfw/glfw.h"
 #include "game_logic/window_to_camera/window_to_camera.h"
 #include "game_logic/camera_to_world/camera_to_world.h"
+#include "game_logic/util/glfw/window_screen_cursor_position.h"
 
-namespace game::window_to_world
+namespace game_logic::window_to_world
 {
 	void window_screen_position_to_world_vector
 	(
@@ -34,7 +34,7 @@ namespace game::window_to_world
 	)
 	{
 		double window_screen_cursor_x, window_screen_cursor_y;
-		glfw::get_window_screen_cursor_position
+		game_logic::util::glfw::window_screen_cursor_position
 		(
 			environment, &window_screen_cursor_x, &window_screen_cursor_y
 		);
@@ -75,7 +75,7 @@ namespace game::window_to_world
 	)
 	{
 		double window_screen_cursor_x, window_screen_cursor_y;
-		glfw::get_window_screen_cursor_position
+		game_logic:util::glfw::window_screen_cursor_position
 		(
 			environment,
 			&window_screen_cursor_x, &window_screen_cursor_y

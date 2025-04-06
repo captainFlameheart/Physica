@@ -9,7 +9,7 @@ namespace game_state
 	{
 		GLFWcursor* grab_cursor;
 
-		game::camera::Camera camera;
+		game_logic::camera::Camera camera;
 		GLboolean point_grabbed;
 		util::math::Vector_2D grabbed_point;
 

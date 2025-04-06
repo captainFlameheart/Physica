@@ -2,7 +2,7 @@
 #include "game_environment/environment.h"
 #include "macros.h"
 
-namespace game
+namespace game_logic
 {
 	void initialize(game_environment::Environment &environment);
 
