@@ -13,6 +13,8 @@ namespace game
 {
 	void initialize(game_environment::Environment& environment)
 	{
+		environment.state.grab_cursor = glfwCreateStandardCursor(GLFW_CROSSHAIR_CURSOR);
+
 		environment.state.camera.xy.x = 0;
 		environment.state.camera.xy.y = 0;
 		environment.state.camera.angle = 0;
@@ -198,9 +200,11 @@ namespace game
 					environment,
 					&environment.state.grabbed_point.x, &environment.state.grabbed_point.y
 				);
+				glfwSetCursor(environment.window, environment.state.grab_cursor);
 				break; 
 			case GLFW_RELEASE:
 				environment.state.point_grabbed = false;
+				glfwSetCursor(environment.window, nullptr);
 				break;
 			}
 			break;
@@ -472,5 +476,7 @@ namespace game
 
 		glDeleteVertexArrays(1, &environment.state.vao);
 		glDeleteBuffers(1, &environment.state.vbo);
+
+		glfwDestroyCursor(environment.state.grab_cursor);
 	}
 }
