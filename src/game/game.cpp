@@ -13,6 +13,17 @@ namespace game
 {
 	void initialize(game_environment::Environment& environment)
 	{
+		environment.state.camera.xy.x = 0;
+		environment.state.camera.xy.y = 0;
+		environment.state.camera.angle = 0;
+		environment.state.camera.z = game_FROM_METERS(environment, 2.0f);
+		environment.state.camera.view_rotation.column_0[0] = 1.0f;
+		environment.state.camera.view_rotation.column_0[1] = 0.0f;
+		environment.state.camera.view_rotation.column_1[0] = 0.0f;
+		environment.state.camera.view_rotation.column_1[1] = 1.0f;
+		
+		environment.state.point_grabbed = false;
+
 		GLuint vertex_shader{ util::shader::create_shader(GL_VERTEX_SHADER) };
 		GLuint fragment_shader{ util::shader::create_shader(GL_FRAGMENT_SHADER) };
 		util::shader::set_shader_statically
@@ -126,15 +137,6 @@ namespace game
 		glEnableVertexAttribArray(0);
 
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-
-		environment.state.camera.xy.x = 0;
-		environment.state.camera.xy.y = 0;
-		environment.state.camera.angle = 0;
-		environment.state.camera.z = game_FROM_METERS(environment, 2.0f);
-		environment.state.camera.view_rotation.column_0[0] = 1.0f;
-		environment.state.camera.view_rotation.column_0[1] = 0.0f;
-		environment.state.camera.view_rotation.column_1[0] = 0.0f;
-		environment.state.camera.view_rotation.column_1[1] = 1.0f;
 	}
 
 	void on_key_event(
@@ -185,12 +187,24 @@ namespace game
 		int const mods
 	)
 	{
-		GLint world_x;
-		GLint world_y;
-		window_to_world::window_screen_cursor_position_to_world_position(
-			environment,
-			&world_x, &world_y
-		);
+		switch (button)
+		{
+		case GLFW_MOUSE_BUTTON_RIGHT:
+			switch (action)
+			{ 
+			case GLFW_PRESS:
+				environment.state.point_grabbed = true;
+				window_to_world::window_screen_cursor_position_to_world_position(
+					environment,
+					&environment.state.grabbed_point.x, &environment.state.grabbed_point.y
+				);
+				break; 
+			case GLFW_RELEASE:
+				environment.state.point_grabbed = false;
+				break;
+			}
+			break;
+		}
 	}
 
 	void on_scroll_event(
@@ -376,6 +390,18 @@ namespace game
 		environment.state.camera.view_rotation.column_0[1] = -right_y;
 		environment.state.camera.view_rotation.column_1[0] = right_y;
 		environment.state.camera.view_rotation.column_1[1] = right_x;
+
+		if (environment.state.point_grabbed)
+		{
+			GLint cursor_world_x, cursor_world_y;
+			window_to_world::window_screen_cursor_position_to_world_position
+			(
+				environment, 
+				&cursor_world_x, &cursor_world_y
+			);
+			environment.state.camera.xy.x += environment.state.grabbed_point.x - cursor_world_x;
+			environment.state.camera.xy.y += environment.state.grabbed_point.y - cursor_world_y;
+		}
 	}
 
 	void update_GPU_camera(game_environment::Environment& environment)
