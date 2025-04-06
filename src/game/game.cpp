@@ -7,6 +7,7 @@
 #include "game/window_to_camera/window_to_camera.h"
 #include "game/camera_to_world/camera_to_world.h"
 #include "game/window_to_world/window_to_world.h"
+#include "game/camera_util/util.h"
 
 namespace game
 {
@@ -115,6 +116,10 @@ namespace game
 			game_FROM_METERS(environment, -1.0f), game_FROM_METERS(environment, -1.0f),
 			0, game_FROM_METERS(environment, 1.0f),
 			game_FROM_METERS(environment, 1.0f), game_FROM_METERS(environment, -1.0f),
+
+			game_FROM_METERS(environment, 2.0f), game_FROM_METERS(environment, 0.0f),
+			game_FROM_METERS(environment, 3.0f), game_FROM_METERS(environment, 1.0f),
+			game_FROM_METERS(environment, 3.5f), game_FROM_METERS(environment, -0.5f),
 		};
 		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 		glVertexAttribIPointer(0, 2, GL_INT, 2 * sizeof(GLint), static_cast<void const*>(0));
@@ -171,7 +176,6 @@ namespace game
 		double const y_pos
 	)
 	{
-		//	std::cout << x_pos << ", " << y_pos << std::endl;
 	}
 
 	void on_mouse_button_event(
@@ -181,14 +185,12 @@ namespace game
 		int const mods
 	)
 	{
-		std::cout << button << std::endl;
 		GLint world_x;
 		GLint world_y;
 		window_to_world::window_screen_cursor_position_to_world_position(
 			environment,
 			&world_x, &world_y
 		);
-		std::cout << game_TO_METERS(environment, world_x) << ", " << game_TO_METERS(environment, world_y) << std::endl;
 	}
 
 	void on_scroll_event(
@@ -197,9 +199,19 @@ namespace game
 		double const y_offset
 	)
 	{
-		std::cout << "(" << x_offset << ", " << y_offset << ")" << std::endl;
-		
-		GLfloat const zoom_scroll{ static_cast<GLfloat>(y_offset) };
+		double const horizontal_scroll_enabled
+		{ 
+			static_cast<double>
+			(
+				glfwGetKey(environment.window, GLFW_KEY_LEFT_SHIFT)
+			) 
+		};
+		GLfloat const zoom_scroll{ 
+			static_cast<GLfloat>
+			(
+				(1.0 - horizontal_scroll_enabled) * y_offset
+			) 
+		};
 		GLfloat const zoom_scroll_distance
 		{ 
 			zoom_scroll * game_CAMERA_SCROLL_ZOOM_DISTANCE(environment) 
@@ -219,14 +231,51 @@ namespace game
 				1.0f
 			) 
 		};
+		
+		GLfloat camera_local_world_cursor_x, camera_local_world_cursor_y;
+		camera_util::camera_local_unit_z_vector_to_camera_local_world_vector
+		(
+			environment, 
+			camera_local_cursor_unit_z_x, camera_local_cursor_unit_z_y, 
+			&camera_local_world_cursor_x, &camera_local_world_cursor_y
+		);
+		GLint world_cursor_x, world_cursor_y;
+		camera_to_world::camera_local_world_position_to_world_position
+		(
+			environment, 
+			camera_local_world_cursor_x, camera_local_world_cursor_y, 
+			&world_cursor_x, &world_cursor_y
+		);
 
-		GLfloat camera_local_world_grab_x, camera_local_world_grab_y;
+		environment.state.camera.z -= delta_z;
 
-		GLfloat const camera_local_delta_x{ camera_local_cursor_unit_z_x * delta_z };
+		GLfloat const angle_scroll
+		{
+			static_cast<GLfloat>
+			(
+				x_offset + horizontal_scroll_enabled * y_offset
+			)
+		};
+		GLfloat const delta_angle{ angle_scroll * game_CAMERA_SCROLL_ANGLE(environment) };
+		camera_util::increase_camera_angle(environment, delta_angle);
 
-		GLfloat const camera_local_delta_y{ camera_local_cursor_unit_z_y * delta_z };
+		camera_util::camera_local_unit_z_vector_to_camera_local_world_vector
+		(
+			environment,
+			camera_local_cursor_unit_z_x, camera_local_cursor_unit_z_y,
+			&camera_local_world_cursor_x, &camera_local_world_cursor_y
+		);
+		GLint world_cursor_x_offset_from_camera, world_cursor_y_offset_from_camera;
+		camera_to_world::camera_local_world_vector_to_world_vector
+		(
+			environment, 
+			camera_local_world_cursor_x, camera_local_world_cursor_y, 
+			&world_cursor_x_offset_from_camera, &world_cursor_y_offset_from_camera
+		);
+		environment.state.camera.xy.x = world_cursor_x - world_cursor_x_offset_from_camera;
+		environment.state.camera.xy.y = world_cursor_y - world_cursor_y_offset_from_camera;
 
-		GLfloat const angle_scroll{ static_cast<GLfloat>(x_offset) };
+
 
 		/*GLfloat camera_unit_delta_x;
 		GLfloat unit_delta_y;
@@ -385,7 +434,7 @@ namespace game
 
 		glUseProgram(environment.state.shader);
 		glBindVertexArray(environment.state.vao);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
 
 	void free(game_environment::Environment& environment)

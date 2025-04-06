@@ -1,4 +1,5 @@
 #include "game/camera_util/util.h"
+#include "game/macros.h"
 
 namespace game::camera_util
 {
@@ -111,5 +112,32 @@ namespace game::camera_util
 			environment.state.camera.z,
 			camera_local_world_x, camera_local_world_y
 		);
+	}
+
+	void increase_camera_xy
+	(
+		game_environment::Environment& environment,
+		GLint const x_increase, GLint const y_increase
+	)
+	{
+		environment.state.camera.xy.x += x_increase;
+		environment.state.camera.xy.y += y_increase;
+	}
+
+	void increase_camera_angle
+	(
+		game_environment::Environment& environment,
+		GLint const angle_increase
+	)
+	{
+		environment.state.camera.angle += angle_increase;
+		// TODO: Make sure to not loose precision due to large angles
+		GLfloat const radians{ game_TO_RADIANS(environment, environment.state.camera.angle) };
+		GLfloat const right_x{ cos(radians) };
+		GLfloat const right_y{ sin(radians) };
+		environment.state.camera.view_rotation.column_0[0] = right_x;
+		environment.state.camera.view_rotation.column_0[1] = -right_y;
+		environment.state.camera.view_rotation.column_1[0] = right_y;
+		environment.state.camera.view_rotation.column_1[1] = right_x;
 	}
 }

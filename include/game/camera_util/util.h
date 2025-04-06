@@ -58,4 +58,16 @@ namespace game::camera_util
 		GLfloat const camera_local_unit_z_y, 
 		GLfloat* camera_local_world_x, GLfloat* camera_local_world_y
 	);
+
+	void increase_camera_xy
+	(
+		game_environment::Environment& environment, 
+		GLint const x_increase, GLint const y_increase
+	);
+
+	void increase_camera_angle
+	(
+		game_environment::Environment& environment, 
+		GLint const angle_increase
+	);
 }
