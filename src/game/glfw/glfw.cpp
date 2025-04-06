@@ -1,4 +1,4 @@
-#include "game/glfw/glfw.h"
+#include "game_logic/glfw/glfw.h"
 
 namespace game::glfw
 {

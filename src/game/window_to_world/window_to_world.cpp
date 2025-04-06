@@ -1,7 +1,7 @@
-#include "game/window_to_world/window_to_world.h"
-#include "game/glfw/glfw.h"
-#include "game/window_to_camera/window_to_camera.h"
-#include "game/camera_to_world/camera_to_world.h"
+#include "game_logic/window_to_world/window_to_world.h"
+#include "game_logic/glfw/glfw.h"
+#include "game_logic/window_to_camera/window_to_camera.h"
+#include "game_logic/camera_to_world/camera_to_world.h"
 
 namespace game::window_to_world
 {

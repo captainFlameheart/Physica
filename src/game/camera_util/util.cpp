@@ -1,5 +1,5 @@
-#include "game/camera_util/util.h"
-#include "game/macros.h"
+#include "game_logic/camera_util/util.h"
+#include "game_logic/macros.h"
 
 namespace game::camera_util
 {

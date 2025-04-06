@@ -1,13 +1,13 @@
 #include "glad_glfw.h"
-#include "game/game.h"
+#include "game_logic/game.h"
 #include "util/shader/shader.h"
 #include <iostream>
 #include "macros/macros.h"
-#include "game/glfw/glfw.h"
-#include "game/window_to_camera/window_to_camera.h"
-#include "game/camera_to_world/camera_to_world.h"
-#include "game/window_to_world/window_to_world.h"
-#include "game/camera_util/util.h"
+#include "game_logic/glfw/glfw.h"
+#include "game_logic/window_to_camera/window_to_camera.h"
+#include "game_logic/camera_to_world/camera_to_world.h"
+#include "game_logic/window_to_world/window_to_world.h"
+#include "game_logic/camera_util/util.h"
 
 namespace game
 {

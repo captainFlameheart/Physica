@@ -1,6 +1,6 @@
 #pragma once
 #include "glad_glfw.h"
-#include "game/camera/camera.h"
+#include "game_logic/camera/camera.h"
 #include "util/math/vector_2D.h"
 
 namespace game_state

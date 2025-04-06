@@ -1,8 +1,8 @@
 #pragma once
-#include "game/window_to_camera/window_to_camera.h"
-#include "game/macros.h"
-#include "game/glfw/glfw.h"
-#include "game/camera_util/util.h"
+#include "game_logic/window_to_camera/window_to_camera.h"
+#include "game_logic/macros.h"
+#include "game_logic/glfw/glfw.h"
+#include "game_logic/camera_util/util.h"
 
 namespace game::window_to_camera
 {
