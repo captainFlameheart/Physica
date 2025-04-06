@@ -1,14 +1,9 @@
 #pragma once
 #include "util/math/vector_2D.h"
+#include "game_state/camera/view_rotation.h"
 
-namespace game_logic::camera
+namespace game_state::camera
 {
-	struct View_Rotation
-	{
-		GLfloat column_0[2];
-		GLfloat column_1[2];
-	};
-
 	struct Camera
 	{
 		util::math::Vector_2D xy;

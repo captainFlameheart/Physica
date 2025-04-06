@@ -1,6 +1,6 @@
 #pragma once
 #include "glad_glfw.h"
-#include "game_logic/camera/camera.h"
+#include "game_state/camera/camera.h"
 #include "util/math/vector_2D.h"
 
 namespace game_state
@@ -9,7 +9,7 @@ namespace game_state
 	{
 		GLFWcursor* grab_cursor;
 
-		game_logic::camera::Camera camera;
+		camera::Camera camera;
 		GLboolean point_grabbed;
 		util::math::Vector_2D grabbed_point;
 
