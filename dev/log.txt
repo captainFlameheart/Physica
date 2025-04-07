@@ -10,6 +10,4 @@ it will wrap around. We embrace this as a FEATURE, NOT a BUG, since its a featur
 Late game players that know of this can use this to their advantage to teleport themselves/other 
 objects from one side of the map to the opposite side of the map.
 
-TODO: Keep track of time through doubles, not ints.
-
 TODO: Enforce static constant compiler evaluations.
