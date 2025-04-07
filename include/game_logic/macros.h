@@ -2,19 +2,16 @@
 #include <cmath>
 #include "macros/macros.h"
 #include "util/shader/shader.h"
-#include "game_logic/util/SECOND.h"
 #include "game_logic/util/TICK.h"
+#include "game_logic/util/TICKS_PER_SECOND.h"
 
 #define game_METER(environment) 1000000.0f
 #define game_RADIAN(environment) 1000000.0f
-#define game_KILOGRAM(environment) 1000.0f
 
 #define game_UNIT_INVERSE(unit) 1.0f / unit
 
 #define game_METER_INVERSE(environment) game_UNIT_INVERSE(game_METER(environment))
 #define game_RADIAN_INVERSE(environment) game_UNIT_INVERSE(game_RADIAN(environment))
-#define game_KILOGRAM_INVERSE(environment) game_UNIT_INVERSE(game_KILOGRAM(environment))
-#define game_SECOND_INVERSE(environment) game_UNIT_INVERSE(game_logic__util_SECOND(environment))
 
 #define game_FLOAT_FROM_UNIT_VALUE(value, unit) value * unit
 
@@ -23,12 +20,6 @@
 
 #define game_FLOAT_FROM_RADIANS(environment, radians) \
 	game_FLOAT_FROM_UNIT_VALUE(radians, game_RADIAN(environment))
-
-#define game_FLOAT_FROM_KILOGRAMS(environment, kilograms) \
-	game_FLOAT_FROM_UNIT_VALUE(kilograms, game_KILOGRAM(environment))
-
-#define game_FLOAT_FROM_SECONDS(environment, seconds) \
-	game_FLOAT_FROM_UNIT_VALUE(seconds, game_SECOND(environment))
 
 #define game_FROM_UNIT_VALUE(value, unit) \
 	static_cast<GLint>(game_FLOAT_FROM_UNIT_VALUE(value, unit))
@@ -60,17 +51,16 @@
 	game_TO_UNIT_VALUE(time, game_SECOND_INVERSE(environment))
 
 #define game_METERS_PER_SECOND_TO_FLOAT_LENGTH_PER_TICK(environment, meters_per_second) \
-	meters_per_second * game_METER(environment) * game_SECOND_INVERSE(environment) * game_logic__util_TICK(environment)
+	meters_per_second * game_METER(environment) * game_logic__util_TICK(environment)//game_SECOND_INVERSE(environment) * game_logic__util_TICK(environment)
 
 #define game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, meters_per_second) \
 	static_cast<GLint>(game_METERS_PER_SECOND_TO_FLOAT_LENGTH_PER_TICK(environment, meters_per_second))
 
+#define game_RADIANS_PER_SECOND_TO_FLOAT_ANGLE_PER_TICK(environment, radians_per_second) \
+	radians_per_second * game_RADIAN(environment) * game_logic__util_TICK(environment)
+
 #define game_RADIANS_PER_SECOND_TO_ANGLE_PER_TICK(environment, radians_per_second) \
-	game_FROM_UNIT_VALUE\
-	(\
-		radians_per_second, \
-		game_RADIAN(environment) * game_SECOND_INVERSE(environment) * game_logic__util_TICK(environment)\
-	)
+	static_cast<GLint>(game_RADIANS_PER_SECOND_TO_FLOAT_ANGLE_PER_TICK(environment, radians_per_second))
 
 #define game_INVERSE_PROJECTION_SCALE_X(environment) 2.0f
 #define game_INVERSE_PROJECTION_SCALE_Y(environment) 1.0f

@@ -8,7 +8,7 @@ namespace game_environment
 	struct Environment
 	{
 		GLFWwindow* window;
-		GLint lag;
+		GLfloat lag;//GLint lag;
 		GLuint ticks_this_frame;
 		game_state::Game state;
 	};

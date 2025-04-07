@@ -74,12 +74,12 @@ namespace game_runner
 			game_environment.ticks_this_frame = 0u;
 			while 
 			(
-				(game_environment.lag = glfwGetTime() * game_logic__util_SECOND(game_environment)) >= game_logic__util_TICK(game_environment) &&
+				(game_environment.lag = static_cast<GLfloat>(glfwGetTime()) >= game_logic__util_TICK(environment)) && // * game_logic__util_SECOND(game_environment)) >= game_logic__util_TICK(game_environment) &&
 				game_environment.ticks_this_frame < game_MAX_TICKS_PER_FRAME(game_environment)
 			)
 			{
 				game_logic::tick(game_environment);
-				glfwSetTime(glfwGetTime() - game_logic__util_TICK(game_environment) / game_logic__util_SECOND(game_environment));
+				glfwSetTime(glfwGetTime() - static_cast<double>(game_logic__util_TICK(game_environment)));// / game_logic__util_SECOND(game_environment));
 				++game_environment.ticks_this_frame;
 			}
 
