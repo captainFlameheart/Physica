@@ -7,10 +7,11 @@
 #include "game_logic/window_to_camera/window_to_camera.h"
 #include "game_logic/camera_to_world/camera_to_world.h"
 #include "game_logic/window_to_world/window_to_world.h"
-#include "game_logic/camera_util/util.h"
 #include "game_logic/util/spatial/FLOAT_FROM_METERS.h"
 #include "game_logic/util/spatial/FROM_METERS.h"
 #include "game_logic/util/spatial/TO_RADIANS.h"
+#include "game_logic/util/camera/unit_z_vector_to_camera_local_world_vector.h"
+#include "game_logic/util/camera/increase_camera_angle.h"
 
 namespace game_logic
 {
@@ -254,7 +255,7 @@ namespace game_logic
 		};
 		
 		GLfloat camera_local_world_cursor_x, camera_local_world_cursor_y;
-		camera_util::camera_local_unit_z_vector_to_camera_local_world_vector
+		util::camera::unit_z_vector_to_camera_local_world_vector
 		(
 			environment, 
 			camera_local_cursor_unit_z_x, camera_local_cursor_unit_z_y, 
@@ -278,9 +279,9 @@ namespace game_logic
 			)
 		};
 		GLfloat const delta_angle{ angle_scroll * game_CAMERA_SCROLL_ANGLE(environment) };
-		camera_util::increase_camera_angle(environment, delta_angle);
+		util::camera::increase_camera_angle(environment, delta_angle);
 
-		camera_util::camera_local_unit_z_vector_to_camera_local_world_vector
+		util::camera::unit_z_vector_to_camera_local_world_vector
 		(
 			environment,
 			camera_local_cursor_unit_z_x, camera_local_cursor_unit_z_y,

@@ -3,11 +3,11 @@
 #include "game_logic/macros.h"
 #include "game_logic/util/glfw/window_screen_size.h"
 #include "game_logic/util/glfw/window_screen_cursor_position.h"
-#include "game_logic/camera_util/util.h"
 #include "game_logic/util/projection/INVERSE_SCALE_X.h"
 #include "game_logic/util/projection/INVERSE_SCALE_Y.h"
 #include "game_logic/util/camera/normalized_x_to_unit_z_x.h"
 #include "game_logic/util/camera/normalized_y_to_unit_z_y.h"
+#include "game_logic/util/camera/unit_z_vector_to_camera_local_world_vector.h"
 
 namespace game_logic::window_to_camera
 {
@@ -97,7 +97,7 @@ namespace game_logic::window_to_camera
 			&camera_local_unit_z_x, &camera_local_unit_z_y
 		);
 
-		game_logic::camera_util::camera_local_unit_z_vector_to_camera_local_world_vector
+		game_logic::util::camera::unit_z_vector_to_camera_local_world_vector
 		(
 			environment, 
 			camera_local_unit_z_x, camera_local_unit_z_y, 
