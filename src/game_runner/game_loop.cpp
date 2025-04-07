@@ -90,6 +90,7 @@ namespace game_runner
 			}
 
 			glfwGetFramebufferSize(window, &width, &height);
+			// TODO: Only change viewport when width and height changes
 			glViewport(0, 0, width, height);
 			game_logic::render(game_environment);
 			glfwSwapBuffers(window);

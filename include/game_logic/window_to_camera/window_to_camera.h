@@ -3,14 +3,14 @@
 
 namespace game_logic::window_to_camera
 {
-	void window_screen_x_to_camera_local_unit_z_x
+	void window_screen_x_to_camera_unit_z_x
 	(
 		game_environment::Environment const& environment,
 		int const window_screen_width, double const window_screen_x,
 		GLfloat* camera_local_unit_x
 	);
 
-	void window_screen_y_to_camera_local_unit_z_y
+	void window_screen_y_to_camera_unit_z_y
 	(
 		game_environment::Environment const& environment,
 		int const window_screen_height, double const window_screen_y,
