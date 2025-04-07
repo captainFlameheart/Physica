@@ -1,0 +1,18 @@
+layout(shared, binding = VELOCITY_BINDING, restrict, readonly) 
+buffer Velocities
+{
+	ivec3 v[];
+} velocities;
+
+layout(shared, binding = POSITION_BINDING, restrict) 
+buffer Positions
+{
+	ivec3 p[];
+} positions;
+
+layout(local_size_x = LOCAL_SIZE) in;
+void main()
+{
+	positions.p[gl_GlobalInvocationID.x] += velocities.v[gl_GlobalInvocationID.x];
+	// TODO: Compute and store new basis for collision detection (and drawing???)
+}
