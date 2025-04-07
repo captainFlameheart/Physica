@@ -8,6 +8,9 @@
 #include "game_logic/camera_to_world/camera_to_world.h"
 #include "game_logic/window_to_world/window_to_world.h"
 #include "game_logic/camera_util/util.h"
+#include "game_logic/util/spatial/FLOAT_FROM_METERS.h"
+#include "game_logic/util/spatial/FROM_METERS.h"
+#include "game_logic/util/spatial/TO_RADIANS.h"
 
 namespace game_logic
 {
@@ -18,7 +21,7 @@ namespace game_logic
 		environment.state.camera.xy.x = 0;
 		environment.state.camera.xy.y = 0;
 		environment.state.camera.angle = 0;
-		environment.state.camera.z = game_FROM_METERS(environment, 2.0f);
+		environment.state.camera.z = game_logic__util__spatial_FLOAT_FROM_METERS(environment, 2.0f);
 		environment.state.camera.view_rotation.column_0[0] = 1.0f;
 		environment.state.camera.view_rotation.column_0[1] = 0.0f;
 		environment.state.camera.view_rotation.column_1[0] = 0.0f;
@@ -126,13 +129,13 @@ namespace game_logic
 		glBindBuffer(GL_ARRAY_BUFFER, environment.state.vbo);
 		GLint vertices[]
 		{
-			game_FROM_METERS(environment, -1.0f), game_FROM_METERS(environment, -1.0f),
-			0, game_FROM_METERS(environment, 1.0f),
-			game_FROM_METERS(environment, 1.0f), game_FROM_METERS(environment, -1.0f),
+			game_logic__util__spatial_FROM_METERS(environment, -1.0f), game_logic__util__spatial_FROM_METERS(environment, -1.0f),
+			0, game_logic__util__spatial_FROM_METERS(environment, 1.0f),
+			game_logic__util__spatial_FROM_METERS(environment, 1.0f), game_logic__util__spatial_FROM_METERS(environment, -1.0f),
 
-			game_FROM_METERS(environment, 2.0f), game_FROM_METERS(environment, 0.0f),
-			game_FROM_METERS(environment, 3.0f), game_FROM_METERS(environment, 1.0f),
-			game_FROM_METERS(environment, 3.5f), game_FROM_METERS(environment, -0.5f),
+			game_logic__util__spatial_FROM_METERS(environment, 2.0f), game_logic__util__spatial_FROM_METERS(environment, 0.0f),
+			game_logic__util__spatial_FROM_METERS(environment, 3.0f), game_logic__util__spatial_FROM_METERS(environment, 1.0f),
+			game_logic__util__spatial_FROM_METERS(environment, 3.5f), game_logic__util__spatial_FROM_METERS(environment, -0.5f),
 		};
 		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 		glVertexAttribIPointer(0, 2, GL_INT, 2 * sizeof(GLint), static_cast<void const*>(0));
@@ -387,7 +390,7 @@ namespace game_logic
 
 		// TODO: Separate into functions
 		// TODO: Make sure to not loose precision due to large angles
-		GLfloat const radians{ game_TO_RADIANS(environment, environment.state.camera.angle) };
+		GLfloat const radians{ game_logic__util__spatial_TO_RADIANS(environment, environment.state.camera.angle) };
 		GLfloat const right_x{ cos(radians) };
 		GLfloat const right_y{ sin(radians) };
 		environment.state.camera.view_rotation.column_0[0] = right_x;

@@ -1,5 +1,6 @@
 #include "game_logic/camera_util/util.h"
 #include "game_logic/macros.h"
+#include "game_logic/util/spatial/TO_RADIANS.h"
 
 namespace game_logic::camera_util
 {
@@ -132,7 +133,7 @@ namespace game_logic::camera_util
 	{
 		environment.state.camera.angle += angle_increase;
 		// TODO: Make sure to not loose precision due to large angles
-		GLfloat const radians{ game_TO_RADIANS(environment, environment.state.camera.angle) };
+		GLfloat const radians{ game_logic__util__spatial_TO_RADIANS(environment, environment.state.camera.angle) };
 		GLfloat const right_x{ cos(radians) };
 		GLfloat const right_y{ sin(radians) };
 		environment.state.camera.view_rotation.column_0[0] = right_x;
