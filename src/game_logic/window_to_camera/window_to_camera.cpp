@@ -4,6 +4,8 @@
 #include "game_logic/util/glfw/window_screen_size.h"
 #include "game_logic/util/glfw/window_screen_cursor_position.h"
 #include "game_logic/camera_util/util.h"
+#include "game_logic/util/projection/INVERSE_SCALE_X.h"
+#include "game_logic/util/projection/INVERSE_SCALE_Y.h"
 
 namespace game_logic::window_to_camera
 {
@@ -17,7 +19,7 @@ namespace game_logic::window_to_camera
 		*camera_local_unit_x =
 		(
 			static_cast<GLfloat>((window_screen_x / window_screen_width) * 2.0 - 1.0) *
-			game_INVERSE_PROJECTION_SCALE_X(environment)
+			game_logic__util__projection_INVERSE_SCALE_X(environment)
 		);
 	}
 
@@ -31,7 +33,7 @@ namespace game_logic::window_to_camera
 		*camera_local_unit_y =
 		(
 			static_cast<GLfloat>(1.0 - (window_screen_y / window_screen_height) * 2.0) *
-			game_INVERSE_PROJECTION_SCALE_Y(environment)
+			game_logic__util__projection_INVERSE_SCALE_Y(environment)
 		);
 	}
 

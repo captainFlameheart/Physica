@@ -9,6 +9,8 @@
 #include "game_logic/util/spatial/FLOAT_FROM_METERS.h"
 #include "game_logic/util/spatial/FROM_METERS.h"
 #include "game_logic/util/spatial/FROM_RADIANS.h"
+#include "game_logic/util/projection/SCALE_X.h"
+#include "game_logic/util/projection/SCALE_Y.h"
 
 #define game_METERS_PER_SECOND_TO_FLOAT_LENGTH_PER_TICK(environment, meters_per_second) \
 	meters_per_second * game_logic__util__spatial_METER(environment) * game_logic__util__tick__delta_time_SECONDS(environment)
@@ -22,18 +24,19 @@
 #define game_RADIANS_PER_SECOND_TO_ANGLE_PER_TICK(environment, radians_per_second) \
 	static_cast<GLint>(game_RADIANS_PER_SECOND_TO_FLOAT_ANGLE_PER_TICK(environment, radians_per_second))
 
-#define game_INVERSE_PROJECTION_SCALE_X(environment) 2.0f
+/*#define game_INVERSE_PROJECTION_SCALE_X(environment) 2.0f
 #define game_INVERSE_PROJECTION_SCALE_Y(environment) 1.0f
 #define game_PROJECTION_SCALE_X(environment) 1.0f / game_INVERSE_PROJECTION_SCALE_X(environment)
 #define game_PROJECTION_SCALE_Y(environment) 1.0f / game_INVERSE_PROJECTION_SCALE_Y(environment)
+*/
 #define game_PROJECTION_SCALE_DEFINITION(environment) \
 	util_shader_DEFINE\
 	(\
 		"PROJECTION_SCALE", \
 		"vec2" \
 		"("\
-			STRINGIFY(game_PROJECTION_SCALE_X(environment)) ", " \
-			STRINGIFY(game_PROJECTION_SCALE_Y(environment))\
+			STRINGIFY(game_logic__util__projection_SCALE_X(environment)) ", " \
+			STRINGIFY(game_logic__util__projection_SCALE_Y(environment))\
 		")"\
 	)
 
