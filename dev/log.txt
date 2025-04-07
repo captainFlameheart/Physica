@@ -11,3 +11,6 @@ Late game players that know of this can use this to their advantage to teleport 
 objects from one side of the map to the opposite side of the map.
 
 TODO: Enforce static constant compiler evaluations.
+
+TODO: Make sure to use the "restrict" memory qualifier for shader storage 
+blocks.
