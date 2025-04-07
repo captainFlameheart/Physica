@@ -5,13 +5,14 @@
 #include "macros/macros.h"
 #include "game_logic/util/glfw/window_screen_size.h"
 #include "game_logic/window_to_camera/window_to_camera.h"
-#include "game_logic/camera_to_world/camera_to_world.h"
 #include "game_logic/window_to_world/window_to_world.h"
 #include "game_logic/util/spatial/FLOAT_FROM_METERS.h"
 #include "game_logic/util/spatial/FROM_METERS.h"
 #include "game_logic/util/spatial/TO_RADIANS.h"
 #include "game_logic/util/camera/unit_z_vector_to_camera_local_world_vector.h"
 #include "game_logic/util/camera/increase_camera_angle.h"
+#include "game_logic/util/camera/local_world_vector_to_world_vector.h"
+#include "game_logic/util/camera/local_world_position_to_world_position.h"
 
 namespace game_logic
 {
@@ -262,7 +263,7 @@ namespace game_logic
 			&camera_local_world_cursor_x, &camera_local_world_cursor_y
 		);
 		GLint world_cursor_x, world_cursor_y;
-		camera_to_world::camera_local_world_position_to_world_position
+		util::camera::local_world_position_to_world_position
 		(
 			environment, 
 			camera_local_world_cursor_x, camera_local_world_cursor_y, 
@@ -288,7 +289,7 @@ namespace game_logic
 			&camera_local_world_cursor_x, &camera_local_world_cursor_y
 		);
 		GLint world_cursor_x_offset_from_camera, world_cursor_y_offset_from_camera;
-		camera_to_world::camera_local_world_vector_to_world_vector
+		util::camera::local_world_vector_to_world_vector
 		(
 			environment, 
 			camera_local_world_cursor_x, camera_local_world_cursor_y, 

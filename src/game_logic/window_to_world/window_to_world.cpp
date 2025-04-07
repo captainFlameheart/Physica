@@ -1,7 +1,8 @@
 #include "game_logic/window_to_world/window_to_world.h"
 #include "game_logic/window_to_camera/window_to_camera.h"
-#include "game_logic/camera_to_world/camera_to_world.h"
 #include "game_logic/util/glfw/window_screen_cursor_position.h"
+#include "game_logic/util/camera/local_world_vector_to_world_vector.h"
+#include "game_logic/util/camera/local_world_position_to_world_position.h"
 
 namespace game_logic::window_to_world
 {
@@ -19,7 +20,7 @@ namespace game_logic::window_to_world
 			window_screen_x, window_screen_y,
 			&camera_local_world_x, &camera_local_world_y
 		);
-		camera_to_world::camera_local_world_vector_to_world_vector
+		util::camera::local_world_vector_to_world_vector
 		(
 			environment,
 			camera_local_world_x, camera_local_world_y,
@@ -60,7 +61,7 @@ namespace game_logic::window_to_world
 			window_screen_x, window_screen_y,
 			&camera_local_world_x, &camera_local_world_y
 		);
-		camera_to_world::camera_local_world_position_to_world_position
+		util::camera::local_world_position_to_world_position
 		(
 			environment,
 			camera_local_world_x, camera_local_world_y,
