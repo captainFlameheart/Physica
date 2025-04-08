@@ -14,3 +14,5 @@ TODO: Enforce static constant compiler evaluations.
 
 TODO: Make sure to use the "restrict" memory qualifier for shader storage 
 blocks.
+
+TODO: Check if "Draw*Indirect commands" can be used to reduce transactions between CPU and GPU.

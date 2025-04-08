@@ -1,0 +1,3 @@
+#pragma once
+
+#define game_logic__util__rigid_body_VELOCITY_INTEGRATION_LOCAL_SIZE(environment) 256u

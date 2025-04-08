@@ -42,6 +42,9 @@
 
 #define game_CAMERA_BINDING 0
 
+#define game_logic__util_RIGID_BODY_POSITION_BINDING 0
+#define game_logic__util_RIGID_BODY_VELOCITY_BINDING 1
+
 #define game_CAMERA_DEFAULT_DISTANCE_PER_TICK(environment) \
 	game_METERS_PER_SECOND_TO_FLOAT_LENGTH_PER_TICK(environment, 5.0f)
 

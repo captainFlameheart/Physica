@@ -26,5 +26,21 @@ namespace game_state
 		GLuint shader;
 		GLuint vao;
 		GLuint vbo;
+
+		GLuint current_rigid_body_count;
+
+		GLuint rigid_body_position_buffer;
+		GLint rigid_body_position_buffer_size;
+		GLint rigid_body_position_buffer_p_offset;
+		GLint rigid_body_position_buffer_p_stride;
+		
+		GLuint rigid_body_velocity_buffer;
+		GLint rigid_body_velocity_buffer_size;
+		GLint rigid_body_velocity_buffer_v_offset;
+		GLint rigid_body_velocity_buffer_v_stride;
+
+		GLuint rigid_body_velocity_integration_shader;
+
+		GLuint rigid_body_debug_rendering_shader;
 	};
 }

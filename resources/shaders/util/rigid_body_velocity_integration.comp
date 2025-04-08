@@ -1,14 +1,14 @@
-layout(shared, binding = VELOCITY_BINDING, restrict, readonly) 
-buffer Velocities
-{
-	ivec3 v[];
-} velocities;
-
-layout(shared, binding = POSITION_BINDING, restrict) 
+layout(shared, binding = POSITION_BINDING) restrict
 buffer Positions
 {
 	ivec3 p[];
 } positions;
+
+layout(shared, binding = VELOCITY_BINDING) restrict readonly 
+buffer Velocities
+{
+	ivec3 v[];
+} velocities;
 
 layout(local_size_x = LOCAL_SIZE) in;
 void main()

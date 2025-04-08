@@ -2,6 +2,7 @@
 #include "game_logic/game.h"
 #include "util/shader/shader.h"
 #include <iostream>
+#include <iterator>
 #include "macros/macros.h"
 #include "game_logic/util/glfw/window_screen_size.h"
 #include "game_logic/window_to_camera/window_to_camera.h"
@@ -13,6 +14,12 @@
 #include "game_logic/util/camera/increase_camera_angle.h"
 #include "game_logic/util/camera/local_world_vector_to_world_vector.h"
 #include "game_logic/util/camera/local_world_position_to_world_position.h"
+#include "game_logic/util/rigid_body/VELOCITY_INTEGRATION_LOCAL_SIZE.h"
+#include "game_logic/util/rigid_body/Position.h"
+#include "game_logic/util/rigid_body/Velocity.h"
+
+#define game_logic_MAX_RIGID_BODY_COUNT(environment) \
+	10u * game_logic__util__rigid_body_VELOCITY_INTEGRATION_LOCAL_SIZE(environment)
 
 namespace game_logic
 {
@@ -31,8 +38,10 @@ namespace game_logic
 		
 		environment.state.point_grabbed = false;
 
-		GLuint vertex_shader{ ::util::shader::create_shader(GL_VERTEX_SHADER) };
-		GLuint fragment_shader{ ::util::shader::create_shader(GL_FRAGMENT_SHADER) };
+		GLuint const vertex_shader{ ::util::shader::create_shader(GL_VERTEX_SHADER) };
+		GLuint const fragment_shader{ ::util::shader::create_shader(GL_FRAGMENT_SHADER) };
+		GLuint const compute_shader{ ::util::shader::create_shader(GL_COMPUTE_SHADER) };
+
 		::util::shader::set_shader_statically
 		(
 			vertex_shader,
@@ -48,11 +57,53 @@ namespace game_logic
 			util_shader_DEFINE("COLOR", "vec4(0.0, 1.0, 0.0, 1.0)"),
 			::util::shader::file_to_string("util/static_color.frag")
 		);
-
 		environment.state.shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+
+		::util::shader::set_shader_statically
+		(
+			vertex_shader,
+			util_shader_VERSION,
+			game_PROJECTION_SCALE_DEFINITION(environment),
+			util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
+			util_shader_DEFINE("POSITION_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_POSITION_BINDING)),
+			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))), 
+			util_shader_DEFINE("RADIAN_INVERSE", STRINGIFY(game_logic__util__spatial_RADIAN_INVERSE(environment))), 
+			::util::shader::file_to_string("util/rigid_body_debug.vert")
+		);
+		::util::shader::set_shader_statically
+		(
+			fragment_shader,
+			util_shader_VERSION,
+			util_shader_DEFINE("COLOR", "vec4(1.0, 0.0, 0.0, 1.0)"), 
+			::util::shader::file_to_string("util/static_color.frag")
+		);
+		environment.state.rigid_body_debug_rendering_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+
+		::util::shader::set_shader_statically
+		(
+			compute_shader,
+			util_shader_VERSION,
+			util_shader_DEFINE("POSITION_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_POSITION_BINDING)),
+			util_shader_DEFINE("VELOCITY_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_VELOCITY_BINDING)), 
+			util_shader_DEFINE("LOCAL_SIZE", STRINGIFY(game_logic__util__rigid_body_VELOCITY_INTEGRATION_LOCAL_SIZE(environment))), 
+			::util::shader::file_to_string("util/rigid_body_velocity_integration.comp")
+		);
+		environment.state.rigid_body_velocity_integration_shader = ::util::shader::create_program(compute_shader);
 
 		::util::shader::delete_shader(vertex_shader);
 		::util::shader::delete_shader(fragment_shader);
+
+		// TODO: Consider putting buffers next to each other in game state
+		GLuint buffers[]
+		{ 
+			environment.state.camera_buffer, 
+			environment.state.rigid_body_position_buffer, 
+			environment.state.rigid_body_velocity_buffer
+		};
+		glCreateBuffers(std::size(buffers), buffers);
+		environment.state.camera_buffer = buffers[0];
+		environment.state.rigid_body_position_buffer = buffers[1];
+		environment.state.rigid_body_velocity_buffer = buffers[2];
 
 		{
 			GLuint const block_index
@@ -68,7 +119,8 @@ namespace game_logic
 
 			environment.state.camera_send_buffer = new unsigned char[environment.state.camera_buffer_size];
 
-			glCreateBuffers(1, &environment.state.camera_buffer);
+			// TODO: Remove GL_DYNAMIC_STORAGE_BIT when persistent mapping 
+			// is used to upload data instead of glSubData
 			glNamedBufferStorage
 			(
 				environment.state.camera_buffer, environment.state.camera_buffer_size, nullptr,
@@ -117,12 +169,112 @@ namespace game_logic
 				environment.state.shader, GL_UNIFORM, view_rotation_index, 
 				1, &offset_label, 1, nullptr, &environment.state.camera_buffer_view_rotation_offset
 			);
+			// TODO: Make this query part of the above call
 			GLenum matrix_stride_label{ GL_MATRIX_STRIDE };
 			glGetProgramResourceiv
 			(
 				environment.state.shader, GL_UNIFORM, view_rotation_index,
 				1, &matrix_stride_label, 1, nullptr, &environment.state.camera_buffer_view_rotation_stride
 			);
+		}
+
+		environment.state.current_rigid_body_count = 1;
+
+		{ // Position buffer
+			GLuint const p_index
+			{
+				glGetProgramResourceIndex(environment.state.rigid_body_velocity_integration_shader, GL_BUFFER_VARIABLE, "Positions.p")
+			};
+
+			GLenum const prop_labels[]{ GL_OFFSET, GL_ARRAY_STRIDE };
+			GLint props[std::size(prop_labels)];
+			glGetProgramResourceiv
+			(
+				environment.state.rigid_body_velocity_integration_shader, GL_BUFFER_VARIABLE, p_index,
+				std::size(prop_labels), prop_labels, 2, nullptr, props
+			);
+			// TODO: Consider putting p_offset and p_stride contigously in game state
+			environment.state.rigid_body_position_buffer_p_offset = props[0];
+			environment.state.rigid_body_position_buffer_p_stride = props[1];
+
+			environment.state.rigid_body_position_buffer_size =
+			(
+				environment.state.rigid_body_position_buffer_p_offset + 
+				game_logic_MAX_RIGID_BODY_COUNT(environment) * 
+				environment.state.rigid_body_position_buffer_p_stride
+			);
+			// TODO: Don't initialize a few positions by copying over the ENTIRE buffer 
+			// content from CPU to GPU like this. Instead, use persistent mapping 
+			// for both initialization and updating.
+			unsigned char* const initial_positions = new unsigned char[environment.state.rigid_body_position_buffer_size];
+			
+			util::rigid_body::Position position{ { 0, 0 }, 0 };
+			std::memcpy
+			(
+				initial_positions + environment.state.rigid_body_position_buffer_p_offset, 
+				&position, sizeof(position)
+			);
+			
+			glNamedBufferStorage
+			(
+				environment.state.rigid_body_position_buffer, environment.state.rigid_body_position_buffer_size, initial_positions,
+				GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT
+			);
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_RIGID_BODY_POSITION_BINDING, environment.state.rigid_body_position_buffer);
+
+			delete[] initial_positions;
+		}
+
+		{ // Velocity buffer
+			GLuint const v_index
+			{
+				glGetProgramResourceIndex(environment.state.rigid_body_velocity_integration_shader, GL_BUFFER_VARIABLE, "Velocities.v")
+			};
+
+			GLenum const prop_labels[]{ GL_OFFSET, GL_ARRAY_STRIDE };
+			GLint props[std::size(prop_labels)];
+			glGetProgramResourceiv
+			(
+				environment.state.rigid_body_velocity_integration_shader, GL_BUFFER_VARIABLE, v_index,
+				std::size(prop_labels), prop_labels, 2, nullptr, props
+			);
+			// TODO: Consider putting v_offset and v_stride contigously in game state
+			environment.state.rigid_body_velocity_buffer_v_offset = props[0];
+			environment.state.rigid_body_velocity_buffer_v_stride = props[1];
+
+			environment.state.rigid_body_velocity_buffer_size =
+			(
+				environment.state.rigid_body_velocity_buffer_v_offset +
+				game_logic_MAX_RIGID_BODY_COUNT(environment) *
+				environment.state.rigid_body_velocity_buffer_v_stride
+			);
+			// TODO: Don't initialize a few positions by copying over the ENTIRE buffer 
+			// content from CPU to GPU like this. Instead, use persistent mapping 
+			// for both initialization and updating.
+			unsigned char* const initial_velocities = new unsigned char[environment.state.rigid_body_velocity_buffer_size];
+
+			util::rigid_body::Velocity velocity
+			{ 
+				{ 
+					game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, 1.0f), 
+					0 
+				}, 
+				game_RADIANS_PER_SECOND_TO_ANGLE_PER_TICK(environment, 0.5f)
+			};
+			std::memcpy
+			(
+				initial_velocities + environment.state.rigid_body_velocity_buffer_v_offset,
+				&velocity, sizeof(velocity)
+			);
+
+			glNamedBufferStorage
+			(
+				environment.state.rigid_body_velocity_buffer, environment.state.rigid_body_velocity_buffer_size, initial_velocities,
+				GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT
+			);
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_RIGID_BODY_VELOCITY_BINDING, environment.state.rigid_body_velocity_buffer);
+
+			delete[] initial_velocities;
 		}
 
 		glGenVertexArrays(1, &environment.state.vao);
@@ -315,6 +467,14 @@ namespace game_logic
 
 	void tick(game_environment::Environment& environment)
 	{
+		glUseProgram(environment.state.rigid_body_velocity_integration_shader);
+		glMemoryBarrier(GL_SHADER_STORAGE_BUFFER);
+		glDispatchCompute
+		(
+			1l + environment.state.current_rigid_body_count / game_logic__util__rigid_body_VELOCITY_INTEGRATION_LOCAL_SIZE(environment),
+			1l, 1l
+		);
+
 		GLint const fast_key_pressed{ glfwGetKey(environment.window, GLFW_KEY_LEFT_SHIFT) };
 		GLint const slow_key_pressed{ glfwGetKey(environment.window, GLFW_KEY_LEFT_CONTROL) };
 		GLfloat const distance
@@ -469,7 +629,11 @@ namespace game_logic
 
 		glUseProgram(environment.state.shader);
 		glBindVertexArray(environment.state.vao);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+		//glDrawArrays(GL_TRIANGLES, 0, 6);
+
+		glUseProgram(environment.state.rigid_body_debug_rendering_shader);
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+		glDrawArrays(GL_TRIANGLES, 0, environment.state.current_rigid_body_count * 3);
 	}
 
 	void free(game_environment::Environment& environment)
