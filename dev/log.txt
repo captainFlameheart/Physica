@@ -16,3 +16,6 @@ TODO: Make sure to use the "restrict" memory qualifier for shader storage
 blocks.
 
 TODO: Check if "Draw*Indirect commands" can be used to reduce transactions between CPU and GPU.
+
+TODO: Add logic so that the current number of rigid bodies does not exceed the maximum allowed number 
+of rigid bodies.

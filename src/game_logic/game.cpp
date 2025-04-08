@@ -19,7 +19,7 @@
 #include "game_logic/util/rigid_body/Velocity.h"
 
 #define game_logic_MAX_RIGID_BODY_COUNT(environment) \
-	10u * game_logic__util__rigid_body_VELOCITY_INTEGRATION_LOCAL_SIZE(environment)
+	1000u * game_logic__util__rigid_body_VELOCITY_INTEGRATION_LOCAL_SIZE(environment)
 
 namespace game_logic
 {
@@ -178,7 +178,7 @@ namespace game_logic
 			);
 		}
 
-		environment.state.current_rigid_body_count = 2;
+		environment.state.current_rigid_body_count = 100000u;
 
 		{ // Position buffer
 			GLuint const p_index
@@ -208,20 +208,31 @@ namespace game_logic
 			// for both initialization and updating.
 			unsigned char* const initial_positions = new unsigned char[environment.state.rigid_body_position_buffer_size];
 			
-			util::rigid_body::Position position{{0, 0}, 0};
-			std::memcpy
-			(
-				initial_positions + environment.state.rigid_body_position_buffer_p_offset, 
-				&position, sizeof(position)
-			);
-			position.position.x = game_logic__util__spatial_FROM_METERS(environment, -1.0f);
+			for (GLuint i = 0; i < environment.state.current_rigid_body_count; ++i)
+			{
+				GLuint const width{ 316u };
+				util::rigid_body::Position position
+				{
+					{
+						game_logic__util__spatial_FROM_METERS(environment, (i % width) * 1.0f),
+						game_logic__util__spatial_FROM_METERS(environment, (i / width) * 1.0f)
+					}, 
+					game_logic__util__spatial_FROM_RADIANS(environment, i * 0.1f)
+				};
+				std::memcpy
+				(
+					initial_positions + environment.state.rigid_body_position_buffer_p_offset + i * environment.state.rigid_body_position_buffer_p_stride,
+					&position, sizeof(position)
+				);
+			}
+			/*position.position.x = game_logic__util__spatial_FROM_METERS(environment, -1.0f);
 			position.position.y = 0;
 			position.angle = 0;
 			std::memcpy
 			(
 				initial_positions + environment.state.rigid_body_position_buffer_p_offset + environment.state.rigid_body_position_buffer_p_stride,
 				&position, sizeof(position)
-			);
+			);*/
 
 			glNamedBufferStorage
 			(
@@ -261,27 +272,22 @@ namespace game_logic
 			// for both initialization and updating.
 			unsigned char* const initial_velocities = new unsigned char[environment.state.rigid_body_velocity_buffer_size];
 
-			util::rigid_body::Velocity velocity
-			{ 
-				{ 
-					game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, 1.0f), 
-					0 
-				}, 
-				game_RADIANS_PER_SECOND_TO_ANGLE_PER_TICK(environment, 0.5f)
-			};
-			std::memcpy
-			(
-				initial_velocities + environment.state.rigid_body_velocity_buffer_v_offset,
-				&velocity, sizeof(velocity)
-			);
-			velocity.velocity.x = game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, 1.0f);
-			velocity.velocity.y = game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, 0.5f);;
-			velocity.angle_velocity = 0;
-			std::memcpy
-			(
-				initial_velocities + environment.state.rigid_body_velocity_buffer_v_offset + environment.state.rigid_body_velocity_buffer_v_stride,
-				&velocity, sizeof(velocity)
-			);
+			for (GLuint i = 0; i < environment.state.current_rigid_body_count; ++i)
+			{
+				util::rigid_body::Velocity velocity
+				{
+					{
+						game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, -sin(i * 0.1f)),
+						game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, cos(i * 0.1f))
+					},
+					game_RADIANS_PER_SECOND_TO_ANGLE_PER_TICK(environment, 0.5f)
+				};
+				std::memcpy
+				(
+					initial_velocities + environment.state.rigid_body_velocity_buffer_v_offset + i * environment.state.rigid_body_velocity_buffer_v_stride, 
+					&velocity, sizeof(velocity)
+				);
+			}
 
 			glNamedBufferStorage
 			(

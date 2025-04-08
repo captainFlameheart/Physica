@@ -19,7 +19,7 @@ void main()
 	int local_vertex_index = gl_VertexID % 3;
 	float angle_offset = local_vertex_index * 2.094395; // 2 * PI / 3
 	float full_angle = body_position.z * RADIAN_INVERSE + angle_offset;
-	const float radius = 1.0 * METER;
+	const float radius = 0.5 * METER;
 	vec2 vertex_offset = radius * vec2(cos(full_angle), sin(full_angle));
 	ivec2 camera_relative_body_xy = body_position.xy - camera.xy;
 	vec2 camera_relative_vertex_xy = camera_relative_body_xy + vertex_offset;
