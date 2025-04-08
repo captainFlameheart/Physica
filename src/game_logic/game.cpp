@@ -178,7 +178,7 @@ namespace game_logic
 			);
 		}
 
-		environment.state.current_rigid_body_count = 1;
+		environment.state.current_rigid_body_count = 2;
 
 		{ // Position buffer
 			GLuint const p_index
@@ -208,13 +208,21 @@ namespace game_logic
 			// for both initialization and updating.
 			unsigned char* const initial_positions = new unsigned char[environment.state.rigid_body_position_buffer_size];
 			
-			util::rigid_body::Position position{ { 0, 0 }, 0 };
+			util::rigid_body::Position position{{0, 0}, 0};
 			std::memcpy
 			(
 				initial_positions + environment.state.rigid_body_position_buffer_p_offset, 
 				&position, sizeof(position)
 			);
-			
+			position.position.x = game_logic__util__spatial_FROM_METERS(environment, -1.0f);
+			position.position.y = 0;
+			position.angle = 0;
+			std::memcpy
+			(
+				initial_positions + environment.state.rigid_body_position_buffer_p_offset + environment.state.rigid_body_position_buffer_p_stride,
+				&position, sizeof(position)
+			);
+
 			glNamedBufferStorage
 			(
 				environment.state.rigid_body_position_buffer, environment.state.rigid_body_position_buffer_size, initial_positions,
@@ -264,6 +272,14 @@ namespace game_logic
 			std::memcpy
 			(
 				initial_velocities + environment.state.rigid_body_velocity_buffer_v_offset,
+				&velocity, sizeof(velocity)
+			);
+			velocity.velocity.x = game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, 1.0f);
+			velocity.velocity.y = game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, 0.5f);;
+			velocity.angle_velocity = 0;
+			std::memcpy
+			(
+				initial_velocities + environment.state.rigid_body_velocity_buffer_v_offset + environment.state.rigid_body_velocity_buffer_v_stride,
 				&velocity, sizeof(velocity)
 			);
 
@@ -457,20 +473,6 @@ namespace game_logic
 		);
 		environment.state.camera.xy.x = world_cursor_x - world_cursor_x_offset_from_camera;
 		environment.state.camera.xy.y = world_cursor_y - world_cursor_y_offset_from_camera;
-
-
-
-		/*GLfloat camera_unit_delta_x;
-		GLfloat unit_delta_y;
-		window_screen_position_to_camera_local_unit_vector(
-			environment, 
-		)
-		GLfloat const delta_z
-		{
-			game_CAMERA_SCROLL_ZOOM_DISTANCE(environment) / 
-			sqrtf()
-		};*/
-		//environment.state.camera.z -= y_offset * game_CAMERA_SCROLL_ZOOM_DISTANCE(environment);
 	}
 
 	void tick(game_environment::Environment& environment)

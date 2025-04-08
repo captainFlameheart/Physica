@@ -7,6 +7,11 @@
 
 namespace game_runner
 {
+	static void on_framebuffer_size_changed(GLFWwindow* window, int width, int height)
+	{
+		glViewport(0, 0, width, height);
+	}
+
 	static void on_glfw_key_event(GLFWwindow *window, int key, int scancode, int action, int mods)
 	{
 		game_logic::on_key_event(
@@ -51,6 +56,7 @@ namespace game_runner
 		game_environment::Environment game_environment;
 		glfwSetWindowUserPointer(window, &game_environment);
 
+		glfwSetFramebufferSizeCallback(window, on_framebuffer_size_changed);
 		glfwSetKeyCallback(window, on_glfw_key_event);
 		glfwSetCursorPosCallback(window, on_glfw_cursor_event);
 		glfwSetMouseButtonCallback(window, on_glfw_mouse_button_event);
@@ -66,6 +72,7 @@ namespace game_runner
 		glfwGetFramebufferSize(window, &width, &height);
 		glViewport(0, 0, width, height);
 		game_logic::render(game_environment);
+		glfwSwapBuffers(window);
 
 		glfwPollEvents();
 		while (!glfwWindowShouldClose(window))
@@ -73,12 +80,12 @@ namespace game_runner
 			game_environment.ticks_this_frame = 0u;
 			while 
 			(
-				(game_environment.lag = static_cast<GLfloat>(glfwGetTime()) >= game_logic__util__tick__delta_time_SECONDS(environment)) && // * game_logic__util_SECOND(game_environment)) >= game_logic__util_TICK(game_environment) &&
+				(game_environment.lag = static_cast<GLfloat>(glfwGetTime()) >= game_logic__util__tick__delta_time_SECONDS(environment)) && 
 				game_environment.ticks_this_frame < game_MAX_TICKS_PER_FRAME(game_environment)
 			)
 			{
 				game_logic::tick(game_environment);
-				glfwSetTime(glfwGetTime() - static_cast<double>(game_logic__util__tick__delta_time_SECONDS(game_environment)));// / game_logic__util_SECOND(game_environment));
+				glfwSetTime(glfwGetTime() - static_cast<double>(game_logic__util__tick__delta_time_SECONDS(game_environment)));
 				++game_environment.ticks_this_frame;
 			}
 
@@ -89,9 +96,6 @@ namespace game_runner
 				DEBUG_LOG("Game loop tick limit hit!");
 			}
 
-			glfwGetFramebufferSize(window, &width, &height);
-			// TODO: Only change viewport when width and height changes
-			glViewport(0, 0, width, height);
 			game_logic::render(game_environment);
 			glfwSwapBuffers(window);
 
