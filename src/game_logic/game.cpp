@@ -296,6 +296,14 @@ namespace game_logic
 		glEnableVertexAttribArray(0);
 
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+
+		std::cout << environment.state.rigid_body_position_buffer_size << std::endl;
+		std::cout << environment.state.rigid_body_position_buffer_p_offset << std::endl;
+		std::cout << environment.state.rigid_body_position_buffer_p_stride << std::endl;
+
+		std::cout << environment.state.rigid_body_velocity_buffer_size << std::endl;
+		std::cout << environment.state.rigid_body_velocity_buffer_v_offset << std::endl;
+		std::cout << environment.state.rigid_body_velocity_buffer_v_stride << std::endl;
 	}
 
 	void on_key_event(
@@ -641,7 +649,13 @@ namespace game_logic
 		::util::shader::delete_program(environment.state.shader);
 
 		delete[] environment.state.camera_send_buffer;
-		glDeleteBuffers(1, &environment.state.camera_buffer);
+		GLuint buffers[]
+		{ 
+			environment.state.camera_buffer, 
+			environment.state.rigid_body_position_buffer, 
+			environment.state.rigid_body_velocity_buffer
+		};
+		glDeleteBuffers(std::size(buffers), buffers);
 
 		glDeleteVertexArrays(1, &environment.state.vao);
 		glDeleteBuffers(1, &environment.state.vbo);
