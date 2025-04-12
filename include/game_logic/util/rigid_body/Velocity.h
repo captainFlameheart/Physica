@@ -8,5 +8,6 @@ namespace game_logic::util::rigid_body
 	{
 		::util::math::Vector_2D velocity;
 		GLint angle_velocity;
+		GLint time;
 	};
 }

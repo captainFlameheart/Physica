@@ -13,7 +13,7 @@ buffer Vertices
 layout(shared, binding = POSITION_BINDING) restrict readonly
 buffer Positions
 {
-	ivec3 p[];
+	ivec4 p[];
 } positions;
 
 layout(shared, binding = CAMERA_BINDING) uniform Camera
@@ -33,7 +33,7 @@ void main()
 	uint global_vertex_index = triangle[local_vertex_index];
 	vec2 local_vertex = vertices.vertices[global_vertex_index];
 	
-	ivec3 body_position = positions.p[triangle.w];
+	ivec4 body_position = positions.p[triangle.w];
 
 	// TODO: Make sure of no precision loss for large angles
 	float angle = body_position.z * RADIAN_INVERSE;

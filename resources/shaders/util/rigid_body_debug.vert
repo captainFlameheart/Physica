@@ -9,13 +9,13 @@ layout(shared, binding = CAMERA_BINDING) uniform Camera
 layout(shared, binding = POSITION_BINDING) restrict readonly
 buffer Positions
 {
-	ivec3 p[];
+	ivec4 p[];
 } positions;
 
 void main()
 {
 	int body_index = gl_VertexID / 3;
-	ivec3 body_position = positions.p[body_index];
+	ivec4 body_position = positions.p[body_index];
 	int local_vertex_index = gl_VertexID % 3;
 	float angle_offset = local_vertex_index * 2.094395; // 2 * PI / 3
 	float full_angle = body_position.z * RADIAN_INVERSE + angle_offset;

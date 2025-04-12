@@ -1,13 +1,13 @@
 layout(shared, binding = POSITION_BINDING) restrict
 buffer Positions
 {
-	ivec3 p[];
+	ivec4 p[];
 } positions;
 
 layout(shared, binding = VELOCITY_BINDING) restrict readonly 
 buffer Velocities
 {
-	ivec3 v[];
+	ivec4 v[];
 } velocities;
 
 layout(local_size_x = LOCAL_SIZE) in;

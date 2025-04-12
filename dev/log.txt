@@ -1,3 +1,12 @@
+===========================================================================================
+IMPORTANT:
+
+NEVER use vec3. Instead use vec4. When switching from vec3 to vec4 the velocity integration 
+went A LOT faster. 300,000 bodies with 2 triangles each is possible without charger instead of 
+just 100,000 bodies with 2 triangles each with charger.
+
+===========================================================================================
+
 TODO: Investigate and implement correct handling of OpenGL data types and C++ data types 
 (e.g. GLfloat vs float, endianness, etc.)
 

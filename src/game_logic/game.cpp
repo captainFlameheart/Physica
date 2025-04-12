@@ -217,7 +217,7 @@ namespace game_logic
 			);
 		}
 
-		environment.state.current_rigid_body_count = 100000u;
+		environment.state.current_rigid_body_count = 300000u;
 		environment.state.current_triangle_count = 2u * environment.state.current_rigid_body_count;
 
 		{ // Position buffer
@@ -257,7 +257,8 @@ namespace game_logic
 						game_logic__util__spatial_FROM_METERS(environment, (i % width) * 0.5f),
 						game_logic__util__spatial_FROM_METERS(environment, (i / width) * 0.5f)
 					}, 
-					game_logic__util__spatial_FROM_RADIANS(environment, i * 0.1f)
+					game_logic__util__spatial_FROM_RADIANS(environment, i * 0.1f), 
+					0
 				};
 				std::memcpy
 				(
@@ -320,7 +321,8 @@ namespace game_logic
 						game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, -sin(i * 0.1f)),
 						game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, cos(i * 0.1f))
 					},
-					game_RADIANS_PER_SECOND_TO_ANGLE_PER_TICK(environment, 0.5f)
+					game_RADIANS_PER_SECOND_TO_ANGLE_PER_TICK(environment, 0.5f), 
+					0
 				};
 				std::memcpy
 				(
