@@ -15,7 +15,19 @@ TODO: Enforce static constant compiler evaluations.
 TODO: Make sure to use the "restrict" memory qualifier for shader storage 
 blocks.
 
-TODO: Check if "Draw*Indirect commands" can be used to reduce transactions between CPU and GPU.
+TODO: Check if "Draw*Indirect commands" can be used to reduce transactions between CPU and GPU. 
+Also check out GL_DISPATCH_INDIRECT_BUFFER.
 
 TODO: Add logic so that the current number of rigid bodies does not exceed the maximum allowed number 
-of rigid bodies.
+of rigid bodies. Do this for other object buffers as well.
+
+TODO: Test to see if duplicating data in order to perform hardware fetching of 
+vertex/triangle attributes from a VAO with DrawArrays or DrawElements is better 
+than performing a random access in shader.
+
+TODO: Utilize the 4th available rigid body position/velocity component for incrementing time so 
+that we know how long a certain rigid body has been alive. This could be used for time-dependent 
+effects such as light pulses/flickers -> creates atmoshpere for free! It could also be used to 
+keep track of when a bomb is to explode, or to fade out a particle (with rotation, such as a snow flake)
+and then remove it once its gone. Thus, the rigid body integration becomes more general than 
+just for rigid bodies that contain triangles (A SNOWFLAKE IS ALSO A RIGID BODY!).

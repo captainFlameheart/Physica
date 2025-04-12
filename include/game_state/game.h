@@ -29,6 +29,8 @@ namespace game_state
 
 		GLuint current_rigid_body_count;
 
+		// TODO: Position buffer should likely come after velocity buffer
+
 		GLuint rigid_body_position_buffer;
 		GLint rigid_body_position_buffer_size;
 		GLint rigid_body_position_buffer_p_offset;
@@ -39,8 +41,21 @@ namespace game_state
 		GLint rigid_body_velocity_buffer_v_offset;
 		GLint rigid_body_velocity_buffer_v_stride;
 
+		GLuint current_triangle_count;
+
+		GLuint triangle_buffer;
+		GLint triangle_buffer_size;
+		GLint triangle_buffer_triangles_offset;
+		GLint triangle_buffer_triangles_stride;
+
+		GLuint vertex_buffer;
+		GLint vertex_buffer_size;
+		GLint vertex_buffer_vertices_offset;
+		GLint vertex_buffer_vertices_stride;
+
 		GLuint rigid_body_velocity_integration_shader;
 
+		GLuint triangle_draw_shader;
 		GLuint rigid_body_debug_rendering_shader;
 	};
 }
