@@ -1,0 +1,57 @@
+layout(shared, binding = TRIANGLE_BINDING) restrict readonly
+buffer Triangles
+{
+	uvec4 triangles[];	// Triangle: (vertex_0, vertex_1, vertex_2, body)
+} triangles;
+
+layout(shared, binding = POSITION_BINDING) restrict readonly
+buffer Positions
+{
+	ivec4 p[];
+} positions;
+
+layout(shared, binding = VERTEX_BINDING) restrict readonly
+buffer Vertices
+{
+	vec2 vertices[];
+} vertices;
+
+layout(shared, binding = BOUNDING_BOX_BINDING) restrict
+buffer Bounding_Boxes
+{
+	ivec4 boxes[];	// Bounding box: (min_x, min_y, max_x, max_z)
+} bounding_boxes;
+
+/* TODO: Use velocities for computing better fat aabb
+layout(shared, binding = VELOCITY_BINDING) restrict readonly 
+buffer Velocities
+{
+	ivec4 v[];
+} velocities;*/
+
+layout(local_size_x = LOCAL_SIZE) in;
+void main()
+{
+	// TODO: Think about how to handle x, y going out of bounds
+
+	uvec4 triangle = triangles.triangles[gl_GlobalInvocationID.x];
+	ivec4 body_position = positions.p[triangle.w];
+	float right_x = cos(body_position.z);
+	float right_y = sin(body_position.z);
+	mat2 local_to_offset = mat2
+	(
+		right_x, right_y, 
+		-right_y, right_x
+	);
+	vec2 offset_0 = local_to_offset * vertices.vertices[triangle[0]];
+	vec2 offset_1 = local_to_offset * vertices.vertices[triangle[1]];
+	vec2 offset_2 = local_to_offset * vertices.vertices[triangle[2]];
+	ivec2 min = body_position.xy + ivec2(min(min(offset_0, offset_1), offset_2));
+	ivec2 max = body_position.xy + ivec2(max(max(offset_0, offset_1), offset_2));
+	ivec4 bounding_box = bounding_boxes.boxes[gl_GlobalInvocationID.x];
+	if (any(lessThan(min, bounding_box.xy)) || any(greaterThan(max, bounding_box.zw)))
+	{
+		bounding_boxes.boxes[gl_GlobalInvocationID.x] = ivec4(min - PADDING, max + PADDING);
+		// TODO: Add new bounding box atomically to list returned to CPU
+	}
+}

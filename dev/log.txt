@@ -10,9 +10,18 @@ just 100,000 bodies with 2 triangles each with charger.
 TODO: Investigate and implement correct handling of OpenGL data types and C++ data types 
 (e.g. GLfloat vs float, endianness, etc.)
 
-TODO: Implement a way to convert a fixed-point angle in the range [-M, M[ to a floating-point angle 
+TODO: Divide one full rotation into ints such that angles are automaticly wrapped to stay 
+within [-PI, PI[ through the !free! use of integer overflow!
+
+(TODO: Implement a way to convert a fixed-point angle in the range [-M, M[ to a floating-point angle 
 in the range [-PI, PI[ so that we can get cos and sin values with equal precision regardless of 
-angle scale.
+angle scale.) See correction above
+
+TODO: I think we need to convert offset to int and add this int offset to rigid body position 
+before subtracting with camera int position to match the bounding box update logic. 
+We need to think about how to handle x, y warping around the map however.
+
+TODO: Checkout glDrawRangeElements for optimization if indexed drawing is ever used.
 
 Part of the model: When a fixed-point value (such as x-coordinate or angle) goes out of bounds 
 it will wrap around. We embrace this as a FEATURE, NOT a BUG, since its a feature of ints. 

@@ -1,20 +1,11 @@
-layout(shared, binding = TRIANGLE_BINDING) restrict readonly
-buffer Triangles
-{
-	uvec4 triangles[];	// Triangle: (vertex_0, vertex_1, vertex_2, body)
-} triangles;
+const uint x_indices[] = uint[](2u, 0u, 0u, 0u, 0u, 2u, 2u, 2u);
+const uint y_indices[] = uint[](3u, 3u, 3u, 1u, 1u, 1u, 1u, 3u);
 
-layout(shared, binding = VERTEX_BINDING) restrict readonly
-buffer Vertices
+layout(shared, binding = BOUNDING_BOX_BINDING) restrict readonly
+buffer Bounding_Boxes
 {
-	vec2 vertices[];
-} vertices;
-
-layout(shared, binding = POSITION_BINDING) restrict readonly
-buffer Positions
-{
-	ivec4 p[];
-} positions;
+	ivec4 boxes[];	// Bounding box: (min_x, min_y, max_x, max_z)
+} bounding_boxes;
 
 layout(shared, binding = CAMERA_BINDING) uniform Camera
 {
@@ -26,6 +17,23 @@ layout(shared, binding = CAMERA_BINDING) uniform Camera
 
 void main()
 {
+	uint vertex_index = gl_VertexID % 8u;
+	uint x_index = x_indices[vertex_index];
+	uint y_index = y_indices[vertex_index];
+
+	uint box_index = gl_VertexID / 8u;
+	ivec4 box = bounding_boxes.boxes[box_index];
+	ivec2 vertex = ivec2(box[x_index], box[y_index]);
+
+	ivec2 camera_relative_vertex_xy = vertex - camera.xy;
+	gl_Position = vec4
+	(
+		camera.view_rotation * camera_relative_vertex_xy * PROJECTION_SCALE, 
+		0.0, 
+		camera.z
+	);
+
+	/*
 	uint triangle_index = gl_VertexID / 3u;
 	uvec4 triangle = triangles.triangles[triangle_index];
 	
@@ -54,5 +62,5 @@ void main()
 		camera.view_rotation * camera_relative_vertex_xy * PROJECTION_SCALE, 
 		0.0, 
 		camera.z
-	);
+	);*/
 }

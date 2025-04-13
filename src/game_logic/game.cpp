@@ -15,16 +15,19 @@
 #include "game_logic/util/camera/local_world_vector_to_world_vector.h"
 #include "game_logic/util/camera/local_world_position_to_world_position.h"
 #include "game_logic/util/rigid_body/VELOCITY_INTEGRATION_LOCAL_SIZE.h"
+#include "game_logic/util/rigid_body/TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE.h"
+#include "game_logic/util/rigid_body/TRIANGLE_BOUNDING_BOX_PADDING.h"
 #include "game_logic/util/rigid_body/Position.h"
 #include "game_logic/util/rigid_body/Velocity.h"
 #include "game_logic/util/rigid_body/Triangle.h"
+#include "game_logic/util/rigid_body/Triangle_Bounding_Box.h"
 
-// TODO: Reduce by a magnitude of 10
+// TODO: Maybe reduce by a magnitude of 10
 #define game_logic_MAX_RIGID_BODY_COUNT(environment) \
 	10000u * game_logic__util__rigid_body_VELOCITY_INTEGRATION_LOCAL_SIZE(environment)
 
 #define game_logic_MAX_TRIANGLE_COUNT(environment) \
-	game_logic_MAX_RIGID_BODY_COUNT(environment)
+	10000u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment)
 
 #define game_logic_MAX_VERTEX_COUNT(environment) \
 	3u * game_logic_MAX_TRIANGLE_COUNT(environment)
@@ -48,7 +51,6 @@ namespace game_logic
 
 		GLuint const vertex_shader{ ::util::shader::create_shader(GL_VERTEX_SHADER) };
 		GLuint const fragment_shader{ ::util::shader::create_shader(GL_FRAGMENT_SHADER) };
-		GLuint const compute_shader{ ::util::shader::create_shader(GL_COMPUTE_SHADER) };
 
 		::util::shader::set_shader_statically
 		(
@@ -114,17 +116,58 @@ namespace game_logic
 
 		::util::shader::set_shader_statically
 		(
+			vertex_shader,
+			util_shader_VERSION,
+			game_PROJECTION_SCALE_DEFINITION(environment),
+			util_shader_DEFINE("BOUNDING_BOX_BINDING", STRINGIFY(game_logic__util_TRIANGLE_BOUNDING_BOX_BINDING)),
+			util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
+			::util::shader::file_to_string("util/triangle_bounding_box.vert")
+		);
+		::util::shader::set_shader_statically
+		(
+			fragment_shader,
+			util_shader_VERSION,
+			util_shader_DEFINE("COLOR", "vec4(1.0, 1.0, 1.0, 1.0)"),
+			::util::shader::file_to_string("util/static_color.frag") // TODO: Should only be done once
+		);
+		environment.state.triangle_bounding_box_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+
+		::util::shader::delete_shader(vertex_shader);
+		::util::shader::delete_shader(fragment_shader);
+
+		GLuint const compute_shader{ ::util::shader::create_shader(GL_COMPUTE_SHADER) };
+
+		::util::shader::set_shader_statically
+		(
 			compute_shader,
 			util_shader_VERSION,
 			util_shader_DEFINE("POSITION_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_POSITION_BINDING)),
-			util_shader_DEFINE("VELOCITY_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_VELOCITY_BINDING)), 
-			util_shader_DEFINE("LOCAL_SIZE", STRINGIFY(game_logic__util__rigid_body_VELOCITY_INTEGRATION_LOCAL_SIZE(environment))), 
+			util_shader_DEFINE("VELOCITY_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_VELOCITY_BINDING)),
+			util_shader_DEFINE("LOCAL_SIZE", STRINGIFY(game_logic__util__rigid_body_VELOCITY_INTEGRATION_LOCAL_SIZE(environment))),
 			::util::shader::file_to_string("util/rigid_body_velocity_integration.comp")
 		);
 		environment.state.rigid_body_velocity_integration_shader = ::util::shader::create_program(compute_shader);
 
-		::util::shader::delete_shader(vertex_shader);
-		::util::shader::delete_shader(fragment_shader);
+		// TODO: Think about how to deal with this temporary variable
+		std::string padding_definition
+		{ 
+			"#define PADDING " + std::to_string(game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_PADDING(environment)) + '\n'
+		};
+		::util::shader::set_shader_statically
+		(
+			compute_shader,
+			util_shader_VERSION,
+			padding_definition,
+			util_shader_DEFINE("POSITION_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_POSITION_BINDING)),
+			util_shader_DEFINE("BOUNDING_BOX_BINDING", STRINGIFY(game_logic__util_TRIANGLE_BOUNDING_BOX_BINDING)),
+			util_shader_DEFINE("TRIANGLE_BINDING", STRINGIFY(game_logic__util_TRIANGLE_BINDING)),
+			util_shader_DEFINE("VERTEX_BINDING", STRINGIFY(game_logic__util_VERTEX_BINDING)),
+			util_shader_DEFINE("VELOCITY_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_VELOCITY_BINDING)),
+			util_shader_DEFINE("LOCAL_SIZE", STRINGIFY(game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment))),
+			::util::shader::file_to_string("util/triangle_bounding_box_update.comp")
+		);
+		environment.state.triangle_bounding_box_update_shader = ::util::shader::create_program(compute_shader);
+
 		::util::shader::delete_shader(compute_shader);
 
 		// TODO: Consider putting buffers next to each other in game state
@@ -135,7 +178,8 @@ namespace game_logic
 			environment.state.rigid_body_position_buffer, 
 			environment.state.rigid_body_velocity_buffer, 
 			environment.state.triangle_buffer, 
-			environment.state.vertex_buffer
+			environment.state.vertex_buffer, 
+			environment.state.bounding_box_buffer
 		};
 		glCreateBuffers(std::size(buffers), buffers);
 		environment.state.camera_buffer = buffers[0];
@@ -143,6 +187,7 @@ namespace game_logic
 		environment.state.rigid_body_velocity_buffer = buffers[2];
 		environment.state.triangle_buffer = buffers[3];
 		environment.state.vertex_buffer = buffers[4];
+		environment.state.bounding_box_buffer = buffers[5];
 
 		{
 			GLuint const block_index
@@ -217,7 +262,7 @@ namespace game_logic
 			);
 		}
 
-		environment.state.current_rigid_body_count = 300000u;
+		environment.state.current_rigid_body_count = 500000u;
 		environment.state.current_triangle_count = 2u * environment.state.current_rigid_body_count;
 
 		{ // Position buffer
@@ -477,6 +522,65 @@ namespace game_logic
 			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_VERTEX_BINDING, environment.state.vertex_buffer);
 		}
 
+		 { // Bounding box buffer
+			GLuint const boxes_index
+			{
+				glGetProgramResourceIndex(environment.state.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, "Bounding_Boxes.boxes")
+			};
+
+			GLenum const prop_labels[]{ GL_OFFSET, GL_ARRAY_STRIDE };
+			GLint props[std::size(prop_labels)];
+			glGetProgramResourceiv
+			(
+				environment.state.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, boxes_index,
+				std::size(prop_labels), prop_labels, 2, nullptr, props
+			);
+			// TODO: Consider putting offset and stride contigously in game state
+			environment.state.bounding_box_buffer_boxes_offset = props[0];
+			environment.state.bounding_box_buffer_boxes_stride = props[1];
+
+			environment.state.bounding_box_buffer_size =
+			(
+				environment.state.bounding_box_buffer_boxes_offset +
+				game_logic_MAX_TRIANGLE_COUNT(environment) *
+				environment.state.bounding_box_buffer_boxes_stride
+			);
+			// TODO: Don't initialize a few boxes by copying over the ENTIRE buffer 
+			// content from CPU to GPU like this. Instead, use persistent mapping 
+			// for both initialization and updating.
+			unsigned char* const initial_boxes = new unsigned char[environment.state.bounding_box_buffer_size];
+
+			util::rigid_body::Triangle_Bounding_Box box
+			{ 
+				{ 
+					game_logic__util__spatial_FROM_METERS(environment, -1.0f), 
+					game_logic__util__spatial_FROM_METERS(environment, -1.0f) 
+				},
+				{ 
+					game_logic__util__spatial_FROM_METERS(environment, 1.0f), 
+					game_logic__util__spatial_FROM_METERS(environment, 1.0f)
+				} 
+			};
+			for (GLuint i = 0; i < environment.state.current_triangle_count; ++i)
+			{
+				std::memcpy
+				(
+					initial_boxes + environment.state.bounding_box_buffer_boxes_offset + i * environment.state.bounding_box_buffer_boxes_stride,
+					&box, sizeof(box)
+				);
+			}
+
+			glNamedBufferStorage
+			(
+				environment.state.bounding_box_buffer, environment.state.bounding_box_buffer_size, initial_boxes,
+				GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT
+			);
+
+			delete[] initial_boxes;
+
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_TRIANGLE_BOUNDING_BOX_BINDING, environment.state.bounding_box_buffer);
+		}
+
 		glGenVertexArrays(1, &environment.state.vao);
 		glBindVertexArray(environment.state.vao);
 		glGenBuffers(1, &environment.state.vbo);
@@ -515,10 +619,16 @@ namespace game_logic
 		std::cout << "triangles stride: " << environment.state.triangle_buffer_triangles_stride << std::endl;
 		std::cout << std::endl;
 
-		std::cout << "Vertex buffer: (" << environment.state.vertex_buffer << "):" << std::endl;
+		std::cout << "Vertex buffer (" << environment.state.vertex_buffer << "):" << std::endl;
 		std::cout << "size: " << environment.state.vertex_buffer_size << std::endl;
 		std::cout << "vertices offset: " << environment.state.vertex_buffer_vertices_offset << std::endl;
 		std::cout << "vertices stride: " << environment.state.vertex_buffer_vertices_stride << std::endl;
+		std::cout << std::endl;
+
+		std::cout << "Bounding box buffer (" << environment.state.bounding_box_buffer << "):" << std::endl;
+		std::cout << "size: " << environment.state.bounding_box_buffer_size << std::endl;
+		std::cout << "boxes offset: " << environment.state.bounding_box_buffer_boxes_offset << std::endl;
+		std::cout << "boxes stride: " << environment.state.bounding_box_buffer_boxes_stride << std::endl;
 		std::cout << std::endl;
 	}
 
@@ -675,14 +785,30 @@ namespace game_logic
 		environment.state.camera.xy.y = world_cursor_y - world_cursor_y_offset_from_camera;
 	}
 
+	// TODO: Move to ::util::math
+	inline GLuint ceil_div(GLuint numerator, GLuint denominator)
+	{
+		return numerator / denominator + (numerator % denominator != 0);
+	}
+
 	void tick(game_environment::Environment& environment)
 	{
+		// TODO: See if we can load and run these opengl commands in GPU buffer (using indirect something)
+
 		glUseProgram(environment.state.rigid_body_velocity_integration_shader);
 		glMemoryBarrier(GL_SHADER_STORAGE_BUFFER);
 		glDispatchCompute
 		(
-			1l + environment.state.current_rigid_body_count / game_logic__util__rigid_body_VELOCITY_INTEGRATION_LOCAL_SIZE(environment),
-			1l, 1l
+			ceil_div(environment.state.current_rigid_body_count, game_logic__util__rigid_body_VELOCITY_INTEGRATION_LOCAL_SIZE(environment)), 
+			1u, 1u
+		);
+
+		glUseProgram(environment.state.triangle_bounding_box_update_shader);
+		glMemoryBarrier(GL_SHADER_STORAGE_BUFFER);
+		glDispatchCompute
+		(
+			ceil_div(environment.state.current_triangle_count, game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment)), 
+			1u, 1u
 		);
 
 		GLint const fast_key_pressed{ glfwGetKey(environment.window, GLFW_KEY_LEFT_SHIFT) };
@@ -845,6 +971,8 @@ namespace game_logic
 		glUseProgram(environment.state.triangle_draw_shader);
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 		glDrawArrays(GL_TRIANGLES, 0, environment.state.current_triangle_count * 3);
+		//glUseProgram(environment.state.triangle_bounding_box_draw_shader);
+		//glDrawArrays(GL_LINES, 0, environment.state.current_triangle_count * 8);
 	}
 
 	void free(game_environment::Environment& environment)

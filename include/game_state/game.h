@@ -15,6 +15,7 @@ namespace game_state
 		GLboolean point_grabbed;
 		util::math::Vector_2D grabbed_point;
 
+		// TODO: Camera buffer should be after all tick buffers
 		unsigned char* camera_send_buffer;	// TODO: Remove through persistent memory mapping
 		GLuint camera_buffer;
 		GLint camera_buffer_size;
@@ -53,9 +54,16 @@ namespace game_state
 		GLint vertex_buffer_vertices_offset;
 		GLint vertex_buffer_vertices_stride;
 
+		GLuint bounding_box_buffer;
+		GLint bounding_box_buffer_size;
+		GLint bounding_box_buffer_boxes_offset;
+		GLint bounding_box_buffer_boxes_stride;
+
 		GLuint rigid_body_velocity_integration_shader;
+		GLuint triangle_bounding_box_update_shader;
 
 		GLuint triangle_draw_shader;
+		GLuint triangle_bounding_box_draw_shader;
 		GLuint rigid_body_debug_rendering_shader;
 	};
 }

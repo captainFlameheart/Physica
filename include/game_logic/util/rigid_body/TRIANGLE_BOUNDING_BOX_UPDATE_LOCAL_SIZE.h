@@ -1,5 +1,5 @@
 #pragma once
 #include "DEFAULT_COMPUTE_SHADER_LOCAL_SIZE.h"
 
-#define game_logic__util__rigid_body_VELOCITY_INTEGRATION_LOCAL_SIZE(environment) \
+#define game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment) \
 	game_logic__util__rigid_body_DEFAULT_COMPUTE_SHADER_LOCAL_SIZE(environment)
