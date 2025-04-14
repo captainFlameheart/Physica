@@ -5,6 +5,11 @@ NEVER use vec3. Instead use vec4. When switching from vec3 to vec4 the velocity 
 went A LOT faster. 300,000 bodies with 2 triangles each is possible without charger instead of 
 just 100,000 bodies with 2 triangles each with charger.
 
+Maybe don't use persistent mapping for uploading small, spread out, chunks of data. Instead
+ tell the server to clear the buffer regions with these small chunks. Therefore the 
+flags for such buffers can be 0 which hopefully means the OpenGL implementation will 
+make the buffers super fast at reading/writing by the GPU.
+
 ===========================================================================================
 
 TODO: Investigate and implement correct handling of OpenGL data types and C++ data types 
@@ -49,3 +54,9 @@ effects such as light pulses/flickers -> creates atmoshpere for free! It could a
 keep track of when a bomb is to explode, or to fade out a particle (with rotation, such as a snow flake)
 and then remove it once its gone. Thus, the rigid body integration becomes more general than 
 just for rigid bodies that contain triangles (A SNOWFLAKE IS ALSO A RIGID BODY!).
+
+TODO: Checkout and use glBindBuffersBase (notice the "s").
+
+Links:
+https://community.khronos.org/t/fastest-way-to-reset-an-atomic-counter/72804/2
+

@@ -29,6 +29,16 @@ buffer Velocities
 	ivec4 v[];
 } velocities;*/
 
+layout(shared, binding = CHANGED_BOUNDING_BOX_BINDING)
+buffer Changed_Bounding_Boxes
+{
+	restrict uint push_index; // TODO: coherent MIGHT be necessary (conflicting reports)
+	// TODO: Consider storing actual boxes (ivec4) along with the indices
+	// Improvement: Store (uint index, int body_x, int body_y, int body_angle) for 
+	// less memory usage. Does not work if body velocity is used though :(.
+	restrict writeonly uint indices[];
+} changed_bounding_boxes;
+
 layout(local_size_x = LOCAL_SIZE) in;
 void main()
 {
@@ -52,6 +62,7 @@ void main()
 	if (any(lessThan(min, bounding_box.xy)) || any(greaterThan(max, bounding_box.zw)))
 	{
 		bounding_boxes.boxes[gl_GlobalInvocationID.x] = ivec4(min - PADDING, max + PADDING);
-		// TODO: Add new bounding box atomically to list returned to CPU
+		uint push_index = atomicAdd(changed_bounding_boxes.push_index, 1u);
+		changed_bounding_boxes.indices[push_index] = gl_GlobalInvocationID.x;
 	}
 }

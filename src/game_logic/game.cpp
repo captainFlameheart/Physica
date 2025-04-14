@@ -159,9 +159,10 @@ namespace game_logic
 			util_shader_VERSION,
 			padding_definition,
 			util_shader_DEFINE("POSITION_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_POSITION_BINDING)),
-			util_shader_DEFINE("BOUNDING_BOX_BINDING", STRINGIFY(game_logic__util_TRIANGLE_BOUNDING_BOX_BINDING)),
 			util_shader_DEFINE("TRIANGLE_BINDING", STRINGIFY(game_logic__util_TRIANGLE_BINDING)),
 			util_shader_DEFINE("VERTEX_BINDING", STRINGIFY(game_logic__util_VERTEX_BINDING)),
+			util_shader_DEFINE("BOUNDING_BOX_BINDING", STRINGIFY(game_logic__util_TRIANGLE_BOUNDING_BOX_BINDING)),
+			util_shader_DEFINE("CHANGED_BOUNDING_BOX_BINDING", STRINGIFY(game_logic__util_TRIANGLE_CHANGED_BOUNDING_BOX_BINDING)),
 			util_shader_DEFINE("VELOCITY_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_VELOCITY_BINDING)),
 			util_shader_DEFINE("LOCAL_SIZE", STRINGIFY(game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment))),
 			::util::shader::file_to_string("util/triangle_bounding_box_update.comp")
@@ -179,7 +180,8 @@ namespace game_logic
 			environment.state.rigid_body_velocity_buffer, 
 			environment.state.triangle_buffer, 
 			environment.state.vertex_buffer, 
-			environment.state.bounding_box_buffer
+			environment.state.bounding_box_buffer, 
+			environment.state.changed_bounding_box_buffer
 		};
 		glCreateBuffers(std::size(buffers), buffers);
 		environment.state.camera_buffer = buffers[0];
@@ -188,6 +190,7 @@ namespace game_logic
 		environment.state.triangle_buffer = buffers[3];
 		environment.state.vertex_buffer = buffers[4];
 		environment.state.bounding_box_buffer = buffers[5];
+		environment.state.changed_bounding_box_buffer = buffers[6];
 
 		{
 			GLuint const block_index
@@ -262,7 +265,7 @@ namespace game_logic
 			);
 		}
 
-		environment.state.current_rigid_body_count = 500000u;
+		environment.state.current_rigid_body_count = 1u;//500000u;
 		environment.state.current_triangle_count = 2u * environment.state.current_rigid_body_count;
 
 		{ // Position buffer
@@ -418,7 +421,7 @@ namespace game_logic
 			{
 				util::rigid_body::Triangle triangle
 				{
-					{(2 * i) % 4, (2 * i + 1) % 4, (2 * i + 2) % 4}, i / 2
+					{(2u * i) % 4u, (2u * i + 1u) % 4u, (2u * i + 2u) % 4u}, i / 2u
 				};
 				std::memcpy
 				(
@@ -581,6 +584,61 @@ namespace game_logic
 			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_TRIANGLE_BOUNDING_BOX_BINDING, environment.state.bounding_box_buffer);
 		}
 
+		 { // Changed bounding box buffer
+			 {
+				 GLuint const push_index_index
+				 {
+					 glGetProgramResourceIndex(environment.state.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, "Changed_Bounding_Boxes.push_index")
+				 };
+				 GLenum const offset_label{ GL_OFFSET };
+				 glGetProgramResourceiv
+				 (
+					 environment.state.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, push_index_index,
+					 1, &offset_label, 1, nullptr, &environment.state.changed_bounding_box_buffer_push_index_offset
+				 );
+			 }
+
+			 {
+				 GLuint const indices_index
+				 {
+					 glGetProgramResourceIndex(environment.state.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, "Changed_Bounding_Boxes.indices")
+				 };
+				 GLenum const prop_labels[]{ GL_OFFSET, GL_ARRAY_STRIDE };
+				 GLint props[std::size(prop_labels)];
+				 glGetProgramResourceiv
+				 (
+					 environment.state.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, indices_index,
+					 std::size(prop_labels), prop_labels, 2, nullptr, props
+				 );
+				 // TODO: Consider putting offset and stride contigously in game state
+				 environment.state.changed_bounding_box_buffer_indices_offset = props[0];
+				 environment.state.changed_bounding_box_buffer_indices_stride = props[1];
+			}
+			 
+			 environment.state.changed_bounding_box_buffer_size =
+			 (
+				 environment.state.changed_bounding_box_buffer_indices_offset +
+				 game_logic_MAX_TRIANGLE_COUNT(environment) *
+				 environment.state.changed_bounding_box_buffer_indices_stride
+			 );
+
+			 glNamedBufferStorage
+			 (
+				 environment.state.changed_bounding_box_buffer, environment.state.changed_bounding_box_buffer_size, nullptr,
+				 GL_MAP_READ_BIT | GL_MAP_PERSISTENT_BIT
+			 );
+			 glClearNamedBufferSubData
+			 (
+				 environment.state.changed_bounding_box_buffer, 
+				 GL_R32UI, 
+				 environment.state.changed_bounding_box_buffer_push_index_offset, sizeof(GLuint), 
+				 GL_RED, GL_UNSIGNED_INT, 
+				 nullptr
+			 );
+
+			 glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_TRIANGLE_CHANGED_BOUNDING_BOX_BINDING, environment.state.changed_bounding_box_buffer);
+		 }
+
 		glGenVertexArrays(1, &environment.state.vao);
 		glBindVertexArray(environment.state.vao);
 		glGenBuffers(1, &environment.state.vbo);
@@ -629,6 +687,13 @@ namespace game_logic
 		std::cout << "size: " << environment.state.bounding_box_buffer_size << std::endl;
 		std::cout << "boxes offset: " << environment.state.bounding_box_buffer_boxes_offset << std::endl;
 		std::cout << "boxes stride: " << environment.state.bounding_box_buffer_boxes_stride << std::endl;
+		std::cout << std::endl;
+
+		std::cout << "Changed bounding box buffer (" << environment.state.changed_bounding_box_buffer << "):" << std::endl;
+		std::cout << "size: " << environment.state.changed_bounding_box_buffer_size << std::endl;
+		std::cout << "push index offset: " << environment.state.changed_bounding_box_buffer_push_index_offset << std::endl;
+		std::cout << "indices offset: " << environment.state.changed_bounding_box_buffer_indices_offset << std::endl;
+		std::cout << "indices stride: " << environment.state.changed_bounding_box_buffer_indices_stride << std::endl;
 		std::cout << std::endl;
 	}
 
@@ -810,6 +875,15 @@ namespace game_logic
 			ceil_div(environment.state.current_triangle_count, game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment)), 
 			1u, 1u
 		);
+		glMemoryBarrier(GL_SHADER_STORAGE_BUFFER);
+		glClearNamedBufferSubData
+		(
+			environment.state.changed_bounding_box_buffer,
+			GL_R32UI,
+			environment.state.changed_bounding_box_buffer_push_index_offset, sizeof(GLuint),
+			GL_RED, GL_UNSIGNED_INT,
+			nullptr
+		);
 
 		GLint const fast_key_pressed{ glfwGetKey(environment.window, GLFW_KEY_LEFT_SHIFT) };
 		GLint const slow_key_pressed{ glfwGetKey(environment.window, GLFW_KEY_LEFT_CONTROL) };
@@ -987,7 +1061,9 @@ namespace game_logic
 			environment.state.rigid_body_position_buffer, 
 			environment.state.rigid_body_velocity_buffer, 
 			environment.state.triangle_buffer, 
-			environment.state.vertex_buffer
+			environment.state.vertex_buffer, 
+			environment.state.bounding_box_buffer, 
+			environment.state.changed_bounding_box_buffer
 		};
 		glDeleteBuffers(std::size(buffers), buffers);
 
