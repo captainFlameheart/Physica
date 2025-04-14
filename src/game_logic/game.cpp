@@ -74,6 +74,7 @@ namespace game_logic
 			vertex_shader,
 			util_shader_VERSION,
 			game_PROJECTION_SCALE_DEFINITION(environment),
+			util_shader_DEFINE("MAX_RIGID_BODY_COUNT", STRINGIFY(game_logic_MAX_RIGID_BODY_COUNT(environment))),
 			util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
 			util_shader_DEFINE("POSITION_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_POSITION_BINDING)),
 			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))), 
@@ -97,6 +98,9 @@ namespace game_logic
 			vertex_shader,
 			util_shader_VERSION,
 			game_PROJECTION_SCALE_DEFINITION(environment),
+			util_shader_DEFINE("MAX_TRIANGLE_COUNT", STRINGIFY(game_logic_MAX_TRIANGLE_COUNT(environment))),
+			util_shader_DEFINE("MAX_VERTEX_COUNT", STRINGIFY(game_logic_MAX_VERTEX_COUNT(environment))),
+			util_shader_DEFINE("MAX_RIGID_BODY_COUNT", STRINGIFY(game_logic_MAX_RIGID_BODY_COUNT(environment))),
 			util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
 			util_shader_DEFINE("POSITION_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_POSITION_BINDING)),
 			util_shader_DEFINE("TRIANGLE_BINDING", STRINGIFY(game_logic__util_TRIANGLE_BINDING)),
@@ -119,6 +123,8 @@ namespace game_logic
 			vertex_shader,
 			util_shader_VERSION,
 			game_PROJECTION_SCALE_DEFINITION(environment),
+			util_shader_DEFINE("MAX_TRIANGLE_COUNT", STRINGIFY(game_logic_MAX_TRIANGLE_COUNT(environment))),
+			util_shader_DEFINE("MAX_VERTEX_COUNT", STRINGIFY(game_logic_MAX_VERTEX_COUNT(environment))),
 			util_shader_DEFINE("BOUNDING_BOX_BINDING", STRINGIFY(game_logic__util_TRIANGLE_BOUNDING_BOX_BINDING)),
 			util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
 			::util::shader::file_to_string("util/triangle_bounding_box.vert")
@@ -140,7 +146,8 @@ namespace game_logic
 		::util::shader::set_shader_statically
 		(
 			compute_shader,
-			util_shader_VERSION,
+			util_shader_VERSION, 
+			util_shader_DEFINE("MAX_RIGID_BODY_COUNT", STRINGIFY(game_logic_MAX_RIGID_BODY_COUNT(environment))),
 			util_shader_DEFINE("POSITION_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_POSITION_BINDING)),
 			util_shader_DEFINE("VELOCITY_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_VELOCITY_BINDING)),
 			util_shader_DEFINE("LOCAL_SIZE", STRINGIFY(game_logic__util__rigid_body_VELOCITY_INTEGRATION_LOCAL_SIZE(environment))),
@@ -158,6 +165,9 @@ namespace game_logic
 			compute_shader,
 			util_shader_VERSION,
 			padding_definition,
+			util_shader_DEFINE("MAX_TRIANGLE_COUNT", STRINGIFY(game_logic_MAX_TRIANGLE_COUNT(environment))),
+			util_shader_DEFINE("MAX_VERTEX_COUNT", STRINGIFY(game_logic_MAX_VERTEX_COUNT(environment))),
+			util_shader_DEFINE("MAX_RIGID_BODY_COUNT", STRINGIFY(game_logic_MAX_RIGID_BODY_COUNT(environment))),
 			util_shader_DEFINE("POSITION_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_POSITION_BINDING)),
 			util_shader_DEFINE("TRIANGLE_BINDING", STRINGIFY(game_logic__util_TRIANGLE_BINDING)),
 			util_shader_DEFINE("VERTEX_BINDING", STRINGIFY(game_logic__util_VERTEX_BINDING)),
@@ -265,7 +275,7 @@ namespace game_logic
 			);
 		}
 
-		environment.state.current_rigid_body_count = 1000u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment);//500000u;
+		environment.state.current_rigid_body_count = 4000u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment);//500000u;
 		environment.state.current_triangle_count = 2u * environment.state.current_rigid_body_count;
 
 		{ // Position buffer
@@ -592,15 +602,15 @@ namespace game_logic
 
 		 { // Changed bounding box buffer
 			 {
-				 GLuint const push_index_index
+				 GLuint const size_index
 				 {
-					 glGetProgramResourceIndex(environment.state.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, "Changed_Bounding_Boxes.push_index")
+					 glGetProgramResourceIndex(environment.state.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, "Changed_Bounding_Boxes.size")
 				 };
 				 GLenum const offset_label{ GL_OFFSET };
 				 glGetProgramResourceiv
 				 (
-					 environment.state.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, push_index_index,
-					 1, &offset_label, 1, nullptr, &environment.state.changed_bounding_box_buffer_push_index_offset
+					 environment.state.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, size_index,
+					 1, &offset_label, 1, nullptr, &environment.state.changed_bounding_box_buffer_size_offset
 				 );
 			 }
 
@@ -637,7 +647,7 @@ namespace game_logic
 			 (
 				 environment.state.changed_bounding_box_buffer, 
 				 GL_R32UI, 
-				 environment.state.changed_bounding_box_buffer_push_index_offset, sizeof(GLuint), 
+				 environment.state.changed_bounding_box_buffer_size_offset, sizeof(GLuint), 
 				 GL_RED, GL_UNSIGNED_INT, 
 				 nullptr
 			 );
@@ -707,7 +717,7 @@ namespace game_logic
 
 		std::cout << "Changed bounding box buffer (" << environment.state.changed_bounding_box_buffer << "):" << std::endl;
 		std::cout << "size: " << environment.state.changed_bounding_box_buffer_size << std::endl;
-		std::cout << "push index offset: " << environment.state.changed_bounding_box_buffer_push_index_offset << std::endl;
+		std::cout << "push index offset: " << environment.state.changed_bounding_box_buffer_size_offset << std::endl;
 		std::cout << "indices offset: " << environment.state.changed_bounding_box_buffer_indices_offset << std::endl;
 		std::cout << "indices stride: " << environment.state.changed_bounding_box_buffer_indices_stride << std::endl;
 		std::cout << std::endl;
@@ -925,7 +935,7 @@ namespace game_logic
 		std::memcpy
 		(
 			&size,
-			environment.state.changed_bounding_boxes_mapping + environment.state.changed_bounding_box_buffer_push_index_offset, 
+			environment.state.changed_bounding_boxes_mapping + environment.state.changed_bounding_box_buffer_size_offset, 
 			sizeof(GLuint)
 		);
 		// TODO: Fix shader invocations working on out of bounds data
@@ -939,7 +949,7 @@ namespace game_logic
 		(
 			environment.state.changed_bounding_box_buffer,
 			GL_R32UI,
-			environment.state.changed_bounding_box_buffer_push_index_offset, sizeof(GLuint),
+			environment.state.changed_bounding_box_buffer_size_offset, sizeof(GLuint),
 			GL_RED, GL_UNSIGNED_INT,
 			nullptr
 		);

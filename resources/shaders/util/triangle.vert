@@ -1,19 +1,19 @@
 layout(shared, binding = TRIANGLE_BINDING) restrict readonly
 buffer Triangles
 {
-	uvec4 triangles[];	// Triangle: (vertex_0, vertex_1, vertex_2, body)
+	uvec4 triangles[MAX_TRIANGLE_COUNT];	// Triangle: (vertex_0, vertex_1, vertex_2, body)
 } triangles;
 
 layout(shared, binding = VERTEX_BINDING) restrict readonly
 buffer Vertices
 {
-	vec2 vertices[];
+	vec2 vertices[MAX_VERTEX_COUNT];
 } vertices;
 
 layout(shared, binding = POSITION_BINDING) restrict readonly
 buffer Positions
 {
-	ivec4 p[];
+	ivec4 p[MAX_RIGID_BODY_COUNT];
 } positions;
 
 layout(shared, binding = CAMERA_BINDING) uniform Camera

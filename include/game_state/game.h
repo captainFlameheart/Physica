@@ -61,7 +61,7 @@ namespace game_state
 
 		GLuint changed_bounding_box_buffer;
 		GLint changed_bounding_box_buffer_size;
-		GLint changed_bounding_box_buffer_push_index_offset;
+		GLint changed_bounding_box_buffer_size_offset;
 		GLint changed_bounding_box_buffer_indices_offset;
 		GLint changed_bounding_box_buffer_indices_stride;
 

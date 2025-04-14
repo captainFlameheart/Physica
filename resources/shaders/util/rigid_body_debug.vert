@@ -9,7 +9,7 @@ layout(shared, binding = CAMERA_BINDING) uniform Camera
 layout(shared, binding = POSITION_BINDING) restrict readonly
 buffer Positions
 {
-	ivec4 p[];
+	ivec4 p[MAX_RIGID_BODY_COUNT];
 } positions;
 
 void main()

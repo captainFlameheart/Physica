@@ -1,42 +1,42 @@
 layout(shared, binding = TRIANGLE_BINDING) restrict readonly
 buffer Triangles
 {
-	uvec4 triangles[];	// Triangle: (vertex_0, vertex_1, vertex_2, body)
+	uvec4 triangles[MAX_TRIANGLE_COUNT];	// Triangle: (vertex_0, vertex_1, vertex_2, body)
 } triangles;
 
 layout(shared, binding = POSITION_BINDING) restrict readonly
 buffer Positions
 {
-	ivec4 p[];
+	ivec4 p[MAX_RIGID_BODY_COUNT];
 } positions;
 
 layout(shared, binding = VERTEX_BINDING) restrict readonly
 buffer Vertices
 {
-	vec2 vertices[];
+	vec2 vertices[MAX_VERTEX_COUNT];
 } vertices;
 
 layout(shared, binding = BOUNDING_BOX_BINDING) restrict
 buffer Bounding_Boxes
 {
-	ivec4 boxes[];	// Bounding box: (min_x, min_y, max_x, max_z)
+	ivec4 boxes[MAX_TRIANGLE_COUNT];	// Bounding box: (min_x, min_y, max_x, max_z)
 } bounding_boxes;
 
 /* TODO: Use velocities for computing better fat aabb
 layout(shared, binding = VELOCITY_BINDING) restrict readonly 
 buffer Velocities
 {
-	ivec4 v[];
+	ivec4 v[MAX_RIGID_BODY_COUNT];
 } velocities;*/
 
 layout(shared, binding = CHANGED_BOUNDING_BOX_BINDING)
 buffer Changed_Bounding_Boxes
 {
-	restrict uint push_index; // TODO: coherent MIGHT be necessary (conflicting reports)
+	restrict uint size; // TODO: coherent MIGHT be necessary (conflicting reports)
 	// TODO: Consider storing actual boxes (ivec4) along with the indices
 	// Improvement: Store (uint index, int body_x, int body_y, int body_angle) for 
 	// less memory usage. Does not work if body velocity is used though :(.
-	restrict writeonly uint indices[];
+	restrict writeonly uint indices[MAX_TRIANGLE_COUNT];
 } changed_bounding_boxes;
 
 layout(local_size_x = LOCAL_SIZE) in;
@@ -62,7 +62,7 @@ void main()
 	if (any(lessThan(min, bounding_box.xy)) || any(greaterThan(max, bounding_box.zw)))
 	{
 		bounding_boxes.boxes[gl_GlobalInvocationID.x] = ivec4(min - PADDING, max + PADDING);
-		uint push_index = atomicAdd(changed_bounding_boxes.push_index, 1u);
+		uint push_index = atomicAdd(changed_bounding_boxes.size, 1u);
 		changed_bounding_boxes.indices[push_index] = gl_GlobalInvocationID.x;
 	}
 }
