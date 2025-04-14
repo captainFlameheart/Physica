@@ -265,7 +265,7 @@ namespace game_logic
 			);
 		}
 
-		environment.state.current_rigid_body_count = 1u;//500000u;
+		environment.state.current_rigid_body_count = 1000u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment);//500000u;
 		environment.state.current_triangle_count = 2u * environment.state.current_rigid_body_count;
 
 		{ // Position buffer
@@ -326,7 +326,7 @@ namespace game_logic
 			glNamedBufferStorage
 			(
 				environment.state.rigid_body_position_buffer, environment.state.rigid_body_position_buffer_size, initial_positions,
-				GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT
+				0u
 			);
 			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_RIGID_BODY_POSITION_BINDING, environment.state.rigid_body_position_buffer);
 
@@ -372,6 +372,12 @@ namespace game_logic
 					game_RADIANS_PER_SECOND_TO_ANGLE_PER_TICK(environment, 0.5f), 
 					0
 				};
+				/*if (i != 0)
+				{
+					velocity.velocity.x = 0;
+					velocity.velocity.y = 0;
+					velocity.angle_velocity = 0;
+				}*/
 				std::memcpy
 				(
 					initial_velocities + environment.state.rigid_body_velocity_buffer_v_offset + i * environment.state.rigid_body_velocity_buffer_v_stride, 
@@ -382,7 +388,7 @@ namespace game_logic
 			glNamedBufferStorage
 			(
 				environment.state.rigid_body_velocity_buffer, environment.state.rigid_body_velocity_buffer_size, initial_velocities,
-				GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT
+				0u
 			);
 			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_RIGID_BODY_VELOCITY_BINDING, environment.state.rigid_body_velocity_buffer);
 
@@ -433,7 +439,7 @@ namespace game_logic
 			glNamedBufferStorage
 			(
 				environment.state.triangle_buffer, environment.state.triangle_buffer_size, initial_triangles,
-				GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT
+				0u
 			);
 
 			delete[] initial_triangles;
@@ -516,8 +522,8 @@ namespace game_logic
 
 			glNamedBufferStorage
 			(
-				environment.state.vertex_buffer, environment.state.vertex_buffer_size, initial_vertices,
-				GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT
+				environment.state.vertex_buffer, environment.state.vertex_buffer_size, initial_vertices, 
+				0u
 			);
 
 			delete[] initial_vertices;
@@ -576,7 +582,7 @@ namespace game_logic
 			glNamedBufferStorage
 			(
 				environment.state.bounding_box_buffer, environment.state.bounding_box_buffer_size, initial_boxes,
-				GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT
+				0u
 			);
 
 			delete[] initial_boxes;
@@ -637,6 +643,16 @@ namespace game_logic
 			 );
 
 			 glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_TRIANGLE_CHANGED_BOUNDING_BOX_BINDING, environment.state.changed_bounding_box_buffer);
+
+			 environment.state.changed_bounding_boxes_mapping = static_cast<unsigned char*>
+			 (
+				glMapNamedBufferRange
+				(
+					environment.state.changed_bounding_box_buffer, 
+					0u, environment.state.changed_bounding_box_buffer_size, 
+					GL_MAP_READ_BIT | GL_MAP_PERSISTENT_BIT
+				)
+			 );
 		 }
 
 		glGenVertexArrays(1, &environment.state.vao);
@@ -875,7 +891,50 @@ namespace game_logic
 			ceil_div(environment.state.current_triangle_count, game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment)), 
 			1u, 1u
 		);
-		glMemoryBarrier(GL_SHADER_STORAGE_BUFFER);
+		glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
+		GLsync const fence{ glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0u) };
+		glFlush();
+
+		// TODO: Other operations that we let the GPU perform while it is working on 
+		// updating and returning the bounding boxes to the CPU. Example: Removing 
+		// contacts whose bounding-box-pairs no longer overlap.
+
+		// TODO: Potential one-time CPU operations we must do before 
+		// waiting for the GPU to be done.
+
+		GLenum fence_status = glClientWaitSync(fence, 0u, 0u);
+		while (fence_status != GL_ALREADY_SIGNALED && fence_status != GL_CONDITION_SATISFIED)
+		{
+			// TODO: Do something useful but not necessary while we wait. 
+			// Example: Optimize proximity tree.
+			fence_status = glClientWaitSync(fence, 0u, 0u);
+		}
+		
+		/*switch (fence_status)
+		{
+			case GL_ALREADY_SIGNALED:
+				std::cout << "Already signaled" << std::endl;
+				break;
+			case GL_CONDITION_SATISFIED:
+				std::cout << "Condition satisfied" << std::endl;
+				break;
+		}*/
+
+		// TODO: Read from mapped pointer
+		GLuint size;
+		std::memcpy
+		(
+			&size,
+			environment.state.changed_bounding_boxes_mapping + environment.state.changed_bounding_box_buffer_push_index_offset, 
+			sizeof(GLuint)
+		);
+		// TODO: Fix shader invocations working on out of bounds data
+		// (by skipping over them when iterating here?)
+		/*if (size > 10u)
+		{
+			std::cout << size << std::endl;
+		}*/
+		glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT); // TODO: Make sure this is correct
 		glClearNamedBufferSubData
 		(
 			environment.state.changed_bounding_box_buffer,
@@ -1037,6 +1096,8 @@ namespace game_logic
 
 		update_GPU_camera(environment);
 
+		// TODO: Indirect drawing
+		
 		//glUseProgram(environment.state.shader);
 		//glBindVertexArray(environment.state.vao);
 		//glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -1051,6 +1112,8 @@ namespace game_logic
 
 	void free(game_environment::Environment& environment)
 	{
+		glUnmapNamedBuffer(environment.state.changed_bounding_box_buffer);
+
 		::util::shader::delete_program(environment.state.shader);
 
 		delete[] environment.state.camera_send_buffer;
