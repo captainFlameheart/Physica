@@ -275,7 +275,7 @@ namespace game_logic
 			);
 		}
 
-		environment.state.current_rigid_body_count = 4000u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment);//500000u;
+		environment.state.current_rigid_body_count = 1u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment);//500000u;
 		environment.state.current_triangle_count = 2u * environment.state.current_rigid_body_count;
 
 		{ // Position buffer
@@ -295,11 +295,15 @@ namespace game_logic
 			environment.state.rigid_body_position_buffer_p_offset = props[0];
 			environment.state.rigid_body_position_buffer_p_stride = props[1];
 
-			environment.state.rigid_body_position_buffer_size =
+			GLuint const block_index
+			{
+				glGetProgramResourceIndex(environment.state.rigid_body_velocity_integration_shader, GL_SHADER_STORAGE_BLOCK, "Positions")
+			};
+			GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
+			glGetProgramResourceiv
 			(
-				environment.state.rigid_body_position_buffer_p_offset + 
-				game_logic_MAX_RIGID_BODY_COUNT(environment) * 
-				environment.state.rigid_body_position_buffer_p_stride
+				environment.state.rigid_body_velocity_integration_shader, GL_SHADER_STORAGE_BLOCK, block_index,
+				1, &buffer_size_label, 1, nullptr, &environment.state.rigid_body_position_buffer_size
 			);
 			// TODO: Don't initialize a few positions by copying over the ENTIRE buffer 
 			// content from CPU to GPU like this. Instead, use persistent mapping 
@@ -360,11 +364,15 @@ namespace game_logic
 			environment.state.rigid_body_velocity_buffer_v_offset = props[0];
 			environment.state.rigid_body_velocity_buffer_v_stride = props[1];
 
-			environment.state.rigid_body_velocity_buffer_size =
+			GLuint const block_index
+			{
+				glGetProgramResourceIndex(environment.state.rigid_body_velocity_integration_shader, GL_SHADER_STORAGE_BLOCK, "Velocities")
+			};
+			GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
+			glGetProgramResourceiv
 			(
-				environment.state.rigid_body_velocity_buffer_v_offset +
-				game_logic_MAX_RIGID_BODY_COUNT(environment) *
-				environment.state.rigid_body_velocity_buffer_v_stride
+				environment.state.rigid_body_velocity_integration_shader, GL_SHADER_STORAGE_BLOCK, block_index,
+				1, &buffer_size_label, 1, nullptr, &environment.state.rigid_body_velocity_buffer_size
 			);
 			// TODO: Don't initialize a few positions by copying over the ENTIRE buffer 
 			// content from CPU to GPU like this. Instead, use persistent mapping 
@@ -422,12 +430,17 @@ namespace game_logic
 			environment.state.triangle_buffer_triangles_offset = props[0];
 			environment.state.triangle_buffer_triangles_stride = props[1];
 
-			environment.state.triangle_buffer_size =
+			GLuint const block_index
+			{
+				glGetProgramResourceIndex(environment.state.triangle_draw_shader, GL_SHADER_STORAGE_BLOCK, "Triangles")
+			};
+			GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
+			glGetProgramResourceiv
 			(
-				environment.state.triangle_buffer_triangles_offset +
-				game_logic_MAX_TRIANGLE_COUNT(environment) *
-				environment.state.triangle_buffer_triangles_stride
+				environment.state.triangle_draw_shader, GL_SHADER_STORAGE_BLOCK, block_index,
+				1, &buffer_size_label, 1, nullptr, &environment.state.triangle_buffer_size
 			);
+
 			// TODO: Don't initialize a few triangles by copying over the ENTIRE buffer 
 			// content from CPU to GPU like this. Instead, use persistent mapping 
 			// for both initialization and updating.
@@ -474,11 +487,15 @@ namespace game_logic
 			environment.state.vertex_buffer_vertices_offset = props[0];
 			environment.state.vertex_buffer_vertices_stride = props[1];
 
-			environment.state.vertex_buffer_size =
+			GLuint const block_index
+			{
+				glGetProgramResourceIndex(environment.state.triangle_draw_shader, GL_SHADER_STORAGE_BLOCK, "Vertices")
+			};
+			GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
+			glGetProgramResourceiv
 			(
-				environment.state.vertex_buffer_vertices_offset +
-				game_logic_MAX_VERTEX_COUNT(environment) *
-				environment.state.vertex_buffer_vertices_stride
+				environment.state.triangle_draw_shader, GL_SHADER_STORAGE_BLOCK, block_index,
+				1, &buffer_size_label, 1, nullptr, &environment.state.vertex_buffer_size
 			);
 			// TODO: Don't initialize a few vertices by copying over the ENTIRE buffer 
 			// content from CPU to GPU like this. Instead, use persistent mapping 
@@ -558,12 +575,17 @@ namespace game_logic
 			environment.state.bounding_box_buffer_boxes_offset = props[0];
 			environment.state.bounding_box_buffer_boxes_stride = props[1];
 
-			environment.state.bounding_box_buffer_size =
+			GLuint const block_index
+			{
+				glGetProgramResourceIndex(environment.state.triangle_bounding_box_update_shader, GL_SHADER_STORAGE_BLOCK, "Bounding_Boxes")
+			};
+			GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
+			glGetProgramResourceiv
 			(
-				environment.state.bounding_box_buffer_boxes_offset +
-				game_logic_MAX_TRIANGLE_COUNT(environment) *
-				environment.state.bounding_box_buffer_boxes_stride
+				environment.state.triangle_bounding_box_update_shader, GL_SHADER_STORAGE_BLOCK, block_index,
+				1, &buffer_size_label, 1, nullptr, &environment.state.bounding_box_buffer_size
 			);
+
 			// TODO: Don't initialize a few boxes by copying over the ENTIRE buffer 
 			// content from CPU to GPU like this. Instead, use persistent mapping 
 			// for both initialization and updating.
@@ -615,27 +637,32 @@ namespace game_logic
 			 }
 
 			 {
-				 GLuint const indices_index
+				 std::cout << glGetProgramResourceIndex(environment.state.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, "Changed_Bounding_Boxes.boxes.index") << std::endl;
+				 GLuint const boxes_index_index
 				 {
-					 glGetProgramResourceIndex(environment.state.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, "Changed_Bounding_Boxes.indices")
+					 glGetProgramResourceIndex(environment.state.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, "Changed_Bounding_Boxes.boxes[0].index")
 				 };
-				 GLenum const prop_labels[]{ GL_OFFSET, GL_ARRAY_STRIDE };
+				 GLenum const prop_labels[]{ GL_OFFSET, GL_TOP_LEVEL_ARRAY_STRIDE };
 				 GLint props[std::size(prop_labels)];
 				 glGetProgramResourceiv
 				 (
-					 environment.state.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, indices_index,
+					 environment.state.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, boxes_index_index,
 					 std::size(prop_labels), prop_labels, 2, nullptr, props
 				 );
 				 // TODO: Consider putting offset and stride contigously in game state
-				 environment.state.changed_bounding_box_buffer_indices_offset = props[0];
-				 environment.state.changed_bounding_box_buffer_indices_stride = props[1];
+				 environment.state.changed_bounding_box_buffer_boxes_index_offset = props[0];
+				 environment.state.changed_bounding_box_buffer_boxes_stride = props[1];
 			}
 			 
-			 environment.state.changed_bounding_box_buffer_size =
+			 GLuint const block_index
+			 {
+				 glGetProgramResourceIndex(environment.state.triangle_bounding_box_update_shader, GL_SHADER_STORAGE_BLOCK, "Changed_Bounding_Boxes")
+			 };
+			 GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
+			 glGetProgramResourceiv
 			 (
-				 environment.state.changed_bounding_box_buffer_indices_offset +
-				 game_logic_MAX_TRIANGLE_COUNT(environment) *
-				 environment.state.changed_bounding_box_buffer_indices_stride
+				 environment.state.triangle_bounding_box_update_shader, GL_SHADER_STORAGE_BLOCK, block_index,
+				 1, &buffer_size_label, 1, nullptr, &environment.state.changed_bounding_box_buffer_size
 			 );
 
 			 glNamedBufferStorage
@@ -718,8 +745,8 @@ namespace game_logic
 		std::cout << "Changed bounding box buffer (" << environment.state.changed_bounding_box_buffer << "):" << std::endl;
 		std::cout << "size: " << environment.state.changed_bounding_box_buffer_size << std::endl;
 		std::cout << "push index offset: " << environment.state.changed_bounding_box_buffer_size_offset << std::endl;
-		std::cout << "indices offset: " << environment.state.changed_bounding_box_buffer_indices_offset << std::endl;
-		std::cout << "indices stride: " << environment.state.changed_bounding_box_buffer_indices_stride << std::endl;
+		std::cout << "boxes index offset: " << environment.state.changed_bounding_box_buffer_boxes_index_offset << std::endl;
+		std::cout << "boxes stride: " << environment.state.changed_bounding_box_buffer_boxes_stride << std::endl;
 		std::cout << std::endl;
 	}
 
