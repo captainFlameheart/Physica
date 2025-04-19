@@ -24,10 +24,10 @@
 
 // TODO: Maybe reduce by a magnitude of 10
 #define game_logic_MAX_RIGID_BODY_COUNT(environment) \
-	10000u * game_logic__util__rigid_body_VELOCITY_INTEGRATION_LOCAL_SIZE(environment)
+	10u * game_logic__util__rigid_body_VELOCITY_INTEGRATION_LOCAL_SIZE(environment)
 
 #define game_logic_MAX_TRIANGLE_COUNT(environment) \
-	10000u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment)
+	10u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment)
 
 #define game_logic_MAX_VERTEX_COUNT(environment) \
 	3u * game_logic_MAX_TRIANGLE_COUNT(environment)
@@ -390,7 +390,7 @@ namespace game_logic
 					game_RADIANS_PER_SECOND_TO_ANGLE_PER_TICK(environment, 0.5f), 
 					0
 				};
-				/*if (i != 0)
+				/*if (2 <= i && i < environment.state.current_rigid_body_count - 2)
 				{
 					velocity.velocity.x = 0;
 					velocity.velocity.y = 0;
@@ -594,12 +594,12 @@ namespace game_logic
 			util::rigid_body::Triangle_Bounding_Box box
 			{ 
 				{ 
-					game_logic__util__spatial_FROM_METERS(environment, -1.0f), 
-					game_logic__util__spatial_FROM_METERS(environment, -1.0f) 
+					0, 
+					0 
 				},
 				{ 
-					game_logic__util__spatial_FROM_METERS(environment, 1.0f), 
-					game_logic__util__spatial_FROM_METERS(environment, 1.0f)
+					-1, 
+					-1
 				} 
 			};
 			for (GLuint i = 0; i < environment.state.current_triangle_count; ++i)
@@ -613,7 +613,7 @@ namespace game_logic
 
 			glNamedBufferStorage
 			(
-				environment.state.bounding_box_buffer, environment.state.bounding_box_buffer_size, initial_boxes,
+				environment.state.bounding_box_buffer, environment.state.bounding_box_buffer_size, initial_boxes, 
 				0u
 			);
 
@@ -637,7 +637,6 @@ namespace game_logic
 			 }
 
 			 {
-				 std::cout << glGetProgramResourceIndex(environment.state.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, "Changed_Bounding_Boxes.boxes.index") << std::endl;
 				 GLuint const boxes_index_index
 				 {
 					 glGetProgramResourceIndex(environment.state.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, "Changed_Bounding_Boxes.boxes[0].index")
@@ -652,6 +651,48 @@ namespace game_logic
 				 // TODO: Consider putting offset and stride contigously in game state
 				 environment.state.changed_bounding_box_buffer_boxes_index_offset = props[0];
 				 environment.state.changed_bounding_box_buffer_boxes_stride = props[1];
+
+				 GLenum const offset_label{ GL_OFFSET };
+
+				 GLuint const boxes_min_x_index
+				 {
+					 glGetProgramResourceIndex(environment.state.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, "Changed_Bounding_Boxes.boxes[0].min_x")
+				 };
+				 glGetProgramResourceiv
+				 (
+					 environment.state.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, boxes_min_x_index,
+					 1, &offset_label, 1, nullptr, &environment.state.changed_bounding_box_buffer_boxes_min_x_offset
+				 );
+
+				 GLuint const boxes_min_y_index
+				 {
+					 glGetProgramResourceIndex(environment.state.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, "Changed_Bounding_Boxes.boxes[0].min_y")
+				 };
+				 glGetProgramResourceiv
+				 (
+					 environment.state.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, boxes_min_y_index,
+					 1, &offset_label, 1, nullptr, &environment.state.changed_bounding_box_buffer_boxes_min_y_offset
+				 );
+
+				 GLuint const boxes_max_x_index
+				 {
+					 glGetProgramResourceIndex(environment.state.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, "Changed_Bounding_Boxes.boxes[0].max_x")
+				 };
+				 glGetProgramResourceiv
+				 (
+					 environment.state.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, boxes_max_x_index,
+					 1, &offset_label, 1, nullptr, &environment.state.changed_bounding_box_buffer_boxes_max_x_offset
+				 );
+
+				 GLuint const boxes_max_y_index
+				 {
+					 glGetProgramResourceIndex(environment.state.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, "Changed_Bounding_Boxes.boxes[0].max_y")
+				 };
+				 glGetProgramResourceiv
+				 (
+					 environment.state.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, boxes_max_y_index,
+					 1, &offset_label, 1, nullptr, &environment.state.changed_bounding_box_buffer_boxes_max_y_offset
+				 );
 			}
 			 
 			 GLuint const block_index
@@ -745,8 +786,12 @@ namespace game_logic
 		std::cout << "Changed bounding box buffer (" << environment.state.changed_bounding_box_buffer << "):" << std::endl;
 		std::cout << "size: " << environment.state.changed_bounding_box_buffer_size << std::endl;
 		std::cout << "push index offset: " << environment.state.changed_bounding_box_buffer_size_offset << std::endl;
-		std::cout << "boxes index offset: " << environment.state.changed_bounding_box_buffer_boxes_index_offset << std::endl;
 		std::cout << "boxes stride: " << environment.state.changed_bounding_box_buffer_boxes_stride << std::endl;
+		std::cout << "boxes index offset: " << environment.state.changed_bounding_box_buffer_boxes_index_offset << std::endl;
+		std::cout << "boxes min_x offset: " << environment.state.changed_bounding_box_buffer_boxes_min_x_offset << std::endl;
+		std::cout << "boxes min_y offset: " << environment.state.changed_bounding_box_buffer_boxes_min_y_offset << std::endl;
+		std::cout << "boxes max_x offset: " << environment.state.changed_bounding_box_buffer_boxes_max_x_offset << std::endl;
+		std::cout << "boxes max_y offset: " << environment.state.changed_bounding_box_buffer_boxes_max_y_offset << std::endl;
 		std::cout << std::endl;
 	}
 
@@ -981,6 +1026,18 @@ namespace game_logic
 			nullptr
 		);
 
+		unsigned char const* const index_start{ environment.state.changed_bounding_boxes_mapping + environment.state.changed_bounding_box_buffer_boxes_index_offset };
+		for (GLuint i{ 0 }; i < size; ++i)
+		{
+			GLuint index;
+			std::memcpy(
+				&index,
+				index_start + i * environment.state.changed_bounding_box_buffer_boxes_stride,
+				sizeof(GLuint)
+			);
+			//std::cout << i << ": " << index << std::endl;
+		}
+
 		GLint const fast_key_pressed{ glfwGetKey(environment.window, GLFW_KEY_LEFT_SHIFT) };
 		GLint const slow_key_pressed{ glfwGetKey(environment.window, GLFW_KEY_LEFT_CONTROL) };
 		GLfloat const distance
@@ -1143,8 +1200,8 @@ namespace game_logic
 		glUseProgram(environment.state.triangle_draw_shader);
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 		glDrawArrays(GL_TRIANGLES, 0, environment.state.current_triangle_count * 3);
-		//glUseProgram(environment.state.triangle_bounding_box_draw_shader);
-		//glDrawArrays(GL_LINES, 0, environment.state.current_triangle_count * 8);
+		glUseProgram(environment.state.triangle_bounding_box_draw_shader);
+		glDrawArrays(GL_LINES, 0, environment.state.current_triangle_count * 8);
 	}
 
 	void free(game_environment::Environment& environment)

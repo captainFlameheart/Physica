@@ -23,6 +23,10 @@ buffer Bounding_Boxes
 } bounding_boxes;
 
 /* TODO: Use velocities for computing better fat aabb
+IMPROVEMENT: DO NOT READ FROM VELOCITY BUFFER. Instead use 
+the displacement from the old AABB to the new AABB as an indication 
+of the trajectory.
+
 layout(shared, binding = VELOCITY_BINDING) restrict readonly 
 buffer Velocities
 {
@@ -32,16 +36,16 @@ buffer Velocities
 struct Changed_Bounding_Box
 {
 	uint index;
+	int min_x;
+	int min_y;
+	int max_x;
+	int max_y;
 };
 
 layout(shared, binding = CHANGED_BOUNDING_BOX_BINDING)
 buffer Changed_Bounding_Boxes
 {
 	restrict uint size; // TODO: coherent MIGHT be necessary (conflicting reports)
-	// TODO: Consider storing actual boxes (ivec4) along with the indices
-	// Improvement: Store (uint index, int body_x, int body_y, int body_angle) for 
-	// less memory usage. Does not work if body velocity is used though :(.
-	//restrict writeonly uint indices[MAX_TRIANGLE_COUNT];
 	restrict writeonly Changed_Bounding_Box boxes[MAX_TRIANGLE_COUNT];
 } changed_bounding_boxes;
 
@@ -65,11 +69,16 @@ void main()
 	ivec2 min = body_position.xy + ivec2(min(min(offset_0, offset_1), offset_2));
 	ivec2 max = body_position.xy + ivec2(max(max(offset_0, offset_1), offset_2));
 	ivec4 bounding_box = bounding_boxes.boxes[gl_GlobalInvocationID.x];
+		
 	if (any(lessThan(min, bounding_box.xy)) || any(greaterThan(max, bounding_box.zw)))
 	{
-		bounding_boxes.boxes[gl_GlobalInvocationID.x] = ivec4(min - PADDING, max + PADDING);
+		bounding_box = ivec4(min - PADDING, max + PADDING);
+		bounding_boxes.boxes[gl_GlobalInvocationID.x] = bounding_box;
 		uint push_index = atomicAdd(changed_bounding_boxes.size, 1u);
-		changed_bounding_boxes.boxes[push_index] = Changed_Bounding_Box(gl_GlobalInvocationID.x);
-		//changed_bounding_boxes.indices[push_index] = gl_GlobalInvocationID.x;
+		changed_bounding_boxes.boxes[push_index] = Changed_Bounding_Box
+		(
+			gl_GlobalInvocationID.x, 
+			bounding_box.x, bounding_box.y, bounding_box.z, bounding_box.w
+		);
 	}
 }

@@ -62,8 +62,12 @@ namespace game_state
 		GLuint changed_bounding_box_buffer;
 		GLint changed_bounding_box_buffer_size;
 		GLint changed_bounding_box_buffer_size_offset;
-		GLint changed_bounding_box_buffer_boxes_index_offset;
 		GLint changed_bounding_box_buffer_boxes_stride;
+		GLint changed_bounding_box_buffer_boxes_index_offset;
+		GLint changed_bounding_box_buffer_boxes_min_x_offset;
+		GLint changed_bounding_box_buffer_boxes_min_y_offset;
+		GLint changed_bounding_box_buffer_boxes_max_x_offset;
+		GLint changed_bounding_box_buffer_boxes_max_y_offset;
 
 		GLuint rigid_body_velocity_integration_shader;
 		GLuint triangle_bounding_box_update_shader;
