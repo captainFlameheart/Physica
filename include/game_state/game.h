@@ -2,6 +2,7 @@
 #include "glad_glfw.h"
 #include "game_state/camera/camera.h"
 #include "util/math/vector_2D.h"
+#include "game_state/proximity/Tree.h"
 
 namespace game_state
 {
@@ -69,6 +70,8 @@ namespace game_state
 		GLint changed_bounding_box_buffer_boxes_max_x_offset;
 		GLint changed_bounding_box_buffer_boxes_max_y_offset;
 
+		proximity::Tree proximity_tree;
+		
 		GLuint rigid_body_velocity_integration_shader;
 		GLuint triangle_bounding_box_update_shader;
 		unsigned char* changed_bounding_boxes_mapping;

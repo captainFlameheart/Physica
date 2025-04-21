@@ -2,12 +2,11 @@
 #include "glad_glfw.h"
 #include "Bounding_Box.h"
 
-namespace game_logic::util::proximity
+namespace game_state::proximity
 {
-	struct Contact
+	struct Leaf_Change
 	{
 		GLuint leaf;
-		GLuint GPU_index;
-		GLuint next;
+		Bounding_Box from;
 	};
 }
