@@ -1,3 +1,7 @@
+// TODO: Move these constants to CPU
+#define TRANSLATIONAL_TRAJECTORY_PADDING 480
+#define ANGULAR_TRAJECTORY_PADDING 60.0
+
 layout(shared, binding = TRIANGLE_BINDING) restrict readonly
 buffer Triangles
 {
@@ -25,13 +29,13 @@ buffer Bounding_Boxes
 /* TODO: Use velocities for computing better fat aabb
 IMPROVEMENT: DO NOT READ FROM VELOCITY BUFFER. Instead use 
 the displacement from the old AABB to the new AABB as an indication 
-of the trajectory.
+of the trajectory.*/
 
 layout(shared, binding = VELOCITY_BINDING) restrict readonly 
 buffer Velocities
 {
 	ivec4 v[MAX_RIGID_BODY_COUNT];
-} velocities;*/
+} velocities;
 
 struct Changed_Bounding_Box
 {
@@ -67,19 +71,36 @@ void main()
 	vec2 offset_0 = local_to_offset * vertices.vertices[triangle[0]];
 	vec2 offset_1 = local_to_offset * vertices.vertices[triangle[1]];
 	vec2 offset_2 = local_to_offset * vertices.vertices[triangle[2]];
-	ivec2 min = body_position.xy + ivec2(min(min(offset_0, offset_1), offset_2));
-	ivec2 max = body_position.xy + ivec2(max(max(offset_0, offset_1), offset_2));
+	ivec2 new_min = body_position.xy + ivec2(min(min(offset_0, offset_1), offset_2));
+	ivec2 new_max = body_position.xy + ivec2(max(max(offset_0, offset_1), offset_2));
 	ivec4 bounding_box = bounding_boxes.boxes[gl_GlobalInvocationID.x];
 		
-	if (any(lessThan(min, bounding_box.xy)) || any(greaterThan(max, bounding_box.zw)))
+	if (any(lessThan(new_min, bounding_box.xy)) || any(greaterThan(new_max, bounding_box.zw)))
 	{
-		bounding_box = ivec4(min - PADDING, max + PADDING);
-		bounding_boxes.boxes[gl_GlobalInvocationID.x] = bounding_box;
+		new_min -= PADDING;
+		new_max += PADDING;
+		
+		ivec4 body_velocity = velocities.v[triangle.w];
+		ivec2 translational_padding = TRANSLATIONAL_TRAJECTORY_PADDING * body_velocity.xy;
+		float angular_padding = ANGULAR_TRAJECTORY_PADDING * (body_velocity.z * RADIAN_INVERSE);
+		ivec2 predicted_vertex_0_position = 
+			body_position.xy + translational_padding + 
+			ivec2(offset_0 + angular_padding * vec2(-offset_0.y, offset_0.x));
+		ivec2 predicted_vertex_1_position = 
+			body_position.xy + translational_padding + 
+			ivec2(offset_1 + angular_padding * vec2(-offset_1.y, offset_1.x));
+		ivec2 predicted_vertex_2_position = 
+			body_position.xy + translational_padding + 
+			ivec2(offset_2 + angular_padding * vec2(-offset_2.y, offset_2.x));
+		new_min = min(min(min(new_min, predicted_vertex_0_position), predicted_vertex_1_position), predicted_vertex_2_position);
+		new_max = max(max(max(new_max, predicted_vertex_0_position), predicted_vertex_1_position), predicted_vertex_2_position);
+
+		bounding_boxes.boxes[gl_GlobalInvocationID.x] = ivec4(new_min, new_max);//bounding_box;
 		uint push_index = atomicAdd(changed_bounding_boxes.size, 1u);
 		changed_bounding_boxes.boxes[push_index] = Changed_Bounding_Box
 		(
 			gl_GlobalInvocationID.x, 
-			bounding_box.x, bounding_box.y, bounding_box.z, bounding_box.w
+			new_min.x, new_min.y, new_max.x, new_max.y
 		);
 	}
 }

@@ -783,14 +783,14 @@ namespace game_logic
 			environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment)
 		);
 		util::proximity::insert_leaf_to_empty_tree(
-			environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environ),
+			environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment),
 			0, 
 			0, 0, -1, -1
 		);
 		for (GLuint i = 1; i < environment.state.current_triangle_count; ++i)
 		{
 			util::proximity::insert_leaf_to_nonempty_tree(
-				environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environ),
+				environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment),
 				i, 
 				0, 0, -1, -1
 			);
@@ -1087,12 +1087,6 @@ namespace game_logic
 			nullptr
 		);
 
-		unsigned char const* index_start{ environment.state.changed_bounding_boxes_mapping + environment.state.changed_bounding_box_buffer_boxes_index_offset };
-		unsigned char const* min_x_start{ environment.state.changed_bounding_boxes_mapping + environment.state.changed_bounding_box_buffer_boxes_min_x_offset };
-		unsigned char const* min_y_start{ environment.state.changed_bounding_boxes_mapping + environment.state.changed_bounding_box_buffer_boxes_min_y_offset };
-		unsigned char const* max_x_start{ environment.state.changed_bounding_boxes_mapping + environment.state.changed_bounding_box_buffer_boxes_max_x_offset };
-		unsigned char const* max_y_start{ environment.state.changed_bounding_boxes_mapping + environment.state.changed_bounding_box_buffer_boxes_max_y_offset };
-
 		if (util::proximity::is_empty(environment.state.proximity_tree))
 		{
 
@@ -1103,6 +1097,12 @@ namespace game_logic
 		}
 		else
 		{
+			unsigned char const* index_start{ environment.state.changed_bounding_boxes_mapping + environment.state.changed_bounding_box_buffer_boxes_index_offset };
+			unsigned char const* min_x_start{ environment.state.changed_bounding_boxes_mapping + environment.state.changed_bounding_box_buffer_boxes_min_x_offset };
+			unsigned char const* min_y_start{ environment.state.changed_bounding_boxes_mapping + environment.state.changed_bounding_box_buffer_boxes_min_y_offset };
+			unsigned char const* max_x_start{ environment.state.changed_bounding_boxes_mapping + environment.state.changed_bounding_box_buffer_boxes_max_x_offset };
+			unsigned char const* max_y_start{ environment.state.changed_bounding_boxes_mapping + environment.state.changed_bounding_box_buffer_boxes_max_y_offset };
+
 			for (GLuint i{ 0 }; i < environment.state.proximity_tree.changed_leaf_count; ++i)
 			{
 				GLuint index;
@@ -1335,9 +1335,9 @@ namespace game_logic
 		glUseProgram(environment.state.triangle_bounding_box_draw_shader);
 		glDrawArrays(GL_LINES, 0, environment.state.current_triangle_count * 8);
 
-		/*glUseProgram(environment.state.parent_bounding_box_draw_shader);
-		if (!util::proximity::is_empty(environment.state.proximity_tree))
+		/*if (!util::proximity::is_empty(environment.state.proximity_tree))
 		{
+			glUseProgram(environment.state.parent_bounding_box_draw_shader);
 			draw_inner_bounding_boxes(environment, environment.state.proximity_tree.root);
 		}*/
 	}
