@@ -21,8 +21,15 @@
 #include "game_logic/util/rigid_body/Velocity.h"
 #include "game_logic/util/rigid_body/Triangle.h"
 #include "game_logic/util/rigid_body/Triangle_Bounding_Box.h"
+#include "game_logic/util/proximity/initialize.h"
+#include "game_logic/util/proximity/change_leaf.h"
+#include "game_logic/util/proximity/update_contacts.h"
+#include "game_logic/util/proximity/insert_leaf_to_empty_tree.h"
+#include "game_logic/util/proximity/insert_leaf_to_nonempty_tree.h"
+#include "game_logic/util/proximity/print_tree.h"
+#include "game_logic/util/proximity/is_empty.h"
+#include "game_logic/util/proximity/print_bounding_box.h"
 
-// TODO: Maybe reduce by a magnitude of 10
 #define game_logic_MAX_RIGID_BODY_COUNT(environment) \
 	10u * game_logic__util__rigid_body_VELOCITY_INTEGRATION_LOCAL_SIZE(environment)
 
@@ -31,6 +38,9 @@
 
 #define game_logic_MAX_VERTEX_COUNT(environment) \
 	3u * game_logic_MAX_TRIANGLE_COUNT(environment)
+
+#define game_logic_MAX_LEAF_COUNT(environment) \
+	game_logic_MAX_TRIANGLE_COUNT(environment)
 
 namespace game_logic
 {
@@ -138,6 +148,28 @@ namespace game_logic
 		);
 		environment.state.triangle_bounding_box_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
 
+		::util::shader::set_shader_statically
+		(
+			vertex_shader,
+			util_shader_VERSION,
+			game_PROJECTION_SCALE_DEFINITION(environment),
+			util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
+			::util::shader::file_to_string("util/inner_bounding_box.vert")
+		);
+		::util::shader::set_shader_statically
+		(
+			fragment_shader,
+			util_shader_VERSION,
+			util_shader_DEFINE("COLOR", "vec4(1.0, 0.0, 0.0, 1.0)"),
+			::util::shader::file_to_string("util/static_color.frag") // TODO: Should only be done once
+		);
+		environment.state.parent_bounding_box_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+		environment.state.parent_bounding_box_uniform_location = glGetUniformLocation
+		(
+			environment.state.parent_bounding_box_draw_shader, 
+			"bounding_box"
+		);
+
 		::util::shader::delete_shader(vertex_shader);
 		::util::shader::delete_shader(fragment_shader);
 
@@ -175,6 +207,7 @@ namespace game_logic
 			util_shader_DEFINE("CHANGED_BOUNDING_BOX_BINDING", STRINGIFY(game_logic__util_TRIANGLE_CHANGED_BOUNDING_BOX_BINDING)),
 			util_shader_DEFINE("VELOCITY_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_VELOCITY_BINDING)),
 			util_shader_DEFINE("LOCAL_SIZE", STRINGIFY(game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment))),
+			util_shader_DEFINE("RADIAN_INVERSE", STRINGIFY(game_logic__util__spatial_RADIAN_INVERSE(environment))),
 			::util::shader::file_to_string("util/triangle_bounding_box_update.comp")
 		);
 		environment.state.triangle_bounding_box_update_shader = ::util::shader::create_program(compute_shader);
@@ -276,7 +309,7 @@ namespace game_logic
 		}
 
 		environment.state.current_rigid_body_count = 1u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment);//500000u;
-		environment.state.current_triangle_count = 2u * environment.state.current_rigid_body_count;
+		environment.state.current_triangle_count = 1u * environment.state.current_rigid_body_count;
 
 		{ // Position buffer
 			GLuint const p_index
@@ -448,9 +481,13 @@ namespace game_logic
 
 			for (GLuint i = 0; i < environment.state.current_triangle_count; ++i)
 			{
-				util::rigid_body::Triangle triangle
+				/*util::rigid_body::Triangle triangle
 				{
 					{(2u * i) % 4u, (2u * i + 1u) % 4u, (2u * i + 2u) % 4u}, i / 2u
+				};*/
+				util::rigid_body::Triangle triangle
+				{
+					{(2u * i) % 4u, (2u * i + 1u) % 4u, (2u * i + 2u) % 4u}, i
 				};
 				std::memcpy
 				(
@@ -502,7 +539,7 @@ namespace game_logic
 			// for both initialization and updating.
 			unsigned char* const initial_vertices = new unsigned char[environment.state.vertex_buffer_size];
 			GLfloat vertex[2];
-			GLfloat const r = 0.5f;
+			GLfloat const r = 2.0f;//0.5f;
 			vertex[0] = game_logic__util__spatial_FLOAT_FROM_METERS(environment, r);
 			vertex[1] = game_logic__util__spatial_FLOAT_FROM_METERS(environment, r);
 			std::memcpy
@@ -732,6 +769,24 @@ namespace game_logic
 				)
 			 );
 		 }
+
+		util::proximity::initialize
+		(
+			environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment)
+		);
+		util::proximity::insert_leaf_to_empty_tree(
+			environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environ),
+			0, 
+			0, 0, -1, -1
+		);
+		for (GLuint i = 1; i < environment.state.current_triangle_count; ++i)
+		{
+			util::proximity::insert_leaf_to_nonempty_tree(
+				environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environ),
+				i, 
+				0, 0, -1, -1
+			);
+		}
 
 		glGenVertexArrays(1, &environment.state.vao);
 		glBindVertexArray(environment.state.vao);
@@ -1003,10 +1058,9 @@ namespace game_logic
 		}*/
 
 		// TODO: Read from mapped pointer
-		GLuint size;
 		std::memcpy
 		(
-			&size,
+			&environment.state.proximity_tree.changed_leaf_count,
 			environment.state.changed_bounding_boxes_mapping + environment.state.changed_bounding_box_buffer_size_offset, 
 			sizeof(GLuint)
 		);
@@ -1026,15 +1080,37 @@ namespace game_logic
 			nullptr
 		);
 
-		unsigned char const* const index_start{ environment.state.changed_bounding_boxes_mapping + environment.state.changed_bounding_box_buffer_boxes_index_offset };
-		for (GLuint i{ 0 }; i < size; ++i)
+		unsigned char const* index_start{ environment.state.changed_bounding_boxes_mapping + environment.state.changed_bounding_box_buffer_boxes_index_offset };
+		unsigned char const* min_x_start{ environment.state.changed_bounding_boxes_mapping + environment.state.changed_bounding_box_buffer_boxes_min_x_offset };
+		unsigned char const* min_y_start{ environment.state.changed_bounding_boxes_mapping + environment.state.changed_bounding_box_buffer_boxes_min_y_offset };
+		unsigned char const* max_x_start{ environment.state.changed_bounding_boxes_mapping + environment.state.changed_bounding_box_buffer_boxes_max_x_offset };
+		unsigned char const* max_y_start{ environment.state.changed_bounding_boxes_mapping + environment.state.changed_bounding_box_buffer_boxes_max_y_offset };
+
+		for (GLuint i{ 0 }; i < environment.state.proximity_tree.changed_leaf_count; ++i)
 		{
 			GLuint index;
-			std::memcpy(
-				&index,
-				index_start + i * environment.state.changed_bounding_box_buffer_boxes_stride,
-				sizeof(GLuint)
+			GLint min_x, min_y, max_x, max_y;
+			std::memcpy(&index, index_start, sizeof(GLuint));
+			std::memcpy(&min_x, min_x_start, sizeof(GLint));
+			std::memcpy(&min_y, min_y_start, sizeof(GLint));
+			std::memcpy(&max_x, max_x_start, sizeof(GLint));
+			std::memcpy(&max_y, max_y_start, sizeof(GLint));
+
+			//std::cout << index << ": ";
+			//util::proximity::print(std::cout, game_state::proximity::Bounding_Box{ min_x, min_y, max_x, max_y }) << std::endl;
+
+			util::proximity::change_leaf
+			(
+				environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment), 
+				index, i, min_x, min_y, max_x, max_y
 			);
+
+			index_start += environment.state.changed_bounding_box_buffer_boxes_stride;
+			min_x_start += environment.state.changed_bounding_box_buffer_boxes_stride;
+			min_y_start += environment.state.changed_bounding_box_buffer_boxes_stride;
+			max_x_start += environment.state.changed_bounding_box_buffer_boxes_stride;
+			max_y_start += environment.state.changed_bounding_box_buffer_boxes_stride;
+
 			//std::cout << i << ": " << index << std::endl;
 		}
 
@@ -1184,6 +1260,33 @@ namespace game_logic
 		// TODO: Check if memory barrier is needed to fix tearing
 	}
 
+	void draw_inner_bounding_boxes
+	(
+		game_environment::Environment const& environment, 
+		GLuint node_index
+	)
+	{
+		if (node_index < game_logic_MAX_LEAF_COUNT(environment))
+		{
+			return;
+		}
+		game_state::proximity::Node const& node
+		{
+			environment.state.proximity_tree.nodes[node_index]
+		};
+		draw_inner_bounding_boxes(environment, node.children[0]);
+		draw_inner_bounding_boxes(environment, node.children[1]);
+		glUniform4i
+		(
+			environment.state.parent_bounding_box_uniform_location,
+			node.bounding_box.min.x, node.bounding_box.min.y, 
+			node.bounding_box.max.x, node.bounding_box.max.y
+		);
+		glDrawArrays(GL_LINES, 0, 8);
+	}
+
+	// TODO: Rename to draw to not confuse with arbitrary OpenGL rendering commands 
+	// which includes compute shaders
 	void render(game_environment::Environment& environment)
 	{
 		glClear(GL_COLOR_BUFFER_BIT);
@@ -1200,8 +1303,15 @@ namespace game_logic
 		glUseProgram(environment.state.triangle_draw_shader);
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 		glDrawArrays(GL_TRIANGLES, 0, environment.state.current_triangle_count * 3);
+
 		glUseProgram(environment.state.triangle_bounding_box_draw_shader);
 		glDrawArrays(GL_LINES, 0, environment.state.current_triangle_count * 8);
+
+		glUseProgram(environment.state.parent_bounding_box_draw_shader);
+		if (!util::proximity::is_empty(environment.state.proximity_tree))
+		{
+			draw_inner_bounding_boxes(environment, environment.state.proximity_tree.root);
+		}
 	}
 
 	void free(game_environment::Environment& environment)

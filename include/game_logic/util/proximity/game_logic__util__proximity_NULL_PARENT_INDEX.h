@@ -1,3 +1,0 @@
-#pragma once
-
-#define game_logic__util__proximity_NULL_PARENT_INDEX 0b10000000000000000000000000000000u

@@ -6,12 +6,9 @@
 namespace game_logic::util::proximity
 {
 	template <typename FreeContact, typename AddContact>
-	inline void resolve_leaf_changes
+	void update_contacts
 	(
-		game_environment::Environment& environment, 
-		FreeContact& free_contact, AddContact& add_contact,
-	)
-	{
-
-	}
+		game_environment::Environment& environment,
+		FreeContact& free_contact, AddContact& add_contact
+	);
 }

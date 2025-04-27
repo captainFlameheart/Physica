@@ -4,10 +4,10 @@
 
 namespace game_logic::util::proximity
 {
-	void change_leaf
+	void insert_leaf_to_nonempty_tree
 	(
-		game_state::proximity::Tree& tree, GLuint const max_leaf_count, 
-		GLuint const leaf_index, GLuint const change_index, 
+		game_state::proximity::Tree& tree, GLuint const max_leaf_count,
+		GLuint const leaf_index, 
 		GLint const min_x, GLint const min_y, GLint const max_x, GLint const max_y
 	);
 }

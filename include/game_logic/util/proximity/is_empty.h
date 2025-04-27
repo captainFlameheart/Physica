@@ -4,5 +4,5 @@
 
 namespace game_logic::util::proximity
 {
-	void initialize(game_state::proximity::Tree& tree, GLuint const max_leaf_count);
+	bool is_empty(game_state::proximity::Tree const& tree);
 }
