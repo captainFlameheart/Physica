@@ -1,9 +1,10 @@
 #pragma once
+#include "glad_glfw.h"
 #include "game_state/proximity/Tree.h"
 
 namespace game_logic::util::proximity
 {
-	inline void change_leaf
+	void change_leaf
 	(
 		game_state::proximity::Tree& tree, GLuint const leaf_index, 
 		GLuint const change_index, 

@@ -1,4 +1,5 @@
 #pragma once
+#include "glad_glfw.h"
 #include "game_state/proximity/Tree.h"
 #include "game_environment/environment.h"
 

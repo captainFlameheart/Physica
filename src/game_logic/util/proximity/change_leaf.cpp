@@ -1,13 +1,12 @@
-#pragma once
 #include "game_logic/util/proximity/change_leaf.h"
 #include "game_logic/util/proximity/game_logic__util__proximity_NULL_PARENT_INDEX.h"
-#include "game_logic/util/proximity/game_logic__util__proximity_LEAF_BASE_INDEX.h"
+#include "game_logic/util/proximity/game_logic__util__proximity_MAX_LEAF_COUNT.h"
 #include "game_logic/util/proximity/wrap.h"
 #include "game_logic/util/proximity/area.h"
 
 namespace game_logic::util::proximity
 {
-	inline void change_leaf
+	void change_leaf
 	(
 		game_state::proximity::Tree& tree, GLuint const leaf_index, 
 		GLuint const change_index, 
@@ -58,10 +57,11 @@ namespace game_logic::util::proximity
 		// Find new sibling
 		// TODO: Check if optimizing perimiter is better than optimizing area
 		// TODO: Check if depth is to be considered when computing costs
+		// TODO: Consider saving child combined boxes and areas for next descent iteration
 		sibling_index = tree.root;
 		while (sibling_index >= game_logic__util__proximity_MAX_LEAF_COUNT)
 		{
-			game_state::proximity::Node const& sibling{ tree.nodes[sibling_index] };
+			game_state::proximity::Node& sibling{ tree.nodes[sibling_index] };
 			game_state::proximity::Bounding_Box parent_box;
 			wrap(leaf.bounding_box, sibling.bounding_box, parent_box);
 			GLint const cost{ area(parent_box) };
@@ -69,18 +69,21 @@ namespace game_logic::util::proximity
 			GLint const inherited_cost{ cost - area(sibling.bounding_box) };
 			
 			game_state::proximity::Node const& child_0{tree.nodes[sibling.children[0]]};
-			wrap(leaf.bounding_box, child_0.bounding_box, parent_box);
-			GLint const cost_0{ inherited_cost + (area(parent_box) - area(child_0.bounding_box)) };
+			game_state::proximity::Bounding_Box parent_box_0;
+			wrap(leaf.bounding_box, child_0.bounding_box, parent_box_0);
+			GLint const cost_0{ inherited_cost + (area(parent_box_0) - area(child_0.bounding_box)) };
 
 			game_state::proximity::Node const& child_1{ tree.nodes[sibling.children[1]] };
-			wrap(leaf.bounding_box, child_1.bounding_box, parent_box);
-			GLint const cost_1{ inherited_cost + (area(parent_box) - area(child_1.bounding_box)) };
+			game_state::proximity::Bounding_Box parent_box_1;
+			wrap(leaf.bounding_box, child_1.bounding_box, parent_box_1);
+			GLint const cost_1{ inherited_cost + (area(parent_box_1) - area(child_1.bounding_box)) };
 
 			if (cost < cost_0 && cost < cost_1)
 			{
 				break;
 			}
 
+			sibling.bounding_box = parent_box;
 			sibling_index = cost_0 < cost_1 ? sibling.children[0] : sibling.children[1];
 		}
 

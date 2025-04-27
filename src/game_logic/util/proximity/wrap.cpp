@@ -2,7 +2,7 @@
 
 namespace game_logic::util::proximity
 {
-	inline void wrap
+	void wrap
 	(
 		game_state::proximity::Bounding_Box const& box_0,
 		game_state::proximity::Bounding_Box const& box_1,

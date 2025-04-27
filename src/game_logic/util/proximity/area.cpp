@@ -2,7 +2,7 @@
 
 namespace game_logic::util::proximity
 {
-	inline GLint area(game_state::proximity::Bounding_Box const& bounding_box)
+	GLint area(game_state::proximity::Bounding_Box const& bounding_box)
 	{
 		return 
 			(bounding_box.max.x - bounding_box.min.x) * 
