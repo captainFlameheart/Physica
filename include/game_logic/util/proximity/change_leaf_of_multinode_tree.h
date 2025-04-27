@@ -4,7 +4,7 @@
 
 namespace game_logic::util::proximity
 {
-	void change_leaf
+	void change_leaf_of_multinode_tree
 	(
 		game_state::proximity::Tree& tree, GLuint const max_leaf_count, 
 		GLuint const leaf_index, GLuint const change_index, 

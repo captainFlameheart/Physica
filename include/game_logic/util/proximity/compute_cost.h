@@ -4,5 +4,5 @@
 
 namespace game_logic::util::proximity
 {
-	GLint area(game_state::proximity::Bounding_Box const& bounding_box);
+	GLint compute_cost(game_state::proximity::Bounding_Box const& bounding_box);
 }

@@ -76,6 +76,8 @@ namespace game_state
 		GLuint triangle_bounding_box_update_shader;
 		unsigned char* changed_bounding_boxes_mapping;
 
+		GLuint tick;
+
 		GLuint triangle_draw_shader;
 		GLuint triangle_bounding_box_draw_shader;
 		GLuint parent_bounding_box_draw_shader;

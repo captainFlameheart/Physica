@@ -1,6 +1,4 @@
 #include "game_logic/util/proximity/insert_leaf_to_empty_tree.h"
-#include "game_logic/util/proximity/wrap.h"
-#include "game_logic/util/proximity/area.h"
 
 namespace game_logic::util::proximity
 {

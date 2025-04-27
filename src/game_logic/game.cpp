@@ -22,19 +22,21 @@
 #include "game_logic/util/rigid_body/Triangle.h"
 #include "game_logic/util/rigid_body/Triangle_Bounding_Box.h"
 #include "game_logic/util/proximity/initialize.h"
-#include "game_logic/util/proximity/change_leaf.h"
+#include "game_logic/util/proximity/change_leaf_of_multinode_tree.h"
 #include "game_logic/util/proximity/update_contacts.h"
 #include "game_logic/util/proximity/insert_leaf_to_empty_tree.h"
 #include "game_logic/util/proximity/insert_leaf_to_nonempty_tree.h"
 #include "game_logic/util/proximity/print_tree.h"
 #include "game_logic/util/proximity/is_empty.h"
+#include "game_logic/util/proximity/has_single_node.h"
 #include "game_logic/util/proximity/print_bounding_box.h"
+#include "game_logic/util/proximity/compute_height.h"
 
 #define game_logic_MAX_RIGID_BODY_COUNT(environment) \
-	10u * game_logic__util__rigid_body_VELOCITY_INTEGRATION_LOCAL_SIZE(environment)
+	1000u * game_logic__util__rigid_body_VELOCITY_INTEGRATION_LOCAL_SIZE(environment)
 
 #define game_logic_MAX_TRIANGLE_COUNT(environment) \
-	10u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment)
+	1000u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment)
 
 #define game_logic_MAX_VERTEX_COUNT(environment) \
 	3u * game_logic_MAX_TRIANGLE_COUNT(environment)
@@ -46,6 +48,8 @@ namespace game_logic
 {
 	void initialize(game_environment::Environment& environment)
 	{
+		environment.state.tick = 0u;
+
 		environment.state.grab_cursor = glfwCreateStandardCursor(GLFW_CROSSHAIR_CURSOR);
 
 		environment.state.camera.xy.x = 0;
@@ -308,7 +312,7 @@ namespace game_logic
 			);
 		}
 
-		environment.state.current_rigid_body_count = 1u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment);//500000u;
+		environment.state.current_rigid_body_count = 1000u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment);//500000u;
 		environment.state.current_triangle_count = 1u * environment.state.current_rigid_body_count;
 
 		{ // Position buffer
@@ -355,6 +359,10 @@ namespace game_logic
 					game_logic__util__spatial_FROM_RADIANS(environment, i * 0.1f), 
 					0
 				};
+				if (i < 2)
+				{
+					position.position.x -= game_logic__util__spatial_FROM_METERS(environment, -20.0f);
+				}
 				std::memcpy
 				(
 					initial_positions + environment.state.rigid_body_position_buffer_p_offset + i * environment.state.rigid_body_position_buffer_p_stride,
@@ -539,7 +547,7 @@ namespace game_logic
 			// for both initialization and updating.
 			unsigned char* const initial_vertices = new unsigned char[environment.state.vertex_buffer_size];
 			GLfloat vertex[2];
-			GLfloat const r = 2.0f;//0.5f;
+			GLfloat const r{ 0.5f };
 			vertex[0] = game_logic__util__spatial_FLOAT_FROM_METERS(environment, r);
 			vertex[1] = game_logic__util__spatial_FLOAT_FROM_METERS(environment, r);
 			std::memcpy
@@ -1057,7 +1065,6 @@ namespace game_logic
 				break;
 		}*/
 
-		// TODO: Read from mapped pointer
 		std::memcpy
 		(
 			&environment.state.proximity_tree.changed_leaf_count,
@@ -1086,32 +1093,51 @@ namespace game_logic
 		unsigned char const* max_x_start{ environment.state.changed_bounding_boxes_mapping + environment.state.changed_bounding_box_buffer_boxes_max_x_offset };
 		unsigned char const* max_y_start{ environment.state.changed_bounding_boxes_mapping + environment.state.changed_bounding_box_buffer_boxes_max_y_offset };
 
-		for (GLuint i{ 0 }; i < environment.state.proximity_tree.changed_leaf_count; ++i)
+		if (util::proximity::is_empty(environment.state.proximity_tree))
 		{
-			GLuint index;
-			GLint min_x, min_y, max_x, max_y;
-			std::memcpy(&index, index_start, sizeof(GLuint));
-			std::memcpy(&min_x, min_x_start, sizeof(GLint));
-			std::memcpy(&min_y, min_y_start, sizeof(GLint));
-			std::memcpy(&max_x, max_x_start, sizeof(GLint));
-			std::memcpy(&max_y, max_y_start, sizeof(GLint));
 
-			//std::cout << index << ": ";
-			//util::proximity::print(std::cout, game_state::proximity::Bounding_Box{ min_x, min_y, max_x, max_y }) << std::endl;
+		}
+		else if (util::proximity::has_single_node(environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment)))
+		{
 
-			util::proximity::change_leaf
+		}
+		else
+		{
+			for (GLuint i{ 0 }; i < environment.state.proximity_tree.changed_leaf_count; ++i)
+			{
+				GLuint index;
+				GLint min_x, min_y, max_x, max_y;
+				std::memcpy(&index, index_start, sizeof(GLuint));
+				std::memcpy(&min_x, min_x_start, sizeof(GLint));
+				std::memcpy(&min_y, min_y_start, sizeof(GLint));
+				std::memcpy(&max_x, max_x_start, sizeof(GLint));
+				std::memcpy(&max_y, max_y_start, sizeof(GLint));
+
+				//std::cout << index << ": ";
+				//util::proximity::print(std::cout, game_state::proximity::Bounding_Box{ min_x, min_y, max_x, max_y }) << std::endl;
+
+				util::proximity::change_leaf_of_multinode_tree
+				(
+					environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment), 
+					index, i, min_x, min_y, max_x, max_y
+				);
+
+				index_start += environment.state.changed_bounding_box_buffer_boxes_stride;
+				min_x_start += environment.state.changed_bounding_box_buffer_boxes_stride;
+				min_y_start += environment.state.changed_bounding_box_buffer_boxes_stride;
+				max_x_start += environment.state.changed_bounding_box_buffer_boxes_stride;
+				max_y_start += environment.state.changed_bounding_box_buffer_boxes_stride;
+
+				//std::cout << i << ": " << index << std::endl;
+			}
+		}
+		if (environment.state.tick % 120u == 0u)
+		{
+			std::cout << "Height: " << util::proximity::compute_height
 			(
-				environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment), 
-				index, i, min_x, min_y, max_x, max_y
-			);
-
-			index_start += environment.state.changed_bounding_box_buffer_boxes_stride;
-			min_x_start += environment.state.changed_bounding_box_buffer_boxes_stride;
-			min_y_start += environment.state.changed_bounding_box_buffer_boxes_stride;
-			max_x_start += environment.state.changed_bounding_box_buffer_boxes_stride;
-			max_y_start += environment.state.changed_bounding_box_buffer_boxes_stride;
-
-			//std::cout << i << ": " << index << std::endl;
+				environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment)
+			) << std::endl;
+			std::cout << "Changed leaf count: " << environment.state.proximity_tree.changed_leaf_count << std::endl;
 		}
 
 		GLint const fast_key_pressed{ glfwGetKey(environment.window, GLFW_KEY_LEFT_SHIFT) };
@@ -1210,6 +1236,8 @@ namespace game_logic
 			environment.state.camera.xy.x += environment.state.grabbed_point.x - cursor_world_x;
 			environment.state.camera.xy.y += environment.state.grabbed_point.y - cursor_world_y;
 		}
+
+		++environment.state.tick;
 	}
 
 	void update_GPU_camera(game_environment::Environment& environment)
@@ -1307,11 +1335,11 @@ namespace game_logic
 		glUseProgram(environment.state.triangle_bounding_box_draw_shader);
 		glDrawArrays(GL_LINES, 0, environment.state.current_triangle_count * 8);
 
-		glUseProgram(environment.state.parent_bounding_box_draw_shader);
+		/*glUseProgram(environment.state.parent_bounding_box_draw_shader);
 		if (!util::proximity::is_empty(environment.state.proximity_tree))
 		{
 			draw_inner_bounding_boxes(environment, environment.state.proximity_tree.root);
-		}
+		}*/
 	}
 
 	void free(game_environment::Environment& environment)

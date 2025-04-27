@@ -1,6 +1,6 @@
 #include "game_logic/util/proximity/insert_leaf_to_nonempty_tree.h"
 #include "game_logic/util/proximity/wrap.h"
-#include "game_logic/util/proximity/area.h"
+#include "game_logic/util/proximity/compute_cost.h"
 
 namespace game_logic::util::proximity
 {
@@ -30,19 +30,19 @@ namespace game_logic::util::proximity
 			game_state::proximity::Node& sibling{ tree.nodes[sibling_index] };
 			game_state::proximity::Bounding_Box parent_box;
 			wrap(leaf.bounding_box, sibling.bounding_box, parent_box);
-			GLint const cost{ area(parent_box) };
+			GLint const cost{ compute_cost(parent_box) };
 
-			GLint const inherited_cost{ cost - area(sibling.bounding_box) };
+			GLint const inherited_cost{ cost - compute_cost(sibling.bounding_box) };
 
 			game_state::proximity::Node const& child_0{ tree.nodes[sibling.children[0]] };
 			game_state::proximity::Bounding_Box parent_box_0;
 			wrap(leaf.bounding_box, child_0.bounding_box, parent_box_0);
-			GLint const cost_0{ inherited_cost + (area(parent_box_0) - area(child_0.bounding_box)) };
+			GLint const cost_0{ inherited_cost + (compute_cost(parent_box_0) - compute_cost(child_0.bounding_box)) };
 
 			game_state::proximity::Node const& child_1{ tree.nodes[sibling.children[1]] };
 			game_state::proximity::Bounding_Box parent_box_1;
 			wrap(leaf.bounding_box, child_1.bounding_box, parent_box_1);
-			GLint const cost_1{ inherited_cost + (area(parent_box_1) - area(child_1.bounding_box)) };
+			GLint const cost_1{ inherited_cost + (compute_cost(parent_box_1) - compute_cost(child_1.bounding_box)) };
 
 			if (cost < cost_0 && cost < cost_1)
 			{
