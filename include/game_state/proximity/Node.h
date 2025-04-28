@@ -14,7 +14,15 @@ namespace game_state::proximity
 		};
 		union
 		{
-			GLuint children[2];
+			union
+			{
+				GLuint children[2];
+				struct
+				{
+					GLuint child_0;
+					GLuint child_1;
+				};
+			};
 			struct
 			{
 				GLuint contact;
