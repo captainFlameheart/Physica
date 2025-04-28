@@ -1,14 +1,15 @@
 #pragma once
 #include "glad_glfw.h"
 #include "game_state/proximity/Tree.h"
-#include "game_environment/environment.h"
 
 namespace game_logic::util::proximity
 {
-	template <typename FreeContact, typename AddContact>
+	template <typename Replace_Contact, typename Append_Contact, typename Copy_Contact>
 	void update_contacts
 	(
-		game_environment::Environment& environment,
-		FreeContact& free_contact, AddContact& add_contact
+		game_state::proximity::Tree& tree,
+		Replace_Contact& replace_contact,
+		Append_Contact& append_contact,
+		Copy_Contact& copy_contact
 	);
 }

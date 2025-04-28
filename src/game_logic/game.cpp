@@ -1332,8 +1332,8 @@ namespace game_logic
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 		glDrawArrays(GL_TRIANGLES, 0, environment.state.current_triangle_count * 3);
 
-		glUseProgram(environment.state.triangle_bounding_box_draw_shader);
-		glDrawArrays(GL_LINES, 0, environment.state.current_triangle_count * 8);
+		//glUseProgram(environment.state.triangle_bounding_box_draw_shader);
+		//glDrawArrays(GL_LINES, 0, environment.state.current_triangle_count * 8);
 
 		/*if (!util::proximity::is_empty(environment.state.proximity_tree))
 		{
