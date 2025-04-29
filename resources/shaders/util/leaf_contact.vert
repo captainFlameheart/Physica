@@ -23,7 +23,6 @@ void main()
 	uvec2 contact = contacts.contacts[gl_VertexID / 2u];
 	uint leaf = contact[gl_VertexID % 2u];
 	ivec4 bounding_box = bounding_boxes.boxes[leaf];
-	// TODO: See if bitshift opperator can be used instead of division
 	ivec2 world_position = bounding_box.xy + (bounding_box.zw - bounding_box.xy) / 2;
 	
 	ivec2 camera_relative_xy = world_position - camera.xy;

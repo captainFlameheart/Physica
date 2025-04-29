@@ -24,6 +24,8 @@ namespace game_logic::util::proximity
 		leaf.bounding_box.max.x = max_x;
 		leaf.bounding_box.max.y = max_y;
 
+		leaf.change = change_index;
+
 		game_state::proximity::Node& parent{ tree.nodes[leaf.parent] };
 		GLuint const sibling_side{ static_cast<GLuint>(parent.children[0] == leaf_index) };
 

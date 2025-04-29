@@ -81,6 +81,8 @@ namespace game_state
 		GLuint rigid_body_velocity_integration_shader;
 		GLuint triangle_bounding_box_update_shader;
 		unsigned char* changed_bounding_boxes_mapping;
+		
+		unsigned char* contact_mapping;
 
 		GLuint tick;
 

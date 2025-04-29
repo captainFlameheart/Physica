@@ -5,6 +5,7 @@
 
 namespace game_logic::util::proximity
 {
+	/*
 	template <typename Add_Contact>
 	inline void insert_contact(
 		game_state::proximity::Tree& tree, 
@@ -57,7 +58,7 @@ namespace game_logic::util::proximity
 	>
 	void update_contacts
 	(
-		game_state::proximity::Tree& tree, GLuint const leaf_count, 
+		game_state::proximity::Tree& tree, GLuint const max_leaf_count, 
 		On_Removing_Contacts_For& on_removing_contacts_for, 
 		Remove_Contact& remove_contact, 
 		On_Contacts_Removed& on_contacts_removed, 
@@ -156,7 +157,7 @@ namespace game_logic::util::proximity
 				game_state::proximity::Node const& node{ tree.nodes[node_index] };
 				if (overlap(leaf.bounding_box, node.bounding_box))
 				{
-					if (node_index < leaf_count)
+					if (node_index < max_leaf_count)
 					{
 						game_state::proximity::Node const& other_leaf{ tree.nodes[node_index] };
 						game_state::proximity::Leaf_Change const& other_leaf_change{ tree.leaf_changes[other_leaf.change] };
@@ -190,5 +191,5 @@ namespace game_logic::util::proximity
 			} while (next_to_visit != game_logic__util__proximity_NULL_INDEX);
 		}
 		on_contacts_added();
-	}
+	}*/
 }

@@ -1,3 +1,3 @@
 #pragma once
 
-#define game_logic__util__rigid_body_DEFAULT_COMPUTE_SHADER_LOCAL_SIZE(environment) 3u
+#define game_logic__util__rigid_body_DEFAULT_COMPUTE_SHADER_LOCAL_SIZE(environment) 8u

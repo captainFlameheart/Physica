@@ -1,6 +1,7 @@
 #include "game_logic/util/proximity/insert_leaf_to_nonempty_tree.h"
 #include "game_logic/util/proximity/wrap.h"
 #include "game_logic/util/proximity/compute_cost.h"
+#include "game_logic/util/proximity/NULL_INDEX.h"
 
 namespace game_logic::util::proximity
 {
@@ -18,6 +19,8 @@ namespace game_logic::util::proximity
 		leaf.bounding_box.min.y = min_y;
 		leaf.bounding_box.max.x = max_x;
 		leaf.bounding_box.max.y = max_y;
+
+		leaf.contact = game_logic__util__proximity_NULL_INDEX;
 
 		// Find sibling
 		// TODO: Check if optimizing perimiter is better than optimizing area
