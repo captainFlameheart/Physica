@@ -17,5 +17,7 @@ namespace game_logic::util::proximity
 			tree.nodes[previous].next_free = tree.next_free_parent_node;
 			tree.next_free_parent_node = previous;
 		}
+
+		tree.nodes_to_visit = new GLuint[max_leaf_count];
 	}
 }

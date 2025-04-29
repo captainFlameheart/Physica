@@ -26,8 +26,8 @@ namespace game_state::proximity
 			Neighbor_Pair neighbor_pairs[2];
 			struct
 			{
-				GLuint child_0_neighbor_pair;
-				GLuint child_1_neighbor_pair;
+				Neighbor_Pair child_0_neighbor_pair;
+				Neighbor_Pair child_1_neighbor_pair;
 			};
 		};
 	};

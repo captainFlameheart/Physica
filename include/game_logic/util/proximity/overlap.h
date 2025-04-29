@@ -4,7 +4,7 @@
 
 namespace game_logic::util::proximity
 {
-	bool overlaps
+	bool overlap
 	(
 		game_state::proximity::Bounding_Box const& box_0,
 		game_state::proximity::Bounding_Box const& box_1

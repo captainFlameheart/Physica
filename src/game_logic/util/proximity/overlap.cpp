@@ -1,8 +1,8 @@
-#include "game_logic/util/proximity/overlaps.h"
+#include "game_logic/util/proximity/overlap.h"
 
 namespace game_logic::util::proximity
 {
-	bool overlaps
+	bool overlap
 	(
 		game_state::proximity::Bounding_Box const& box_0,
 		game_state::proximity::Bounding_Box const& box_1
