@@ -3,7 +3,11 @@
 
 namespace game_logic::util::proximity
 {
-	void initialize(game_state::proximity::Tree& tree, GLuint const max_leaf_count)
+	void initialize
+	(
+		game_state::proximity::Tree& tree, GLuint const max_leaf_count, 
+		GLuint const max_contact_count
+	)
 	{
 		tree.leaf_changes = new game_state::proximity::Leaf_Change[max_leaf_count];
 		
@@ -17,6 +21,7 @@ namespace game_logic::util::proximity
 			tree.nodes[previous].next_free = tree.next_free_parent_node;
 			tree.next_free_parent_node = previous;
 		}
+		tree.contacts = new game_state::proximity::Contact[max_contact_count];
 
 		tree.nodes_to_visit = new GLuint[max_leaf_count];
 	}

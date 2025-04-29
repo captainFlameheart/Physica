@@ -71,7 +71,13 @@ namespace game_state
 		GLint changed_bounding_box_buffer_boxes_max_y_offset;
 
 		proximity::Tree proximity_tree;
-		
+
+		GLuint current_contact_count;
+		GLuint contact_buffer;
+		GLint contact_buffer_size;
+		GLint contact_buffer_contacts_offset;
+		GLint contact_buffer_contacts_stride;
+
 		GLuint rigid_body_velocity_integration_shader;
 		GLuint triangle_bounding_box_update_shader;
 		unsigned char* changed_bounding_boxes_mapping;
@@ -82,6 +88,7 @@ namespace game_state
 		GLuint triangle_bounding_box_draw_shader;
 		GLuint parent_bounding_box_draw_shader;
 		GLint parent_bounding_box_uniform_location;
+		GLuint leaf_contact_draw_shader;
 		GLuint rigid_body_debug_rendering_shader;
 	};
 }

@@ -44,6 +44,9 @@
 #define game_logic_MAX_LEAF_COUNT(environment) \
 	game_logic_MAX_TRIANGLE_COUNT(environment)
 
+#define game_logic_MAX_CONTACT_COUNT(environment) \
+	10u * game_logic_MAX_TRIANGLE_COUNT(environment)
+
 namespace game_logic
 {
 	void initialize(game_environment::Environment& environment)
@@ -174,6 +177,27 @@ namespace game_logic
 			"bounding_box"
 		);
 
+		::util::shader::set_shader_statically
+		(
+			vertex_shader,
+			util_shader_VERSION,
+			util_shader_DEFINE("CONTACT_BINDING", STRINGIFY(game_logic__util_CONTACT_BINDING)),
+			util_shader_DEFINE("MAX_CONTACT_COUNT", STRINGIFY(game_logic_MAX_CONTACT_COUNT(environment))),
+			util_shader_DEFINE("BOUNDING_BOX_BINDING", STRINGIFY(game_logic__util_TRIANGLE_BOUNDING_BOX_BINDING)),
+			util_shader_DEFINE("MAX_TRIANGLE_COUNT", STRINGIFY(game_logic_MAX_TRIANGLE_COUNT(environment))),
+			util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
+			game_PROJECTION_SCALE_DEFINITION(environment),
+			::util::shader::file_to_string("util/leaf_contact.vert")
+		);
+		::util::shader::set_shader_statically
+		(
+			fragment_shader,
+			util_shader_VERSION,
+			util_shader_DEFINE("COLOR", "vec4(0.0, 1.0, 0.0, 1.0)"),
+			::util::shader::file_to_string("util/static_color.frag") // TODO: Should only be done once
+		);
+		environment.state.leaf_contact_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+		
 		::util::shader::delete_shader(vertex_shader);
 		::util::shader::delete_shader(fragment_shader);
 
@@ -228,7 +252,8 @@ namespace game_logic
 			environment.state.triangle_buffer, 
 			environment.state.vertex_buffer, 
 			environment.state.bounding_box_buffer, 
-			environment.state.changed_bounding_box_buffer
+			environment.state.changed_bounding_box_buffer, 
+			environment.state.contact_buffer,
 		};
 		glCreateBuffers(std::size(buffers), buffers);
 		environment.state.camera_buffer = buffers[0];
@@ -238,6 +263,7 @@ namespace game_logic
 		environment.state.vertex_buffer = buffers[4];
 		environment.state.bounding_box_buffer = buffers[5];
 		environment.state.changed_bounding_box_buffer = buffers[6];
+		environment.state.contact_buffer = buffers[7];
 
 		{
 			GLuint const block_index
@@ -314,6 +340,7 @@ namespace game_logic
 
 		environment.state.current_rigid_body_count = 1u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment);//500000u;
 		environment.state.current_triangle_count = 1u * environment.state.current_rigid_body_count;
+		environment.state.current_contact_count = 2u;
 
 		{ // Position buffer
 			GLuint const p_index
@@ -778,9 +805,64 @@ namespace game_logic
 			 );
 		 }
 
+		 { // Contact buffer
+			 GLuint const contacts_index
+			 {
+				 glGetProgramResourceIndex(environment.state.leaf_contact_draw_shader, GL_BUFFER_VARIABLE, "Contacts.contacts")
+			 };
+
+			 GLenum const prop_labels[]{ GL_OFFSET, GL_ARRAY_STRIDE };
+			 GLint props[std::size(prop_labels)];
+			 glGetProgramResourceiv
+			 (
+				 environment.state.leaf_contact_draw_shader, GL_BUFFER_VARIABLE, contacts_index,
+				 std::size(prop_labels), prop_labels, 2, nullptr, props
+			 );
+			 // TODO: Consider putting offset and stride contigously in game state
+			 environment.state.contact_buffer_contacts_offset = props[0];
+			 environment.state.contact_buffer_contacts_stride = props[1];
+
+			 GLuint const block_index
+			 {
+				 glGetProgramResourceIndex(environment.state.leaf_contact_draw_shader, GL_SHADER_STORAGE_BLOCK, "Contacts")
+			 };
+			 GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
+			 glGetProgramResourceiv
+			 (
+				 environment.state.leaf_contact_draw_shader, GL_SHADER_STORAGE_BLOCK, block_index,
+				 1, &buffer_size_label, 1, nullptr, &environment.state.contact_buffer_size
+			 );
+
+			 // TODO: Don't initialize a few contacts by copying over the ENTIRE buffer 
+			 // content from CPU to GPU like this. Instead, use persistent mapping 
+			 // for both initialization and updating.
+			 unsigned char* const initial_contacts = new unsigned char[environment.state.contact_buffer_size];
+
+			 for (GLuint i{ 0u }; i < environment.state.current_contact_count; ++i)
+			 {
+				 GLuint contact[2]{ i, i + 1u };
+				 std::memcpy
+				 (
+					 initial_contacts + environment.state.contact_buffer_contacts_offset + i * environment.state.contact_buffer_contacts_stride,
+					 contact, sizeof(contact)
+				 );
+			 }
+
+			 glNamedBufferStorage
+			 (
+				 environment.state.contact_buffer, environment.state.contact_buffer_size, initial_contacts,
+				 0u
+			 );
+
+			 delete[] initial_contacts;
+
+			 glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_CONTACT_BINDING, environment.state.contact_buffer);
+		}
+
 		util::proximity::initialize
 		(
-			environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment)
+			environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment), 
+			game_logic_MAX_CONTACT_COUNT(environment)
 		);
 		util::proximity::insert_leaf_to_empty_tree(
 			environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment),
@@ -855,6 +937,12 @@ namespace game_logic
 		std::cout << "boxes min_y offset: " << environment.state.changed_bounding_box_buffer_boxes_min_y_offset << std::endl;
 		std::cout << "boxes max_x offset: " << environment.state.changed_bounding_box_buffer_boxes_max_x_offset << std::endl;
 		std::cout << "boxes max_y offset: " << environment.state.changed_bounding_box_buffer_boxes_max_y_offset << std::endl;
+		std::cout << std::endl;
+
+		std::cout << "Contact buffer (" << environment.state.contact_buffer << "):" << std::endl;
+		std::cout << "size: " << environment.state.contact_buffer_size << std::endl;
+		std::cout << "contacts offset: " << environment.state.contact_buffer_contacts_offset << std::endl;
+		std::cout << "contacts stride: " << environment.state.contact_buffer_contacts_stride << std::endl;
 		std::cout << std::endl;
 	}
 
@@ -1330,16 +1418,19 @@ namespace game_logic
 		//glUseProgram(environment.state.rigid_body_debug_rendering_shader);
 		glUseProgram(environment.state.triangle_draw_shader);
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-		glDrawArrays(GL_TRIANGLES, 0, environment.state.current_triangle_count * 3);
+		glDrawArrays(GL_TRIANGLES, 0, environment.state.current_triangle_count * 3u);
 
-		//glUseProgram(environment.state.triangle_bounding_box_draw_shader);
-		//glDrawArrays(GL_LINES, 0, environment.state.current_triangle_count * 8);
+		glUseProgram(environment.state.triangle_bounding_box_draw_shader);
+		glDrawArrays(GL_LINES, 0, environment.state.current_triangle_count * 8u);
 
 		/*if (!util::proximity::is_empty(environment.state.proximity_tree))
 		{
 			glUseProgram(environment.state.parent_bounding_box_draw_shader);
 			draw_inner_bounding_boxes(environment, environment.state.proximity_tree.root);
 		}*/
+
+		glUseProgram(environment.state.leaf_contact_draw_shader);
+		glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 2u);
 	}
 
 	void free(game_environment::Environment& environment)
@@ -1358,7 +1449,8 @@ namespace game_logic
 			environment.state.triangle_buffer, 
 			environment.state.vertex_buffer, 
 			environment.state.bounding_box_buffer, 
-			environment.state.changed_bounding_box_buffer
+			environment.state.changed_bounding_box_buffer, 
+			environment.state.contact_buffer
 		};
 		glDeleteBuffers(std::size(buffers), buffers);
 
