@@ -20,7 +20,7 @@ namespace game_logic::util::proximity
 		{
 			add_contact(leaf_change.leaf, other_leaf_index)
 		};
-		if (contact_index != game_logic__util__proximity_NULL_INDEX)
+		if (contact_index != game_logic__util__proximity_NULL_INDEX)	// TODO: Check out of memory separatly ONCE
 		{
 			game_state::proximity::Contact& contact{ tree.contacts[contact_index] };
 			contact.leaf_0 = leaf_change.leaf;
@@ -30,7 +30,7 @@ namespace game_logic::util::proximity
 			contact.child_0_neighbor_pair.next = leaf.contact;
 			if (leaf.contact != game_logic__util__proximity_NULL_INDEX)
 			{
-				game_state::proximity::Contact next_contact{ tree.contacts[leaf.contact] };
+				game_state::proximity::Contact& next_contact{ tree.contacts[leaf.contact] };
 				GLuint const next_side{ static_cast<GLuint>(leaf_change.leaf == next_contact.leaf_1) };
 				next_contact.neighbor_pairs[next_side].previous = contact_index;
 			}
@@ -40,7 +40,7 @@ namespace game_logic::util::proximity
 			contact.child_1_neighbor_pair.next = other_leaf.contact;
 			if (other_leaf.contact != game_logic__util__proximity_NULL_INDEX)
 			{
-				game_state::proximity::Contact other_next_contact{ tree.contacts[other_leaf.contact] };
+				game_state::proximity::Contact& other_next_contact{ tree.contacts[other_leaf.contact] };
 				GLuint const other_next_side{ static_cast<GLuint>(other_leaf_index == other_next_contact.leaf_1) };
 				other_next_contact.neighbor_pairs[other_next_side].previous = contact_index;
 			}

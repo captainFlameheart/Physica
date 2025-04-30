@@ -1250,10 +1250,11 @@ namespace game_logic
 					--environment.state.current_contact_count;
 
 					std::cout << "Remove contact " << contact_index << std::endl;
-					std::cout << "Contact count: " << environment.state.current_contact_count;
+					std::cout << "Contact count: " << environment.state.current_contact_count << std::endl;
 
 					if (contact_index != environment.state.current_contact_count)
 					{
+						// IMPORTANT TODO: Upload contact data instead of copying!!!
 						// MAYBE TODO: Avoid multiplications by using members that are added/subtracted along with contact count
 						glCopyNamedBufferSubData
 						(
