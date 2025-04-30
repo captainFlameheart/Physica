@@ -85,6 +85,7 @@ namespace game_state
 		unsigned char* contact_mapping;
 
 		GLuint tick;
+		bool physics_running;
 
 		GLuint triangle_draw_shader;
 		GLuint triangle_bounding_box_draw_shader;

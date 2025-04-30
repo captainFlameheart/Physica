@@ -54,6 +54,7 @@ namespace game_logic
 	void initialize(game_environment::Environment& environment)
 	{
 		environment.state.tick = 0u;
+		environment.state.physics_running = true;
 
 		environment.state.grab_cursor = glfwCreateStandardCursor(GLFW_CROSSHAIR_CURSOR);
 
@@ -185,8 +186,15 @@ namespace game_logic
 			util_shader_VERSION,
 			util_shader_DEFINE("CONTACT_BINDING", STRINGIFY(game_logic__util_CONTACT_BINDING)),
 			util_shader_DEFINE("MAX_CONTACT_COUNT", STRINGIFY(game_logic_MAX_CONTACT_COUNT(environment))),
-			util_shader_DEFINE("BOUNDING_BOX_BINDING", STRINGIFY(game_logic__util_TRIANGLE_BOUNDING_BOX_BINDING)),
 			util_shader_DEFINE("MAX_TRIANGLE_COUNT", STRINGIFY(game_logic_MAX_TRIANGLE_COUNT(environment))),
+			util_shader_DEFINE("MAX_VERTEX_COUNT", STRINGIFY(game_logic_MAX_VERTEX_COUNT(environment))),
+			util_shader_DEFINE("MAX_RIGID_BODY_COUNT", STRINGIFY(game_logic_MAX_RIGID_BODY_COUNT(environment))),
+			util_shader_DEFINE("POSITION_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_POSITION_BINDING)),
+			util_shader_DEFINE("TRIANGLE_BINDING", STRINGIFY(game_logic__util_TRIANGLE_BINDING)),
+			util_shader_DEFINE("VERTEX_BINDING", STRINGIFY(game_logic__util_VERTEX_BINDING)),
+			util_shader_DEFINE("VELOCITY_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_VELOCITY_BINDING)),
+			util_shader_DEFINE("RADIAN_INVERSE", STRINGIFY(game_logic__util__spatial_RADIAN_INVERSE(environment))),
+			util_shader_DEFINE("BOUNDING_BOX_BINDING", STRINGIFY(game_logic__util_TRIANGLE_BOUNDING_BOX_BINDING)),
 			util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
 			game_PROJECTION_SCALE_DEFINITION(environment),
 			::util::shader::file_to_string("util/leaf_contact.vert")
@@ -974,6 +982,9 @@ namespace game_logic
 		{
 			switch (key)
 			{
+			case GLFW_KEY_SPACE:
+				environment.state.physics_running = !environment.state.physics_running;
+				break;
 			case GLFW_KEY_ESCAPE:
 				glfwSetWindowShouldClose(environment.window, GLFW_TRUE);
 				break;
@@ -1124,7 +1135,8 @@ namespace game_logic
 	void tick(game_environment::Environment& environment)
 	{
 		// TODO: See if we can load and run these opengl commands in GPU buffer (using indirect something)
-
+		if (environment.state.physics_running)
+		{
 		glUseProgram(environment.state.rigid_body_velocity_integration_shader);
 		glMemoryBarrier(GL_SHADER_STORAGE_BUFFER);
 		glDispatchCompute
@@ -1408,6 +1420,7 @@ namespace game_logic
 			std::cout << "Changed leaf count: " << environment.state.proximity_tree.changed_leaf_count << std::endl;
 			*/
 		}
+		}
 
 		GLint const fast_key_pressed{ glfwGetKey(environment.window, GLFW_KEY_LEFT_SHIFT) };
 		GLint const slow_key_pressed{ glfwGetKey(environment.window, GLFW_KEY_LEFT_CONTROL) };
@@ -1604,11 +1617,11 @@ namespace game_logic
 		glUseProgram(environment.state.triangle_bounding_box_draw_shader);
 		glDrawArrays(GL_LINES, 0, environment.state.current_triangle_count * 8u);
 
-		if (!util::proximity::is_empty(environment.state.proximity_tree))
+		/*if (!util::proximity::is_empty(environment.state.proximity_tree))
 		{
 			glUseProgram(environment.state.parent_bounding_box_draw_shader);
 			draw_inner_bounding_boxes(environment, environment.state.proximity_tree.root);
-		}
+		}*/
 
 		glUseProgram(environment.state.leaf_contact_draw_shader);
 		glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 2u);
