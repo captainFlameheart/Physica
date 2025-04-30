@@ -47,11 +47,6 @@ namespace game_logic::util::proximity
 			}
 			other_leaf.contact = contact_index;
 		}
-
-		std::cout << "Add contact (" << leaf_change.leaf << ", " << other_leaf_index << ')' << std::endl;
-		util::proximity::print_leaf_contacts(std::cout, tree, leaf_change.leaf);
-		util::proximity::print_leaf_contacts(std::cout, tree, other_leaf_index);
-		std::cout << std::endl;
 	}
 
 	template
@@ -136,7 +131,7 @@ namespace game_logic::util::proximity
 						next_other_contact.neighbor_pairs[next_other_leaf_side].previous = other_leaf_neighbor_pair.previous;
 					}
 
-					remove_contact(current_contact_index);
+					remove_contact(current_contact_index, contact_index);
 				};
 			}
 		}

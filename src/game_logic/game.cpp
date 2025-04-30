@@ -47,7 +47,7 @@
 	game_logic_MAX_TRIANGLE_COUNT(environment)
 
 #define game_logic_MAX_CONTACT_COUNT(environment) \
-	10u * game_logic_MAX_TRIANGLE_COUNT(environment)
+	20u * game_logic_MAX_TRIANGLE_COUNT(environment)
 
 namespace game_logic
 {
@@ -348,7 +348,7 @@ namespace game_logic
 			);
 		}
 
-		environment.state.current_rigid_body_count = 1u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment);//500000u;
+		environment.state.current_rigid_body_count = 60u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment);//500000u;
 		environment.state.current_triangle_count = 1u * environment.state.current_rigid_body_count;
 		environment.state.current_contact_count = 0u;
 
@@ -1258,15 +1258,15 @@ namespace game_logic
 			{
 				game_environment::Environment& environment;
 
-				void operator()(GLuint contact_index)
+				void operator()(GLuint const contact_index, GLuint& next_contact_index)
 				{
 					--environment.state.current_contact_count;
 
-					std::cout << "Remove contact " << contact_index << std::endl;
+					/*std::cout << "Remove contact " << contact_index << std::endl;
 					std::cout << "Contact count: " << environment.state.current_contact_count << std::endl;
 					util::proximity::print_leaf_contacts(std::cout, environment.state.proximity_tree, environment.state.proximity_tree.contacts[contact_index].leaf_0);
 					util::proximity::print_leaf_contacts(std::cout, environment.state.proximity_tree, environment.state.proximity_tree.contacts[contact_index].leaf_1);
-					std::cout << std::endl;
+					std::cout << std::endl;*/
 
 					if (contact_index != environment.state.current_contact_count)
 					{
@@ -1318,6 +1318,11 @@ namespace game_logic
 							game_state::proximity::Contact& next{ environment.state.proximity_tree.contacts[moved_contact.child_1_neighbor_pair.next] };
 							GLuint const side{ static_cast<GLuint>(next.child_1_neighbor_pair.previous == environment.state.current_contact_count) };
 							next.neighbor_pairs[side].previous = contact_index;
+						}
+
+						if (next_contact_index == environment.state.current_contact_count)
+						{
+							next_contact_index = contact_index;
 						}
 					}
 				}
@@ -1412,13 +1417,13 @@ namespace game_logic
 
 		if (environment.state.tick % 120u == 0u)
 		{
-			/*
+			
 			std::cout << "Height: " << util::proximity::compute_height
 			(
 				environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment)
 			) << std::endl;
 			std::cout << "Changed leaf count: " << environment.state.proximity_tree.changed_leaf_count << std::endl;
-			*/
+			
 		}
 		}
 
@@ -1614,8 +1619,8 @@ namespace game_logic
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 		glDrawArrays(GL_TRIANGLES, 0, environment.state.current_triangle_count * 3u);
 
-		glUseProgram(environment.state.triangle_bounding_box_draw_shader);
-		glDrawArrays(GL_LINES, 0, environment.state.current_triangle_count * 8u);
+		//glUseProgram(environment.state.triangle_bounding_box_draw_shader);
+		//glDrawArrays(GL_LINES, 0, environment.state.current_triangle_count * 8u);
 
 		/*if (!util::proximity::is_empty(environment.state.proximity_tree))
 		{
@@ -1623,8 +1628,8 @@ namespace game_logic
 			draw_inner_bounding_boxes(environment, environment.state.proximity_tree.root);
 		}*/
 
-		glUseProgram(environment.state.leaf_contact_draw_shader);
-		glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 2u);
+		//glUseProgram(environment.state.leaf_contact_draw_shader);
+		//glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 2u);
 	}
 
 	void free(game_environment::Environment& environment)
