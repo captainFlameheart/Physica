@@ -27,6 +27,7 @@
 #include "game_logic/util/proximity/insert_leaf_to_empty_tree.h"
 #include "game_logic/util/proximity/insert_leaf_to_nonempty_tree.h"
 #include "game_logic/util/proximity/print_tree.h"
+#include "game_logic/util/proximity/print_leaf_contacts.h"
 #include "game_logic/util/proximity/is_empty.h"
 #include "game_logic/util/proximity/has_single_node.h"
 #include "game_logic/util/proximity/print_bounding_box.h"
@@ -1251,6 +1252,9 @@ namespace game_logic
 
 					std::cout << "Remove contact " << contact_index << std::endl;
 					std::cout << "Contact count: " << environment.state.current_contact_count << std::endl;
+					util::proximity::print_leaf_contacts(std::cout, environment.state.proximity_tree, environment.state.proximity_tree.contacts[contact_index].leaf_0);
+					util::proximity::print_leaf_contacts(std::cout, environment.state.proximity_tree, environment.state.proximity_tree.contacts[contact_index].leaf_1);
+					std::cout << std::endl;
 
 					if (contact_index != environment.state.current_contact_count)
 					{
@@ -1351,9 +1355,6 @@ namespace game_logic
 
 				GLuint operator()(GLuint const leaf_0_index, GLuint const leaf_1_index)
 				{
-					std::cout << "Add contact (" << leaf_0_index << ", " << leaf_1_index << ')' << std::endl;
-					std::cout << "Contact count: " << environment.state.current_contact_count + 1u << std::endl;
-
 					GLuint leaf_indices[2]{ leaf_0_index, leaf_1_index };
 					// TODO: Do addition between mapping pointer and offset once during initialization
 					std::memcpy
@@ -1603,11 +1604,11 @@ namespace game_logic
 		glUseProgram(environment.state.triangle_bounding_box_draw_shader);
 		glDrawArrays(GL_LINES, 0, environment.state.current_triangle_count * 8u);
 
-		/*if (!util::proximity::is_empty(environment.state.proximity_tree))
+		if (!util::proximity::is_empty(environment.state.proximity_tree))
 		{
 			glUseProgram(environment.state.parent_bounding_box_draw_shader);
 			draw_inner_bounding_boxes(environment, environment.state.proximity_tree.root);
-		}*/
+		}
 
 		glUseProgram(environment.state.leaf_contact_draw_shader);
 		glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 2u);

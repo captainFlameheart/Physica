@@ -4,6 +4,7 @@
 #include "game_logic/util/proximity/NULL_INDEX.h"
 #include "game_logic/util/proximity/overlap.h"
 #include "game_logic/util/proximity/separated.h"
+#include "game_logic/util/proximity/print_leaf_contacts.h"
 
 namespace game_logic::util::proximity
 {
@@ -46,6 +47,11 @@ namespace game_logic::util::proximity
 			}
 			other_leaf.contact = contact_index;
 		}
+
+		std::cout << "Add contact (" << leaf_change.leaf << ", " << other_leaf_index << ')' << std::endl;
+		util::proximity::print_leaf_contacts(std::cout, tree, leaf_change.leaf);
+		util::proximity::print_leaf_contacts(std::cout, tree, other_leaf_index);
+		std::cout << std::endl;
 	}
 
 	template
