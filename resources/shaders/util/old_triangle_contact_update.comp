@@ -1,0 +1,64 @@
+layout(shared, binding = CONTACT_BINDING) restrict readonly
+buffer Contacts
+{
+	uvec2 contacts[MAX_CONTACT_COUNT];
+} contacts;
+
+layout(shared, binding = TRIANGLE_BINDING) restrict readonly
+buffer Triangles
+{
+	uvec4 triangles[MAX_TRIANGLE_COUNT];	// Triangle: (vertex_0, vertex_1, vertex_2, body)
+} triangles;
+
+layout(shared, binding = POSITION_BINDING) restrict readonly
+buffer Positions
+{
+	ivec4 p[MAX_RIGID_BODY_COUNT];
+} positions;
+
+layout(shared, binding = VERTEX_BINDING) restrict readonly
+buffer Vertices
+{
+	vec2 vertices[MAX_VERTEX_COUNT];
+} vertices;
+
+struct Contact_Point_Position
+{
+	vec2 offsets[2];
+};
+
+struct Contact_Point_Tangent
+{
+	float mass;
+	float impulse;
+};
+
+struct Contact_Point_Normal
+{
+	float mass;
+	float impulse;
+};
+
+// TODO: See if data can be split up to take advantage of coalescing for a half-warp.
+struct Contact_Surface
+{
+	uint bodies[2];
+	Contact_Point_Position contact_point_positions[2];
+	
+	vec2 tangent;
+	Contact_Point_Tangent contact_point_tangents[2];
+
+	Contact_Point_Normal contact_point_normals[2];
+};
+
+layout(shared, binding = CONTACT_SURFACE_BINDING) restrict
+buffer Contact_Surfaces
+{
+	Contact_Surface contact_surfaces[MAX_CONTACT_COUNT];
+} contact_surfaces;
+
+layout(local_size_x = LOCAL_SIZE) in;
+void main()
+{
+	contact_surfaces.contact_surfaces[0u].bodies[0u] = 0u;
+}
