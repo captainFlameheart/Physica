@@ -1,10 +1,14 @@
+// TODO: Move to CPU
+#define DAMPING_NUMERATOR 999
+#define DAMPING_DENOMINATOR 1000
+
 layout(shared, binding = POSITION_BINDING) restrict
 buffer Positions
 {
 	ivec4 p[MAX_RIGID_BODY_COUNT];
 } positions;
 
-layout(shared, binding = VELOCITY_BINDING) restrict readonly 
+layout(shared, binding = VELOCITY_BINDING) restrict /*readonly*/
 buffer Velocities
 {
 	ivec4 v[MAX_RIGID_BODY_COUNT];
@@ -13,7 +17,9 @@ buffer Velocities
 layout(local_size_x = LOCAL_SIZE) in;
 void main()
 {
-	positions.p[gl_GlobalInvocationID.x] += velocities.v[gl_GlobalInvocationID.x];
+	ivec4 velocity = velocities.v[gl_GlobalInvocationID.x];
+	positions.p[gl_GlobalInvocationID.x] += velocity;
+	velocities.v[gl_GlobalInvocationID.x] = (velocity * DAMPING_NUMERATOR) / DAMPING_DENOMINATOR;
 	// TODO: Potentially compute and store new basis for collision detection (and drawing???)
 	// But probably not (I think cos and sin are only one clock cycle each on nvidia)
 }

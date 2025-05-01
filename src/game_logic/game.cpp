@@ -47,7 +47,7 @@
 	game_logic_MAX_TRIANGLE_COUNT(environment)
 
 #define game_logic_MAX_CONTACT_COUNT(environment) \
-	20u * game_logic_MAX_TRIANGLE_COUNT(environment)
+	30u * game_logic_MAX_TRIANGLE_COUNT(environment)
 
 namespace game_logic
 {
@@ -348,7 +348,7 @@ namespace game_logic
 			);
 		}
 
-		environment.state.current_rigid_body_count = 60u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment);//500000u;
+		environment.state.current_rigid_body_count = 50u/*150u*/ * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment);//500000u;
 		environment.state.current_triangle_count = 1u * environment.state.current_rigid_body_count;
 		environment.state.current_contact_count = 0u;
 
@@ -462,8 +462,8 @@ namespace game_logic
 				util::rigid_body::Velocity velocity
 				{
 					{
-						game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, -sin(i * 0.1f)),
-						game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, cos(i * 0.1f))
+						2 * game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, -sin(i * 0.1f)),
+						2 * game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, cos(i * 0.1f))
 					},
 					game_RADIANS_PER_SECOND_TO_ANGLE_PER_TICK(environment, 0.5f), 
 					0
@@ -1247,6 +1247,8 @@ namespace game_logic
 				//std::cout << i << ": " << index << std::endl;
 			}
 
+			GLuint const old_contact_count{ environment.state.current_contact_count };
+
 			struct On_Removing_Contacts_For
 			{
 				void operator()(GLuint leaf_index)
@@ -1413,17 +1415,18 @@ namespace game_logic
 				on_removing_contacts_for, remove_contact, on_contacts_removed, 
 				on_adding_contacts_for, add_contact, on_contacts_added
 			);
-		}
 
-		if (environment.state.tick % 120u == 0u)
-		{
-			
-			std::cout << "Height: " << util::proximity::compute_height
-			(
-				environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment)
-			) << std::endl;
-			std::cout << "Changed leaf count: " << environment.state.proximity_tree.changed_leaf_count << std::endl;
-			
+			if (environment.state.tick % 120u == 0u)
+			{
+
+				std::cout << "Height: " << util::proximity::compute_height
+				(
+					environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment)
+				) << '\n';
+				std::cout << "Changed leaf count: " << environment.state.proximity_tree.changed_leaf_count << '\n';
+				std::cout << "Contact count: " << old_contact_count << " - " << old_contact_count - new_contacts_start << " + " << environment.state.current_contact_count - new_contacts_start << " = " << environment.state.current_contact_count << '\n';
+				std::cout << std::endl;
+			}
 		}
 		}
 

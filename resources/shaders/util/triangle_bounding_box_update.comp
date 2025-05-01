@@ -26,11 +26,6 @@ buffer Bounding_Boxes
 	ivec4 boxes[MAX_TRIANGLE_COUNT];	// Bounding box: (min_x, min_y, max_x, max_z)
 } bounding_boxes;
 
-/* TODO: Use velocities for computing better fat aabb
-IMPROVEMENT: DO NOT READ FROM VELOCITY BUFFER. Instead use 
-the displacement from the old AABB to the new AABB as an indication 
-of the trajectory.*/
-
 layout(shared, binding = VELOCITY_BINDING) restrict readonly 
 buffer Velocities
 {
