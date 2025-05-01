@@ -8,21 +8,18 @@
 
 namespace game_logic::util::proximity
 {
-	template <typename Add_Contact>
+	template <typename Contact_Can_Be_Added, typename Add_Contact>
 	inline void insert_contact(
 		game_state::proximity::Tree& tree,
 		game_state::proximity::Leaf_Change const& leaf_change,
 		game_state::proximity::Node& leaf,
 		GLuint const other_leaf_index, game_state::proximity::Node& other_leaf,
-		Add_Contact& add_contact
+		Contact_Can_Be_Added& contact_can_be_added, Add_Contact& add_contact
 	)
 	{
-		GLuint const contact_index
+		if (contact_can_be_added(leaf_change.leaf, other_leaf_index))
 		{
-			add_contact(leaf_change.leaf, other_leaf_index)
-		};
-		if (contact_index != game_logic__util__proximity_NULL_INDEX)	// TODO: Check out of memory separatly ONCE
-		{
+			GLuint const contact_index{ add_contact(leaf_change.leaf, other_leaf_index) };
 			game_state::proximity::Contact& contact{ tree.contacts[contact_index] };
 			contact.leaf_0 = leaf_change.leaf;
 			contact.leaf_1 = other_leaf_index;
@@ -54,17 +51,19 @@ namespace game_logic::util::proximity
 		typename On_Removing_Contacts_For,
 		typename Remove_Contact,
 		typename On_Contacts_Removed,
-		typename On_Adding_Contacts_For,
+		typename On_Adding_Contacts_For, 
+		typename Contact_Can_Be_Added, 
 		typename Add_Contact,
 		typename On_Contacts_Added
 		>
-		void update_contacts
+		inline void update_contacts
 		(
 			game_state::proximity::Tree& tree, GLuint const max_leaf_count,
 			On_Removing_Contacts_For& on_removing_contacts_for,
 			Remove_Contact& remove_contact,
 			On_Contacts_Removed& on_contacts_removed,
 			On_Adding_Contacts_For& on_adding_contacts_for,
+			Contact_Can_Be_Added& contact_can_be_added, 
 			Add_Contact& add_contact,
 			On_Contacts_Added& on_contacts_added
 		)
@@ -170,7 +169,7 @@ namespace game_logic::util::proximity
 						{
 							if (separated(leaf_change.from, other_leaf.bounding_box))
 							{
-								insert_contact<Add_Contact>(tree, leaf_change, leaf, node_index, other_leaf, add_contact);
+								insert_contact(tree, leaf_change, leaf, node_index, other_leaf, contact_can_be_added, add_contact);
 							}
 						}
 						else if
@@ -179,7 +178,7 @@ namespace game_logic::util::proximity
 							separated(leaf_change.from, other_leaf_change.from)
 						)
 						{
-							insert_contact<Add_Contact>(tree, leaf_change, leaf, node_index, other_leaf, add_contact);
+							insert_contact(tree, leaf_change, leaf, node_index, other_leaf, contact_can_be_added, add_contact);
 						}
 					}
 					else

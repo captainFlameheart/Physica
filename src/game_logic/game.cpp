@@ -47,7 +47,7 @@
 	game_logic_MAX_TRIANGLE_COUNT(environment)
 
 #define game_logic_MAX_CONTACT_COUNT(environment) \
-	30u * game_logic_MAX_TRIANGLE_COUNT(environment)
+	50u * game_logic_MAX_TRIANGLE_COUNT(environment)
 
 namespace game_logic
 {
@@ -348,7 +348,7 @@ namespace game_logic
 			);
 		}
 
-		environment.state.current_rigid_body_count = 50u/*150u*/ * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment);//500000u;
+		environment.state.current_rigid_body_count = 150u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment);//500000u;
 		environment.state.current_triangle_count = 1u * environment.state.current_rigid_body_count;
 		environment.state.current_contact_count = 0u;
 
@@ -1368,6 +1368,16 @@ namespace game_logic
 				}
 			};
 
+			struct Contact_Can_Be_Added
+			{
+				game_environment::Environment const& environment;
+
+				bool operator()(GLuint const leaf_0_index, GLuint const leaf_1_index)
+				{
+					return environment.state.current_contact_count < game_logic_MAX_CONTACT_COUNT(environment);
+				}
+			};
+
 			struct Add_Contact
 			{
 				game_environment::Environment& environment;
@@ -1406,14 +1416,15 @@ namespace game_logic
 			Remove_Contact remove_contact{ environment };
 			On_Contacts_Removed on_contacts_removed{ environment, new_contacts_start };
 			On_Adding_Contacts_For on_adding_contacts_for{};
+			Contact_Can_Be_Added contact_can_be_added{ environment };
 			Add_Contact add_contact{ environment };
 			On_Contacts_Added on_contacts_added{environment, new_contacts_start};
 
-			util::proximity::update_contacts<On_Removing_Contacts_For, Remove_Contact, On_Contacts_Removed, On_Adding_Contacts_For, Add_Contact, On_Contacts_Added>
+			util::proximity::update_contacts
 			(
 				environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment),
 				on_removing_contacts_for, remove_contact, on_contacts_removed, 
-				on_adding_contacts_for, add_contact, on_contacts_added
+				on_adding_contacts_for, contact_can_be_added, add_contact, on_contacts_added
 			);
 
 			if (environment.state.tick % 120u == 0u)
@@ -1631,8 +1642,8 @@ namespace game_logic
 			draw_inner_bounding_boxes(environment, environment.state.proximity_tree.root);
 		}*/
 
-		//glUseProgram(environment.state.leaf_contact_draw_shader);
-		//glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 2u);
+		glUseProgram(environment.state.leaf_contact_draw_shader);
+		glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 2u);
 	}
 
 	void free(game_environment::Environment& environment)
