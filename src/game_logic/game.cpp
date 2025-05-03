@@ -37,10 +37,10 @@
 #include <algorithm>
 
 #define game_logic_MAX_RIGID_BODY_COUNT(environment) \
-	10u * game_logic__util__rigid_body_VELOCITY_INTEGRATION_LOCAL_SIZE(environment)
+	1u * game_logic__util__rigid_body_VELOCITY_INTEGRATION_LOCAL_SIZE(environment)
 
 #define game_logic_MAX_TRIANGLE_COUNT(environment) \
-	10u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment)
+	1u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment)
 
 #define game_logic_MAX_VERTEX_COUNT(environment) \
 	3u * game_logic_MAX_TRIANGLE_COUNT(environment)
@@ -50,6 +50,8 @@
 
 #define game_logic_MAX_CONTACT_COUNT(environment) \
 	50u * game_logic_MAX_TRIANGLE_COUNT(environment)
+
+// TODO: USE EXCLUSIVE OR IN PROXIMITY UTIL WHEN FLIPPING A BOOLEAN UNSIGNED INT
 
 namespace game_logic
 {
@@ -276,7 +278,7 @@ namespace game_logic
 		);
 		environment.state.triangle_bounding_box_update_shader = ::util::shader::create_program(compute_shader);
 
-		/*::util::shader::set_shader_statically
+		::util::shader::set_shader_statically
 		(
 			compute_shader,
 			util_shader_VERSION,
@@ -295,7 +297,7 @@ namespace game_logic
 		);
 		environment.state.old_triangle_contact_update_shader = ::util::shader::create_program(compute_shader);
 		std::cout << environment.state.old_triangle_contact_update_shader << std::endl;
-		*/
+		
 		::util::shader::delete_shader(compute_shader);
 
 		// TODO: Consider putting buffers next to each other in game state
@@ -1205,6 +1207,10 @@ namespace game_logic
 		std::cout << "contact surfaces contact point tangent 0 impulse offset: " << environment.state.contact_surface_buffer_contact_surfaces_contact_point_tangent_0_impulse_offset << std::endl;
 		std::cout << "contact surfaces contact point tangent 1 mass offset: " << environment.state.contact_surface_buffer_contact_surfaces_contact_point_tangent_1_mass_offset << std::endl;
 		std::cout << "contact surfaces contact point tangent 1 impulse offset: " << environment.state.contact_surface_buffer_contact_surfaces_contact_point_tangent_1_impulse_offset << std::endl;
+		std::cout << "contact surfaces contact point normal 0 mass offset: " << environment.state.contact_surface_buffer_contact_surfaces_contact_point_normal_0_mass_offset << std::endl;
+		std::cout << "contact surfaces contact point normal 0 impulse offset: " << environment.state.contact_surface_buffer_contact_surfaces_contact_point_normal_0_impulse_offset << std::endl;
+		std::cout << "contact surfaces contact point normal 1 mass offset: " << environment.state.contact_surface_buffer_contact_surfaces_contact_point_normal_1_mass_offset << std::endl;
+		std::cout << "contact surfaces contact point normal 1 impulse offset: " << environment.state.contact_surface_buffer_contact_surfaces_contact_point_normal_1_impulse_offset << std::endl;
 		std::cout << "contact surfaces offset: " << environment.state.contact_surface_buffer_contact_surfaces_offset << std::endl;
 		std::cout << std::endl;
 	}
@@ -1872,14 +1878,14 @@ namespace game_logic
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 		glDrawArrays(GL_TRIANGLES, 0, environment.state.current_triangle_count * 3u);
 
-		//glUseProgram(environment.state.triangle_bounding_box_draw_shader);
-		//glDrawArrays(GL_LINES, 0, environment.state.current_triangle_count * 8u);
+		glUseProgram(environment.state.triangle_bounding_box_draw_shader);
+		glDrawArrays(GL_LINES, 0, environment.state.current_triangle_count * 8u);
 
-		/*if (!util::proximity::is_empty(environment.state.proximity_tree))
+		if (!util::proximity::is_empty(environment.state.proximity_tree))
 		{
 			glUseProgram(environment.state.parent_bounding_box_draw_shader);
 			draw_inner_bounding_boxes(environment, environment.state.proximity_tree.root);
-		}*/
+		}
 
 		glUseProgram(environment.state.leaf_contact_draw_shader);
 		glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 2u);

@@ -42,6 +42,11 @@ struct Contact_Point_Normal
 // TODO: See if data can be split up to take advantage of coalescing for a half-warp.
 struct Contact_Surface
 {
+	// Contact point 0 is the contact point furthest in the 
+	// counter clockwise direction for body 0.
+	// Contact point 1 is the contact point furthest in the 
+	// clockwise direction for body 0.
+
 	uint bodies[2];
 	Contact_Point_Position contact_point_positions[2];
 	
@@ -60,5 +65,211 @@ buffer Contact_Surfaces
 layout(local_size_x = LOCAL_SIZE) in;
 void main()
 {
-	contact_surfaces.contact_surfaces[0u].bodies[0u] = 0u;
+	uvec2 contact = contacts.contacts[gl_GlobalInvocationID.x];
+	
+	uvec4 triangles[2u] = uvec4[2u]
+	(
+		triangles.triangles[contact.x], 
+		triangles.triangles[contact.y]
+	);
+	
+	ivec4 body_positions[2u] = ivec4[2u]
+	(
+		positions.p[triangles[0u].w], 
+		positions.p[triangles[1u].w]
+	);
+
+	float angle_0 = body_positions[0].z * RADIAN_INVERSE;
+	float right_0_x = cos(angle_0);
+	float right_0_y = sin(angle_0);
+	mat2 local_to_offset_0 = mat2
+	(
+		right_0_x, right_0_y, 
+		-right_0_y, right_0_x
+	);
+
+	float angle_1 = body_positions[1].z * RADIAN_INVERSE;
+	float right_1_x = cos(angle_1);
+	float right_1_y = sin(angle_1);
+	mat2 local_to_offset_1 = mat2
+	(
+		right_1_x, right_1_y, 
+		-right_1_y, right_1_x
+	);
+
+	vec2 body_0_to_1 = vec2(body_positions[1].xy - body_positions[0].xy);
+
+	vec2 vertices[6u] = vec2[6u]
+	(
+		local_to_offset_0 * vertices.vertices[triangles[0u][0u]], 
+		local_to_offset_0 * vertices.vertices[triangles[0u][1u]], 
+		local_to_offset_0 * vertices.vertices[triangles[0u][2u]], 
+
+		local_to_offset_1 * vertices.vertices[triangles[1u][0u]] + body_0_to_1, 
+		local_to_offset_1 * vertices.vertices[triangles[1u][1u]] + body_0_to_1, 
+		local_to_offset_1 * vertices.vertices[triangles[1u][2u]] + body_0_to_1
+	);
+
+	// TODO: Make sure that this fits in register memory
+	vec2 normals[6u] = vec2[6u]
+	(
+		normalize(vec2(vertices[1u].y - vertices[0u].y, vertices[0u].x - vertices[1u].x)),
+		normalize(vec2(vertices[2u].y - vertices[1u].y, vertices[1u].x - vertices[2u].x)), 
+		normalize(vec2(vertices[0u].y - vertices[2u].y, vertices[2u].x - vertices[0u].x)), 
+		
+		normalize(vec2(vertices[4u].y - vertices[3u].y, vertices[3u].x - vertices[4u].x)), 
+		normalize(vec2(vertices[5u].y - vertices[4u].y, vertices[4u].x - vertices[5u].x)), 
+		normalize(vec2(vertices[3u].y - vertices[5u].y, vertices[5u].x - vertices[3u].x))
+	);
+
+	uint reference_edge = 0u;
+	float min_penetration = dot(vertices[0u], normals[0u]) - min
+	(
+		min(dot(vertices[3u], normals[0u]), dot(vertices[4u], normals[0u])), 
+		dot(vertices[5u], normals[0u])
+	);
+
+	float penetration = dot(vertices[1u], normals[1u]) - min
+	(
+		min(dot(vertices[3u], normals[1u]), dot(vertices[4u], normals[1u])), 
+		dot(vertices[5u], normals[1u])
+	);
+	// TODO: See if it's faster to use boolean arithmetics instead of if statement
+	if (penetration < min_penetration)
+	{
+		reference_edge = 1u;
+		min_penetration = penetration;
+	}
+
+	penetration = dot(vertices[2u], normals[2u]) - min
+	(
+		min(dot(vertices[3u], normals[2u]), dot(vertices[4u], normals[2u])), 
+		dot(vertices[5u], normals[2u])
+	);
+	// TODO: See if it's faster to use boolean arithmetics instead of if statement
+	// Example: reference_edge = reference_edge + (penetration < min_penetration) & (2u - reference_edge)
+	if (penetration < min_penetration)
+	{
+		reference_edge = 2u;
+		min_penetration = penetration;
+	}
+
+	penetration = dot(vertices[3u], normals[3u]) - min
+	(
+		min(dot(vertices[0u], normals[3u]), dot(vertices[1u], normals[3u])), 
+		dot(vertices[2u], normals[3u])
+	);
+	// TODO: See if it's faster to use boolean arithmetics instead of if statement
+	if (penetration < min_penetration)
+	{
+		reference_edge = 3u;
+		min_penetration = penetration;
+	}
+
+	penetration = dot(vertices[4u], normals[4u]) - min
+	(
+		min(dot(vertices[0u], normals[4u]), dot(vertices[1u], normals[4u])), 
+		dot(vertices[2u], normals[4u])
+	);
+	// TODO: See if it's faster to use boolean arithmetics instead of if statement
+	if (penetration < min_penetration)
+	{
+		reference_edge = 4u;
+		min_penetration = penetration;
+	}
+
+	penetration = dot(vertices[5u], normals[5u]) - min
+	(
+		min(dot(vertices[0u], normals[5u]), dot(vertices[1u], normals[5u])), 
+		dot(vertices[2u], normals[5u])
+	);
+	// TODO: See if it's faster to use boolean arithmetics instead of if statement
+	if (penetration < min_penetration)
+	{
+		reference_edge = 5u;
+		min_penetration = penetration;
+	}
+
+	// TODO: Maybe remove branching
+	if (min_penetration < 0.0)
+	{
+		contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_tangents[0u].mass = 0.0;
+		contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_tangents[0u].impulse = 0.0;
+		contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_tangents[1u].mass = 0.0;
+		contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_tangents[1u].impulse = 0.0;
+
+		contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_normals[0u].mass = 0.0;
+		contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_normals[0u].impulse = 0.0;
+		contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_normals[1u].mass = 0.0;
+		contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_normals[1u].impulse = 0.0;
+	}
+	else
+	{
+		uint reference_body = reference_edge / 3u;
+		
+		uint incident_body_vertex_0 = (reference_body ^ 1u) * 3u;
+		uint incident_body_vertex_1 = incident_body_vertex_0 + 1u;
+		uint incident_body_vertex_2 = incident_body_vertex_0 + 2u;
+		float projection_0 = dot(vertices[incident_body_vertex_0], normals[reference_edge]);
+		float projection_1 = dot(vertices[incident_body_vertex_1], normals[reference_edge]);
+		float projection_2 = dot(vertices[incident_body_vertex_2], normals[reference_edge]);
+		// TODO: Remove branching
+		uint local_primary_incident_vertex = 2u;
+		if (projection_0 < projection_1 && projection_0 < projection_2)
+		{
+			local_primary_incident_vertex = 0u;
+		}
+		else if (projection_1 < projection_2)
+		{
+			local_primary_incident_vertex = 1u;
+		}
+		
+		uint primary_incident_vertex = incident_body_vertex_0 + local_primary_incident_vertex;
+		uint temp = local_primary_incident_vertex + 2u;
+		uint left_secondary_incident_vertex = incident_body_vertex_0 + (temp % 3u);
+		uint secondary_incident_vertex_side = uint
+		(
+			dot(normals[primary_incident_vertex], normals[reference_edge]) < 
+			dot(normals[left_secondary_incident_vertex], normals[reference_edge])
+		);
+		
+		vec2 primary_contact_point = vertices[primary_incident_vertex];
+		uint secondary_incident_vertex = 
+			incident_body_vertex_0 + (temp - secondary_incident_vertex_side) % 3u;
+		vec2 secondary_contact_point = vertices[secondary_incident_vertex];
+		vec2 secondary_to_primary = primary_contact_point - secondary_contact_point;
+		vec2 tangent = vec2(normals[reference_edge].y, -normals[reference_edge].x);
+		float secondary_to_primary_projection = dot(secondary_to_primary, tangent);
+	
+		uint reference_body_vertex_0 = reference_body * 3u;
+		uint local_reference_edge = reference_edge - reference_body_vertex_0;
+
+		uint primary_reference_vertex = reference_body_vertex_0 + (local_reference_edge + secondary_incident_vertex_side) % 3u;
+		primary_contact_point += secondary_to_primary * min(0.0f, 
+			dot(vertices[primary_reference_vertex] - vertices[primary_incident_vertex], tangent)
+			/ secondary_to_primary_projection
+		);
+
+		uint secondary_reference_vertex = reference_body_vertex_0 + (local_reference_edge + (secondary_incident_vertex_side ^ 1u)) % 3u;
+		secondary_contact_point += secondary_to_primary * max(0.0f, 
+			dot(vertices[secondary_reference_vertex] - vertices[secondary_incident_vertex], tangent) 
+			/ secondary_to_primary_projection
+		);
+		if (dot(secondary_contact_point - vertices[reference_edge], normals[reference_edge]) > 0.0)
+		{
+			secondary_contact_point = primary_contact_point;
+		}
+
+		secondary_incident_vertex_side ^= reference_body;
+		uint primary_incident_vertex_side = secondary_incident_vertex_side ^ 1u;
+
+		contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_positions[secondary_incident_vertex_side].offsets[0] = secondary_contact_point;
+		contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_positions[secondary_incident_vertex_side].offsets[1] = secondary_contact_point - body_0_to_1;
+		contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_positions[primary_incident_vertex_side].offsets[0] = primary_contact_point;
+		contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_positions[primary_incident_vertex_side].offsets[1] = primary_contact_point - body_0_to_1;
+
+		// TODO: Set masses
+		// TODO: Apply impulses
+		contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].tangent = tangent;
+	}
 }

@@ -42,8 +42,7 @@ struct Contact_Surface
 layout(shared, binding = CONTACT_SURFACE_BINDING) restrict readonly
 buffer Contact_Surfaces
 {
-	Contact_Surface c[MAX_CONTACT_COUNT];
-	//Contact_Surface contact_surfaces[MAX_CONTACT_COUNT];
+	Contact_Surface contact_surfaces[MAX_CONTACT_COUNT];
 } contact_surfaces;
 
 layout(shared, binding = CAMERA_BINDING) uniform Camera
@@ -56,7 +55,6 @@ layout(shared, binding = CAMERA_BINDING) uniform Camera
 
 void main()
 {
-	/*
 	uint contact_index = gl_VertexID / 8u;
 	Contact_Surface contact_surface = contact_surfaces.contact_surfaces[contact_index];
 
@@ -71,8 +69,6 @@ void main()
 	vec2 offset = float(at_offset_tip) * contact_point_position.offsets[body_index];
 
 	vec2 camera_relative_xy = vec2(positions.p[body_index].xy - camera.xy) + offset;
-	*/
-	vec2 camera_relative_xy = vec2(0.0, 0.0);
 	gl_Position = vec4
 	(
 		camera.view_rotation * camera_relative_xy * PROJECTION_SCALE, 
