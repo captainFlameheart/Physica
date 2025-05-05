@@ -1,3 +1,6 @@
+// TODO: Move to CPU
+#define RADIUS 0.5 * METER
+
 layout(shared, binding = CAMERA_BINDING) uniform Camera
 {
 	ivec2 xy;
@@ -14,18 +17,28 @@ buffer Positions
 
 void main()
 {
-	int body_index = gl_VertexID / 3;
+	int local_index = int(gl_VertexID % 4u);
+	int line_index = local_index >> 1;
+	vec2 local_position = vec2
+	(
+		float((1 - line_index) * ((local_index << 1) - 1)) * RADIUS, 
+		float(line_index * (((local_index - 2) << 1) - 1) ) * RADIUS
+	);
+
+	uint body_index = gl_VertexID / 4u;
 	ivec4 body_position = positions.p[body_index];
-	int local_vertex_index = gl_VertexID % 3;
-	float angle_offset = local_vertex_index * 2.094395; // 2 * PI / 3
-	float full_angle = body_position.z * RADIAN_INVERSE + angle_offset;
-	const float radius = 1.0 * METER;
-	vec2 vertex_offset = radius * vec2(cos(full_angle), sin(full_angle));
-	ivec2 camera_relative_body_xy = body_position.xy - camera.xy;
-	vec2 camera_relative_vertex_xy = camera_relative_body_xy + vertex_offset;
+	float angle = body_position.z * RADIAN_INVERSE;
+	float right_x = cos(angle);
+	float right_y = sin(angle);
+	vec2 offset = vec2
+	(
+		local_position.x * right_x - local_position.y * right_y, 
+		local_position.x * right_y + local_position.y * right_x
+	);
+	vec2 camera_relative_xy = vec2(body_position.xy - camera.xy) + offset;
 	gl_Position = vec4
 	(
-		camera.view_rotation * camera_relative_vertex_xy * PROJECTION_SCALE, 
+		camera.view_rotation * camera_relative_xy * PROJECTION_SCALE, 
 		0.0, 
 		camera.z
 	);
