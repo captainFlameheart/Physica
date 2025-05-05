@@ -68,6 +68,13 @@ void main()
 	uint body_0 = contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].bodies[0u];
 	uint body_1 = contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].bodies[1u];
 
+	if (contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_normals[0u].mass != 0.0)
+	{
+		velocities.v[body_0].x = 0;
+		velocities.v[body_1].x = 0;
+	}
+	return;
+
 	vec2 offset_0_0 = contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_positions[0u].offsets[0u];
 	vec2 offset_0_1 = contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_positions[0u].offsets[1u];
 
@@ -82,7 +89,6 @@ void main()
 	float tangent_mass_1 = contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_tangents[1u].mass;
 	float tangent_impulse_1 = contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_tangents[1u].impulse;
 	
-	// IMPORTANT TODO: MAKE SURE NORMAL POINTS IN CORRECT DIRECTION
 	vec2 normal = vec2(-tangent.y, tangent.x);
 
 	float normal_mass_0 = contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_normals[0u].mass;

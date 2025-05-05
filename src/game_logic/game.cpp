@@ -18,6 +18,7 @@
 #include "game_logic/util/rigid_body/TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE.h"
 #include "game_logic/util/rigid_body/OLD_TRIANGLE_CONTACT_UPDATE_LOCAL_SIZE.h"
 #include "game_logic/util/rigid_body/NEW_TRIANGLE_CONTACT_LOCAL_SIZE.h"
+#include "game_logic/util/rigid_body/SOLVE_CONTACT_VELOCITIES_LOCAL_SIZE.h"
 #include "game_logic/util/rigid_body/TRIANGLE_BOUNDING_BOX_PADDING.h"
 #include "game_logic/util/rigid_body/Position.h"
 #include "game_logic/util/rigid_body/Velocity.h"
@@ -341,6 +342,22 @@ namespace game_logic
 			::util::shader::file_to_string("util/new_triangle_contact.comp")
 		);
 		environment.state.new_triangle_contact_shader = ::util::shader::create_program(compute_shader);
+
+		::util::shader::set_shader_statically
+		(
+			compute_shader,
+			util_shader_VERSION,
+			util_shader_DEFINE("MAX_CONTACT_COUNT", STRINGIFY(game_logic_MAX_CONTACT_COUNT(environment))),
+			util_shader_DEFINE("MAX_RIGID_BODY_COUNT", STRINGIFY(game_logic_MAX_RIGID_BODY_COUNT(environment))),
+			util_shader_DEFINE("CONTACT_SURFACE_BINDING", STRINGIFY(game_logic__util_CONTACT_SURFACE_BINDING)),
+			util_shader_DEFINE("CONTACT_COUNT_BINDING", STRINGIFY(game_logic__util_CONTACT_COUNT_BINDING)),
+			util_shader_DEFINE("VELOCITY_SNAPSHOT_BINDING", STRINGIFY(game_logic__util_VELOCITY_SNAPSHOT_BINDING)),
+			util_shader_DEFINE("VELOCITY_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_VELOCITY_BINDING)),
+			util_shader_DEFINE("LOCAL_SIZE", STRINGIFY(game_logic__util__rigid_body_SOLVE_CONTACT_VELOCITIES_LOCAL_SIZE(environment))),
+			util_shader_DEFINE("RADIAN_INVERSE", STRINGIFY(game_logic__util__spatial_RADIAN_INVERSE(environment))),
+			::util::shader::file_to_string("util/solve_contact_velocities.comp")
+		);
+		environment.state.solve_contact_velocities_shader = ::util::shader::create_program(compute_shader);
 		
 		::util::shader::delete_shader(compute_shader);
 
@@ -358,7 +375,8 @@ namespace game_logic
 			environment.state.contact_buffer,
 			environment.state.contact_surface_buffer, 
 			environment.state.contact_count_buffer, 
-			environment.state.persistent_contact_count_buffer
+			environment.state.persistent_contact_count_buffer, 
+			environment.state.rigid_body_velocity_snapshot_buffer
 		};
 		glCreateBuffers(std::size(buffers), buffers);
 		environment.state.camera_buffer = buffers[0u];
@@ -372,6 +390,7 @@ namespace game_logic
 		environment.state.contact_surface_buffer = buffers[8u];
 		environment.state.contact_count_buffer = buffers[9u];
 		environment.state.persistent_contact_count_buffer = buffers[10u];
+		environment.state.rigid_body_velocity_snapshot_buffer = buffers[11u];
 
 		{
 			GLuint const block_index
@@ -446,7 +465,7 @@ namespace game_logic
 			);
 		}
 
-		environment.state.current_rigid_body_count = 10u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment);//500000u;
+		environment.state.current_rigid_body_count = 1u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment);//500000u;
 		environment.state.current_triangle_count = 1u * environment.state.current_rigid_body_count;
 		environment.state.current_contact_count = 0u;
 
@@ -494,9 +513,13 @@ namespace game_logic
 					game_logic__util__spatial_FROM_RADIANS(environment, i * 0.1f), 
 					0
 				};
+				if (i < 1)
+				{
+					position.position.x += game_logic__util__spatial_FROM_METERS(environment, -10.0f);
+				}
 				if (i < 2)
 				{
-					position.position.x -= game_logic__util__spatial_FROM_METERS(environment, -20.0f);
+					position.position.x += game_logic__util__spatial_FROM_METERS(environment, -10.0f);
 				}
 				std::memcpy
 				(
@@ -566,9 +589,15 @@ namespace game_logic
 					game_RADIANS_PER_SECOND_TO_ANGLE_PER_TICK(environment, 0.5f), 
 					0
 				};
+				if (i == 1u)
+				{
+					velocity.velocity.x = game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, 2.1f);
+					velocity.velocity.y = game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, 0.0f);
+				}
 				if (i == 2u)
 				{
-					velocity.velocity.x = game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, 1.0f);
+					velocity.velocity.x = game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, 0.0f);
+					velocity.velocity.y = game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, 0.0f);
 				}
 				/*if (2 <= i && i < environment.state.current_rigid_body_count - 2)
 				{
@@ -591,6 +620,15 @@ namespace game_logic
 			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_RIGID_BODY_VELOCITY_BINDING, environment.state.rigid_body_velocity_buffer);
 
 			delete[] initial_velocities;
+		}
+
+		{ // Velocity snapshot buffer
+			glNamedBufferStorage
+			(
+				environment.state.rigid_body_velocity_snapshot_buffer, environment.state.rigid_body_velocity_buffer_size, nullptr, 
+				0u
+			);
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_VELOCITY_SNAPSHOT_BINDING, environment.state.rigid_body_velocity_snapshot_buffer);
 		}
 
 		{ // Triangle buffer
@@ -1849,6 +1887,27 @@ namespace game_logic
 				on_adding_contacts_for, contact_can_be_added, add_contact, on_contacts_added
 			);
 
+			glUseProgram(environment.state.solve_contact_velocities_shader);
+
+			GLuint const solve_contact_velocities_work_group_count
+			{
+				ceil_div(environment.state.current_contact_count, game_logic__util__rigid_body_SOLVE_CONTACT_VELOCITIES_LOCAL_SIZE(environment))
+			};
+
+			for (GLuint i{ 0u }; i < 1u; ++i)
+			{
+				glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT); // Updated velocities from previous velocity solve
+
+				glCopyNamedBufferSubData
+				(
+					environment.state.rigid_body_velocity_buffer, environment.state.rigid_body_velocity_snapshot_buffer, 
+					environment.state.rigid_body_velocity_buffer_v_offset, environment.state.rigid_body_velocity_buffer_v_offset, 
+					environment.state.current_rigid_body_count * environment.state.rigid_body_velocity_buffer_v_stride
+				);
+
+				glDispatchCompute(solve_contact_velocities_work_group_count, 1u, 1u);
+			}
+
 			if (environment.state.tick % 120u == 0u)
 			{
 
@@ -2097,7 +2156,8 @@ namespace game_logic
 			environment.state.contact_buffer, 
 			environment.state.contact_surface_buffer, 
 			environment.state.contact_count_buffer, 
-			environment.state.persistent_contact_count_buffer
+			environment.state.persistent_contact_count_buffer, 
+			environment.state.rigid_body_velocity_snapshot_buffer
 		};
 		glDeleteBuffers(std::size(buffers), buffers);
 

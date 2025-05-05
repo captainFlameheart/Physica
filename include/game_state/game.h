@@ -43,6 +43,8 @@ namespace game_state
 		GLint rigid_body_velocity_buffer_v_offset;
 		GLint rigid_body_velocity_buffer_v_stride;
 
+		GLuint rigid_body_velocity_snapshot_buffer;
+
 		GLuint current_triangle_count;
 
 		GLuint triangle_buffer;
@@ -103,6 +105,8 @@ namespace game_state
 		GLuint old_triangle_contact_update_shader;
 
 		GLuint new_triangle_contact_shader;
+
+		GLuint solve_contact_velocities_shader;
 
 		proximity::Tree proximity_tree;
 
