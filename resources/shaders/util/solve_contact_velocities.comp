@@ -1,0 +1,156 @@
+#define NORMAL_IMPULSE_SCALE 0.2
+
+struct Contact_Point_Position
+{
+	vec2 offsets[2];
+};
+
+struct Contact_Point_Tangent
+{
+	float mass;
+	float impulse;
+};
+
+struct Contact_Point_Normal
+{
+	float mass;
+	float impulse;
+};
+
+// TODO: See if data can be split up to take advantage of coalescing for a half-warp.
+struct Contact_Surface
+{
+	// Contact point 0 is the contact point furthest in the 
+	// counter clockwise direction for body 0.
+	// Contact point 1 is the contact point furthest in the 
+	// clockwise direction for body 0.
+
+	uint bodies[2];
+	Contact_Point_Position contact_point_positions[2];
+	
+	vec2 tangent;
+	Contact_Point_Tangent contact_point_tangents[2];
+
+	Contact_Point_Normal contact_point_normals[2];
+};
+
+layout(shared, binding = CONTACT_SURFACE_BINDING) restrict
+buffer Contact_Surfaces
+{
+	Contact_Surface contact_surfaces[MAX_CONTACT_COUNT];
+} contact_surfaces;
+
+layout(shared, binding = CONTACT_COUNT_BINDING) uniform Contact_Count
+{
+	uint contact_count;
+} contact_count;
+
+layout(shared, binding = VELOCITY_SNAPSHOT_BINDING) restrict readonly
+buffer Velocities_Snapshot
+{
+	ivec4 v[MAX_RIGID_BODY_COUNT];
+} velocities_snapshot;
+
+layout(shared, binding = VELOCITY_BINDING) restrict writeonly
+buffer Velocities
+{
+	ivec4 v[MAX_RIGID_BODY_COUNT];
+} velocities;
+
+layout(local_size_x = LOCAL_SIZE) in;
+void main()
+{
+	if (gl_GlobalInvocationID.x >= contact_count.contact_count)
+	{
+		return;
+	}
+
+	uint body_0 = contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].bodies[0u];
+	uint body_1 = contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].bodies[1u];
+
+	vec2 offset_0_0 = contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_positions[0u].offsets[0u];
+	vec2 offset_0_1 = contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_positions[0u].offsets[1u];
+
+	vec2 offset_1_0 = contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_positions[1u].offsets[0u];
+	vec2 offset_1_1 = contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_positions[1u].offsets[1u];
+
+	// TODO: Consider storing perpendicular versions of offsets to avoid the extra vector constructions here
+	offset_0_0 = vec2(-offset_0_0.y, offset_0_0.x));
+	offset_0_1 = vec2(-offset_0_1.y, offset_0_1.x));
+
+	offset_1_0 = vec2(-offset_1_0.y, offset_1_0.x));
+	offset_1_1 = vec2(-offset_1_1.y, offset_1_1.x)
+
+	vec2 tangent = contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].tangent;
+	
+	float tangent_mass_0 = contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_tangents[0u].mass;
+	float tangent_impulse_0 = contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_tangents[0u].impulse;
+	
+	float tangent_mass_1 = contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_tangents[1u].mass;
+	float tangent_impulse_1 = contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_tangents[1u].impulse;
+	
+	// IMPORTANT TODO: MAKE SURE NORMAL POINTS IN CORRECT DIRECTION
+	vec2 normal = vec2(-tangent.y, tangent.x);
+
+	float normal_mass_0 = contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_normals[0u].mass;
+	float normal_impulse_0 = contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_normals[0u].impulse;
+	
+	float normal_mass_1 = contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_normals[1u].mass;
+	float normal_impulse_1 = contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_normals[1u].impulse;
+
+	vec3 body_0_velocity = vec3(velocities_snapshot.v[body_0].xyz);
+	vec3 body_1_velocity = vec3(velocities_snapshot.v[body_1].xyz);
+
+	float body_0_angular_velocity = body_0_velocity.z * RADIAN_INVERSE;
+	float body_1_angular_velocity = body_1_velocity.z * RADIAN_INVERSE;
+
+	vec2 contact_point_0_velocity = 
+		(body_0_velocity.xy + body_0_angular_velocity * offset_0_0) - 
+		(body_1_velocity.xy + body_1_angular_velocity * offset_0_1);
+	vec2 contact_point_1_velocity = 
+		(body_0_velocity.xy + body_0_angular_velocity * offset_1_0) - 
+		(body_1_velocity.xy + body_1_angular_velocity * offset_1_1);
+
+	// TODO: Friction impulses
+
+	// TODO: Maybe solve both normal impulses together using velocites AFTER applying friction impulses
+	float old_normal_impulse_0 = normal_impulse_0;
+	normal_impulse_0 = max(0.0, normal_impulse_0 + NORMAL_IMPULSE_SCALE * normal_mass_0 * dot(normal, contact_point_0_velocity));
+	contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_normals[0u].impulse = normal_impulse_0;
+	float delta_normal_impulse_0 = normal_impulse_0 - old_normal_impulse_0;
+
+	float old_normal_impulse_1 = normal_impulse_1;
+	normal_impulse_1 = max(0.0, normal_impulse_1 + NORMAL_IMPULSE_SCALE * normal_mass_1 * dot(normal, contact_point_1_velocity));
+	contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_normals[1u].impulse = normal_impulse_1;
+	float delta_normal_impulse_1 = normal_impulse_1 - old_normal_impulse_1;
+
+	vec2 delta_impulse_0 = delta_normal_impulse_0 * normal;	// TODO: Include tangent impulse
+	vec2 delta_impulse_1 = delta_normal_impulse_1 * normal;	// TODO: Include tangent impulse
+	vec2 delta_impulse_sum = delta_impulse_0 + delta_impulse_1;
+
+	// TODO: Fetch masses from buffer
+	float inverse_mass_0 = 1.0;
+	float inverse_inertia_0 = 1.0;
+
+	float inverse_mass_1 = 1.0;
+	float inverse_inertia_1 = 1.0;
+
+	ivec3 delta_velocity_0 = ivec3
+	(
+		delta_impulse_sum * inverse_mass_0, 
+		(dot(delta_impulse_0, offset_0_0) + dot(delta_impulse_1, offset_1_0)) * inverse_inertia_0
+	);
+	ivec3 delta_velocity_1 = ivec3
+	(
+		delta_impulse_sum * inverse_mass_1, 
+		(dot(delta_impulse_0, offset_0_1) + dot(delta_impulse_1, offset_1_1)) * inverse_inertia_0
+	);
+
+	atomicAdd(velocities.v[body_0].x, delta_velocity_0.x);
+	atomicAdd(velocities.v[body_0].y, delta_velocity_0.y);
+	atomicAdd(velocities.v[body_0].z, delta_velocity_0.z);
+
+	atomicAdd(velocities.v[body_1].x, delta_velocity_1.x);
+	atomicAdd(velocities.v[body_1].y, delta_velocity_1.y);
+	atomicAdd(velocities.v[body_1].z, delta_velocity_1.z);
+}
