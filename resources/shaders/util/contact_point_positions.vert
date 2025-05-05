@@ -66,6 +66,7 @@ void main()
 	uint contact_point_index = local_index / 2u;
 	Contact_Point_Position contact_point_position = contact_surface.contact_point_positions[contact_point_index];
 	vec2 offset = contact_point_position.offsets[local_body_index];
+	offset = vec2(offset.y, -offset.x);
 	vec2 camera_relative_xy = vec2(positions.p[body_index].xy - camera.xy) + offset;
 
 	if (contact_surface.contact_point_tangents[0u].mass == 0.0)

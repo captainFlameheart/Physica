@@ -71,6 +71,7 @@ void main()
 		at_offset_tip = 0u;
 	}
 	vec2 offset = float(at_offset_tip) * contact_point_position.offsets[local_body_index];
+	offset = vec2(offset.y, -offset.x);
 
 	vec2 camera_relative_xy = vec2(positions.p[body_index].xy - camera.xy) + offset;
 	gl_Position = vec4

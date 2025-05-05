@@ -74,13 +74,6 @@ void main()
 	vec2 offset_1_0 = contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_positions[1u].offsets[0u];
 	vec2 offset_1_1 = contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_positions[1u].offsets[1u];
 
-	// TODO: Consider storing perpendicular versions of offsets to avoid the extra vector constructions here
-	offset_0_0 = vec2(-offset_0_0.y, offset_0_0.x));
-	offset_0_1 = vec2(-offset_0_1.y, offset_0_1.x));
-
-	offset_1_0 = vec2(-offset_1_0.y, offset_1_0.x));
-	offset_1_1 = vec2(-offset_1_1.y, offset_1_1.x)
-
 	vec2 tangent = contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].tangent;
 	
 	float tangent_mass_0 = contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_tangents[0u].mass;
@@ -137,13 +130,13 @@ void main()
 
 	ivec3 delta_velocity_0 = ivec3
 	(
-		delta_impulse_sum * inverse_mass_0, 
-		(dot(delta_impulse_0, offset_0_0) + dot(delta_impulse_1, offset_1_0)) * inverse_inertia_0
+		-inverse_mass_0 * delta_impulse_sum, 
+		-inverse_inertia_0 * (dot(delta_impulse_0, offset_0_0) + dot(delta_impulse_1, offset_1_0))
 	);
 	ivec3 delta_velocity_1 = ivec3
 	(
-		delta_impulse_sum * inverse_mass_1, 
-		(dot(delta_impulse_0, offset_0_1) + dot(delta_impulse_1, offset_1_1)) * inverse_inertia_0
+		inverse_mass_1 * delta_impulse_sum, 
+		inverse_inertia_0 * (dot(delta_impulse_0, offset_0_1) + dot(delta_impulse_1, offset_1_1))
 	);
 
 	atomicAdd(velocities.v[body_0].x, delta_velocity_0.x);
