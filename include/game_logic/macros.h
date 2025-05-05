@@ -41,6 +41,8 @@
 	)
 
 #define game_CAMERA_BINDING 0
+#define game_logic__util_CONTACT_COUNT_BINDING 1
+#define game_logic__util_PERSISTENT_CONTACT_COUNT_BINDING 2
 
 // TODO: Probably flip position and velocity binding
 #define game_logic__util_RIGID_BODY_POSITION_BINDING 0

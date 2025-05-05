@@ -80,6 +80,14 @@ namespace game_state
 		GLint contact_surface_buffer_contact_surfaces_contact_point_normal_0_impulse_offset;
 		GLint contact_surface_buffer_contact_surfaces_contact_point_normal_1_mass_offset;
 		GLint contact_surface_buffer_contact_surfaces_contact_point_normal_1_impulse_offset;
+		
+		GLint contact_count_buffer;
+		GLint contact_count_buffer_size;
+		GLint contact_count_buffer_contact_count_offset;
+
+		GLint persistent_contact_count_buffer;
+		GLint persistent_contact_count_buffer_size;
+		GLint persistent_contact_count_buffer_persistent_contact_count_offset;
 
 		// TODO: Consider using std::430 layout to improve runtime performance
 		GLuint changed_bounding_box_buffer;
@@ -93,6 +101,8 @@ namespace game_state
 		GLint changed_bounding_box_buffer_boxes_max_y_offset;
 
 		GLuint old_triangle_contact_update_shader;
+
+		GLuint new_triangle_contact_shader;
 
 		proximity::Tree proximity_tree;
 
@@ -122,6 +132,7 @@ namespace game_state
 		GLuint parent_bounding_box_draw_shader;
 		GLint parent_bounding_box_uniform_location;
 		GLuint leaf_contact_draw_shader;
+		GLuint contact_point_positions_draw_shader;
 		GLuint contact_point_offsets_draw_shader;
 		GLuint rigid_body_debug_rendering_shader;
 	};

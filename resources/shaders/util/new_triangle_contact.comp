@@ -67,15 +67,21 @@ layout(shared, binding = CONTACT_COUNT_BINDING) uniform Contact_Count
 	uint contact_count;
 } contact_count;
 
+layout(shared, binding = PERSISTENT_CONTACT_COUNT_BINDING) uniform Persistent_Contact_Count
+{
+	uint persistent_contact_count;
+} persistent_contact_count;
+
 layout(local_size_x = LOCAL_SIZE) in;
 void main()
 {
-	if (gl_GlobalInvocationID.x >= contact_count.contact_count)
+	uint index = persistent_contact_count.persistent_contact_count + gl_GlobalInvocationID.x;
+	if (index >= contact_count.contact_count)
 	{
 		return;
 	}
 
-	uvec2 contact = contacts.contacts[gl_GlobalInvocationID.x];
+	uvec2 contact = contacts.contacts[index];
 	
 	uvec4 triangles[2u] = uvec4[2u]
 	(
@@ -200,18 +206,21 @@ void main()
 		min_penetration = penetration;
 	}
 
+	contact_surfaces.contact_surfaces[index].bodies[0u] = triangles[0u].w;
+	contact_surfaces.contact_surfaces[index].bodies[1u] = triangles[1u].w;
+
 	// TODO: Maybe remove branching
 	if (min_penetration < 0.0)
 	{
-		contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_tangents[0u].mass = 0.0;
-		contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_tangents[0u].impulse = 0.0;
-		contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_tangents[1u].mass = 0.0;
-		contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_tangents[1u].impulse = 0.0;
+		contact_surfaces.contact_surfaces[index].contact_point_tangents[0u].mass = 0.0;
+		contact_surfaces.contact_surfaces[index].contact_point_tangents[0u].impulse = 0.0;
+		contact_surfaces.contact_surfaces[index].contact_point_tangents[1u].mass = 0.0;
+		contact_surfaces.contact_surfaces[index].contact_point_tangents[1u].impulse = 0.0;
 
-		contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_normals[0u].mass = 0.0;
-		contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_normals[0u].impulse = 0.0;
-		contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_normals[1u].mass = 0.0;
-		contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_normals[1u].impulse = 0.0;
+		contact_surfaces.contact_surfaces[index].contact_point_normals[0u].mass = 0.0;
+		contact_surfaces.contact_surfaces[index].contact_point_normals[0u].impulse = 0.0;
+		contact_surfaces.contact_surfaces[index].contact_point_normals[1u].mass = 0.0;
+		contact_surfaces.contact_surfaces[index].contact_point_normals[1u].impulse = 0.0;
 	}
 	else
 	{
@@ -273,14 +282,19 @@ void main()
 		secondary_incident_vertex_side ^= reference_body;
 		uint primary_incident_vertex_side = secondary_incident_vertex_side ^ 1u;
 
-		contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_positions[secondary_incident_vertex_side].offsets[0] = secondary_contact_point;
-		contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_positions[secondary_incident_vertex_side].offsets[1] = secondary_contact_point - body_0_to_1;
-		contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_positions[primary_incident_vertex_side].offsets[0] = primary_contact_point;
-		contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_positions[primary_incident_vertex_side].offsets[1] = primary_contact_point - body_0_to_1;
+		contact_surfaces.contact_surfaces[index].contact_point_positions[secondary_incident_vertex_side].offsets[0] = secondary_contact_point;
+		contact_surfaces.contact_surfaces[index].contact_point_positions[secondary_incident_vertex_side].offsets[1] = secondary_contact_point - body_0_to_1;
+		contact_surfaces.contact_surfaces[index].contact_point_positions[primary_incident_vertex_side].offsets[0] = primary_contact_point;
+		contact_surfaces.contact_surfaces[index].contact_point_positions[primary_incident_vertex_side].offsets[1] = primary_contact_point - body_0_to_1;
 
 		// TODO: Set masses
-		contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_tangents[0u].mass = 1.0;
-		// TODO: Apply impulses
-		contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].tangent = tangent;
+		contact_surfaces.contact_surfaces[index].tangent = tangent;
+
+		// TODO: Solve contact and set initial impulse to non-zero
+		contact_surfaces.contact_surfaces[index].contact_point_tangents[0u].impulse = 0.0;
+		contact_surfaces.contact_surfaces[index].contact_point_tangents[1u].impulse = 0.0;
+
+		contact_surfaces.contact_surfaces[index].contact_point_normals[0u].impulse = 0.0;
+		contact_surfaces.contact_surfaces[index].contact_point_normals[1u].impulse = 0.0;
 	}
 }

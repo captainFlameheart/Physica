@@ -55,24 +55,24 @@ layout(shared, binding = CAMERA_BINDING) uniform Camera
 
 void main()
 {
-	uint contact_index = gl_VertexID / 8u;
+	uint contact_index = gl_VertexID / 4u;
 	Contact_Surface contact_surface = contact_surfaces.contact_surfaces[contact_index];
 
-	uint endpoint_index = gl_VertexID % 8u;
+	uint local_index = gl_VertexID % 4u;
 	
-	uint local_body_index = (endpoint_index / 2u) % 2u;
+	uint local_body_index = local_index % 2u;
 	uint body_index = contact_surface.bodies[local_body_index];
 
-	uint contact_point_index = endpoint_index / 4u;
+	uint contact_point_index = local_index / 2u;
 	Contact_Point_Position contact_point_position = contact_surface.contact_point_positions[contact_point_index];
-	uint at_offset_tip = endpoint_index % 2u;
+	vec2 offset = contact_point_position.offsets[local_body_index];
+	vec2 camera_relative_xy = vec2(positions.p[body_index].xy - camera.xy) + offset;
+
 	if (contact_surface.contact_point_tangents[0u].mass == 0.0)
 	{
-		at_offset_tip = 0u;
+		camera_relative_xy.x = 1E20;
 	}
-	vec2 offset = float(at_offset_tip) * contact_point_position.offsets[local_body_index];
 
-	vec2 camera_relative_xy = vec2(positions.p[body_index].xy - camera.xy) + offset;
 	gl_Position = vec4
 	(
 		camera.view_rotation * camera_relative_xy * PROJECTION_SCALE, 
