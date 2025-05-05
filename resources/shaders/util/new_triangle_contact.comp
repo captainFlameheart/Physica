@@ -290,19 +290,63 @@ void main()
 		vec2 primary_offset_1 = primary_contact_point - body_0_to_1;
 		primary_offset_1 = vec2(-primary_offset_1.y, primary_offset_1.x);
 
-		contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_positions[secondary_incident_vertex_side].offsets[0] = secondary_offset_0;//secondary_contact_point;
-		contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_positions[secondary_incident_vertex_side].offsets[1] = secondary_offset_1;//secondary_contact_point - body_0_to_1;
-		contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_positions[primary_incident_vertex_side].offsets[0] = primary_offset_0;//primary_contact_point;
-		contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_positions[primary_incident_vertex_side].offsets[1] = primary_offset_1;//primary_contact_point - body_0_to_1;
+		contact_surfaces.contact_surfaces[index].contact_point_positions[secondary_incident_vertex_side].offsets[0] = secondary_offset_0;
+		contact_surfaces.contact_surfaces[index].contact_point_positions[secondary_incident_vertex_side].offsets[1] = secondary_offset_1;
+		contact_surfaces.contact_surfaces[index].contact_point_positions[primary_incident_vertex_side].offsets[0] = primary_offset_0;
+		contact_surfaces.contact_surfaces[index].contact_point_positions[primary_incident_vertex_side].offsets[1] = primary_offset_1;
 
-		// TODO: Set masses
+		tangent *= 1.0 - float(reference_body << 1u);
 		contact_surfaces.contact_surfaces[index].tangent = tangent;
 
-		// TODO: Solve contact and set initial impulse to non-zero
-		contact_surfaces.contact_surfaces[index].contact_point_tangents[0u].impulse = 0.0;
-		contact_surfaces.contact_surfaces[index].contact_point_tangents[1u].impulse = 0.0;
+		// TODO: Fetch masses from buffer
+		float inverse_mass_0 = 1.0;
+		float inverse_inertia_0 = 1.0;
 
-		contact_surfaces.contact_surfaces[index].contact_point_normals[0u].impulse = 0.0;
-		contact_surfaces.contact_surfaces[index].contact_point_normals[1u].impulse = 0.0;
+		float inverse_mass_1 = 1.0;
+		float inverse_inertia_1 = 1.0;
+
+		// TODO: Handle infinite masses
+		float temp_0 = dot(secondary_offset_0, tangent);
+		float temp_1 = dot(secondary_offset_1, tangent);
+		float secondary_tangent_mass = 1.0 / (
+			inverse_mass_0 + inverse_inertia_0 * temp_0 * temp_0 + 
+			inverse_mass_1 + inverse_inertia_1 * temp_1 * temp_1
+		);
+
+		temp_0 = dot(primary_offset_0, tangent);
+		temp_1 = dot(primary_offset_1, tangent);
+		float primary_tangent_mass = 1.0 / (
+			inverse_mass_0 + inverse_inertia_0 * temp_0 * temp_0 + 
+			inverse_mass_1 + inverse_inertia_1 * temp_1 * temp_1
+		);
+
+		// TODO: Solve tangent impulses
+
+		contact_surfaces.contact_surfaces[index].contact_point_tangents[secondary_incident_vertex_side].mass = secondary_tangent_mass;
+		contact_surfaces.contact_surfaces[index].contact_point_tangents[secondary_incident_vertex_side].impulse = 0.0;
+		contact_surfaces.contact_surfaces[index].contact_point_tangents[primary_incident_vertex_side].mass = primary_tangent_mass;
+		contact_surfaces.contact_surfaces[index].contact_point_tangents[primary_incident_vertex_side].impulse = 0.0;
+
+		// TODO: Handle infinite masses
+		temp_0 = dot(secondary_offset_0, normals[reference_edge]);
+		temp_1 = dot(secondary_offset_1, normals[reference_edge]);
+		float secondary_normal_mass = 1.0 / (
+			inverse_mass_0 + inverse_inertia_0 * temp_0 * temp_0 + 
+			inverse_mass_1 + inverse_inertia_1 * temp_1 * temp_1
+		);
+
+		temp_0 = dot(primary_offset_0, normals[reference_edge]);
+		temp_1 = dot(primary_offset_1, normals[reference_edge]);
+		float primary_normal_mass = 1.0 / (
+			inverse_mass_0 + inverse_inertia_0 * temp_0 * temp_0 + 
+			inverse_mass_1 + inverse_inertia_1 * temp_1 * temp_1
+		);
+
+		// TODO: Solve normal impulses
+
+		contact_surfaces.contact_surfaces[index].contact_point_normals[secondary_incident_vertex_side].mass = secondary_normal_mass;
+		contact_surfaces.contact_surfaces[index].contact_point_normals[secondary_incident_vertex_side].impulse = 0.0;
+		contact_surfaces.contact_surfaces[index].contact_point_normals[primary_incident_vertex_side].mass = primary_normal_mass;
+		contact_surfaces.contact_surfaces[index].contact_point_normals[primary_incident_vertex_side].impulse = 0.0;
 	}
 }
