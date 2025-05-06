@@ -132,6 +132,7 @@ namespace game_state
 		bool physics_running;
 
 		GLuint triangle_draw_shader;
+		GLuint triangle_wireframes_draw_shader;
 		GLuint triangle_normal_draw_shader;
 		GLuint triangle_bounding_box_draw_shader;
 		GLuint parent_bounding_box_draw_shader;
