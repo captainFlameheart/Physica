@@ -139,6 +139,7 @@ namespace game_state
 		GLuint leaf_contact_draw_shader;
 		GLuint contact_point_positions_draw_shader;
 		GLuint contact_point_offsets_draw_shader;
+		GLuint contact_basis_draw_shader;
 		GLuint rigid_body_debug_rendering_shader;
 	};
 }

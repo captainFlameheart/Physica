@@ -70,7 +70,7 @@ void main()
 
 	if (contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_normals[0u].mass != 0.0)
 	{
-		atomicAdd(velocities.v[body_1].x, 1000);
+		//atomicAdd(velocities.v[body_1].x, 1000);
 		//velocities.v[body_0].x = 0;
 		//velocities.v[body_1].x = 0;
 	}

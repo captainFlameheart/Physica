@@ -141,7 +141,7 @@ namespace game_logic
 		(
 			fragment_shader,
 			util_shader_VERSION,
-			util_shader_DEFINE("COLOR", "vec4(1.0, 0.0, 1.0, 1.0)"),
+			util_shader_DEFINE("COLOR", "vec4(0.3, 0.3, 0.3, 1.0)"),
 			::util::shader::file_to_string("util/static_color.frag") // TODO: Should only be done once
 		);
 		environment.state.triangle_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
@@ -285,6 +285,28 @@ namespace game_logic
 		);
 		environment.state.contact_point_positions_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
 		
+		::util::shader::set_shader_statically
+		(
+			vertex_shader,
+			util_shader_VERSION,
+			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))), // TODO: Remove
+			util_shader_DEFINE("CONTACT_BINDING", STRINGIFY(game_logic__util_CONTACT_BINDING)),
+			util_shader_DEFINE("CONTACT_SURFACE_BINDING", STRINGIFY(game_logic__util_CONTACT_SURFACE_BINDING)),
+			util_shader_DEFINE("MAX_CONTACT_COUNT", STRINGIFY(game_logic_MAX_CONTACT_COUNT(environment))),
+			util_shader_DEFINE("MAX_RIGID_BODY_COUNT", STRINGIFY(game_logic_MAX_RIGID_BODY_COUNT(environment))),
+			util_shader_DEFINE("POSITION_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_POSITION_BINDING)),
+			util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
+			game_PROJECTION_SCALE_DEFINITION(environment),
+			::util::shader::file_to_string("util/contact_basis.vert")
+		);
+		::util::shader::set_shader_statically
+		(
+			fragment_shader,
+			util_shader_VERSION,
+			::util::shader::file_to_string("util/contact_basis.frag")
+		);
+		environment.state.contact_basis_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+
 		::util::shader::delete_shader(vertex_shader);
 		::util::shader::delete_shader(fragment_shader);
 
@@ -2141,8 +2163,8 @@ namespace game_logic
 		//glUseProgram(environment.state.rigid_body_debug_rendering_shader);
 		//glDrawArrays(GL_LINES, 0, environment.state.current_rigid_body_count * 4u);
 
-		glUseProgram(environment.state.triangle_normal_draw_shader);
-		glDrawArrays(GL_LINES, 0, environment.state.current_triangle_count * 6u);
+		//glUseProgram(environment.state.triangle_normal_draw_shader);
+		//glDrawArrays(GL_LINES, 0, environment.state.current_triangle_count * 6u);
 
 		/*glUseProgram(environment.state.triangle_bounding_box_draw_shader);
 		glDrawArrays(GL_LINES, 0, environment.state.current_triangle_count * 8u);
@@ -2162,6 +2184,9 @@ namespace game_logic
 
 		//glUseProgram(environment.state.contact_point_offsets_draw_shader);
 		//glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 8u);
+
+		glUseProgram(environment.state.contact_basis_draw_shader);
+		glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 4u);
 	}
 
 	void free(game_environment::Environment& environment)
