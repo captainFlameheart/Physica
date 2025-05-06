@@ -299,11 +299,11 @@ void main()
 		contact_surfaces.contact_surfaces[index].tangent = tangent;
 
 		// TODO: Fetch masses from buffer
-		float inverse_mass_0 = 1.0;
-		float inverse_inertia_0 = 0.0;
+		float inverse_mass_0 = INVERSE_MASS;//1.0;
+		float inverse_inertia_0 = INVERSE_INERTIA;//0.0;
 
-		float inverse_mass_1 = 1.0;
-		float inverse_inertia_1 = 0.0;
+		float inverse_mass_1 = INVERSE_MASS;//1.0;
+		float inverse_inertia_1 = INVERSE_INERTIA;//0.0;
 
 		// TODO: Handle infinite masses
 		float temp_0 = dot(secondary_offset_0, tangent);

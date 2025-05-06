@@ -10,6 +10,8 @@
 #include "game_logic/util/spatial/FLOAT_FROM_METERS.h"
 #include "game_logic/util/spatial/FROM_METERS.h"
 #include "game_logic/util/spatial/TO_RADIANS.h"
+#include "game_logic/util/spatial/FROM_RADIANS.h"
+#include "game_logic/util/spatial/TO_METERS.h"
 #include "game_logic/util/camera/unit_z_vector_to_camera_local_world_vector.h"
 #include "game_logic/util/camera/increase_camera_angle.h"
 #include "game_logic/util/camera/local_world_vector_to_world_vector.h"
@@ -52,6 +54,10 @@
 
 #define game_logic_MAX_CONTACT_COUNT(environment) \
 	50u * game_logic_MAX_TRIANGLE_COUNT(environment)
+
+// TODO: Store separate masses for each body in buffer
+#define INVERSE_MASS 1.0
+#define INVERSE_INERTIA 0.0
 
 // TODO: USE EXCLUSIVE OR IN PROXIMITY UTIL WHEN FLIPPING A BOOLEAN UNSIGNED INT
 
@@ -390,6 +396,8 @@ namespace game_logic
 			util_shader_DEFINE("CONTACT_COUNT_BINDING", STRINGIFY(game_logic__util_CONTACT_COUNT_BINDING)),
 			util_shader_DEFINE("LOCAL_SIZE", STRINGIFY(game_logic__util__rigid_body_OLD_TRIANGLE_CONTACT_UPDATE_LOCAL_SIZE(environment))),
 			util_shader_DEFINE("RADIAN_INVERSE", STRINGIFY(game_logic__util__spatial_RADIAN_INVERSE(environment))),
+			util_shader_DEFINE("INVERSE_MASS", STRINGIFY(INVERSE_MASS)),
+			util_shader_DEFINE("INVERSE_INERTIA", STRINGIFY(INVERSE_INERTIA)),
 			::util::shader::file_to_string("util/old_triangle_contact_update.comp")
 		);
 		environment.state.old_triangle_contact_update_shader = ::util::shader::create_program(compute_shader);
@@ -411,6 +419,8 @@ namespace game_logic
 			util_shader_DEFINE("PERSISTENT_CONTACT_COUNT_BINDING", STRINGIFY(game_logic__util_PERSISTENT_CONTACT_COUNT_BINDING)),
 			util_shader_DEFINE("LOCAL_SIZE", STRINGIFY(game_logic__util__rigid_body_NEW_TRIANGLE_CONTACT_LOCAL_SIZE(environment))),
 			util_shader_DEFINE("RADIAN_INVERSE", STRINGIFY(game_logic__util__spatial_RADIAN_INVERSE(environment))),
+			util_shader_DEFINE("INVERSE_MASS", STRINGIFY(INVERSE_MASS)), 
+			util_shader_DEFINE("INVERSE_INERTIA", STRINGIFY(INVERSE_INERTIA)),
 			::util::shader::file_to_string("util/new_triangle_contact.comp")
 		);
 		environment.state.new_triangle_contact_shader = ::util::shader::create_program(compute_shader);
@@ -426,7 +436,12 @@ namespace game_logic
 			util_shader_DEFINE("VELOCITY_SNAPSHOT_BINDING", STRINGIFY(game_logic__util_VELOCITY_SNAPSHOT_BINDING)),
 			util_shader_DEFINE("VELOCITY_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_VELOCITY_BINDING)),
 			util_shader_DEFINE("LOCAL_SIZE", STRINGIFY(game_logic__util__rigid_body_SOLVE_CONTACT_VELOCITIES_LOCAL_SIZE(environment))),
+			util_shader_DEFINE("METER_INVERSE", STRINGIFY(game_logic__util__spatial_METER_INVERSE(environment))),
 			util_shader_DEFINE("RADIAN_INVERSE", STRINGIFY(game_logic__util__spatial_RADIAN_INVERSE(environment))),
+			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))),
+			util_shader_DEFINE("RADIAN", STRINGIFY(game_logic__util__spatial_RADIAN(environment))),
+			util_shader_DEFINE("INVERSE_MASS", STRINGIFY(INVERSE_MASS)),
+			util_shader_DEFINE("INVERSE_INERTIA", STRINGIFY(INVERSE_INERTIA)),
 			::util::shader::file_to_string("util/solve_contact_velocities.comp")
 		);
 		environment.state.solve_contact_velocities_shader = ::util::shader::create_program(compute_shader);
@@ -537,7 +552,7 @@ namespace game_logic
 			);
 		}
 
-		environment.state.current_rigid_body_count = 2u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment);//500000u;
+		environment.state.current_rigid_body_count = 1u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment);//500000u;
 		environment.state.current_triangle_count = 1u * environment.state.current_rigid_body_count;
 		environment.state.current_contact_count = 0u;
 

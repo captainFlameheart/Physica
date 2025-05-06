@@ -68,14 +68,6 @@ void main()
 	uint body_0 = contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].bodies[0u];
 	uint body_1 = contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].bodies[1u];
 
-	/*if (contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_normals[0u].mass != 0.0)
-	{
-		//atomicAdd(velocities.v[body_1].x, 1000);
-		//velocities.v[body_0].x = 0;
-		//velocities.v[body_1].x = 0;
-	}
-	return;*/
-
 	vec2 offset_0_0 = contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_positions[0u].offsets[0u];
 	vec2 offset_0_1 = contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_positions[0u].offsets[1u];
 
@@ -99,17 +91,22 @@ void main()
 	float normal_impulse_1 = contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_normals[1u].impulse;
 
 	vec3 body_0_velocity = vec3(velocities_snapshot.v[body_0].xyz);
-	vec3 body_1_velocity = vec3(velocities_snapshot.v[body_1].xyz);
+	body_0_velocity.xy *= METER_INVERSE;
+	body_0_velocity.z *= RADIAN_INVERSE;
 
-	float body_0_angular_velocity = body_0_velocity.z * RADIAN_INVERSE;
-	float body_1_angular_velocity = body_1_velocity.z * RADIAN_INVERSE;
+	vec3 body_1_velocity = vec3(velocities_snapshot.v[body_1].xyz);
+	body_1_velocity.xy *= METER_INVERSE;
+	body_1_velocity.z *= RADIAN_INVERSE;
+
+	//float body_0_angular_velocity = body_0_velocity.z * RADIAN_INVERSE;
+	//float body_1_angular_velocity = body_1_velocity.z * RADIAN_INVERSE;
 
 	vec2 contact_point_0_velocity = 
-		(body_0_velocity.xy + body_0_angular_velocity * offset_0_0) - 
-		(body_1_velocity.xy + body_1_angular_velocity * offset_0_1);
+		(body_0_velocity.xy + body_0_velocity.z * offset_0_0) - 
+		(body_1_velocity.xy + body_1_velocity.z * offset_0_1);
 	vec2 contact_point_1_velocity = 
-		(body_0_velocity.xy + body_0_angular_velocity * offset_1_0) - 
-		(body_1_velocity.xy + body_1_angular_velocity * offset_1_1);
+		(body_0_velocity.xy + body_0_velocity.z * offset_1_0) - 
+		(body_1_velocity.xy + body_1_velocity.z * offset_1_1);
 
 	// TODO: Friction impulses
 
@@ -129,21 +126,21 @@ void main()
 	vec2 delta_impulse_sum = delta_impulse_0 + delta_impulse_1;
 
 	// TODO: Fetch masses from buffer
-	float inverse_mass_0 = 1.0;
-	float inverse_inertia_0 = 0.0;
+	float inverse_mass_0 = INVERSE_MASS;//1.0;
+	float inverse_inertia_0 = INVERSE_INERTIA;//0.0;
 
-	float inverse_mass_1 = 1.0;
-	float inverse_inertia_1 = 0.0;
+	float inverse_mass_1 = INVERSE_MASS;//1.0;
+	float inverse_inertia_1 = INVERSE_INERTIA;//0.0;
 
 	ivec3 delta_velocity_0 = ivec3
 	(
-		-inverse_mass_0 * delta_impulse_sum, 
-		-inverse_inertia_0 * (dot(delta_impulse_0, offset_0_0) + dot(delta_impulse_1, offset_1_0))
+		-METER * inverse_mass_0 * delta_impulse_sum, 
+		-RADIAN * inverse_inertia_0 * (dot(delta_impulse_0, offset_0_0) + dot(delta_impulse_1, offset_1_0))
 	);
 	ivec3 delta_velocity_1 = ivec3
 	(
-		inverse_mass_1 * delta_impulse_sum, 
-		inverse_inertia_0 * (dot(delta_impulse_0, offset_0_1) + dot(delta_impulse_1, offset_1_1))
+		METER * inverse_mass_1 * delta_impulse_sum, 
+		RADIAN * inverse_inertia_0 * (dot(delta_impulse_0, offset_0_1) + dot(delta_impulse_1, offset_1_1))
 	);
 
 	atomicAdd(velocities.v[body_0].x, delta_velocity_0.x);
