@@ -273,12 +273,14 @@ void main()
 		secondary_incident_vertex_side ^= reference_body;
 		uint primary_incident_vertex_side = secondary_incident_vertex_side ^ 1u;
 
-		vec2 secondary_offset_0 = vec2(-secondary_contact_point.y, secondary_contact_point.x);
+		// TODO: Store all vec2s in meters
+		vec2 secondary_offset_0 = METER_INVERSE * vec2(-secondary_contact_point.y, secondary_contact_point.x);
 		vec2 secondary_offset_1 = secondary_contact_point - body_0_to_1;
-		secondary_offset_1 = vec2(-secondary_offset_1.y, secondary_offset_1.x);
-		vec2 primary_offset_0 = vec2(-primary_contact_point.y, primary_contact_point.x);
+		secondary_offset_1 = METER_INVERSE * vec2(-secondary_offset_1.y, secondary_offset_1.x);
+		
+		vec2 primary_offset_0 = METER_INVERSE * vec2(-primary_contact_point.y, primary_contact_point.x);
 		vec2 primary_offset_1 = primary_contact_point - body_0_to_1;
-		primary_offset_1 = vec2(-primary_offset_1.y, primary_offset_1.x);
+		primary_offset_1 = METER_INVERSE * vec2(-primary_offset_1.y, primary_offset_1.x);
 
 		// TODO: See if it's faster to put all writes next to each other
 

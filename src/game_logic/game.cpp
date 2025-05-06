@@ -57,7 +57,7 @@
 
 // TODO: Store separate masses for each body in buffer
 #define INVERSE_MASS 1.0
-#define INVERSE_INERTIA 0.0
+#define INVERSE_INERTIA 2.0
 
 // TODO: USE EXCLUSIVE OR IN PROXIMITY UTIL WHEN FLIPPING A BOOLEAN UNSIGNED INT
 
@@ -304,6 +304,8 @@ namespace game_logic
 			util_shader_DEFINE("MAX_RIGID_BODY_COUNT", STRINGIFY(game_logic_MAX_RIGID_BODY_COUNT(environment))),
 			util_shader_DEFINE("POSITION_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_POSITION_BINDING)),
 			util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
+			util_shader_DEFINE("METER_INVERSE", STRINGIFY(game_logic__util__spatial_METER_INVERSE(environment))),
+			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))),
 			game_PROJECTION_SCALE_DEFINITION(environment),
 			::util::shader::file_to_string("util/contact_point_positions.vert")
 		);
@@ -398,6 +400,7 @@ namespace game_logic
 			util_shader_DEFINE("RADIAN_INVERSE", STRINGIFY(game_logic__util__spatial_RADIAN_INVERSE(environment))),
 			util_shader_DEFINE("INVERSE_MASS", STRINGIFY(INVERSE_MASS)),
 			util_shader_DEFINE("INVERSE_INERTIA", STRINGIFY(INVERSE_INERTIA)),
+			util_shader_DEFINE("METER_INVERSE", STRINGIFY(game_logic__util__spatial_METER_INVERSE(environment))),
 			::util::shader::file_to_string("util/old_triangle_contact_update.comp")
 		);
 		environment.state.old_triangle_contact_update_shader = ::util::shader::create_program(compute_shader);
@@ -421,6 +424,7 @@ namespace game_logic
 			util_shader_DEFINE("RADIAN_INVERSE", STRINGIFY(game_logic__util__spatial_RADIAN_INVERSE(environment))),
 			util_shader_DEFINE("INVERSE_MASS", STRINGIFY(INVERSE_MASS)), 
 			util_shader_DEFINE("INVERSE_INERTIA", STRINGIFY(INVERSE_INERTIA)),
+			util_shader_DEFINE("METER_INVERSE", STRINGIFY(game_logic__util__spatial_METER_INVERSE(environment))),
 			::util::shader::file_to_string("util/new_triangle_contact.comp")
 		);
 		environment.state.new_triangle_contact_shader = ::util::shader::create_program(compute_shader);
@@ -680,7 +684,7 @@ namespace game_logic
 				if (i == 1u)
 				{
 					velocity.velocity.x = game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, 2.1f);
-					velocity.velocity.y = game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, 0.0f);
+					velocity.velocity.y = game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, 0.2f);
 				}
 				if (i == 2u)
 				{
@@ -2212,8 +2216,8 @@ namespace game_logic
 		//glUseProgram(environment.state.triangle_normal_draw_shader);
 		//glDrawArrays(GL_LINES, 0, environment.state.current_triangle_count * 6u);
 
-		//glUseProgram(environment.state.triangle_bounding_box_draw_shader);
-		//glDrawArrays(GL_LINES, 0, environment.state.current_triangle_count * 8u);
+		glUseProgram(environment.state.triangle_bounding_box_draw_shader);
+		glDrawArrays(GL_LINES, 0, environment.state.current_triangle_count * 8u);
 
 		/*if (!util::proximity::is_empty(environment.state.proximity_tree))
 		{
