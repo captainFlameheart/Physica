@@ -512,7 +512,7 @@ namespace game_logic
 			);
 		}
 
-		environment.state.current_rigid_body_count = 1u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment);//500000u;
+		environment.state.current_rigid_body_count = 2u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment);//500000u;
 		environment.state.current_triangle_count = 1u * environment.state.current_rigid_body_count;
 		environment.state.current_contact_count = 0u;
 
@@ -568,6 +568,7 @@ namespace game_logic
 				{
 					position.position.x += game_logic__util__spatial_FROM_METERS(environment, -10.0f);
 				}
+				//position.angle = 0;
 				std::memcpy
 				(
 					initial_positions + environment.state.rigid_body_position_buffer_p_offset + i * environment.state.rigid_body_position_buffer_p_stride,
@@ -646,6 +647,8 @@ namespace game_logic
 					velocity.velocity.x = game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, 0.0f);
 					velocity.velocity.y = game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, 0.0f);
 				}
+
+				velocity.angle_velocity = 0;
 				/*if (2 <= i && i < environment.state.current_rigid_body_count - 2)
 				{
 					velocity.velocity.x = 0;
@@ -1941,7 +1944,7 @@ namespace game_logic
 				ceil_div(environment.state.current_contact_count, game_logic__util__rigid_body_SOLVE_CONTACT_VELOCITIES_LOCAL_SIZE(environment))
 			};
 
-			for (GLuint i{ 0u }; i < 1u; ++i)
+			for (GLuint i{ 0u }; i < 4u; ++i)
 			{
 				glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT); // Updated velocities from previous velocity solve
 
@@ -2175,8 +2178,8 @@ namespace game_logic
 			draw_inner_bounding_boxes(environment, environment.state.proximity_tree.root);
 		}*/
 
-		//glUseProgram(environment.state.leaf_contact_draw_shader);
-		//glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 2u);
+		glUseProgram(environment.state.leaf_contact_draw_shader);
+		glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 2u);
 
 		glUseProgram(environment.state.contact_point_positions_draw_shader);
 		glPointSize(10.0f);

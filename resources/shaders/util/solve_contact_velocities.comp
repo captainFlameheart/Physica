@@ -1,4 +1,4 @@
-#define NORMAL_IMPULSE_SCALE 0.2
+#define NORMAL_IMPULSE_SCALE 0.25
 
 struct Contact_Point_Position
 {
@@ -68,13 +68,13 @@ void main()
 	uint body_0 = contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].bodies[0u];
 	uint body_1 = contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].bodies[1u];
 
-	if (contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_normals[0u].mass != 0.0)
+	/*if (contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_normals[0u].mass != 0.0)
 	{
 		//atomicAdd(velocities.v[body_1].x, 1000);
 		//velocities.v[body_0].x = 0;
 		//velocities.v[body_1].x = 0;
 	}
-	return;
+	return;*/
 
 	vec2 offset_0_0 = contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_positions[0u].offsets[0u];
 	vec2 offset_0_1 = contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_positions[0u].offsets[1u];
@@ -130,10 +130,10 @@ void main()
 
 	// TODO: Fetch masses from buffer
 	float inverse_mass_0 = 1.0;
-	float inverse_inertia_0 = 1.0;
+	float inverse_inertia_0 = 0.0;
 
 	float inverse_mass_1 = 1.0;
-	float inverse_inertia_1 = 1.0;
+	float inverse_inertia_1 = 0.0;
 
 	ivec3 delta_velocity_0 = ivec3
 	(
