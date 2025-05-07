@@ -63,7 +63,7 @@ void main()
 	uint body_0 = contact_surface.bodies[0u];
 	uint body_1 = contact_surface.bodies[1u];
 
-	vec2 body_0_to_1 = vec2(positions.p[body_1].xy - positions.p[body_0].xy);
+	vec2 body_0_to_1 = METER_INVERSE * vec2(positions.p[body_1].xy - positions.p[body_0].xy);
 
 	vec2 offset_0_0 = contact_surface.contact_point_positions[0u].offsets[0u];
 	vec2 offset_0_1 = contact_surface.contact_point_positions[0u].offsets[1u];
@@ -75,7 +75,7 @@ void main()
 	offset_1_0 = vec2(offset_1_0.y, -offset_1_0.x);
 	offset_1_1 = body_0_to_1 + vec2(offset_1_1.y, -offset_1_1.x);
 
-	vec2 offset = 0.25 * (offset_0_0 + offset_0_1 + offset_1_0 + offset_1_1);
+	vec2 offset = METER * 0.25 * (offset_0_0 + offset_0_1 + offset_1_0 + offset_1_1);
 
 	vec2 direction = contact_surface.tangent;
 	if (gl_VertexID % 4u > 1u)

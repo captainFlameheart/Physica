@@ -330,6 +330,7 @@ namespace game_logic
 			vertex_shader,
 			util_shader_VERSION,
 			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))), // TODO: Remove
+			util_shader_DEFINE("METER_INVERSE", STRINGIFY(game_logic__util__spatial_METER_INVERSE(environment))), // TODO: Remove
 			util_shader_DEFINE("CONTACT_BINDING", STRINGIFY(game_logic__util_CONTACT_BINDING)),
 			util_shader_DEFINE("CONTACT_SURFACE_BINDING", STRINGIFY(game_logic__util_CONTACT_SURFACE_BINDING)),
 			util_shader_DEFINE("MAX_CONTACT_COUNT", STRINGIFY(game_logic_MAX_CONTACT_COUNT(environment))),
@@ -2235,15 +2236,15 @@ namespace game_logic
 		//glUseProgram(environment.state.leaf_contact_draw_shader);
 		//glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 2u);
 
-		//glUseProgram(environment.state.contact_point_positions_draw_shader);
-		//glPointSize(10.0f);
-		//glDrawArrays(GL_POINTS, 0, environment.state.current_contact_count * 4u);
+		glUseProgram(environment.state.contact_point_positions_draw_shader);
+		glPointSize(10.0f);
+		glDrawArrays(GL_POINTS, 0, environment.state.current_contact_count * 4u);
 
 		//glUseProgram(environment.state.contact_point_offsets_draw_shader);
 		//glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 8u);
 
-		//glUseProgram(environment.state.contact_basis_draw_shader);
-		//glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 4u);
+		glUseProgram(environment.state.contact_basis_draw_shader);
+		glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 4u);
 	}
 
 	void free(game_environment::Environment& environment)

@@ -110,7 +110,7 @@ void main()
 
 	// TODO: Friction impulses
 
-	// TODO: Maybe solve both normal impulses together using velocites AFTER applying friction impulses
+	// TODO: Maybe solve both normal impulses TOGETHER using velocites AFTER applying friction impulses
 	float old_normal_impulse_0 = normal_impulse_0;
 	normal_impulse_0 = max(0.0, normal_impulse_0 + NORMAL_IMPULSE_SCALE * normal_mass_0 * dot(normal, contact_point_0_velocity));
 	contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_normals[0u].impulse = normal_impulse_0;
@@ -126,8 +126,8 @@ void main()
 	vec2 delta_impulse_sum = delta_impulse_0 + delta_impulse_1;
 
 	// TODO: Fetch masses from buffer
-	float inverse_mass_0 = INVERSE_MASS;//1.0;
-	float inverse_inertia_0 = INVERSE_INERTIA;//0.0;
+	float inverse_mass_0 = INVERSE_MASS;
+	float inverse_inertia_0 = INVERSE_INERTIA;
 
 	ivec3 delta_velocity_0 = ivec3
 	(
@@ -135,8 +135,8 @@ void main()
 		-RADIAN * inverse_inertia_0 * (dot(delta_impulse_0, offset_0_0) + dot(delta_impulse_1, offset_1_0))
 	);
 
-	float inverse_mass_1 = INVERSE_MASS;//1.0;
-	float inverse_inertia_1 = INVERSE_INERTIA;//0.0;
+	float inverse_mass_1 = INVERSE_MASS;
+	float inverse_inertia_1 = INVERSE_INERTIA;
 
 	ivec3 delta_velocity_1 = ivec3
 	(
