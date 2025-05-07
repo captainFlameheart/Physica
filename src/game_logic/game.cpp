@@ -56,8 +56,8 @@
 	50u * game_logic_MAX_TRIANGLE_COUNT(environment)
 
 // TODO: Store separate masses for each body in buffer
-#define INVERSE_MASS 1.0
-#define INVERSE_INERTIA 2.0
+#define INVERSE_MASS 1.0f
+#define INVERSE_INERTIA 2.0f
 
 // TODO: USE EXCLUSIVE OR IN PROXIMITY UTIL WHEN FLIPPING A BOOLEAN UNSIGNED INT
 
@@ -66,6 +66,13 @@ namespace game_logic
 	void initialize(game_environment::Environment& environment)
 	{
 		std::cout << "Initializing..." << std::endl;
+		GLfloat const temp_0{ 2E6f };
+		GLfloat const temp_1{ 2E6f };
+		GLfloat normal_mass{ 1.0f / (
+			INVERSE_MASS + INVERSE_INERTIA * temp_0 * temp_0 +
+			INVERSE_MASS + INVERSE_INERTIA * temp_1 * temp_1
+		) };
+		std::cout << normal_mass << std::endl;
 
 		environment.state.tick = 0u;
 		environment.state.physics_running = true;
@@ -2216,8 +2223,8 @@ namespace game_logic
 		//glUseProgram(environment.state.triangle_normal_draw_shader);
 		//glDrawArrays(GL_LINES, 0, environment.state.current_triangle_count * 6u);
 
-		glUseProgram(environment.state.triangle_bounding_box_draw_shader);
-		glDrawArrays(GL_LINES, 0, environment.state.current_triangle_count * 8u);
+		//glUseProgram(environment.state.triangle_bounding_box_draw_shader);
+		//glDrawArrays(GL_LINES, 0, environment.state.current_triangle_count * 8u);
 
 		/*if (!util::proximity::is_empty(environment.state.proximity_tree))
 		{
@@ -2225,18 +2232,18 @@ namespace game_logic
 			draw_inner_bounding_boxes(environment, environment.state.proximity_tree.root);
 		}*/
 
-		glUseProgram(environment.state.leaf_contact_draw_shader);
-		glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 2u);
+		//glUseProgram(environment.state.leaf_contact_draw_shader);
+		//glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 2u);
 
-		glUseProgram(environment.state.contact_point_positions_draw_shader);
-		glPointSize(10.0f);
-		glDrawArrays(GL_POINTS, 0, environment.state.current_contact_count * 4u);
+		//glUseProgram(environment.state.contact_point_positions_draw_shader);
+		//glPointSize(10.0f);
+		//glDrawArrays(GL_POINTS, 0, environment.state.current_contact_count * 4u);
 
 		//glUseProgram(environment.state.contact_point_offsets_draw_shader);
 		//glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 8u);
 
-		glUseProgram(environment.state.contact_basis_draw_shader);
-		glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 4u);
+		//glUseProgram(environment.state.contact_basis_draw_shader);
+		//glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 4u);
 	}
 
 	void free(game_environment::Environment& environment)

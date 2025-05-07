@@ -1,4 +1,4 @@
-#define NORMAL_IMPULSE_SCALE 0.25
+#define NORMAL_IMPULSE_SCALE 0.1
 
 struct Contact_Point_Position
 {
@@ -60,6 +60,9 @@ buffer Velocities
 layout(local_size_x = LOCAL_SIZE) in;
 void main()
 {
+	// Important TODO: See if it's faster to compute contact masses here than to 
+	// precompute them, since we then avoid one memory fetch.
+
 	if (gl_GlobalInvocationID.x >= contact_count.contact_count)
 	{
 		return;
@@ -98,9 +101,6 @@ void main()
 	body_1_velocity.xy *= METER_INVERSE;
 	body_1_velocity.z *= RADIAN_INVERSE;
 
-	//float body_0_angular_velocity = body_0_velocity.z * RADIAN_INVERSE;
-	//float body_1_angular_velocity = body_1_velocity.z * RADIAN_INVERSE;
-
 	vec2 contact_point_0_velocity = 
 		(body_0_velocity.xy + body_0_velocity.z * offset_0_0) - 
 		(body_1_velocity.xy + body_1_velocity.z * offset_0_1);
@@ -129,18 +129,19 @@ void main()
 	float inverse_mass_0 = INVERSE_MASS;//1.0;
 	float inverse_inertia_0 = INVERSE_INERTIA;//0.0;
 
-	float inverse_mass_1 = INVERSE_MASS;//1.0;
-	float inverse_inertia_1 = INVERSE_INERTIA;//0.0;
-
 	ivec3 delta_velocity_0 = ivec3
 	(
 		-METER * inverse_mass_0 * delta_impulse_sum, 
 		-RADIAN * inverse_inertia_0 * (dot(delta_impulse_0, offset_0_0) + dot(delta_impulse_1, offset_1_0))
 	);
+
+	float inverse_mass_1 = INVERSE_MASS;//1.0;
+	float inverse_inertia_1 = INVERSE_INERTIA;//0.0;
+
 	ivec3 delta_velocity_1 = ivec3
 	(
 		METER * inverse_mass_1 * delta_impulse_sum, 
-		RADIAN * inverse_inertia_0 * (dot(delta_impulse_0, offset_0_1) + dot(delta_impulse_1, offset_1_1))
+		RADIAN * inverse_inertia_1 * (dot(delta_impulse_0, offset_0_1) + dot(delta_impulse_1, offset_1_1))
 	);
 
 	atomicAdd(velocities.v[body_0].x, delta_velocity_0.x);
