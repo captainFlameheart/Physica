@@ -55,6 +55,8 @@
 #define game_logic_MAX_CONTACT_COUNT(environment) \
 	50u * game_logic_MAX_TRIANGLE_COUNT(environment)
 
+#define game_logic_NORMAL_IMPULSE_SCALE(environment) 0.1f
+
 // TODO: Store separate masses for each body in buffer
 #define INVERSE_MASS 1.0f
 #define INVERSE_INERTIA 2.0f
@@ -477,6 +479,7 @@ namespace game_logic
 			util_shader_DEFINE("RADIAN", STRINGIFY(game_logic__util__spatial_RADIAN(environment))),
 			util_shader_DEFINE("INVERSE_MASS", STRINGIFY(INVERSE_MASS)),
 			util_shader_DEFINE("INVERSE_INERTIA", STRINGIFY(INVERSE_INERTIA)),
+			util_shader_DEFINE("NORMAL_IMPULSE_SCALE", STRINGIFY(game_logic_NORMAL_IMPULSE_SCALE(environment))),
 			::util::shader::file_to_string("util/solve_contact_velocities.comp")
 		);
 		environment.state.solve_contact_velocities_shader = ::util::shader::create_program(compute_shader);

@@ -1,5 +1,3 @@
-#define NORMAL_IMPULSE_SCALE 0.1
-
 struct Contact_Point_Position
 {
 	vec2 offsets[2];
