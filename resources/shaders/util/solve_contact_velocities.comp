@@ -1,4 +1,4 @@
-#define NORMAL_IMPULSE_SCALE 0.2
+#define NORMAL_IMPULSE_SCALE 0.1
 
 struct Contact_Point_Position
 {
