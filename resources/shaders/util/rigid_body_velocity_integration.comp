@@ -1,6 +1,6 @@
 // TODO: Move to CPU
-#define DAMPING_NUMERATOR 999
-#define DAMPING_DENOMINATOR 1000
+#define DAMPING_NUMERATOR 99
+#define DAMPING_DENOMINATOR 100
 
 layout(shared, binding = POSITION_BINDING) restrict
 buffer Positions
@@ -22,7 +22,7 @@ void main()
 	position += velocity;
 	positions.p[gl_GlobalInvocationID.x] = position;
 	velocity = (velocity * DAMPING_NUMERATOR) / DAMPING_DENOMINATOR;
-	velocity -= position / 10000;
+	velocity += (positions.p[0u] - position) / 10000;
 	velocities.v[gl_GlobalInvocationID.x] = velocity;
 	// TODO: Potentially compute and store new basis for collision detection (and drawing???)
 	// But probably not (I think cos and sin are only one clock cycle each on nvidia)

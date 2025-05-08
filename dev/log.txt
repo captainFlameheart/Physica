@@ -18,6 +18,9 @@ Therefore, we should use explicit sizes for all ssbo blocks (that
 are/should be able to be shared across programs), and fetch the byte 
 size with a query to decide buffer size.
 
+Lava can be simulated as a fluid with a big impulse scale so that some particles 
+(those with many contacts) are subject to overshooting and thus fly away from the fluid.
+
 ===========================================================================================
 
 TODO: Investigate and implement correct handling of OpenGL data types and C++ data types 
