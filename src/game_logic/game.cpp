@@ -41,10 +41,10 @@
 #include <algorithm>
 
 #define game_logic_MAX_RIGID_BODY_COUNT(environment) \
-	1u * game_logic__util__rigid_body_VELOCITY_INTEGRATION_LOCAL_SIZE(environment)
+	10u * game_logic__util__rigid_body_VELOCITY_INTEGRATION_LOCAL_SIZE(environment)
 
 #define game_logic_MAX_TRIANGLE_COUNT(environment) \
-	1u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment)
+	10u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment)
 
 #define game_logic_MAX_VERTEX_COUNT(environment) \
 	3u * game_logic_MAX_TRIANGLE_COUNT(environment)
@@ -55,7 +55,7 @@
 #define game_logic_MAX_CONTACT_COUNT(environment) \
 	50u * game_logic_MAX_TRIANGLE_COUNT(environment)
 
-#define game_logic_NORMAL_IMPULSE_SCALE(environment) 0.1f
+#define game_logic_NORMAL_IMPULSE_SCALE(environment) 0.05f
 
 // TODO: Store separate masses for each body in buffer
 #define INVERSE_MASS 1.0f
@@ -434,6 +434,9 @@ namespace game_logic
 			util_shader_DEFINE("INVERSE_MASS", STRINGIFY(INVERSE_MASS)),
 			util_shader_DEFINE("INVERSE_INERTIA", STRINGIFY(INVERSE_INERTIA)),
 			util_shader_DEFINE("METER_INVERSE", STRINGIFY(game_logic__util__spatial_METER_INVERSE(environment))),
+			util_shader_DEFINE("VELOCITY_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_VELOCITY_BINDING)),
+			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))),
+			util_shader_DEFINE("RADIAN", STRINGIFY(game_logic__util__spatial_RADIAN(environment))),
 			::util::shader::file_to_string("util/old_triangle_contact_update.comp")
 		);
 		environment.state.old_triangle_contact_update_shader = ::util::shader::create_program(compute_shader);
@@ -458,6 +461,9 @@ namespace game_logic
 			util_shader_DEFINE("INVERSE_MASS", STRINGIFY(INVERSE_MASS)), 
 			util_shader_DEFINE("INVERSE_INERTIA", STRINGIFY(INVERSE_INERTIA)),
 			util_shader_DEFINE("METER_INVERSE", STRINGIFY(game_logic__util__spatial_METER_INVERSE(environment))),
+			util_shader_DEFINE("VELOCITY_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_VELOCITY_BINDING)),
+			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))),
+			util_shader_DEFINE("RADIAN", STRINGIFY(game_logic__util__spatial_RADIAN(environment))),
 			::util::shader::file_to_string("util/new_triangle_contact.comp")
 		);
 		environment.state.new_triangle_contact_shader = ::util::shader::create_program(compute_shader);
@@ -590,7 +596,7 @@ namespace game_logic
 			);
 		}
 
-		environment.state.current_rigid_body_count = 1u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment);//500000u;
+		environment.state.current_rigid_body_count = 10u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment);//500000u;
 		environment.state.current_triangle_count = 1u * environment.state.current_rigid_body_count;
 		environment.state.current_contact_count = 0u;
 
@@ -638,6 +644,8 @@ namespace game_logic
 					game_logic__util__spatial_FROM_RADIANS(environment, i * 0.1f), 
 					0
 				};
+				position.position.x *= 10.0f;
+				position.position.y *= 10.0f;
 				if (i < 1)
 				{
 					position.position.x += game_logic__util__spatial_FROM_METERS(environment, -10.0f);
@@ -1863,7 +1871,7 @@ namespace game_logic
 				ceil_div(environment.state.current_contact_count, game_logic__util__rigid_body_SOLVE_CONTACT_VELOCITIES_LOCAL_SIZE(environment))
 			};
 
-			for (GLuint i{ 0u }; i < 10u; ++i)
+			for (GLuint i{ 0u }; i < 1u; ++i)
 			{
 				glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT); // Updated velocities from previous velocity solve
 
@@ -2249,8 +2257,8 @@ namespace game_logic
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 		glDrawArrays(GL_TRIANGLES, 0, environment.state.current_triangle_count * 3u);
 
-		glUseProgram(environment.state.triangle_wireframes_draw_shader);
-		glDrawArrays(GL_LINES, 0, environment.state.current_triangle_count * 6u);
+		//glUseProgram(environment.state.triangle_wireframes_draw_shader);
+		//glDrawArrays(GL_LINES, 0, environment.state.current_triangle_count * 6u);
 
 		//glUseProgram(environment.state.rigid_body_debug_rendering_shader);
 		//glDrawArrays(GL_LINES, 0, environment.state.current_rigid_body_count * 4u);
@@ -2270,9 +2278,9 @@ namespace game_logic
 		//glUseProgram(environment.state.leaf_contact_draw_shader);
 		//glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 2u);
 
-		glUseProgram(environment.state.contact_point_positions_draw_shader);
-		glPointSize(10.0f);
-		glDrawArrays(GL_POINTS, 0, environment.state.current_contact_count * 4u);
+		//glUseProgram(environment.state.contact_point_positions_draw_shader);
+		//glPointSize(10.0f);
+		//glDrawArrays(GL_POINTS, 0, environment.state.current_contact_count * 4u);
 
 		//glUseProgram(environment.state.contact_point_offsets_draw_shader);
 		//glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 8u);

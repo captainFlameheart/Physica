@@ -61,6 +61,9 @@ void main()
 	// Important TODO: See if it's faster to compute contact masses here than to 
 	// precompute them, since we then avoid one memory fetch.
 
+	// Important TODO: It might be faster with an early return in case there is no 
+	// contact (if we have many false positives).
+
 	if (gl_GlobalInvocationID.x >= contact_count.contact_count)
 	{
 		return;

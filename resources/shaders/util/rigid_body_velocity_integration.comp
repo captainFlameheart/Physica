@@ -22,7 +22,7 @@ void main()
 	position += velocity;
 	positions.p[gl_GlobalInvocationID.x] = position;
 	velocity = (velocity * DAMPING_NUMERATOR) / DAMPING_DENOMINATOR;
-	velocity -= position / 10000;
+	velocity.xy -= position.xy / 10000;
 	velocities.v[gl_GlobalInvocationID.x] = velocity;
 	// TODO: Potentially compute and store new basis for collision detection (and drawing???)
 	// But probably not (I think cos and sin are only one clock cycle each on nvidia)

@@ -84,7 +84,7 @@ void main()
 	float at_impulse_tip = float(gl_VertexID % 2u);
 	vec2 offset = METER * 
 	(
-		contact_point_offset + at_impulse_tip * impulse_sign * 10000.0 * impulse * direction
+		contact_point_offset + at_impulse_tip * impulse_sign * 1000.0 * impulse * direction
 	);
 
 	uint body_index = contact_surface.bodies[local_body_index];
