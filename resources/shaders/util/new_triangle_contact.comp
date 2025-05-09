@@ -10,11 +10,11 @@ buffer Triangles
 	uvec4 triangles[MAX_TRIANGLE_COUNT];	// Triangle: (vertex_0, vertex_1, vertex_2, body)
 } triangles;
 
-layout(shared, binding = POSITION_BINDING) restrict readonly
-buffer Positions
+layout(shared, binding = POSITION_SNAPSHOT_BINDING) restrict readonly
+buffer Positions_Snapshot
 {
 	ivec4 p[MAX_RIGID_BODY_COUNT];
-} positions;
+} positions_snapshot;
 
 layout(shared, binding = VERTEX_BINDING) restrict readonly
 buffer Vertices
@@ -62,6 +62,12 @@ buffer Contact_Surfaces
 	Contact_Surface contact_surfaces[MAX_CONTACT_COUNT];
 } contact_surfaces;
 
+layout(shared, binding = POSITION_BINDING) restrict writeonly
+buffer Positions
+{
+	ivec4 p[MAX_RIGID_BODY_COUNT];
+} positions;
+
 layout(shared, binding = CONTACT_COUNT_BINDING) uniform Contact_Count
 {
 	uint contact_count;
@@ -91,8 +97,8 @@ void main()
 	
 	ivec4 body_positions[2u] = ivec4[2u]
 	(
-		positions.p[triangles[0u].w], 
-		positions.p[triangles[1u].w]
+		positions_snapshot.p[triangles[0u].w], 
+		positions_snapshot.p[triangles[1u].w]
 	);
 
 	float angle_0 = body_positions[0].z * RADIAN_INVERSE;
@@ -296,7 +302,9 @@ void main()
 		contact_surfaces.contact_surfaces[index].contact_point_positions[primary_incident_vertex_side].offsets[0] = primary_offset_0;
 		contact_surfaces.contact_surfaces[index].contact_point_positions[primary_incident_vertex_side].offsets[1] = primary_offset_1;
 
-		tangent *= 1.0 - float(reference_body << 1u);
+		float basis_sign = 1.0 - float(reference_body << 1u);
+		tangent *= basis_sign;
+		vec2 normal = normals[reference_edge] * basis_sign;
 		contact_surfaces.contact_surfaces[index].tangent = tangent;
 
 		// TODO: Fetch masses from buffer
@@ -349,5 +357,41 @@ void main()
 		contact_surfaces.contact_surfaces[index].contact_point_normals[secondary_incident_vertex_side].impulse = 0.0;
 		contact_surfaces.contact_surfaces[index].contact_point_normals[primary_incident_vertex_side].mass = primary_normal_mass;
 		contact_surfaces.contact_surfaces[index].contact_point_normals[primary_incident_vertex_side].impulse = 0.0;
+
+		float secondary_penetration = dot(vertices[reference_edge] - secondary_contact_point, normals[reference_edge]);
+		float secondary_penetration_error = secondary_penetration - ALLOWED_PENETRATION;
+		float primary_penetration_error = min_penetration - ALLOWED_PENETRATION;
+		if (secondary_penetration_error > 0.0 || primary_penetration_error > 0.0)
+		{
+			vec2 secondary_position_impulse = 
+			(
+				POSITION_IMPULSE_SCALE * secondary_normal_mass * secondary_penetration_error
+			) * normal;
+			vec2 primary_position_impulse = (
+				POSITION_IMPULSE_SCALE * primary_normal_mass * primary_penetration_error
+			) * normal;
+			vec2 position_impulse_sum = secondary_position_impulse + primary_position_impulse;
+
+			// TODO: Store METER * inverse_mass_0 in temporary, same for RADIAN * inverse_inertia_0, etc.
+			ivec3 delta_position_0 = ivec3
+			(
+				-METER * inverse_mass_0 * position_impulse_sum, 
+				-RADIAN * inverse_inertia_0 * (dot(secondary_position_impulse, secondary_offset_0) + dot(primary_position_impulse, primary_offset_0))
+			);
+
+			ivec3 delta_position_1 = ivec3
+			(
+				METER * inverse_mass_1 * position_impulse_sum, 
+				RADIAN * inverse_inertia_1 * (dot(secondary_position_impulse, secondary_offset_1) + dot(primary_position_impulse, primary_offset_1))
+			);
+
+			atomicAdd(positions.p[triangles[0u].w].x, delta_position_0.x);
+			atomicAdd(positions.p[triangles[0u].w].y, delta_position_0.y);
+			atomicAdd(positions.p[triangles[0u].w].z, delta_position_0.z);
+
+			atomicAdd(positions.p[triangles[1u].w].x, delta_position_1.x);
+			atomicAdd(positions.p[triangles[1u].w].y, delta_position_1.y);
+			atomicAdd(positions.p[triangles[1u].w].z, delta_position_1.z);
+		}
 	}
 }

@@ -53,9 +53,11 @@
 	game_logic_MAX_TRIANGLE_COUNT(environment)
 
 #define game_logic_MAX_CONTACT_COUNT(environment) \
-	400u * game_logic_MAX_TRIANGLE_COUNT(environment)
+	2000u * game_logic_MAX_TRIANGLE_COUNT(environment)
 
-#define game_logic_NORMAL_IMPULSE_SCALE(environment) 0.1f//0.05f
+#define game_logic_NORMAL_IMPULSE_SCALE(environment) 0.05f
+#define game_logic_ALLOWED_PENETRATION(environment) game_logic__util__spatial_FLOAT_FROM_METERS(environment, 0.25f)
+#define game_logic_POSITION_IMPULSE_SCALE(environment) 0.1f * game_logic__util__spatial_METER_INVERSE(environment)
 
 // TODO: Store separate masses for each body in buffer
 #define INVERSE_MASS 1.0f
@@ -71,7 +73,9 @@ namespace game_logic
 {
 	void initialize(game_environment::Environment& environment)
 	{
-		// TODO: Use glBindBuffersBase (not the s) for binding multiple buffers at once
+		std::cout << game_logic_POSITION_IMPULSE_SCALE(environment) << std::endl;
+
+		// TODO: Use glBindBuffersBase (note the s) for binding multiple buffers at once
 		
 		// IMPORTANT TODO: Make sure to not exceed GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS
 		// which is only guaranteed to be at least 8 (which we are currently exceeding).
@@ -205,7 +209,7 @@ namespace game_logic
 		(
 			fragment_shader,
 			util_shader_VERSION,
-			util_shader_DEFINE("COLOR", "vec4(1.0, 1.0, 1.0, 1.0)"),
+			util_shader_DEFINE("COLOR", "vec4(0.8, 0.8, 0.8, 1.0)"),
 			::util::shader::file_to_string("util/static_color.frag") // TODO: Should only be done once
 		);
 		environment.state.triangle_wireframes_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
@@ -472,6 +476,9 @@ namespace game_logic
 			util_shader_DEFINE("VELOCITY_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_VELOCITY_BINDING)),
 			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))),
 			util_shader_DEFINE("RADIAN", STRINGIFY(game_logic__util__spatial_RADIAN(environment))),
+			util_shader_DEFINE("POSITION_SNAPSHOT_BINDING", STRINGIFY(game_logic__util_POSITION_SNAPSHOT_BINDING)),
+			util_shader_DEFINE("ALLOWED_PENETRATION", STRINGIFY(game_logic_ALLOWED_PENETRATION(environment))), 
+			util_shader_DEFINE("POSITION_IMPULSE_SCALE", STRINGIFY(game_logic_POSITION_IMPULSE_SCALE(environment))),
 			::util::shader::file_to_string("util/old_triangle_contact_update.comp")
 		);
 		environment.state.old_triangle_contact_update_shader = ::util::shader::create_program(compute_shader);
@@ -500,6 +507,9 @@ namespace game_logic
 			util_shader_DEFINE("VELOCITY_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_VELOCITY_BINDING)),
 			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))),
 			util_shader_DEFINE("RADIAN", STRINGIFY(game_logic__util__spatial_RADIAN(environment))),
+			util_shader_DEFINE("POSITION_SNAPSHOT_BINDING", STRINGIFY(game_logic__util_POSITION_SNAPSHOT_BINDING)),
+			util_shader_DEFINE("ALLOWED_PENETRATION", STRINGIFY(game_logic_ALLOWED_PENETRATION(environment))),
+			util_shader_DEFINE("POSITION_IMPULSE_SCALE", STRINGIFY(game_logic_POSITION_IMPULSE_SCALE(environment))),
 			::util::shader::file_to_string("util/new_triangle_contact.comp")
 		);
 		environment.state.new_triangle_contact_shader = ::util::shader::create_program(compute_shader);
@@ -697,7 +707,9 @@ namespace game_logic
 				}
 				if (i < 2)
 				{
-					position.position.x += game_logic__util__spatial_FROM_METERS(environment, -10.0f);
+					//position.position.x += game_logic__util__spatial_FROM_METERS(environment, -10.0f);
+					position.position.x = game_logic__util__spatial_FROM_METERS(environment, i * (-0.1));
+					position.position.y = 0;
 				}
 				//position.angle = 0;
 				std::memcpy
@@ -790,6 +802,12 @@ namespace game_logic
 				{
 					velocity.velocity.x = game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, 0.0f);
 					velocity.velocity.y = game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, 0.0f);
+				}
+
+				if (i < 2u)
+				{
+					velocity.velocity.x = 0;
+					velocity.velocity.y = 0;
 				}
 
 				velocity.angle_velocity = 0;
@@ -1634,7 +1652,7 @@ namespace game_logic
 
 		glUseProgram(environment.state.triangle_bounding_box_update_shader);
 
-		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);	// Positions and velocities from velocity integration
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_BUFFER_UPDATE_BARRIER_BIT);	// Positions and velocities from velocity integration
 
 		glDispatchCompute
 		(
@@ -1645,8 +1663,26 @@ namespace game_logic
 		GLsync const fence{ glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0u) };
 		glFlush();
 
+		glCopyNamedBufferSubData
+		(
+			environment.state.rigid_body_position_buffer, environment.state.rigid_body_position_snapshot_buffer,
+			environment.state.rigid_body_position_buffer_p_offset, environment.state.rigid_body_position_buffer_p_offset,
+			environment.state.current_rigid_body_count * environment.state.rigid_body_position_buffer_p_stride
+		);
+
+		/* TODO: Snapshot velocities for bounciness
+		glCopyNamedBufferSubData
+		(
+			environment.state.rigid_body_velocity_buffer, environment.state.rigid_body_velocity_snapshot_buffer,
+			environment.state.rigid_body_velocity_buffer_v_offset, environment.state.rigid_body_velocity_buffer_v_offset,
+			environment.state.current_rigid_body_count * environment.state.rigid_body_velocity_buffer_v_stride
+		);*/
+
+		// TODO: Might not be needed
+		// TODO: Consider making triangle contact update shader write to the snapshot 
+		// so that this memory barrier becomes unnecessary.
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);	// Writes to bounding boxes must occur before constraining the positions and velocities
-		
+
 		glUseProgram(environment.state.old_triangle_contact_update_shader);
 		glDispatchCompute
 		(
@@ -2371,9 +2407,9 @@ namespace game_logic
 		//glUseProgram(environment.state.leaf_contact_draw_shader);
 		//glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 2u);
 
-		//glUseProgram(environment.state.contact_point_positions_draw_shader);
-		//glPointSize(10.0f);
-		//glDrawArrays(GL_POINTS, 0, environment.state.current_contact_count * 4u);
+		glUseProgram(environment.state.contact_point_positions_draw_shader);
+		glPointSize(10.0f);
+		glDrawArrays(GL_POINTS, 0, environment.state.current_contact_count * 4u);
 
 		//glUseProgram(environment.state.contact_point_offsets_draw_shader);
 		//glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 8u);
@@ -2381,8 +2417,8 @@ namespace game_logic
 		//glUseProgram(environment.state.contact_basis_draw_shader);
 		//glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 4u);
 
-		//glUseProgram(environment.state.contact_impulses_draw_shader);
-		//glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 16u);
+		glUseProgram(environment.state.contact_impulses_draw_shader);
+		glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 16u);
 	}
 
 	void free(game_environment::Environment& environment)
