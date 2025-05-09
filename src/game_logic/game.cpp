@@ -53,7 +53,7 @@
 	game_logic_MAX_TRIANGLE_COUNT(environment)
 
 #define game_logic_MAX_CONTACT_COUNT(environment) \
-	50u * game_logic_MAX_TRIANGLE_COUNT(environment)
+	400u * game_logic_MAX_TRIANGLE_COUNT(environment)
 
 #define game_logic_NORMAL_IMPULSE_SCALE(environment) 0.1f//0.05f
 
@@ -61,20 +61,41 @@
 #define INVERSE_MASS 1.0f
 #define INVERSE_INERTIA 2.0f
 
+// To reduce compile times (due to driver bug), 
+// should be disabled for release/performance testing
+#define USE_DYNAMIC_SIZES true
+
 // TODO: USE EXCLUSIVE OR IN PROXIMITY UTIL WHEN FLIPPING A BOOLEAN UNSIGNED INT
 
 namespace game_logic
 {
 	void initialize(game_environment::Environment& environment)
 	{
+		// TODO: Use glBindBuffersBase (not the s) for binding multiple buffers at once
+		
+		// IMPORTANT TODO: Make sure to not exceed GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS
+		// which is only guaranteed to be at least 8 (which we are currently exceeding).
+		// Do the same for GL_MAX_UNIFORM_BUFFER_BINDINGS, but that has a lower limit of 
+		// 36.
+
+		char const* max_rigid_body_count_definition;
+		char const* max_triangle_count_definition;
+		char const* max_vertex_count_definition;
+		char const* max_contact_count_definition;
+#if USE_DYNAMIC_SIZES == true
+		max_rigid_body_count_definition = util_shader_DEFINE("MAX_RIGID_BODY_COUNT", "");
+		max_triangle_count_definition = util_shader_DEFINE("MAX_TRIANGLE_COUNT", "");
+		max_vertex_count_definition = util_shader_DEFINE("MAX_VERTEX_COUNT", "");
+		max_contact_count_definition = util_shader_DEFINE("MAX_CONTACT_COUNT", "");
+#else
+		max_rigid_body_count_definition = util_shader_DEFINE("MAX_RIGID_BODY_COUNT", STRINGIFY(game_logic_MAX_RIGID_BODY_COUNT(environment)));
+		max_triangle_count_definition = util_shader_DEFINE("MAX_TRIANGLE_COUNT", STRINGIFY(game_logic_MAX_TRIANGLE_COUNT(environment)));
+		max_vertex_count_definition = util_shader_DEFINE("MAX_VERTEX_COUNT", STRINGIFY(game_logic_MAX_VERTEX_COUNT(environment)));
+		max_contact_count_definition = util_shader_DEFINE("MAX_CONTACT_COUNT", STRINGIFY(game_logic_MAX_CONTACT_COUNT(environment)));
+#endif
+
 		std::cout << "Initializing..." << std::endl;
-		GLfloat const temp_0{ 2E6f };
-		GLfloat const temp_1{ 2E6f };
-		GLfloat normal_mass{ 1.0f / (
-			INVERSE_MASS + INVERSE_INERTIA * temp_0 * temp_0 +
-			INVERSE_MASS + INVERSE_INERTIA * temp_1 * temp_1
-		) };
-		std::cout << normal_mass << std::endl;
+		std::cout << "Max contact count: " << game_logic_MAX_CONTACT_COUNT(environment) << std::endl;
 
 		environment.state.tick = 0u;
 		environment.state.physics_running = true;
@@ -111,13 +132,14 @@ namespace game_logic
 			::util::shader::file_to_string("util/static_color.frag")
 		);
 		environment.state.shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+		std::cout << "Dummy shader compiled" << std::endl;
 
 		::util::shader::set_shader_statically
 		(
 			vertex_shader,
 			util_shader_VERSION,
 			game_PROJECTION_SCALE_DEFINITION(environment),
-			util_shader_DEFINE("MAX_RIGID_BODY_COUNT", STRINGIFY(game_logic_MAX_RIGID_BODY_COUNT(environment))),
+			max_rigid_body_count_definition,
 			util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
 			util_shader_DEFINE("POSITION_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_POSITION_BINDING)),
 			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))), 
@@ -135,15 +157,16 @@ namespace game_logic
 			::util::shader::file_to_string("util/static_color.frag")
 		);
 		environment.state.rigid_body_debug_rendering_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+		std::cout << "Rigid body debug rendering shader compiled" << std::endl;
 
 		::util::shader::set_shader_statically
 		(
 			vertex_shader,
 			util_shader_VERSION,
 			game_PROJECTION_SCALE_DEFINITION(environment),
-			util_shader_DEFINE("MAX_TRIANGLE_COUNT", STRINGIFY(game_logic_MAX_TRIANGLE_COUNT(environment))),
-			util_shader_DEFINE("MAX_VERTEX_COUNT", STRINGIFY(game_logic_MAX_VERTEX_COUNT(environment))),
-			util_shader_DEFINE("MAX_RIGID_BODY_COUNT", STRINGIFY(game_logic_MAX_RIGID_BODY_COUNT(environment))),
+			max_triangle_count_definition,
+			max_vertex_count_definition,
+			max_rigid_body_count_definition,
 			util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
 			util_shader_DEFINE("POSITION_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_POSITION_BINDING)),
 			util_shader_DEFINE("TRIANGLE_BINDING", STRINGIFY(game_logic__util_TRIANGLE_BINDING)),
@@ -160,15 +183,16 @@ namespace game_logic
 			::util::shader::file_to_string("util/static_color.frag") // TODO: Should only be done once
 		);
 		environment.state.triangle_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+		std::cout << "Triangle draw shader compiled" << std::endl;
 
 		::util::shader::set_shader_statically
 		(
 			vertex_shader,
 			util_shader_VERSION,
 			game_PROJECTION_SCALE_DEFINITION(environment),
-			util_shader_DEFINE("MAX_TRIANGLE_COUNT", STRINGIFY(game_logic_MAX_TRIANGLE_COUNT(environment))),
-			util_shader_DEFINE("MAX_VERTEX_COUNT", STRINGIFY(game_logic_MAX_VERTEX_COUNT(environment))),
-			util_shader_DEFINE("MAX_RIGID_BODY_COUNT", STRINGIFY(game_logic_MAX_RIGID_BODY_COUNT(environment))),
+			max_triangle_count_definition,
+			max_vertex_count_definition,
+			max_rigid_body_count_definition,
 			util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
 			util_shader_DEFINE("POSITION_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_POSITION_BINDING)),
 			util_shader_DEFINE("TRIANGLE_BINDING", STRINGIFY(game_logic__util_TRIANGLE_BINDING)),
@@ -185,15 +209,16 @@ namespace game_logic
 			::util::shader::file_to_string("util/static_color.frag") // TODO: Should only be done once
 		);
 		environment.state.triangle_wireframes_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+		std::cout << "Triangle wireframes draw shader compiled" << std::endl;
 
 		::util::shader::set_shader_statically
 		(
 			vertex_shader,
 			util_shader_VERSION,
 			game_PROJECTION_SCALE_DEFINITION(environment),
-			util_shader_DEFINE("MAX_TRIANGLE_COUNT", STRINGIFY(game_logic_MAX_TRIANGLE_COUNT(environment))),
-			util_shader_DEFINE("MAX_VERTEX_COUNT", STRINGIFY(game_logic_MAX_VERTEX_COUNT(environment))),
-			util_shader_DEFINE("MAX_RIGID_BODY_COUNT", STRINGIFY(game_logic_MAX_RIGID_BODY_COUNT(environment))),
+			max_triangle_count_definition,
+			max_vertex_count_definition,
+			max_rigid_body_count_definition,
 			util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
 			util_shader_DEFINE("POSITION_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_POSITION_BINDING)),
 			util_shader_DEFINE("TRIANGLE_BINDING", STRINGIFY(game_logic__util_TRIANGLE_BINDING)),
@@ -210,14 +235,15 @@ namespace game_logic
 			::util::shader::file_to_string("util/static_color.frag") // TODO: Should only be done once
 		);
 		environment.state.triangle_normal_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+		std::cout << "Triangle normal draw shader compiled" << std::endl;
 
 		::util::shader::set_shader_statically
 		(
 			vertex_shader,
 			util_shader_VERSION,
 			game_PROJECTION_SCALE_DEFINITION(environment),
-			util_shader_DEFINE("MAX_TRIANGLE_COUNT", STRINGIFY(game_logic_MAX_TRIANGLE_COUNT(environment))),
-			util_shader_DEFINE("MAX_VERTEX_COUNT", STRINGIFY(game_logic_MAX_VERTEX_COUNT(environment))),
+			max_triangle_count_definition,
+			max_vertex_count_definition,
 			util_shader_DEFINE("BOUNDING_BOX_BINDING", STRINGIFY(game_logic__util_TRIANGLE_BOUNDING_BOX_BINDING)),
 			util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
 			::util::shader::file_to_string("util/triangle_bounding_box.vert")
@@ -230,6 +256,7 @@ namespace game_logic
 			::util::shader::file_to_string("util/static_color.frag") // TODO: Should only be done once
 		);
 		environment.state.triangle_bounding_box_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+		std::cout << "Triangle bounding box draw shader compiled" << std::endl;
 
 		::util::shader::set_shader_statically
 		(
@@ -252,16 +279,17 @@ namespace game_logic
 			environment.state.parent_bounding_box_draw_shader, 
 			"bounding_box"
 		);
+		std::cout << "Parent bounding box draw shader compiled" << std::endl;
 
 		::util::shader::set_shader_statically
 		(
 			vertex_shader,
 			util_shader_VERSION,
 			util_shader_DEFINE("CONTACT_BINDING", STRINGIFY(game_logic__util_CONTACT_BINDING)),
-			util_shader_DEFINE("MAX_CONTACT_COUNT", STRINGIFY(game_logic_MAX_CONTACT_COUNT(environment))),
-			util_shader_DEFINE("MAX_TRIANGLE_COUNT", STRINGIFY(game_logic_MAX_TRIANGLE_COUNT(environment))),
-			util_shader_DEFINE("MAX_VERTEX_COUNT", STRINGIFY(game_logic_MAX_VERTEX_COUNT(environment))),
-			util_shader_DEFINE("MAX_RIGID_BODY_COUNT", STRINGIFY(game_logic_MAX_RIGID_BODY_COUNT(environment))),
+			max_contact_count_definition,
+			max_triangle_count_definition,
+			max_vertex_count_definition,
+			max_rigid_body_count_definition,
 			util_shader_DEFINE("POSITION_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_POSITION_BINDING)),
 			util_shader_DEFINE("TRIANGLE_BINDING", STRINGIFY(game_logic__util_TRIANGLE_BINDING)),
 			util_shader_DEFINE("VERTEX_BINDING", STRINGIFY(game_logic__util_VERTEX_BINDING)),
@@ -280,15 +308,16 @@ namespace game_logic
 			::util::shader::file_to_string("util/static_color.frag") // TODO: Should only be done once
 		);
 		environment.state.leaf_contact_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
-		
+		std::cout << "Leaf contact draw shader compiled" << std::endl;
+
 		::util::shader::set_shader_statically
 		(
 			vertex_shader,
 			util_shader_VERSION,
 			util_shader_DEFINE("CONTACT_BINDING", STRINGIFY(game_logic__util_CONTACT_BINDING)),
 			util_shader_DEFINE("CONTACT_SURFACE_BINDING", STRINGIFY(game_logic__util_CONTACT_SURFACE_BINDING)),
-			util_shader_DEFINE("MAX_CONTACT_COUNT", STRINGIFY(game_logic_MAX_CONTACT_COUNT(environment))),
-			util_shader_DEFINE("MAX_RIGID_BODY_COUNT", STRINGIFY(game_logic_MAX_RIGID_BODY_COUNT(environment))),
+			max_contact_count_definition,
+			max_rigid_body_count_definition,
 			util_shader_DEFINE("POSITION_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_POSITION_BINDING)),
 			util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
 			game_PROJECTION_SCALE_DEFINITION(environment),
@@ -302,6 +331,7 @@ namespace game_logic
 			::util::shader::file_to_string("util/static_color.frag") // TODO: Should only be done once
 		);
 		environment.state.contact_point_offsets_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+		std::cout << "Contact point offsets draw shader compiled" << std::endl;
 
 		::util::shader::set_shader_statically
 		(
@@ -309,8 +339,8 @@ namespace game_logic
 			util_shader_VERSION,
 			util_shader_DEFINE("CONTACT_BINDING", STRINGIFY(game_logic__util_CONTACT_BINDING)),
 			util_shader_DEFINE("CONTACT_SURFACE_BINDING", STRINGIFY(game_logic__util_CONTACT_SURFACE_BINDING)),
-			util_shader_DEFINE("MAX_CONTACT_COUNT", STRINGIFY(game_logic_MAX_CONTACT_COUNT(environment))),
-			util_shader_DEFINE("MAX_RIGID_BODY_COUNT", STRINGIFY(game_logic_MAX_RIGID_BODY_COUNT(environment))),
+			max_contact_count_definition,
+			max_rigid_body_count_definition,
 			util_shader_DEFINE("POSITION_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_POSITION_BINDING)),
 			util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
 			util_shader_DEFINE("METER_INVERSE", STRINGIFY(game_logic__util__spatial_METER_INVERSE(environment))),
@@ -326,7 +356,8 @@ namespace game_logic
 			::util::shader::file_to_string("util/static_color.frag") // TODO: Should only be done once
 		);
 		environment.state.contact_point_positions_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
-		
+		std::cout << "Contact point positions draw shader compiled" << std::endl;
+
 		::util::shader::set_shader_statically
 		(
 			vertex_shader,
@@ -335,8 +366,8 @@ namespace game_logic
 			util_shader_DEFINE("METER_INVERSE", STRINGIFY(game_logic__util__spatial_METER_INVERSE(environment))), // TODO: Remove
 			util_shader_DEFINE("CONTACT_BINDING", STRINGIFY(game_logic__util_CONTACT_BINDING)),
 			util_shader_DEFINE("CONTACT_SURFACE_BINDING", STRINGIFY(game_logic__util_CONTACT_SURFACE_BINDING)),
-			util_shader_DEFINE("MAX_CONTACT_COUNT", STRINGIFY(game_logic_MAX_CONTACT_COUNT(environment))),
-			util_shader_DEFINE("MAX_RIGID_BODY_COUNT", STRINGIFY(game_logic_MAX_RIGID_BODY_COUNT(environment))),
+			max_contact_count_definition,
+			max_rigid_body_count_definition,
 			util_shader_DEFINE("POSITION_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_POSITION_BINDING)),
 			util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
 			game_PROJECTION_SCALE_DEFINITION(environment),
@@ -349,6 +380,7 @@ namespace game_logic
 			::util::shader::file_to_string("util/contact_basis.frag")
 		);
 		environment.state.contact_basis_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+		std::cout << "Contact basis draw shader compiled" << std::endl;
 
 		::util::shader::set_shader_statically
 		(
@@ -358,8 +390,8 @@ namespace game_logic
 			util_shader_DEFINE("METER_INVERSE", STRINGIFY(game_logic__util__spatial_METER_INVERSE(environment))), // TODO: Remove
 			util_shader_DEFINE("CONTACT_BINDING", STRINGIFY(game_logic__util_CONTACT_BINDING)),
 			util_shader_DEFINE("CONTACT_SURFACE_BINDING", STRINGIFY(game_logic__util_CONTACT_SURFACE_BINDING)),
-			util_shader_DEFINE("MAX_CONTACT_COUNT", STRINGIFY(game_logic_MAX_CONTACT_COUNT(environment))),
-			util_shader_DEFINE("MAX_RIGID_BODY_COUNT", STRINGIFY(game_logic_MAX_RIGID_BODY_COUNT(environment))),
+			max_contact_count_definition,
+			max_rigid_body_count_definition,
 			util_shader_DEFINE("POSITION_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_POSITION_BINDING)),
 			util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
 			game_PROJECTION_SCALE_DEFINITION(environment),
@@ -372,6 +404,7 @@ namespace game_logic
 			::util::shader::file_to_string("util/contact_impulses.frag")
 		);
 		environment.state.contact_impulses_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+		std::cout << "Contact impulses draw shader compiled" << std::endl;
 
 		::util::shader::delete_shader(vertex_shader);
 		::util::shader::delete_shader(fragment_shader);
@@ -382,13 +415,14 @@ namespace game_logic
 		(
 			compute_shader,
 			util_shader_VERSION, 
-			util_shader_DEFINE("MAX_RIGID_BODY_COUNT", STRINGIFY(game_logic_MAX_RIGID_BODY_COUNT(environment))),
+			max_rigid_body_count_definition,
 			util_shader_DEFINE("POSITION_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_POSITION_BINDING)),
 			util_shader_DEFINE("VELOCITY_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_VELOCITY_BINDING)),
 			util_shader_DEFINE("LOCAL_SIZE", STRINGIFY(game_logic__util__rigid_body_VELOCITY_INTEGRATION_LOCAL_SIZE(environment))),
 			::util::shader::file_to_string("util/rigid_body_velocity_integration.comp")
 		);
 		environment.state.rigid_body_velocity_integration_shader = ::util::shader::create_program(compute_shader);
+		std::cout << "Rigid body velocity integration shader compiled" << std::endl;
 
 		// TODO: Think about how to deal with this temporary variable
 		std::string padding_definition
@@ -400,9 +434,9 @@ namespace game_logic
 			compute_shader,
 			util_shader_VERSION,
 			padding_definition,
-			util_shader_DEFINE("MAX_TRIANGLE_COUNT", STRINGIFY(game_logic_MAX_TRIANGLE_COUNT(environment))),
-			util_shader_DEFINE("MAX_VERTEX_COUNT", STRINGIFY(game_logic_MAX_VERTEX_COUNT(environment))),
-			util_shader_DEFINE("MAX_RIGID_BODY_COUNT", STRINGIFY(game_logic_MAX_RIGID_BODY_COUNT(environment))),
+			max_triangle_count_definition,
+			max_vertex_count_definition,
+			max_rigid_body_count_definition,
 			util_shader_DEFINE("POSITION_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_POSITION_BINDING)),
 			util_shader_DEFINE("TRIANGLE_BINDING", STRINGIFY(game_logic__util_TRIANGLE_BINDING)),
 			util_shader_DEFINE("VERTEX_BINDING", STRINGIFY(game_logic__util_VERTEX_BINDING)),
@@ -414,16 +448,17 @@ namespace game_logic
 			::util::shader::file_to_string("util/triangle_bounding_box_update.comp")
 		);
 		environment.state.triangle_bounding_box_update_shader = ::util::shader::create_program(compute_shader);
+		std::cout << "Triangle bounding box update shader compiled" << std::endl;
 
 		::util::shader::set_shader_statically
 		(
 			compute_shader,
 			util_shader_VERSION,
 			util_shader_DEFINE("CONTACT_BINDING", STRINGIFY(game_logic__util_CONTACT_BINDING)),
-			util_shader_DEFINE("MAX_CONTACT_COUNT", STRINGIFY(game_logic_MAX_CONTACT_COUNT(environment))),
-			util_shader_DEFINE("MAX_TRIANGLE_COUNT", STRINGIFY(game_logic_MAX_TRIANGLE_COUNT(environment))),
-			util_shader_DEFINE("MAX_VERTEX_COUNT", STRINGIFY(game_logic_MAX_VERTEX_COUNT(environment))),
-			util_shader_DEFINE("MAX_RIGID_BODY_COUNT", STRINGIFY(game_logic_MAX_RIGID_BODY_COUNT(environment))),
+			max_contact_count_definition,
+			max_triangle_count_definition,
+			max_vertex_count_definition,
+			max_rigid_body_count_definition,
 			util_shader_DEFINE("POSITION_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_POSITION_BINDING)),
 			util_shader_DEFINE("TRIANGLE_BINDING", STRINGIFY(game_logic__util_TRIANGLE_BINDING)),
 			util_shader_DEFINE("VERTEX_BINDING", STRINGIFY(game_logic__util_VERTEX_BINDING)),
@@ -440,16 +475,17 @@ namespace game_logic
 			::util::shader::file_to_string("util/old_triangle_contact_update.comp")
 		);
 		environment.state.old_triangle_contact_update_shader = ::util::shader::create_program(compute_shader);
+		std::cout << "Old triangle contact update shader compiled" << std::endl;
 
 		::util::shader::set_shader_statically
 		(
 			compute_shader,
 			util_shader_VERSION,
 			util_shader_DEFINE("CONTACT_BINDING", STRINGIFY(game_logic__util_CONTACT_BINDING)),
-			util_shader_DEFINE("MAX_CONTACT_COUNT", STRINGIFY(game_logic_MAX_CONTACT_COUNT(environment))),
-			util_shader_DEFINE("MAX_TRIANGLE_COUNT", STRINGIFY(game_logic_MAX_TRIANGLE_COUNT(environment))),
-			util_shader_DEFINE("MAX_VERTEX_COUNT", STRINGIFY(game_logic_MAX_VERTEX_COUNT(environment))),
-			util_shader_DEFINE("MAX_RIGID_BODY_COUNT", STRINGIFY(game_logic_MAX_RIGID_BODY_COUNT(environment))),
+			max_contact_count_definition,
+			max_triangle_count_definition,
+			max_vertex_count_definition,
+			max_rigid_body_count_definition,
 			util_shader_DEFINE("POSITION_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_POSITION_BINDING)),
 			util_shader_DEFINE("TRIANGLE_BINDING", STRINGIFY(game_logic__util_TRIANGLE_BINDING)),
 			util_shader_DEFINE("VERTEX_BINDING", STRINGIFY(game_logic__util_VERTEX_BINDING)),
@@ -467,13 +503,14 @@ namespace game_logic
 			::util::shader::file_to_string("util/new_triangle_contact.comp")
 		);
 		environment.state.new_triangle_contact_shader = ::util::shader::create_program(compute_shader);
+		std::cout << "New triangle contact shader compiled" << std::endl;
 
 		::util::shader::set_shader_statically
 		(
 			compute_shader,
 			util_shader_VERSION,
-			util_shader_DEFINE("MAX_CONTACT_COUNT", STRINGIFY(game_logic_MAX_CONTACT_COUNT(environment))),
-			util_shader_DEFINE("MAX_RIGID_BODY_COUNT", STRINGIFY(game_logic_MAX_RIGID_BODY_COUNT(environment))),
+			max_contact_count_definition,
+			max_rigid_body_count_definition,
 			util_shader_DEFINE("CONTACT_SURFACE_BINDING", STRINGIFY(game_logic__util_CONTACT_SURFACE_BINDING)),
 			util_shader_DEFINE("CONTACT_COUNT_BINDING", STRINGIFY(game_logic__util_CONTACT_COUNT_BINDING)),
 			util_shader_DEFINE("VELOCITY_SNAPSHOT_BINDING", STRINGIFY(game_logic__util_VELOCITY_SNAPSHOT_BINDING)),
@@ -489,7 +526,8 @@ namespace game_logic
 			::util::shader::file_to_string("util/solve_contact_velocities.comp")
 		);
 		environment.state.solve_contact_velocities_shader = ::util::shader::create_program(compute_shader);
-		
+		std::cout << "Solve contact velocities shader compiled" << std::endl;
+
 		::util::shader::delete_shader(compute_shader);
 
 		// TODO: Consider putting buffers next to each other in game state
@@ -507,7 +545,8 @@ namespace game_logic
 			environment.state.contact_surface_buffer, 
 			environment.state.contact_count_buffer, 
 			environment.state.persistent_contact_count_buffer, 
-			environment.state.rigid_body_velocity_snapshot_buffer
+			environment.state.rigid_body_velocity_snapshot_buffer, 
+			environment.state.rigid_body_position_snapshot_buffer
 		};
 		glCreateBuffers(std::size(buffers), buffers);
 		environment.state.camera_buffer = buffers[0u];
@@ -522,6 +561,7 @@ namespace game_logic
 		environment.state.contact_count_buffer = buffers[9u];
 		environment.state.persistent_contact_count_buffer = buffers[10u];
 		environment.state.rigid_body_velocity_snapshot_buffer = buffers[11u];
+		environment.state.rigid_body_position_snapshot_buffer = buffers[12u];
 
 		{
 			GLuint const block_index
@@ -617,6 +657,9 @@ namespace game_logic
 			environment.state.rigid_body_position_buffer_p_offset = props[0];
 			environment.state.rigid_body_position_buffer_p_stride = props[1];
 
+#if USE_DYNAMIC_SIZES == true
+			environment.state.rigid_body_position_buffer_size = environment.state.rigid_body_position_buffer_p_offset + game_logic_MAX_RIGID_BODY_COUNT(environment) * environment.state.rigid_body_position_buffer_p_stride;
+#else
 			GLuint const block_index
 			{
 				glGetProgramResourceIndex(environment.state.rigid_body_velocity_integration_shader, GL_SHADER_STORAGE_BLOCK, "Positions")
@@ -627,6 +670,8 @@ namespace game_logic
 				environment.state.rigid_body_velocity_integration_shader, GL_SHADER_STORAGE_BLOCK, block_index,
 				1, &buffer_size_label, 1, nullptr, &environment.state.rigid_body_position_buffer_size
 			);
+#endif
+
 			// TODO: Don't initialize a few positions by copying over the ENTIRE buffer 
 			// content from CPU to GPU like this. Instead, use persistent mapping 
 			// for both initialization and updating.
@@ -680,6 +725,15 @@ namespace game_logic
 			delete[] initial_positions;
 		}
 
+		{ // Position snapshot buffer
+			glNamedBufferStorage
+			(
+				environment.state.rigid_body_position_snapshot_buffer, environment.state.rigid_body_position_buffer_size, nullptr,
+				0u
+			);
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_POSITION_SNAPSHOT_BINDING, environment.state.rigid_body_position_snapshot_buffer);
+		}
+
 		{ // Velocity buffer
 			GLuint const v_index
 			{
@@ -697,6 +751,9 @@ namespace game_logic
 			environment.state.rigid_body_velocity_buffer_v_offset = props[0];
 			environment.state.rigid_body_velocity_buffer_v_stride = props[1];
 
+#if USE_DYNAMIC_SIZES == true
+			environment.state.rigid_body_velocity_buffer_size = environment.state.rigid_body_velocity_buffer_v_offset + game_logic_MAX_RIGID_BODY_COUNT(environment) * environment.state.rigid_body_velocity_buffer_v_stride;
+#else
 			GLuint const block_index
 			{
 				glGetProgramResourceIndex(environment.state.rigid_body_velocity_integration_shader, GL_SHADER_STORAGE_BLOCK, "Velocities")
@@ -707,6 +764,7 @@ namespace game_logic
 				environment.state.rigid_body_velocity_integration_shader, GL_SHADER_STORAGE_BLOCK, block_index,
 				1, &buffer_size_label, 1, nullptr, &environment.state.rigid_body_velocity_buffer_size
 			);
+#endif
 			// TODO: Don't initialize a few positions by copying over the ENTIRE buffer 
 			// content from CPU to GPU like this. Instead, use persistent mapping 
 			// for both initialization and updating.
@@ -784,6 +842,9 @@ namespace game_logic
 			environment.state.triangle_buffer_triangles_offset = props[0];
 			environment.state.triangle_buffer_triangles_stride = props[1];
 
+#if USE_DYNAMIC_SIZES == true
+			environment.state.triangle_buffer_size = environment.state.triangle_buffer_triangles_offset + game_logic_MAX_TRIANGLE_COUNT(environment) * environment.state.triangle_buffer_triangles_stride;
+#else
 			GLuint const block_index
 			{
 				glGetProgramResourceIndex(environment.state.triangle_draw_shader, GL_SHADER_STORAGE_BLOCK, "Triangles")
@@ -794,6 +855,7 @@ namespace game_logic
 				environment.state.triangle_draw_shader, GL_SHADER_STORAGE_BLOCK, block_index,
 				1, &buffer_size_label, 1, nullptr, &environment.state.triangle_buffer_size
 			);
+#endif
 
 			// TODO: Don't initialize a few triangles by copying over the ENTIRE buffer 
 			// content from CPU to GPU like this. Instead, use persistent mapping 
@@ -845,6 +907,9 @@ namespace game_logic
 			environment.state.vertex_buffer_vertices_offset = props[0];
 			environment.state.vertex_buffer_vertices_stride = props[1];
 
+#if USE_DYNAMIC_SIZES == true
+			environment.state.vertex_buffer_size = environment.state.vertex_buffer_vertices_offset + game_logic_MAX_VERTEX_COUNT(environment) * environment.state.vertex_buffer_vertices_stride;
+#else
 			GLuint const block_index
 			{
 				glGetProgramResourceIndex(environment.state.triangle_draw_shader, GL_SHADER_STORAGE_BLOCK, "Vertices")
@@ -855,6 +920,7 @@ namespace game_logic
 				environment.state.triangle_draw_shader, GL_SHADER_STORAGE_BLOCK, block_index,
 				1, &buffer_size_label, 1, nullptr, &environment.state.vertex_buffer_size
 			);
+#endif
 			// TODO: Don't initialize a few vertices by copying over the ENTIRE buffer 
 			// content from CPU to GPU like this. Instead, use persistent mapping 
 			// for both initialization and updating.
@@ -933,6 +999,9 @@ namespace game_logic
 			environment.state.bounding_box_buffer_boxes_offset = props[0];
 			environment.state.bounding_box_buffer_boxes_stride = props[1];
 
+#if USE_DYNAMIC_SIZES == true
+			environment.state.bounding_box_buffer_size = environment.state.bounding_box_buffer_boxes_offset + game_logic_MAX_TRIANGLE_COUNT(environment) * environment.state.bounding_box_buffer_boxes_stride;
+#else
 			GLuint const block_index
 			{
 				glGetProgramResourceIndex(environment.state.triangle_bounding_box_update_shader, GL_SHADER_STORAGE_BLOCK, "Bounding_Boxes")
@@ -943,6 +1012,7 @@ namespace game_logic
 				environment.state.triangle_bounding_box_update_shader, GL_SHADER_STORAGE_BLOCK, block_index,
 				1, &buffer_size_label, 1, nullptr, &environment.state.bounding_box_buffer_size
 			);
+#endif
 
 			// TODO: Don't initialize a few boxes by copying over the ENTIRE buffer 
 			// content from CPU to GPU like this. Instead, use persistent mapping 
@@ -1052,7 +1122,19 @@ namespace game_logic
 					 1, &offset_label, 1, nullptr, &environment.state.changed_bounding_box_buffer_boxes_max_y_offset
 				 );
 			}
-			 
+
+#if USE_DYNAMIC_SIZES == true
+			 GLint const offsets[]
+			 {
+				environment.state.changed_bounding_box_buffer_boxes_index_offset,
+				environment.state.changed_bounding_box_buffer_boxes_min_x_offset,
+				environment.state.changed_bounding_box_buffer_boxes_min_y_offset,
+				environment.state.changed_bounding_box_buffer_boxes_max_x_offset,
+				environment.state.changed_bounding_box_buffer_boxes_max_y_offset
+			 };
+			 GLint const offset{ *std::min_element(std::begin(offsets), std::end(offsets)) };
+			 environment.state.changed_bounding_box_buffer_size = offset + game_logic_MAX_TRIANGLE_COUNT(environment) * environment.state.changed_bounding_box_buffer_boxes_stride;
+#else
 			 GLuint const block_index
 			 {
 				 glGetProgramResourceIndex(environment.state.triangle_bounding_box_update_shader, GL_SHADER_STORAGE_BLOCK, "Changed_Bounding_Boxes")
@@ -1063,6 +1145,7 @@ namespace game_logic
 				 environment.state.triangle_bounding_box_update_shader, GL_SHADER_STORAGE_BLOCK, block_index,
 				 1, &buffer_size_label, 1, nullptr, &environment.state.changed_bounding_box_buffer_size
 			 );
+#endif
 
 			 glNamedBufferStorage
 			 (
@@ -1108,6 +1191,9 @@ namespace game_logic
 			 environment.state.contact_buffer_contacts_offset = props[0];
 			 environment.state.contact_buffer_contacts_stride = props[1];
 
+#if USE_DYNAMIC_SIZES == true
+			 environment.state.contact_buffer_size = environment.state.contact_buffer_contacts_offset + game_logic_MAX_CONTACT_COUNT(environment) * environment.state.contact_buffer_contacts_stride;
+#else
 			 GLuint const block_index
 			 {
 				 glGetProgramResourceIndex(environment.state.leaf_contact_draw_shader, GL_SHADER_STORAGE_BLOCK, "Contacts")
@@ -1118,6 +1204,7 @@ namespace game_logic
 				 environment.state.leaf_contact_draw_shader, GL_SHADER_STORAGE_BLOCK, block_index,
 				 1, &buffer_size_label, 1, nullptr, &environment.state.contact_buffer_size
 			 );
+#endif
 
 			 // TODO: Don't initialize a few contacts by copying over the ENTIRE buffer 
 			 // content from CPU to GPU like this. Instead, use persistent mapping 
@@ -1309,6 +1396,9 @@ namespace game_logic
 				environment.state.contact_surface_buffer_contact_surfaces_offset = *std::min_element(std::begin(offsets), std::end(offsets));
 			}
 
+#if USE_DYNAMIC_SIZES == true
+			environment.state.contact_surface_buffer_size = environment.state.contact_surface_buffer_contact_surfaces_offset + game_logic_MAX_CONTACT_COUNT(environment) * environment.state.contact_surface_buffer_contact_surfaces_stride;
+#else
 			GLuint const block_index
 			{
 				glGetProgramResourceIndex(environment.state.old_triangle_contact_update_shader, GL_SHADER_STORAGE_BLOCK, "Contact_Surfaces")
@@ -1319,6 +1409,7 @@ namespace game_logic
 				environment.state.old_triangle_contact_update_shader, GL_SHADER_STORAGE_BLOCK, block_index,
 				1, &buffer_size_label, 1, nullptr, &environment.state.contact_surface_buffer_size
 			);
+#endif
 
 			glNamedBufferStorage
 			(
@@ -1533,7 +1624,7 @@ namespace game_logic
 	{
 		glUseProgram(environment.state.rigid_body_velocity_integration_shader);
 
-		glMemoryBarrier(GL_SHADER_STORAGE_BUFFER);	// TODO: This could be moved to the end of tick for either future tick or drawing
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);	// TODO: This could be moved to the end of tick for either future tick or drawing
 
 		glDispatchCompute
 		(
@@ -1543,7 +1634,7 @@ namespace game_logic
 
 		glUseProgram(environment.state.triangle_bounding_box_update_shader);
 
-		glMemoryBarrier(GL_SHADER_STORAGE_BUFFER);	// Positions and velocities from velocity integration
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);	// Positions and velocities from velocity integration
 
 		glDispatchCompute
 		(
@@ -1553,6 +1644,8 @@ namespace game_logic
 		glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
 		GLsync const fence{ glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0u) };
 		glFlush();
+
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);	// Writes to bounding boxes must occur before constraining the positions and velocities
 		
 		glUseProgram(environment.state.old_triangle_contact_update_shader);
 		glDispatchCompute
@@ -2278,9 +2371,9 @@ namespace game_logic
 		//glUseProgram(environment.state.leaf_contact_draw_shader);
 		//glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 2u);
 
-		glUseProgram(environment.state.contact_point_positions_draw_shader);
-		glPointSize(10.0f);
-		glDrawArrays(GL_POINTS, 0, environment.state.current_contact_count * 4u);
+		//glUseProgram(environment.state.contact_point_positions_draw_shader);
+		//glPointSize(10.0f);
+		//glDrawArrays(GL_POINTS, 0, environment.state.current_contact_count * 4u);
 
 		//glUseProgram(environment.state.contact_point_offsets_draw_shader);
 		//glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 8u);
@@ -2288,8 +2381,8 @@ namespace game_logic
 		//glUseProgram(environment.state.contact_basis_draw_shader);
 		//glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 4u);
 
-		glUseProgram(environment.state.contact_impulses_draw_shader);
-		glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 16u);
+		//glUseProgram(environment.state.contact_impulses_draw_shader);
+		//glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 16u);
 	}
 
 	void free(game_environment::Environment& environment)
@@ -2313,7 +2406,8 @@ namespace game_logic
 			environment.state.contact_surface_buffer, 
 			environment.state.contact_count_buffer, 
 			environment.state.persistent_contact_count_buffer, 
-			environment.state.rigid_body_velocity_snapshot_buffer
+			environment.state.rigid_body_velocity_snapshot_buffer, 
+			environment.state.rigid_body_position_snapshot_buffer
 		};
 		glDeleteBuffers(std::size(buffers), buffers);
 

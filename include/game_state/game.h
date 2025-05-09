@@ -38,6 +38,8 @@ namespace game_state
 		GLint rigid_body_position_buffer_p_offset;
 		GLint rigid_body_position_buffer_p_stride;
 		
+		GLuint rigid_body_position_snapshot_buffer;
+
 		GLuint rigid_body_velocity_buffer;
 		GLint rigid_body_velocity_buffer_size;
 		GLint rigid_body_velocity_buffer_v_offset;
