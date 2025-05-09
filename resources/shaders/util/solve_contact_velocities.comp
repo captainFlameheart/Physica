@@ -109,7 +109,25 @@ void main()
 		(body_0_velocity.xy + body_0_velocity.z * offset_1_0) - 
 		(body_1_velocity.xy + body_1_velocity.z * offset_1_1);
 
-	// TODO: Friction impulses
+	float old_tangent_impulse_0 = tangent_impulse_0;
+	float tangent_impulse_limit_0 = normal_impulse_0 * FRICTION_COEFFICIENT;
+	tangent_impulse_0 = clamp
+	(
+		tangent_impulse_0 + TANGENT_IMPULSE_SCALE * tangent_mass_0 * dot(tangent, contact_point_0_velocity), 
+		-tangent_impulse_limit_0, tangent_impulse_limit_0
+	);
+	contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_tangents[0u].impulse = tangent_impulse_0;
+	float delta_tangent_impulse_0 = tangent_impulse_0 - old_tangent_impulse_0;
+
+	float old_tangent_impulse_1 = tangent_impulse_1;
+	float tangent_impulse_limit_1 = normal_impulse_1 * FRICTION_COEFFICIENT;
+	tangent_impulse_1 = clamp
+	(
+		tangent_impulse_1 + TANGENT_IMPULSE_SCALE * tangent_mass_1 * dot(tangent, contact_point_1_velocity), 
+		-tangent_impulse_limit_1, tangent_impulse_limit_1
+	);
+	contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_tangents[1u].impulse = tangent_impulse_1;
+	float delta_tangent_impulse_1 = tangent_impulse_1 - old_tangent_impulse_1;
 
 	// TODO: Maybe solve both normal impulses TOGETHER using velocites AFTER applying friction impulses
 	float old_normal_impulse_0 = normal_impulse_0;
@@ -122,8 +140,8 @@ void main()
 	contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_normals[1u].impulse = normal_impulse_1;
 	float delta_normal_impulse_1 = normal_impulse_1 - old_normal_impulse_1;
 
-	vec2 delta_impulse_0 = delta_normal_impulse_0 * normal;	// TODO: Include tangent impulse
-	vec2 delta_impulse_1 = delta_normal_impulse_1 * normal;	// TODO: Include tangent impulse
+	vec2 delta_impulse_0 = delta_tangent_impulse_0 * tangent + delta_normal_impulse_0 * normal;
+	vec2 delta_impulse_1 = delta_tangent_impulse_1 * tangent + delta_normal_impulse_1 * normal;
 	vec2 delta_impulse_sum = delta_impulse_0 + delta_impulse_1;
 
 	// TODO: Fetch masses from buffer

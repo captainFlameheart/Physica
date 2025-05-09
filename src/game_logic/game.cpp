@@ -55,6 +55,7 @@
 #define game_logic_MAX_CONTACT_COUNT(environment) \
 	2000u * game_logic_MAX_TRIANGLE_COUNT(environment)
 
+#define game_logic_TANGENT_IMPULSE_SCALE(environment) 0.05f
 #define game_logic_NORMAL_IMPULSE_SCALE(environment) 0.05f
 #define game_logic_ALLOWED_PENETRATION(environment) game_logic__util__spatial_FLOAT_FROM_METERS(environment, 0.25f)
 #define game_logic_POSITION_IMPULSE_SCALE(environment) 0.1f * game_logic__util__spatial_METER_INVERSE(environment)
@@ -62,6 +63,9 @@
 // TODO: Store separate masses for each body in buffer
 #define INVERSE_MASS 1.0f
 #define INVERSE_INERTIA 2.0f
+
+// TODO: Make this depend on triangle materials
+#define FRICTION_COEFFICIENT 0.5f
 
 // To reduce compile times (due to driver bug), 
 // should be disabled for release/performance testing
@@ -533,6 +537,8 @@ namespace game_logic
 			util_shader_DEFINE("INVERSE_MASS", STRINGIFY(INVERSE_MASS)),
 			util_shader_DEFINE("INVERSE_INERTIA", STRINGIFY(INVERSE_INERTIA)),
 			util_shader_DEFINE("NORMAL_IMPULSE_SCALE", STRINGIFY(game_logic_NORMAL_IMPULSE_SCALE(environment))),
+			util_shader_DEFINE("TANGENT_IMPULSE_SCALE", STRINGIFY(game_logic_TANGENT_IMPULSE_SCALE(environment))),
+			util_shader_DEFINE("FRICTION_COEFFICIENT", STRINGIFY(FRICTION_COEFFICIENT)),
 			::util::shader::file_to_string("util/solve_contact_velocities.comp")
 		);
 		environment.state.solve_contact_velocities_shader = ::util::shader::create_program(compute_shader);
@@ -2417,8 +2423,8 @@ namespace game_logic
 		//glUseProgram(environment.state.contact_basis_draw_shader);
 		//glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 4u);
 
-		glUseProgram(environment.state.contact_impulses_draw_shader);
-		glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 16u);
+		//glUseProgram(environment.state.contact_impulses_draw_shader);
+		//glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 16u);
 	}
 
 	void free(game_environment::Environment& environment)

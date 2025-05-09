@@ -334,8 +334,6 @@ void main()
 			inverse_mass_1 + inverse_inertia_1 * temp_1 * temp_1
 		);
 
-		// TODO: Warm start tangent impulses
-
 		contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_tangents[secondary_incident_vertex_side].mass = secondary_tangent_mass;
 		contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_tangents[primary_incident_vertex_side].mass = primary_tangent_mass;
 
@@ -357,10 +355,16 @@ void main()
 		contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_normals[secondary_incident_vertex_side].mass = secondary_normal_mass;
 		contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_normals[primary_incident_vertex_side].mass = primary_normal_mass;
 
-		// TODO: Include tangent impulse
-		vec2 secondary_impulse = contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_normals[secondary_incident_vertex_side].impulse * normal;
-		// TODO: Include tangent impulse
-		vec2 primary_impulse = contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_normals[primary_incident_vertex_side].impulse * normal;
+		vec2 secondary_impulse = 
+		(
+			contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_tangents[secondary_incident_vertex_side].impulse * tangent + 
+			contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_normals[secondary_incident_vertex_side].impulse * normal
+		);
+		vec2 primary_impulse = 
+		(
+			contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_tangents[primary_incident_vertex_side].impulse * tangent + 
+			contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_normals[primary_incident_vertex_side].impulse * normal
+		);
 		vec2 impulse_sum = secondary_impulse + primary_impulse;
 
 		ivec3 delta_velocity_0 = ivec3
