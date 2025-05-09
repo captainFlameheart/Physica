@@ -55,7 +55,7 @@
 #define game_logic_MAX_CONTACT_COUNT(environment) \
 	50u * game_logic_MAX_TRIANGLE_COUNT(environment)
 
-#define game_logic_NORMAL_IMPULSE_SCALE(environment) 0.05f
+#define game_logic_NORMAL_IMPULSE_SCALE(environment) 0.1f//0.05f
 
 // TODO: Store separate masses for each body in buffer
 #define INVERSE_MASS 1.0f
@@ -1553,7 +1553,7 @@ namespace game_logic
 		glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
 		GLsync const fence{ glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0u) };
 		glFlush();
-
+		
 		glUseProgram(environment.state.old_triangle_contact_update_shader);
 		glDispatchCompute
 		(
@@ -1871,7 +1871,7 @@ namespace game_logic
 				ceil_div(environment.state.current_contact_count, game_logic__util__rigid_body_SOLVE_CONTACT_VELOCITIES_LOCAL_SIZE(environment))
 			};
 
-			for (GLuint i{ 0u }; i < 1u; ++i)
+			for (GLuint i{ 0u }; i < 4u; ++i)
 			{
 				glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT); // Updated velocities from previous velocity solve
 
@@ -2257,8 +2257,8 @@ namespace game_logic
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 		glDrawArrays(GL_TRIANGLES, 0, environment.state.current_triangle_count * 3u);
 
-		//glUseProgram(environment.state.triangle_wireframes_draw_shader);
-		//glDrawArrays(GL_LINES, 0, environment.state.current_triangle_count * 6u);
+		glUseProgram(environment.state.triangle_wireframes_draw_shader);
+		glDrawArrays(GL_LINES, 0, environment.state.current_triangle_count * 6u);
 
 		//glUseProgram(environment.state.rigid_body_debug_rendering_shader);
 		//glDrawArrays(GL_LINES, 0, environment.state.current_rigid_body_count * 4u);
@@ -2278,9 +2278,9 @@ namespace game_logic
 		//glUseProgram(environment.state.leaf_contact_draw_shader);
 		//glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 2u);
 
-		//glUseProgram(environment.state.contact_point_positions_draw_shader);
-		//glPointSize(10.0f);
-		//glDrawArrays(GL_POINTS, 0, environment.state.current_contact_count * 4u);
+		glUseProgram(environment.state.contact_point_positions_draw_shader);
+		glPointSize(10.0f);
+		glDrawArrays(GL_POINTS, 0, environment.state.current_contact_count * 4u);
 
 		//glUseProgram(environment.state.contact_point_offsets_draw_shader);
 		//glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 8u);

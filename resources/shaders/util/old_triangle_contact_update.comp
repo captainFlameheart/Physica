@@ -1,3 +1,8 @@
+// IMPORTANT TODO: We need to take a snapshot of the body positions
+
+#define ALLOWED_PENETRATION 0.2 * METER
+#define POSITION_IMPULSE_SCALE 0.2 * METER_INVERSE
+
 layout(shared, binding = CONTACT_BINDING) restrict readonly
 buffer Contacts
 {
@@ -10,7 +15,7 @@ buffer Triangles
 	uvec4 triangles[MAX_TRIANGLE_COUNT];	// Triangle: (vertex_0, vertex_1, vertex_2, body)
 } triangles;
 
-layout(shared, binding = POSITION_BINDING) restrict readonly
+layout(shared, binding = POSITION_BINDING) restrict /*readonly*/
 buffer Positions
 {
 	ivec4 p[MAX_RIGID_BODY_COUNT];
@@ -370,5 +375,40 @@ void main()
 		atomicAdd(velocities.v[triangles[1u].w].x, delta_velocity_1.x);
 		atomicAdd(velocities.v[triangles[1u].w].y, delta_velocity_1.y);
 		atomicAdd(velocities.v[triangles[1u].w].z, delta_velocity_1.z);
+
+		// TODO: Do position correction for new contacts as well
+
+		float secondary_penetration = dot(vertices[reference_edge] - secondary_contact_point, normals[reference_edge]);
+		float secondary_penetration_error = max(0.0, secondary_penetration - ALLOWED_PENETRATION);
+		vec2 secondary_position_impulse = 
+		(
+			POSITION_IMPULSE_SCALE * secondary_normal_mass * secondary_penetration_error
+		) * normal;
+		float primary_penetration_error = max(0.0, min_penetration - ALLOWED_PENETRATION);
+		vec2 primary_position_impulse = (
+			POSITION_IMPULSE_SCALE * primary_normal_mass * primary_penetration_error
+		) * normal;
+		vec2 position_impulse_sum = secondary_position_impulse + primary_position_impulse;
+
+		// TODO: Store METER * inverse_mass_0 in temporary, same for RADIAN * inverse_inertia_0, etc.
+		ivec3 delta_position_0 = ivec3
+		(
+			-METER * inverse_mass_0 * position_impulse_sum, 
+			-RADIAN * inverse_inertia_0 * (dot(secondary_position_impulse, secondary_offset_0) + dot(primary_position_impulse, primary_offset_0))
+		);
+
+		ivec3 delta_position_1 = ivec3
+		(
+			METER * inverse_mass_1 * position_impulse_sum, 
+			RADIAN * inverse_inertia_1 * (dot(secondary_position_impulse, secondary_offset_1) + dot(primary_position_impulse, primary_offset_1))
+		);
+
+		/*atomicAdd(positions.p[triangles[0u].w].x, delta_position_0.x);
+		atomicAdd(positions.p[triangles[0u].w].y, delta_position_0.y);
+		atomicAdd(positions.p[triangles[0u].w].z, delta_position_0.z);
+
+		atomicAdd(positions.p[triangles[1u].w].x, delta_position_1.x);
+		atomicAdd(positions.p[triangles[1u].w].y, delta_position_1.y);
+		atomicAdd(positions.p[triangles[1u].w].z, delta_position_1.z);*/
 	}
 }
