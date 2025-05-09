@@ -23,6 +23,7 @@ struct Contact_Point_Tangent
 
 struct Contact_Point_Normal
 {
+	float target_velocity;
 	float mass;
 	float impulse;
 };

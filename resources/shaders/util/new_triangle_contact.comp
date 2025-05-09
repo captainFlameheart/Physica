@@ -9,12 +9,13 @@ buffer Triangles
 {
 	uvec4 triangles[MAX_TRIANGLE_COUNT];	// Triangle: (vertex_0, vertex_1, vertex_2, body)
 } triangles;
-
+/*
 layout(shared, binding = POSITION_SNAPSHOT_BINDING) restrict readonly
 buffer Positions_Snapshot
 {
 	ivec4 p[MAX_RIGID_BODY_COUNT];
 } positions_snapshot;
+*/
 
 layout(shared, binding = VERTEX_BINDING) restrict readonly
 buffer Vertices
@@ -35,6 +36,7 @@ struct Contact_Point_Tangent
 
 struct Contact_Point_Normal
 {
+	float target_velocity;
 	float mass;
 	float impulse;
 };
@@ -62,7 +64,7 @@ buffer Contact_Surfaces
 	Contact_Surface contact_surfaces[MAX_CONTACT_COUNT];
 } contact_surfaces;
 
-layout(shared, binding = POSITION_BINDING) restrict writeonly
+layout(shared, binding = POSITION_BINDING) restrict readonly/*writeonly*/
 buffer Positions
 {
 	ivec4 p[MAX_RIGID_BODY_COUNT];
@@ -97,8 +99,8 @@ void main()
 	
 	ivec4 body_positions[2u] = ivec4[2u]
 	(
-		positions_snapshot.p[triangles[0u].w], 
-		positions_snapshot.p[triangles[1u].w]
+		/*positions_snapshot*/positions.p[triangles[0u].w], 
+		/*positions_snapshot*/positions.p[triangles[1u].w]
 	);
 
 	float angle_0 = body_positions[0].z * RADIAN_INVERSE;
@@ -308,19 +310,24 @@ void main()
 		contact_surfaces.contact_surfaces[index].tangent = tangent;
 
 		// TODO: Fetch masses from buffer
-		float inverse_mass_0 = INVERSE_MASS;//1.0;
-		float inverse_inertia_0 = INVERSE_INERTIA;//0.0;
+		float inverse_mass_0 = INVERSE_MASS;
+		float inverse_inertia_0 = INVERSE_INERTIA;
 
-		float inverse_mass_1 = INVERSE_MASS;//1.0;
-		float inverse_inertia_1 = INVERSE_INERTIA;//0.0;
+		float inverse_mass_1 = INVERSE_MASS;
+		float inverse_inertia_1 = INVERSE_INERTIA;
 
 		// TODO: Handle infinite masses
+		// TODO: Solve tangent impulses
+
 		float temp_0 = dot(secondary_offset_0, tangent);
 		float temp_1 = dot(secondary_offset_1, tangent);
 		float secondary_tangent_mass = 1.0 / (
 			inverse_mass_0 + inverse_inertia_0 * temp_0 * temp_0 + 
 			inverse_mass_1 + inverse_inertia_1 * temp_1 * temp_1
 		);
+		contact_surfaces.contact_surfaces[index].contact_point_tangents[secondary_incident_vertex_side].mass = secondary_tangent_mass;
+		
+		contact_surfaces.contact_surfaces[index].contact_point_tangents[secondary_incident_vertex_side].impulse = 0.0;
 
 		temp_0 = dot(primary_offset_0, tangent);
 		temp_1 = dot(primary_offset_1, tangent);
@@ -329,20 +336,32 @@ void main()
 			inverse_mass_1 + inverse_inertia_1 * temp_1 * temp_1
 		);
 
-		// TODO: Solve tangent impulses
-
-		contact_surfaces.contact_surfaces[index].contact_point_tangents[secondary_incident_vertex_side].mass = secondary_tangent_mass;
-		contact_surfaces.contact_surfaces[index].contact_point_tangents[secondary_incident_vertex_side].impulse = 0.0;
 		contact_surfaces.contact_surfaces[index].contact_point_tangents[primary_incident_vertex_side].mass = primary_tangent_mass;
+		
 		contact_surfaces.contact_surfaces[index].contact_point_tangents[primary_incident_vertex_side].impulse = 0.0;
 
 		// TODO: Handle infinite masses
+		// TODO: Solve normal impulses
+
+		float secondary_penetration = dot(vertices[reference_edge] - secondary_contact_point, normals[reference_edge]);
+		float secondary_penetration_error = secondary_penetration - ALLOWED_PENETRATION;
+		float secondary_target_normal_velocity = PENETRATION_VELOCITY_SCALE * max(0.0, secondary_penetration_error);
+		contact_surfaces.contact_surfaces[index].contact_point_normals[secondary_incident_vertex_side].target_velocity = secondary_target_normal_velocity;
+
 		temp_0 = dot(secondary_offset_0, normals[reference_edge]);
 		temp_1 = dot(secondary_offset_1, normals[reference_edge]);
 		float secondary_normal_mass = 1.0 / (
 			inverse_mass_0 + inverse_inertia_0 * temp_0 * temp_0 + 
 			inverse_mass_1 + inverse_inertia_1 * temp_1 * temp_1
 		);
+
+		contact_surfaces.contact_surfaces[index].contact_point_normals[secondary_incident_vertex_side].mass = secondary_normal_mass;
+
+		contact_surfaces.contact_surfaces[index].contact_point_normals[secondary_incident_vertex_side].impulse = 0.0;
+
+		float primary_penetration_error = min_penetration - ALLOWED_PENETRATION;
+		float primary_target_normal_velocity = PENETRATION_VELOCITY_SCALE * max(0.0, primary_penetration_error);
+		contact_surfaces.contact_surfaces[index].contact_point_normals[primary_incident_vertex_side].target_velocity = primary_target_normal_velocity;
 
 		temp_0 = dot(primary_offset_0, normals[reference_edge]);
 		temp_1 = dot(primary_offset_1, normals[reference_edge]);
@@ -351,16 +370,11 @@ void main()
 			inverse_mass_1 + inverse_inertia_1 * temp_1 * temp_1
 		);
 
-		// TODO: Solve normal impulses
-
-		contact_surfaces.contact_surfaces[index].contact_point_normals[secondary_incident_vertex_side].mass = secondary_normal_mass;
-		contact_surfaces.contact_surfaces[index].contact_point_normals[secondary_incident_vertex_side].impulse = 0.0;
 		contact_surfaces.contact_surfaces[index].contact_point_normals[primary_incident_vertex_side].mass = primary_normal_mass;
-		contact_surfaces.contact_surfaces[index].contact_point_normals[primary_incident_vertex_side].impulse = 0.0;
 
-		float secondary_penetration = dot(vertices[reference_edge] - secondary_contact_point, normals[reference_edge]);
-		float secondary_penetration_error = secondary_penetration - ALLOWED_PENETRATION;
-		float primary_penetration_error = min_penetration - ALLOWED_PENETRATION;
+		contact_surfaces.contact_surfaces[index].contact_point_normals[primary_incident_vertex_side].impulse = 0.0;
+/*
+#if DIRECT_POSITION_CORRECTION == 1
 		if (secondary_penetration_error > 0.0 || primary_penetration_error > 0.0)
 		{
 			vec2 secondary_position_impulse = 
@@ -393,5 +407,7 @@ void main()
 			atomicAdd(positions.p[triangles[1u].w].y, delta_position_1.y);
 			atomicAdd(positions.p[triangles[1u].w].z, delta_position_1.z);
 		}
+#endif
+*/
 	}
 }

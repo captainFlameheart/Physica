@@ -11,6 +11,7 @@ struct Contact_Point_Tangent
 
 struct Contact_Point_Normal
 {
+	float target_velocity;
 	float mass;
 	float impulse;
 };
@@ -88,9 +89,11 @@ void main()
 	
 	vec2 normal = vec2(-tangent.y, tangent.x);
 
+	float normal_target_velocity_0 = contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_normals[0u].target_velocity;
 	float normal_mass_0 = contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_normals[0u].mass;
 	float normal_impulse_0 = contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_normals[0u].impulse;
-	
+
+	float normal_target_velocity_1 = contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_normals[1u].target_velocity;
 	float normal_mass_1 = contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_normals[1u].mass;
 	float normal_impulse_1 = contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_normals[1u].impulse;
 
@@ -131,12 +134,14 @@ void main()
 
 	// TODO: Maybe solve both normal impulses TOGETHER using velocites AFTER applying friction impulses
 	float old_normal_impulse_0 = normal_impulse_0;
-	normal_impulse_0 = max(0.0, normal_impulse_0 + NORMAL_IMPULSE_SCALE * normal_mass_0 * dot(normal, contact_point_0_velocity));
+	float normal_velocity_0 = dot(normal, contact_point_0_velocity) + normal_target_velocity_0;
+	normal_impulse_0 = max(0.0, normal_impulse_0 + NORMAL_IMPULSE_SCALE * normal_mass_0 * normal_velocity_0);
 	contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_normals[0u].impulse = normal_impulse_0;
 	float delta_normal_impulse_0 = normal_impulse_0 - old_normal_impulse_0;
 
 	float old_normal_impulse_1 = normal_impulse_1;
-	normal_impulse_1 = max(0.0, normal_impulse_1 + NORMAL_IMPULSE_SCALE * normal_mass_1 * dot(normal, contact_point_1_velocity));
+	float normal_velocity_1 = dot(normal, contact_point_1_velocity) + normal_target_velocity_1;
+	normal_impulse_1 = max(0.0, normal_impulse_1 + NORMAL_IMPULSE_SCALE * normal_mass_1 * normal_velocity_1);
 	contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_normals[1u].impulse = normal_impulse_1;
 	float delta_normal_impulse_1 = normal_impulse_1 - old_normal_impulse_1;
 

@@ -15,11 +15,11 @@ buffer Triangles
 	uvec4 triangles[MAX_TRIANGLE_COUNT];	// Triangle: (vertex_0, vertex_1, vertex_2, body)
 } triangles;
 
-layout(shared, binding = POSITION_SNAPSHOT_BINDING) restrict readonly
+/*layout(shared, binding = POSITION_SNAPSHOT_BINDING) restrict readonly
 buffer Positions_Snapshot
 {
 	ivec4 p[MAX_RIGID_BODY_COUNT];
-} positions_snapshot;
+} positions_snapshot;*/
 
 layout(shared, binding = VERTEX_BINDING) restrict readonly
 buffer Vertices
@@ -40,6 +40,7 @@ struct Contact_Point_Tangent
 
 struct Contact_Point_Normal
 {
+	float target_velocity;
 	float mass;
 	float impulse;
 };
@@ -72,8 +73,7 @@ layout(shared, binding = CONTACT_COUNT_BINDING) uniform Contact_Count
 	uint contact_count;
 } contact_count;
 
-// TODO: CHANGE!!!!!!!
-layout(shared, binding = POSITION_BINDING) restrict writeonly
+layout(shared, binding = POSITION_BINDING) restrict readonly/*writeonly*/
 buffer Positions
 {
 	ivec4 p[MAX_RIGID_BODY_COUNT];
@@ -103,8 +103,8 @@ void main()
 	
 	ivec4 body_positions[2u] = ivec4[2u]
 	(
-		positions_snapshot.p[triangles[0u].w], 
-		positions_snapshot.p[triangles[1u].w]
+		/*positions_snapshot*/positions.p[triangles[0u].w], 
+		/*positions_snapshot*/positions.p[triangles[1u].w]
 	);
 
 	float angle_0 = body_positions[0].z * RADIAN_INVERSE;
@@ -338,12 +338,23 @@ void main()
 		contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_tangents[primary_incident_vertex_side].mass = primary_tangent_mass;
 
 		// TODO: Handle infinite masses
+
+		float secondary_penetration = dot(vertices[reference_edge] - secondary_contact_point, normals[reference_edge]);
+		float secondary_penetration_error = secondary_penetration - ALLOWED_PENETRATION;
+		float secondary_target_normal_velocity = PENETRATION_VELOCITY_SCALE * max(0.0, secondary_penetration_error);
+		contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_normals[secondary_incident_vertex_side].target_velocity = secondary_target_normal_velocity;
+
 		temp_0 = dot(secondary_offset_0, normal);
 		temp_1 = dot(secondary_offset_1, normal);
 		float secondary_normal_mass = 1.0 / (
 			inverse_mass_0 + inverse_inertia_0 * temp_0 * temp_0 + 
 			inverse_mass_1 + inverse_inertia_1 * temp_1 * temp_1
 		);
+		contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_normals[secondary_incident_vertex_side].mass = secondary_normal_mass;
+
+		float primary_penetration_error = min_penetration - ALLOWED_PENETRATION;
+		float primary_target_normal_velocity = PENETRATION_VELOCITY_SCALE * max(0.0, primary_penetration_error);
+		contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_normals[primary_incident_vertex_side].target_velocity = primary_target_normal_velocity;
 
 		temp_0 = dot(primary_offset_0, normal);
 		temp_1 = dot(primary_offset_1, normal);
@@ -351,8 +362,6 @@ void main()
 			inverse_mass_0 + inverse_inertia_0 * temp_0 * temp_0 + 
 			inverse_mass_1 + inverse_inertia_1 * temp_1 * temp_1
 		);
-
-		contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_normals[secondary_incident_vertex_side].mass = secondary_normal_mass;
 		contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_normals[primary_incident_vertex_side].mass = primary_normal_mass;
 
 		vec2 secondary_impulse = 
@@ -386,10 +395,8 @@ void main()
 		atomicAdd(velocities.v[triangles[1u].w].x, delta_velocity_1.x);
 		atomicAdd(velocities.v[triangles[1u].w].y, delta_velocity_1.y);
 		atomicAdd(velocities.v[triangles[1u].w].z, delta_velocity_1.z);
-
-		float secondary_penetration = dot(vertices[reference_edge] - secondary_contact_point, normals[reference_edge]);
-		float secondary_penetration_error = secondary_penetration - ALLOWED_PENETRATION;
-		float primary_penetration_error = min_penetration - ALLOWED_PENETRATION;
+/*
+#if DIRECT_POSITION_CORRECTION == 1
 		if (secondary_penetration_error > 0.0 || primary_penetration_error > 0.0)
 		{
 			vec2 secondary_position_impulse = 
@@ -422,5 +429,7 @@ void main()
 			atomicAdd(positions.p[triangles[1u].w].y, delta_position_1.y);
 			atomicAdd(positions.p[triangles[1u].w].z, delta_position_1.z);
 		}
+#endif
+*/
 	}
 }

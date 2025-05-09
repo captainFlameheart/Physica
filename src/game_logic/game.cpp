@@ -57,7 +57,9 @@
 
 #define game_logic_TANGENT_IMPULSE_SCALE(environment) 0.05f
 #define game_logic_NORMAL_IMPULSE_SCALE(environment) 0.05f
-#define game_logic_ALLOWED_PENETRATION(environment) game_logic__util__spatial_FLOAT_FROM_METERS(environment, 0.25f)
+#define game_logic_DIRECT_POSITION_CORRECTION(environment) 0
+#define game_logic_ALLOWED_PENETRATION(environment) game_logic__util__spatial_FLOAT_FROM_METERS(environment, 0.1f)
+#define game_logic_PENETRATION_VELOCITY_SCALE(environment) 0.001f * game_logic__util__spatial_METER_INVERSE(environment)
 #define game_logic_POSITION_IMPULSE_SCALE(environment) 0.1f * game_logic__util__spatial_METER_INVERSE(environment)
 
 // TODO: Store separate masses for each body in buffer
@@ -80,7 +82,9 @@ namespace game_logic
 		std::cout << game_logic_POSITION_IMPULSE_SCALE(environment) << std::endl;
 
 		// TODO: Use glBindBuffersBase (note the s) for binding multiple buffers at once
-		
+		// IMPORTANT TODO: We do not need to do a position snapshot if velocity-based position correction 
+		// is sufficient.
+
 		// IMPORTANT TODO: Make sure to not exceed GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS
 		// which is only guaranteed to be at least 8 (which we are currently exceeding).
 		// Do the same for GL_MAX_UNIFORM_BUFFER_BINDINGS, but that has a lower limit of 
@@ -481,7 +485,9 @@ namespace game_logic
 			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))),
 			util_shader_DEFINE("RADIAN", STRINGIFY(game_logic__util__spatial_RADIAN(environment))),
 			util_shader_DEFINE("POSITION_SNAPSHOT_BINDING", STRINGIFY(game_logic__util_POSITION_SNAPSHOT_BINDING)),
+			util_shader_DEFINE("DIRECT_POSITION_CORRECTION", STRINGIFY(game_logic_DIRECT_POSITION_CORRECTION(environment))),
 			util_shader_DEFINE("ALLOWED_PENETRATION", STRINGIFY(game_logic_ALLOWED_PENETRATION(environment))), 
+			util_shader_DEFINE("PENETRATION_VELOCITY_SCALE", STRINGIFY(game_logic_PENETRATION_VELOCITY_SCALE(environment))),
 			util_shader_DEFINE("POSITION_IMPULSE_SCALE", STRINGIFY(game_logic_POSITION_IMPULSE_SCALE(environment))),
 			::util::shader::file_to_string("util/old_triangle_contact_update.comp")
 		);
@@ -512,7 +518,9 @@ namespace game_logic
 			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))),
 			util_shader_DEFINE("RADIAN", STRINGIFY(game_logic__util__spatial_RADIAN(environment))),
 			util_shader_DEFINE("POSITION_SNAPSHOT_BINDING", STRINGIFY(game_logic__util_POSITION_SNAPSHOT_BINDING)),
+			util_shader_DEFINE("DIRECT_POSITION_CORRECTION", STRINGIFY(game_logic_DIRECT_POSITION_CORRECTION(environment))),
 			util_shader_DEFINE("ALLOWED_PENETRATION", STRINGIFY(game_logic_ALLOWED_PENETRATION(environment))),
+			util_shader_DEFINE("PENETRATION_VELOCITY_SCALE", STRINGIFY(game_logic_PENETRATION_VELOCITY_SCALE(environment))),
 			util_shader_DEFINE("POSITION_IMPULSE_SCALE", STRINGIFY(game_logic_POSITION_IMPULSE_SCALE(environment))),
 			::util::shader::file_to_string("util/new_triangle_contact.comp")
 		);
@@ -1363,6 +1371,16 @@ namespace game_logic
 					1u, &offset_label, 1u, nullptr, &environment.state.contact_surface_buffer_contact_surfaces_contact_point_tangent_1_impulse_offset
 				);
 
+				GLuint const contact_surfaces_contact_point_normal_0_target_velocity_index
+				{
+					glGetProgramResourceIndex(environment.state.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, "Contact_Surfaces.contact_surfaces[0].contact_point_normals[0].target_velocity")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, contact_surfaces_contact_point_normal_0_target_velocity_index,
+					1u, &offset_label, 1u, nullptr, &environment.state.contact_surface_buffer_contact_surfaces_contact_point_normal_0_target_velocity_offset
+				);
+
 				GLuint const contact_surfaces_contact_point_normal_0_mass_index
 				{
 					glGetProgramResourceIndex(environment.state.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, "Contact_Surfaces.contact_surfaces[0].contact_point_normals[0].mass")
@@ -1381,6 +1399,16 @@ namespace game_logic
 				(
 					environment.state.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, contact_surfaces_contact_point_normal_0_impulse_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.contact_surface_buffer_contact_surfaces_contact_point_normal_0_impulse_offset
+				);
+
+				GLuint const contact_surfaces_contact_point_normal_1_target_velocity_index
+				{
+					glGetProgramResourceIndex(environment.state.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, "Contact_Surfaces.contact_surfaces[0].contact_point_normals[1].target_velocity")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, contact_surfaces_contact_point_normal_1_target_velocity_index,
+					1u, &offset_label, 1u, nullptr, &environment.state.contact_surface_buffer_contact_surfaces_contact_point_normal_1_target_velocity_offset
 				);
 
 				GLuint const contact_surfaces_contact_point_normal_1_mass_index
@@ -1412,8 +1440,10 @@ namespace game_logic
 					environment.state.contact_surface_buffer_contact_surfaces_contact_point_tangent_0_impulse_offset,
 					environment.state.contact_surface_buffer_contact_surfaces_contact_point_tangent_1_mass_offset,
 					environment.state.contact_surface_buffer_contact_surfaces_contact_point_tangent_1_impulse_offset,
+					environment.state.contact_surface_buffer_contact_surfaces_contact_point_normal_0_target_velocity_offset,
 					environment.state.contact_surface_buffer_contact_surfaces_contact_point_normal_0_mass_offset,
 					environment.state.contact_surface_buffer_contact_surfaces_contact_point_normal_0_impulse_offset,
+					environment.state.contact_surface_buffer_contact_surfaces_contact_point_normal_1_target_velocity_offset,
 					environment.state.contact_surface_buffer_contact_surfaces_contact_point_normal_1_mass_offset,
 					environment.state.contact_surface_buffer_contact_surfaces_contact_point_normal_1_impulse_offset
 				};
@@ -1620,8 +1650,10 @@ namespace game_logic
 		std::cout << "contact surfaces contact point tangent 0 impulse offset: " << environment.state.contact_surface_buffer_contact_surfaces_contact_point_tangent_0_impulse_offset << std::endl;
 		std::cout << "contact surfaces contact point tangent 1 mass offset: " << environment.state.contact_surface_buffer_contact_surfaces_contact_point_tangent_1_mass_offset << std::endl;
 		std::cout << "contact surfaces contact point tangent 1 impulse offset: " << environment.state.contact_surface_buffer_contact_surfaces_contact_point_tangent_1_impulse_offset << std::endl;
+		std::cout << "contact surfaces contact point normal 0 target velocity offset: " << environment.state.contact_surface_buffer_contact_surfaces_contact_point_normal_0_target_velocity_offset << std::endl;
 		std::cout << "contact surfaces contact point normal 0 mass offset: " << environment.state.contact_surface_buffer_contact_surfaces_contact_point_normal_0_mass_offset << std::endl;
 		std::cout << "contact surfaces contact point normal 0 impulse offset: " << environment.state.contact_surface_buffer_contact_surfaces_contact_point_normal_0_impulse_offset << std::endl;
+		std::cout << "contact surfaces contact point normal 1 target velocity offset: " << environment.state.contact_surface_buffer_contact_surfaces_contact_point_normal_1_target_velocity_offset << std::endl;
 		std::cout << "contact surfaces contact point normal 1 mass offset: " << environment.state.contact_surface_buffer_contact_surfaces_contact_point_normal_1_mass_offset << std::endl;
 		std::cout << "contact surfaces contact point normal 1 impulse offset: " << environment.state.contact_surface_buffer_contact_surfaces_contact_point_normal_1_impulse_offset << std::endl;
 		std::cout << "contact surfaces offset: " << environment.state.contact_surface_buffer_contact_surfaces_offset << std::endl;
@@ -1669,12 +1701,13 @@ namespace game_logic
 		GLsync const fence{ glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0u) };
 		glFlush();
 
+		/* If direct position correction is used:
 		glCopyNamedBufferSubData
 		(
 			environment.state.rigid_body_position_buffer, environment.state.rigid_body_position_snapshot_buffer,
 			environment.state.rigid_body_position_buffer_p_offset, environment.state.rigid_body_position_buffer_p_offset,
 			environment.state.current_rigid_body_count * environment.state.rigid_body_position_buffer_p_stride
-		);
+		);*/
 
 		/* TODO: Snapshot velocities for bounciness
 		glCopyNamedBufferSubData
@@ -2413,9 +2446,9 @@ namespace game_logic
 		//glUseProgram(environment.state.leaf_contact_draw_shader);
 		//glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 2u);
 
-		glUseProgram(environment.state.contact_point_positions_draw_shader);
-		glPointSize(10.0f);
-		glDrawArrays(GL_POINTS, 0, environment.state.current_contact_count * 4u);
+		//glUseProgram(environment.state.contact_point_positions_draw_shader);
+		//glPointSize(10.0f);
+		//glDrawArrays(GL_POINTS, 0, environment.state.current_contact_count * 4u);
 
 		//glUseProgram(environment.state.contact_point_offsets_draw_shader);
 		//glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 8u);
