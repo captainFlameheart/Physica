@@ -25,7 +25,7 @@
 #include "game_logic/util/rigid_body/TRIANGLE_BOUNDING_BOX_PADDING.h"
 #include "game_logic/util/rigid_body/Position.h"
 #include "game_logic/util/rigid_body/Velocity.h"
-#include "game_logic/util/rigid_body/Triangle.h"
+#include "game_state/rigid_body/Triangle.h"
 #include "game_logic/util/rigid_body/Triangle_Bounding_Box.h"
 #include "game_logic/util/proximity/initialize.h"
 #include "game_logic/util/proximity/change_leaf_of_multinode_tree.h"
@@ -39,6 +39,7 @@
 #include "game_logic/util/proximity/print_bounding_box.h"
 #include "game_logic/util/proximity/compute_height.h"
 #include "game_logic/util/proximity/update_contacts.h"
+#include "game_logic/util/proximity/query_point_of_multinode_tree.h"
 #include <algorithm>
 
 #define game_logic_MAX_RIGID_BODY_COUNT(environment) \
@@ -769,11 +770,22 @@ namespace game_logic
 			glNamedBufferStorage
 			(
 				environment.state.rigid_body_position_buffer, environment.state.rigid_body_position_buffer_size, initial_positions,
-				0u
+				GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT //0u
 			);
-			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_RIGID_BODY_POSITION_BINDING, environment.state.rigid_body_position_buffer);
 
 			delete[] initial_positions;
+
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_RIGID_BODY_POSITION_BINDING, environment.state.rigid_body_position_buffer);
+
+			environment.state.position_mapping = static_cast<unsigned char*>
+			(
+				glMapNamedBufferRange
+				(
+					environment.state.rigid_body_position_buffer,
+					0u, environment.state.rigid_body_position_buffer_size,
+					GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_FLUSH_EXPLICIT_BIT
+				)
+			);
 		}
 
 		{ // Position snapshot buffer
@@ -918,6 +930,7 @@ namespace game_logic
 			// content from CPU to GPU like this. Instead, use persistent mapping 
 			// for both initialization and updating.
 			unsigned char* const initial_triangles = new unsigned char[environment.state.triangle_buffer_size];
+			environment.state.triangles = new game_state::rigid_body::Triangle[game_logic_MAX_TRIANGLE_COUNT(environment)];
 
 			for (GLuint i = 0; i < environment.state.current_triangle_count; ++i)
 			{
@@ -925,7 +938,7 @@ namespace game_logic
 				{
 					{(2u * i) % 4u, (2u * i + 1u) % 4u, (2u * i + 2u) % 4u}, i / 2u
 				};*/
-				util::rigid_body::Triangle triangle
+				game_state::rigid_body::Triangle triangle
 				{
 					{(2u * i) % 4u, (2u * i + 1u) % 4u, (2u * i + 2u) % 4u}, i
 				};
@@ -934,6 +947,8 @@ namespace game_logic
 					initial_triangles + environment.state.triangle_buffer_triangles_offset + i * environment.state.triangle_buffer_triangles_stride,
 					&triangle, sizeof(triangle)
 				);
+
+				environment.state.triangles[i] = triangle;
 			}
 
 			glNamedBufferStorage
@@ -982,6 +997,8 @@ namespace game_logic
 			// content from CPU to GPU like this. Instead, use persistent mapping 
 			// for both initialization and updating.
 			unsigned char* const initial_vertices = new unsigned char[environment.state.vertex_buffer_size];
+			environment.state.vertices = new GLfloat[game_logic_MAX_VERTEX_COUNT(environment)][2u];
+			
 			GLfloat vertex[2];
 			GLfloat const r{ 0.5f };
 			vertex[0] = game_logic__util__spatial_FLOAT_FROM_METERS(environment, r);
@@ -991,6 +1008,8 @@ namespace game_logic
 				initial_vertices + environment.state.vertex_buffer_vertices_offset + 0 * environment.state.vertex_buffer_vertices_stride,
 				&vertex, sizeof(vertex)
 			);
+			environment.state.vertices[0u][0u] = vertex[0u];
+			environment.state.vertices[0u][1u] = vertex[1u];
 
 			vertex[0] = game_logic__util__spatial_FLOAT_FROM_METERS(environment, -r);
 			vertex[1] = game_logic__util__spatial_FLOAT_FROM_METERS(environment, r);
@@ -999,6 +1018,8 @@ namespace game_logic
 				initial_vertices + environment.state.vertex_buffer_vertices_offset + 1 * environment.state.vertex_buffer_vertices_stride,
 				&vertex, sizeof(vertex)
 			);
+			environment.state.vertices[1u][0u] = vertex[0u];
+			environment.state.vertices[1u][1u] = vertex[1u];
 
 			vertex[0] = game_logic__util__spatial_FLOAT_FROM_METERS(environment, -r);
 			vertex[1] = game_logic__util__spatial_FLOAT_FROM_METERS(environment, -r);
@@ -1007,6 +1028,8 @@ namespace game_logic
 				initial_vertices + environment.state.vertex_buffer_vertices_offset + 2 * environment.state.vertex_buffer_vertices_stride,
 				&vertex, sizeof(vertex)
 			);
+			environment.state.vertices[2u][0u] = vertex[0u];
+			environment.state.vertices[2u][1u] = vertex[1u];
 
 			vertex[0] = game_logic__util__spatial_FLOAT_FROM_METERS(environment, r);
 			vertex[1] = game_logic__util__spatial_FLOAT_FROM_METERS(environment, -r);
@@ -1015,6 +1038,8 @@ namespace game_logic
 				initial_vertices + environment.state.vertex_buffer_vertices_offset + 3 * environment.state.vertex_buffer_vertices_stride,
 				&vertex, sizeof(vertex)
 			);
+			environment.state.vertices[3u][0u] = vertex[0u];
+			environment.state.vertices[3u][1u] = vertex[1u];
 			/*for (GLuint i = 0; i < environment.state.current_triangle_count; ++i)
 			{
 				util::rigid_body::Triangle triangle
@@ -1693,6 +1718,10 @@ namespace game_logic
 		std::cout << "size: " << environment.state.persistent_contact_count_buffer_size << std::endl;
 		std::cout << "persistent contact count offset: " << environment.state.persistent_contact_count_buffer_persistent_contact_count_offset << std::endl;
 		std::cout << std::endl;
+
+		glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
+		environment.state.physics_tick_results_fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0u);
+		glFlush();
 	}
 
 	// TODO: Move to ::util::math
@@ -2066,7 +2095,6 @@ namespace game_logic
 						GL_RED, GL_UNSIGNED_INT,
 						&environment.state.current_contact_count
 					);
-					// IMPORTANT TODO: Remove new contact solving!!!
 					glUseProgram(environment.state.new_triangle_contact_shader);
 					glDispatchCompute
 					(
@@ -2114,6 +2142,10 @@ namespace game_logic
 	{		
 		tick_velocities(environment);
 		tick_positions(environment);
+
+		glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
+		environment.state.physics_tick_results_fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0u);
+		glFlush();
 
 		return;
 
@@ -2870,14 +2902,66 @@ namespace game_logic
 		glUseProgram(environment.state.triangle_wireframes_draw_shader);
 		glDrawArrays(GL_LINES, 0, environment.state.current_triangle_count * 6u);
 
+
+		GLenum fence_status = glClientWaitSync(environment.state.physics_tick_results_fence, 0u, 0u);
+		while (fence_status != GL_ALREADY_SIGNALED && fence_status != GL_CONDITION_SATISFIED)
+		{
+			// TODO: Do something useful but not necessary while we wait. 
+			// Example: Optimize proximity tree.
+			fence_status = glClientWaitSync(environment.state.physics_tick_results_fence, 0u, 0u);
+		}
+
+		if (util::proximity::is_empty(environment.state.proximity_tree))
+		{
+
+		}
+		else if (util::proximity::has_single_node(environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment)))
+		{
+
+		}
+		else
+		{
+			GLint cursor_world_x, cursor_world_y;
+			window_to_world::window_screen_cursor_position_to_world_position
+			(
+				environment,
+				&cursor_world_x, &cursor_world_y
+			);
+
+			struct On_Leaf_Found
+			{
+				game_environment::Environment& environment;
+
+				void operator()(GLuint const leaf_index, game_state::proximity::Node const& leaf)
+				{
+					game_state::rigid_body::Triangle const& triangle{ environment.state.triangles[leaf_index] };
+					GLint body_position[4u];
+					std::memcpy
+					(
+						&body_position,
+						environment.state.position_mapping + environment.state.rigid_body_position_buffer_p_offset + triangle.body * environment.state.rigid_body_position_buffer_p_stride,
+						sizeof(body_position)
+					);
+					std::cout << body_position[0u] << ", " << body_position[1u] << ", " << body_position[2u] << std::endl;
+				}
+			};
+			On_Leaf_Found on_leaf_found{ environment };
+			util::proximity::query_point_of_multinode_tree
+			(
+				environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment), 
+				cursor_world_x, cursor_world_y, 
+				on_leaf_found
+			);
+		}
+
 		//glUseProgram(environment.state.rigid_body_debug_rendering_shader);
 		//glDrawArrays(GL_LINES, 0, environment.state.current_rigid_body_count * 4u);
 
 		//glUseProgram(environment.state.triangle_normal_draw_shader);
 		//glDrawArrays(GL_LINES, 0, environment.state.current_triangle_count * 6u);
 
-		//glUseProgram(environment.state.triangle_bounding_box_draw_shader);
-		//glDrawArrays(GL_LINES, 0, environment.state.current_triangle_count * 8u);
+		glUseProgram(environment.state.triangle_bounding_box_draw_shader);
+		glDrawArrays(GL_LINES, 0, environment.state.current_triangle_count * 8u);
 
 		/*if (!util::proximity::is_empty(environment.state.proximity_tree))
 		{
@@ -2904,7 +2988,9 @@ namespace game_logic
 
 	void free(game_environment::Environment& environment)
 	{
+		glUnmapNamedBuffer(environment.state.rigid_body_position_buffer);
 		glUnmapNamedBuffer(environment.state.changed_bounding_box_buffer);
+		glUnmapNamedBuffer(environment.state.contact_buffer);
 
 		::util::shader::delete_program(environment.state.shader);
 

@@ -3,6 +3,7 @@
 #include "game_state/camera/camera.h"
 #include "util/math/vector_2D.h"
 #include "game_state/proximity/Tree.h"
+#include "game_state/rigid_body/Triangle.h"
 
 namespace game_state
 {
@@ -37,7 +38,8 @@ namespace game_state
 		GLint rigid_body_position_buffer_size;
 		GLint rigid_body_position_buffer_p_offset;
 		GLint rigid_body_position_buffer_p_stride;
-		
+		unsigned char* position_mapping;
+
 		GLuint rigid_body_position_snapshot_buffer;
 
 		GLuint rigid_body_velocity_buffer;
@@ -54,10 +56,14 @@ namespace game_state
 		GLint triangle_buffer_triangles_offset;
 		GLint triangle_buffer_triangles_stride;
 
+		rigid_body::Triangle* triangles;
+
 		GLuint vertex_buffer;
 		GLint vertex_buffer_size;
 		GLint vertex_buffer_vertices_offset;
 		GLint vertex_buffer_vertices_stride;
+
+		GLfloat	(*vertices)[2];
 
 		GLuint bounding_box_buffer;
 		GLint bounding_box_buffer_size;
@@ -133,6 +139,8 @@ namespace game_state
 		GLint contact_surface_buffer_contact_surfaces_stride;
 
 		unsigned char* contact_mapping;
+
+		GLsync physics_tick_results_fence;
 
 		GLuint tick;
 		bool physics_running;
