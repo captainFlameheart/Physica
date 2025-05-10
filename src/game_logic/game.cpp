@@ -20,6 +20,7 @@
 #include "game_logic/util/rigid_body/TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE.h"
 #include "game_logic/util/rigid_body/OLD_TRIANGLE_CONTACT_UPDATE_LOCAL_SIZE.h"
 #include "game_logic/util/rigid_body/NEW_TRIANGLE_CONTACT_LOCAL_SIZE.h"
+#include "game_logic/util/rigid_body/WARM_START_CONTACT_IMPULSES_LOCAL_SIZE.h"
 #include "game_logic/util/rigid_body/SOLVE_CONTACT_VELOCITIES_LOCAL_SIZE.h"
 #include "game_logic/util/rigid_body/TRIANGLE_BOUNDING_BOX_PADDING.h"
 #include "game_logic/util/rigid_body/Position.h"
@@ -532,6 +533,31 @@ namespace game_logic
 			max_contact_count_definition,
 			max_rigid_body_count_definition,
 			util_shader_DEFINE("CONTACT_SURFACE_BINDING", STRINGIFY(game_logic__util_CONTACT_SURFACE_BINDING)),
+			util_shader_DEFINE("PERSISTENT_CONTACT_COUNT_BINDING", STRINGIFY(game_logic__util_PERSISTENT_CONTACT_COUNT_BINDING)),
+			util_shader_DEFINE("VELOCITY_SNAPSHOT_BINDING", STRINGIFY(game_logic__util_VELOCITY_SNAPSHOT_BINDING)),
+			util_shader_DEFINE("VELOCITY_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_VELOCITY_BINDING)),
+			util_shader_DEFINE("LOCAL_SIZE", STRINGIFY(game_logic__util__rigid_body_WARM_START_CONTACT_IMPULSES_LOCAL_SIZE(environment))),
+			util_shader_DEFINE("METER_INVERSE", STRINGIFY(game_logic__util__spatial_METER_INVERSE(environment))),
+			util_shader_DEFINE("RADIAN_INVERSE", STRINGIFY(game_logic__util__spatial_RADIAN_INVERSE(environment))),
+			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))),
+			util_shader_DEFINE("RADIAN", STRINGIFY(game_logic__util__spatial_RADIAN(environment))),
+			util_shader_DEFINE("INVERSE_MASS", STRINGIFY(INVERSE_MASS)),
+			util_shader_DEFINE("INVERSE_INERTIA", STRINGIFY(INVERSE_INERTIA)),
+			util_shader_DEFINE("NORMAL_IMPULSE_SCALE", STRINGIFY(game_logic_NORMAL_IMPULSE_SCALE(environment))),
+			util_shader_DEFINE("TANGENT_IMPULSE_SCALE", STRINGIFY(game_logic_TANGENT_IMPULSE_SCALE(environment))),
+			util_shader_DEFINE("FRICTION_COEFFICIENT", STRINGIFY(FRICTION_COEFFICIENT)),
+			::util::shader::file_to_string("util/warm_start_contact_impulses.comp")
+		);
+		environment.state.warm_start_contact_impulses_shader = ::util::shader::create_program(compute_shader);
+		std::cout << "Warm start contact impulses shader compiled" << std::endl;
+
+		::util::shader::set_shader_statically
+		(
+			compute_shader,
+			util_shader_VERSION,
+			max_contact_count_definition,
+			max_rigid_body_count_definition,
+			util_shader_DEFINE("CONTACT_SURFACE_BINDING", STRINGIFY(game_logic__util_CONTACT_SURFACE_BINDING)),
 			util_shader_DEFINE("CONTACT_COUNT_BINDING", STRINGIFY(game_logic__util_CONTACT_COUNT_BINDING)),
 			util_shader_DEFINE("VELOCITY_SNAPSHOT_BINDING", STRINGIFY(game_logic__util_VELOCITY_SNAPSHOT_BINDING)),
 			util_shader_DEFINE("VELOCITY_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_VELOCITY_BINDING)),
@@ -661,6 +687,7 @@ namespace game_logic
 		environment.state.current_rigid_body_count = 20u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment);//500000u;
 		environment.state.current_triangle_count = 1u * environment.state.current_rigid_body_count;
 		environment.state.current_contact_count = 0u;
+		environment.state.current_persistent_contact_count = 0u;
 
 		{ // Position buffer
 			GLuint const p_index
@@ -1674,28 +1701,79 @@ namespace game_logic
 		return numerator / denominator + (numerator % denominator != 0);
 	}
 
-	void tick_physics(game_environment::Environment& environment)
+	void integrate_forces(game_environment::Environment& environment)
+	{
+		// TODO: This memory barrier is only needed if it hasn't already been issued 
+		// by a draw call right before this tick.
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);	// Last tick data for both bodies and constraints
+	}
+
+	void warm_start_constraint_impulses(game_environment::Environment& environment)
+	{
+		glUseProgram(environment.state.warm_start_contact_impulses_shader);
+		glDispatchCompute
+		(
+			ceil_div(environment.state.current_persistent_contact_count, game_logic__util__rigid_body_WARM_START_CONTACT_IMPULSES_LOCAL_SIZE(environment)), 
+			1u, 1u
+		);
+	}
+
+	void improve_constraint_impulses(game_environment::Environment& environment)
+	{
+		glUseProgram(environment.state.solve_contact_velocities_shader);
+
+		GLuint const solve_contact_velocities_work_group_count
+		{
+			ceil_div(environment.state.current_contact_count, game_logic__util__rigid_body_WARM_START_CONTACT_IMPULSES_LOCAL_SIZE(environment))
+		};
+		for (GLuint i{ 0u }; i < 4u; ++i)
+		{
+			glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT); // Updated velocities
+
+			glCopyNamedBufferSubData
+			(
+				environment.state.rigid_body_velocity_buffer, environment.state.rigid_body_velocity_snapshot_buffer,
+				environment.state.rigid_body_velocity_buffer_v_offset, environment.state.rigid_body_velocity_buffer_v_offset,
+				environment.state.current_rigid_body_count * environment.state.rigid_body_velocity_buffer_v_stride
+			);
+
+			glDispatchCompute(solve_contact_velocities_work_group_count, 1u, 1u);
+		}
+	}
+
+	void tick_velocities(game_environment::Environment& environment)
+	{
+		integrate_forces(environment);
+		warm_start_constraint_impulses(environment);
+		improve_constraint_impulses(environment);
+	}
+
+	void integrate_velocities(game_environment::Environment& environment)
 	{
 		glUseProgram(environment.state.rigid_body_velocity_integration_shader);
-
-		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);	// TODO: This could be moved to the end of tick for either future tick or drawing
+		
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);	// Updated velocities
 
 		glDispatchCompute
 		(
 			ceil_div(environment.state.current_rigid_body_count, game_logic__util__rigid_body_VELOCITY_INTEGRATION_LOCAL_SIZE(environment)),
 			1u, 1u
 		);
+	}
 
+	void update_constraints(game_environment::Environment& environment)
+	{
 		glUseProgram(environment.state.triangle_bounding_box_update_shader);
 
-		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_BUFFER_UPDATE_BARRIER_BIT);	// Positions and velocities from velocity integration
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT/* | GL_BUFFER_UPDATE_BARRIER_BIT*/);	// Positions and velocities from velocity integration
 
 		glDispatchCompute
 		(
 			ceil_div(environment.state.current_triangle_count, game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment)),
 			1u, 1u
 		);
-		glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
+		// TODO: Make sure GL_BUFFER_UPDATE_BARRIER is the correct flag for clearing the changed leaf count
+		glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT | GL_BUFFER_UPDATE_BARRIER_BIT);	// Changed bounding boxes
 		GLsync const fence{ glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0u) };
 		glFlush();
 
@@ -1707,19 +1785,12 @@ namespace game_logic
 			environment.state.current_rigid_body_count * environment.state.rigid_body_position_buffer_p_stride
 		);*/
 
-		/* TODO: Snapshot velocities for bounciness
-		glCopyNamedBufferSubData
-		(
-			environment.state.rigid_body_velocity_buffer, environment.state.rigid_body_velocity_snapshot_buffer,
-			environment.state.rigid_body_velocity_buffer_v_offset, environment.state.rigid_body_velocity_buffer_v_offset,
-			environment.state.current_rigid_body_count * environment.state.rigid_body_velocity_buffer_v_stride
-		);*/
-
 		// TODO: Might not be needed
 		// TODO: Consider making triangle contact update shader write to the snapshot 
 		// so that this memory barrier becomes unnecessary.
-		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);	// Writes to bounding boxes must occur before constraining the positions and velocities
+		//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);	// Writes to bounding boxes must occur before constraining the positions and velocities
 
+		// IMPORTANT TODO: REMOVE WARM STARTING / CONSTRAINT SOLVING FROM CONTACT SURFACE DETECTION
 		glUseProgram(environment.state.old_triangle_contact_update_shader);
 		glDispatchCompute
 		(
@@ -1754,13 +1825,11 @@ namespace game_logic
 			environment.state.changed_bounding_boxes_mapping + environment.state.changed_bounding_box_buffer_size_offset,
 			sizeof(GLuint)
 		);
-		// TODO: Fix shader invocations working on out of bounds data
-		// (by skipping over them when iterating here?)
-		/*if (size > 10u)
-		{
-			std::cout << size << std::endl;
-		}*/
-		glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT); // TODO: Make sure this is correct
+
+		// TODO: Make sure this is the correct flag
+		//glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT); // Updated persistent contact surfaces
+
+		//glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT); // TODO: Make sure this is the correct flag
 		glClearNamedBufferSubData
 		(
 			environment.state.changed_bounding_box_buffer,
@@ -1831,12 +1900,6 @@ namespace game_logic
 				{
 					--environment.state.current_contact_count;
 
-					/*std::cout << "Remove contact " << contact_index << std::endl;
-					std::cout << "Contact count: " << environment.state.current_contact_count << std::endl;
-					util::proximity::print_leaf_contacts(std::cout, environment.state.proximity_tree, environment.state.proximity_tree.contacts[contact_index].leaf_0);
-					util::proximity::print_leaf_contacts(std::cout, environment.state.proximity_tree, environment.state.proximity_tree.contacts[contact_index].leaf_1);
-					std::cout << std::endl;*/
-
 					if (contact_index != environment.state.current_contact_count)
 					{
 						// MAYBE TODO: Avoid multiplications by using members that are added/subtracted along with contact count
@@ -1906,7 +1969,6 @@ namespace game_logic
 			struct On_Contacts_Removed
 			{
 				game_environment::Environment& environment;
-				GLuint& new_contacts_start;
 
 				void operator()()
 				{
@@ -1924,10 +1986,9 @@ namespace game_logic
 						&environment.state.current_contact_count
 					);
 
-					// TODO: Snapshot velocities
-					// TODO: Solve persistent contacts
+					// TODO: Give GPU something heavy to do while we write the new contacts
 
-					new_contacts_start = environment.state.current_contact_count;
+					environment.state.current_persistent_contact_count = environment.state.current_contact_count;
 
 					// TODO: Other operations that we let the GPU perform while it is copying contact 
 					// to old contact positions.
@@ -1937,6 +1998,7 @@ namespace game_logic
 					// new contact before waiting.
 
 					// IMPORTANT TODO: Collect new contacts in temporary array while waiting for GPU
+					// ALTERNATIVE: Write to separate buffer that is then copied.
 
 					GLenum fence_status = glClientWaitSync(fence, 0u, 0u);
 					while (fence_status != GL_ALREADY_SIGNALED && fence_status != GL_CONDITION_SATISFIED)
@@ -1987,14 +2049,13 @@ namespace game_logic
 			struct On_Contacts_Added
 			{
 				game_environment::Environment const& environment;
-				GLuint const& new_contacts_start;
 				void operator()()
 				{
-					GLuint const new_contact_count{ environment.state.current_contact_count - new_contacts_start };
+					GLuint const new_contact_count{ environment.state.current_contact_count - environment.state.current_persistent_contact_count };
 					glFlushMappedNamedBufferRange
 					(
 						environment.state.contact_buffer,
-						environment.state.contact_buffer_contacts_offset + new_contacts_start * environment.state.contact_buffer_contacts_stride,
+						environment.state.contact_buffer_contacts_offset + environment.state.current_persistent_contact_count * environment.state.contact_buffer_contacts_stride,
 						new_contact_count * environment.state.contact_buffer_contacts_stride
 					);
 					glClearNamedBufferSubData
@@ -2005,6 +2066,7 @@ namespace game_logic
 						GL_RED, GL_UNSIGNED_INT,
 						&environment.state.current_contact_count
 					);
+					// IMPORTANT TODO: Remove new contact solving!!!
 					glUseProgram(environment.state.new_triangle_contact_shader);
 					glDispatchCompute
 					(
@@ -2013,14 +2075,13 @@ namespace game_logic
 					);
 				}
 			};
-			GLuint new_contacts_start;
 			On_Removing_Contacts_For on_removing_contacts_for{};
 			Remove_Contact remove_contact{ environment };
-			On_Contacts_Removed on_contacts_removed{ environment, new_contacts_start };
+			On_Contacts_Removed on_contacts_removed{ environment };
 			On_Adding_Contacts_For on_adding_contacts_for{};
 			Contact_Can_Be_Added contact_can_be_added{ environment };
 			Add_Contact add_contact{ environment };
-			On_Contacts_Added on_contacts_added{ environment, new_contacts_start };
+			On_Contacts_Added on_contacts_added{ environment };
 
 			glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT); // Updated persistent contact surfaces
 			util::proximity::update_contacts
@@ -2030,39 +2091,422 @@ namespace game_logic
 				on_adding_contacts_for, contact_can_be_added, add_contact, on_contacts_added
 			);
 
-			glUseProgram(environment.state.solve_contact_velocities_shader);
-
-			GLuint const solve_contact_velocities_work_group_count
-			{
-				ceil_div(environment.state.current_contact_count, game_logic__util__rigid_body_SOLVE_CONTACT_VELOCITIES_LOCAL_SIZE(environment))
-			};
-
-			for (GLuint i{ 0u }; i < 4u; ++i)
-			{
-				glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT); // Updated velocities from previous velocity solve
-
-				glCopyNamedBufferSubData
-				(
-					environment.state.rigid_body_velocity_buffer, environment.state.rigid_body_velocity_snapshot_buffer,
-					environment.state.rigid_body_velocity_buffer_v_offset, environment.state.rigid_body_velocity_buffer_v_offset,
-					environment.state.current_rigid_body_count * environment.state.rigid_body_velocity_buffer_v_stride
-				);
-
-				glDispatchCompute(solve_contact_velocities_work_group_count, 1u, 1u);
-			}
-
 			if (environment.state.tick % 120u == 0u)
 			{
-
 				std::cout << "Height: " << util::proximity::compute_height
 				(
 					environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment)
 				) << '\n';
 				std::cout << "Changed leaf count: " << environment.state.proximity_tree.changed_leaf_count << '\n';
-				std::cout << "Contact count: " << old_contact_count << " - " << old_contact_count - new_contacts_start << " + " << environment.state.current_contact_count - new_contacts_start << " = " << environment.state.current_contact_count << '\n';
+				std::cout << "Contact count: " << old_contact_count << " - " << old_contact_count - environment.state.current_persistent_contact_count << " + " << environment.state.current_contact_count - environment.state.current_persistent_contact_count << " = " << environment.state.current_contact_count << '\n';
 				std::cout << std::endl;
 			}
 		}
+	}
+
+	void tick_positions(game_environment::Environment& environment)
+	{
+		integrate_velocities(environment);
+		update_constraints(environment);
+	}
+
+	void tick_physics(game_environment::Environment& environment)
+	{		
+		tick_velocities(environment);
+		tick_positions(environment);
+
+		return;
+
+		// TODO: REMOVE
+
+		//glUseProgram(environment.state.rigid_body_velocity_integration_shader);
+
+		//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);	// TODO: This could be moved to the end of tick for either future tick or drawing
+
+		//glDispatchCompute
+		//(
+		//	ceil_div(environment.state.current_rigid_body_count, game_logic__util__rigid_body_VELOCITY_INTEGRATION_LOCAL_SIZE(environment)),
+		//	1u, 1u
+		//);
+
+		//glUseProgram(environment.state.triangle_bounding_box_update_shader);
+
+		//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_BUFFER_UPDATE_BARRIER_BIT);	// Positions and velocities from velocity integration
+
+		//glDispatchCompute
+		//(
+		//	ceil_div(environment.state.current_triangle_count, game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment)),
+		//	1u, 1u
+		//);
+		//glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
+		//GLsync const fence{ glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0u) };
+		//glFlush();
+
+		///* If direct position correction is used:
+		//glCopyNamedBufferSubData
+		//(
+		//	environment.state.rigid_body_position_buffer, environment.state.rigid_body_position_snapshot_buffer,
+		//	environment.state.rigid_body_position_buffer_p_offset, environment.state.rigid_body_position_buffer_p_offset,
+		//	environment.state.current_rigid_body_count * environment.state.rigid_body_position_buffer_p_stride
+		//);*/
+
+		///* TODO: Snapshot velocities for bounciness
+		//glCopyNamedBufferSubData
+		//(
+		//	environment.state.rigid_body_velocity_buffer, environment.state.rigid_body_velocity_snapshot_buffer,
+		//	environment.state.rigid_body_velocity_buffer_v_offset, environment.state.rigid_body_velocity_buffer_v_offset,
+		//	environment.state.current_rigid_body_count * environment.state.rigid_body_velocity_buffer_v_stride
+		//);*/
+
+		//// TODO: Might not be needed
+		//// TODO: Consider making triangle contact update shader write to the snapshot 
+		//// so that this memory barrier becomes unnecessary.
+		//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);	// Writes to bounding boxes must occur before constraining the positions and velocities
+
+		//glUseProgram(environment.state.old_triangle_contact_update_shader);
+		//glDispatchCompute
+		//(
+		//	ceil_div(environment.state.current_contact_count, game_logic__util__rigid_body_OLD_TRIANGLE_CONTACT_UPDATE_LOCAL_SIZE(environment)),
+		//	1u, 1u
+		//);
+
+		//// TODO: Potential one-time CPU operations we must do before 
+		//// waiting for the GPU to be done.
+
+		//GLenum fence_status = glClientWaitSync(fence, 0u, 0u);
+		//while (fence_status != GL_ALREADY_SIGNALED && fence_status != GL_CONDITION_SATISFIED)
+		//{
+		//	// TODO: Do something useful but not necessary while we wait. 
+		//	// Example: Optimize proximity tree.
+		//	fence_status = glClientWaitSync(fence, 0u, 0u);
+		//}
+
+		///*switch (fence_status)
+		//{
+		//	case GL_ALREADY_SIGNALED:
+		//		std::cout << "Already signaled" << std::endl;
+		//		break;
+		//	case GL_CONDITION_SATISFIED:
+		//		std::cout << "Condition satisfied" << std::endl;
+		//		break;
+		//}*/
+
+		//std::memcpy
+		//(
+		//	&environment.state.proximity_tree.changed_leaf_count,
+		//	environment.state.changed_bounding_boxes_mapping + environment.state.changed_bounding_box_buffer_size_offset,
+		//	sizeof(GLuint)
+		//);
+		//// TODO: Fix shader invocations working on out of bounds data
+		//// (by skipping over them when iterating here?)
+		///*if (size > 10u)
+		//{
+		//	std::cout << size << std::endl;
+		//}*/
+		//glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT); // TODO: Make sure this is correct
+		//glClearNamedBufferSubData
+		//(
+		//	environment.state.changed_bounding_box_buffer,
+		//	GL_R32UI,
+		//	environment.state.changed_bounding_box_buffer_size_offset, sizeof(GLuint),
+		//	GL_RED, GL_UNSIGNED_INT,
+		//	nullptr
+		//);
+
+		//if (util::proximity::is_empty(environment.state.proximity_tree))
+		//{
+
+		//}
+		//else if (util::proximity::has_single_node(environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment)))
+		//{
+
+		//}
+		//else
+		//{
+		//	unsigned char const* index_start{ environment.state.changed_bounding_boxes_mapping + environment.state.changed_bounding_box_buffer_boxes_index_offset };
+		//	unsigned char const* min_x_start{ environment.state.changed_bounding_boxes_mapping + environment.state.changed_bounding_box_buffer_boxes_min_x_offset };
+		//	unsigned char const* min_y_start{ environment.state.changed_bounding_boxes_mapping + environment.state.changed_bounding_box_buffer_boxes_min_y_offset };
+		//	unsigned char const* max_x_start{ environment.state.changed_bounding_boxes_mapping + environment.state.changed_bounding_box_buffer_boxes_max_x_offset };
+		//	unsigned char const* max_y_start{ environment.state.changed_bounding_boxes_mapping + environment.state.changed_bounding_box_buffer_boxes_max_y_offset };
+
+		//	for (GLuint i{ 0 }; i < environment.state.proximity_tree.changed_leaf_count; ++i)
+		//	{
+		//		GLuint index;
+		//		GLint min_x, min_y, max_x, max_y;
+		//		std::memcpy(&index, index_start, sizeof(GLuint));
+		//		std::memcpy(&min_x, min_x_start, sizeof(GLint));
+		//		std::memcpy(&min_y, min_y_start, sizeof(GLint));
+		//		std::memcpy(&max_x, max_x_start, sizeof(GLint));
+		//		std::memcpy(&max_y, max_y_start, sizeof(GLint));
+
+		//		//std::cout << index << ": ";
+		//		//util::proximity::print(std::cout, game_state::proximity::Bounding_Box{ min_x, min_y, max_x, max_y }) << std::endl;
+
+		//		util::proximity::change_leaf_of_multinode_tree
+		//		(
+		//			environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment),
+		//			index, i, min_x, min_y, max_x, max_y
+		//		);
+
+		//		index_start += environment.state.changed_bounding_box_buffer_boxes_stride;
+		//		min_x_start += environment.state.changed_bounding_box_buffer_boxes_stride;
+		//		min_y_start += environment.state.changed_bounding_box_buffer_boxes_stride;
+		//		max_x_start += environment.state.changed_bounding_box_buffer_boxes_stride;
+		//		max_y_start += environment.state.changed_bounding_box_buffer_boxes_stride;
+
+		//		//std::cout << i << ": " << index << std::endl;
+		//	}
+
+		//	GLuint const old_contact_count{ environment.state.current_contact_count };
+
+		//	struct On_Removing_Contacts_For
+		//	{
+		//		void operator()(GLuint leaf_index)
+		//		{
+		//		}
+		//	};
+
+		//	struct Remove_Contact
+		//	{
+		//		game_environment::Environment& environment;
+
+		//		void operator()(GLuint const contact_index, GLuint& next_contact_index)
+		//		{
+		//			--environment.state.current_contact_count;
+
+		//			/*std::cout << "Remove contact " << contact_index << std::endl;
+		//			std::cout << "Contact count: " << environment.state.current_contact_count << std::endl;
+		//			util::proximity::print_leaf_contacts(std::cout, environment.state.proximity_tree, environment.state.proximity_tree.contacts[contact_index].leaf_0);
+		//			util::proximity::print_leaf_contacts(std::cout, environment.state.proximity_tree, environment.state.proximity_tree.contacts[contact_index].leaf_1);
+		//			std::cout << std::endl;*/
+
+		//			if (contact_index != environment.state.current_contact_count)
+		//			{
+		//				// MAYBE TODO: Avoid multiplications by using members that are added/subtracted along with contact count
+		//				glCopyNamedBufferSubData
+		//				(
+		//					environment.state.contact_buffer, environment.state.contact_buffer,
+		//					environment.state.contact_buffer_contacts_offset + environment.state.current_contact_count * environment.state.contact_buffer_contacts_stride,
+		//					environment.state.contact_buffer_contacts_offset + contact_index * environment.state.contact_buffer_contacts_stride,
+		//					sizeof(GLuint[2])
+		//				);
+		//				glCopyNamedBufferSubData
+		//				(
+		//					environment.state.contact_surface_buffer, environment.state.contact_surface_buffer,
+		//					environment.state.contact_surface_buffer_contact_surfaces_offset + environment.state.current_contact_count * environment.state.contact_surface_buffer_contact_surfaces_stride,
+		//					environment.state.contact_surface_buffer_contact_surfaces_offset + contact_index * environment.state.contact_surface_buffer_contact_surfaces_stride,
+		//					environment.state.contact_surface_buffer_contact_surfaces_stride
+		//				);
+
+		//				game_state::proximity::Contact const& moved_contact
+		//				{
+		//					environment.state.proximity_tree.contacts[environment.state.current_contact_count]
+		//				};
+		//				environment.state.proximity_tree.contacts[contact_index] = moved_contact;
+
+		//				if (moved_contact.child_0_neighbor_pair.previous == game_logic__util__proximity_NULL_INDEX)
+		//				{
+		//					environment.state.proximity_tree.nodes[moved_contact.leaf_0].contact = contact_index;
+		//				}
+		//				else
+		//				{
+		//					game_state::proximity::Contact& previous{ environment.state.proximity_tree.contacts[moved_contact.child_0_neighbor_pair.previous] };
+		//					GLuint const side{ static_cast<GLuint>(previous.child_1_neighbor_pair.next == environment.state.current_contact_count) };
+		//					previous.neighbor_pairs[side].next = contact_index;
+		//				}
+		//				if (moved_contact.child_0_neighbor_pair.next != game_logic__util__proximity_NULL_INDEX)
+		//				{
+		//					game_state::proximity::Contact& next{ environment.state.proximity_tree.contacts[moved_contact.child_0_neighbor_pair.next] };
+		//					GLuint const side{ static_cast<GLuint>(next.child_1_neighbor_pair.previous == environment.state.current_contact_count) };
+		//					next.neighbor_pairs[side].previous = contact_index;
+		//				}
+
+		//				if (moved_contact.child_1_neighbor_pair.previous == game_logic__util__proximity_NULL_INDEX)
+		//				{
+		//					environment.state.proximity_tree.nodes[moved_contact.leaf_1].contact = contact_index;
+		//				}
+		//				else
+		//				{
+		//					game_state::proximity::Contact& previous{ environment.state.proximity_tree.contacts[moved_contact.child_1_neighbor_pair.previous] };
+		//					GLuint const side{ static_cast<GLuint>(previous.child_1_neighbor_pair.next == environment.state.current_contact_count) };
+		//					previous.neighbor_pairs[side].next = contact_index;
+		//				}
+		//				if (moved_contact.child_1_neighbor_pair.next != game_logic__util__proximity_NULL_INDEX)
+		//				{
+		//					game_state::proximity::Contact& next{ environment.state.proximity_tree.contacts[moved_contact.child_1_neighbor_pair.next] };
+		//					GLuint const side{ static_cast<GLuint>(next.child_1_neighbor_pair.previous == environment.state.current_contact_count) };
+		//					next.neighbor_pairs[side].previous = contact_index;
+		//				}
+
+		//				if (next_contact_index == environment.state.current_contact_count)
+		//				{
+		//					next_contact_index = contact_index;
+		//				}
+		//			}
+		//		}
+		//	};
+
+		//	struct On_Contacts_Removed
+		//	{
+		//		game_environment::Environment& environment;
+		//		//GLuint& new_contacts_start;
+
+		//		void operator()()
+		//		{
+		//			// TODO: Check if this memory barrier is necessary
+		//			glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
+		//			GLsync const fence{ glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0u) };	// Contact copying
+		//			glFlush();
+
+		//			glClearNamedBufferSubData
+		//			(
+		//				environment.state.persistent_contact_count_buffer,
+		//				GL_R32UI,
+		//				environment.state.persistent_contact_count_buffer_persistent_contact_count_offset, sizeof(GLuint),
+		//				GL_RED, GL_UNSIGNED_INT,
+		//				&environment.state.current_contact_count
+		//			);
+
+		//			// TODO: Snapshot velocities
+		//			// TODO: Solve persistent contacts
+
+		//			environment.state.current_persistent_contact_count = environment.state.current_contact_count;
+		//			//new_contacts_start = environment.state.current_contact_count;
+
+		//			// TODO: Other operations that we let the GPU perform while it is copying contact 
+		//			// to old contact positions.
+
+		//			// TODO: Potential one-time CPU operations we must do before 
+		//			// waiting for the GPU to be done. Example: Find the first 
+		//			// new contact before waiting.
+
+		//			// IMPORTANT TODO: Collect new contacts in temporary array while waiting for GPU
+
+		//			GLenum fence_status = glClientWaitSync(fence, 0u, 0u);
+		//			while (fence_status != GL_ALREADY_SIGNALED && fence_status != GL_CONDITION_SATISFIED)
+		//			{
+		//				// TODO: Do something useful but not necessary while we wait. 
+		//				// Example: Optimize proximity tree.
+		//				fence_status = glClientWaitSync(fence, 0u, 0u);
+		//			}
+		//		}
+		//	};
+
+		//	struct On_Adding_Contacts_For
+		//	{
+		//		void operator()(GLuint leaf_index)
+		//		{
+		//		}
+		//	};
+
+		//	struct Contact_Can_Be_Added
+		//	{
+		//		game_environment::Environment const& environment;
+
+		//		bool operator()(GLuint const leaf_0_index, GLuint const leaf_1_index)
+		//		{
+		//			return environment.state.current_contact_count < game_logic_MAX_CONTACT_COUNT(environment);
+		//		}
+		//	};
+
+		//	struct Add_Contact
+		//	{
+		//		game_environment::Environment& environment;
+
+		//		GLuint operator()(GLuint const leaf_0_index, GLuint const leaf_1_index)
+		//		{
+		//			GLuint leaf_indices[2]{ leaf_0_index, leaf_1_index };
+		//			// TODO: Do addition between mapping pointer and offset once during initialization
+		//			std::memcpy
+		//			(
+		//				environment.state.contact_mapping + environment.state.contact_buffer_contacts_offset
+		//				+ environment.state.current_contact_count * environment.state.contact_buffer_contacts_stride,
+		//				&leaf_indices,
+		//				sizeof(leaf_indices)
+		//			);
+		//			return environment.state.current_contact_count++;
+		//		}
+		//	};
+
+		//	struct On_Contacts_Added
+		//	{
+		//		game_environment::Environment const& environment;
+		//		
+		//		void operator()()
+		//		{
+		//			GLuint const new_contact_count{ environment.state.current_contact_count - environment.state.current_persistent_contact_count };
+		//			glFlushMappedNamedBufferRange
+		//			(
+		//				environment.state.contact_buffer,
+		//				environment.state.contact_buffer_contacts_offset + environment.state.current_persistent_contact_count * environment.state.contact_buffer_contacts_stride,
+		//				new_contact_count * environment.state.contact_buffer_contacts_stride
+		//			);
+		//			glClearNamedBufferSubData
+		//			(
+		//				environment.state.contact_count_buffer,
+		//				GL_R32UI,
+		//				environment.state.contact_count_buffer_contact_count_offset, sizeof(GLuint),
+		//				GL_RED, GL_UNSIGNED_INT,
+		//				&environment.state.current_contact_count
+		//			);
+		//			glUseProgram(environment.state.new_triangle_contact_shader);
+		//			glDispatchCompute
+		//			(
+		//				ceil_div(new_contact_count, game_logic__util__rigid_body_NEW_TRIANGLE_CONTACT_LOCAL_SIZE(environment)),
+		//				1u, 1u
+		//			);
+		//		}
+		//	};
+		//	//GLuint new_contacts_start;
+		//	On_Removing_Contacts_For on_removing_contacts_for{};
+		//	Remove_Contact remove_contact{ environment };
+		//	On_Contacts_Removed on_contacts_removed{ environment };
+		//	On_Adding_Contacts_For on_adding_contacts_for{};
+		//	Contact_Can_Be_Added contact_can_be_added{ environment };
+		//	Add_Contact add_contact{ environment };
+		//	On_Contacts_Added on_contacts_added{ environment };
+
+		//	glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT); // Updated persistent contact surfaces
+		//	util::proximity::update_contacts
+		//	(
+		//		environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment),
+		//		on_removing_contacts_for, remove_contact, on_contacts_removed,
+		//		on_adding_contacts_for, contact_can_be_added, add_contact, on_contacts_added
+		//	);
+
+		//	glUseProgram(environment.state.solve_contact_velocities_shader);
+
+		//	GLuint const solve_contact_velocities_work_group_count
+		//	{
+		//		ceil_div(environment.state.current_contact_count, game_logic__util__rigid_body_SOLVE_CONTACT_VELOCITIES_LOCAL_SIZE(environment))
+		//	};
+
+		//	for (GLuint i{ 0u }; i < 4u; ++i)
+		//	{
+		//		glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT); // Updated velocities from previous velocity solve
+
+		//		glCopyNamedBufferSubData
+		//		(
+		//			environment.state.rigid_body_velocity_buffer, environment.state.rigid_body_velocity_snapshot_buffer,
+		//			environment.state.rigid_body_velocity_buffer_v_offset, environment.state.rigid_body_velocity_buffer_v_offset,
+		//			environment.state.current_rigid_body_count * environment.state.rigid_body_velocity_buffer_v_stride
+		//		);
+
+		//		glDispatchCompute(solve_contact_velocities_work_group_count, 1u, 1u);
+		//	}
+
+		//	if (environment.state.tick % 120u == 0u)
+		//	{
+
+		//		std::cout << "Height: " << util::proximity::compute_height
+		//		(
+		//			environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment)
+		//		) << '\n';
+		//		std::cout << "Changed leaf count: " << environment.state.proximity_tree.changed_leaf_count << '\n';
+		//		//std::cout << "Contact count: " << old_contact_count << " - " << old_contact_count - environment.state.current_persistent_contact_count << " + " << environment.state.current_contact_count - new_contacts_start << " = " << environment.state.current_contact_count << '\n';
+		//		std::cout << std::endl;
+		//	}
+		//}
 	}
 
 	void on_key_event(
@@ -2454,8 +2898,8 @@ namespace game_logic
 		//glUseProgram(environment.state.contact_basis_draw_shader);
 		//glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 4u);
 
-		glUseProgram(environment.state.contact_impulses_draw_shader);
-		glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 16u);
+		//glUseProgram(environment.state.contact_impulses_draw_shader);
+		//glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 16u);
 	}
 
 	void free(game_environment::Environment& environment)

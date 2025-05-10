@@ -1,0 +1,5 @@
+#pragma once
+#include "DEFAULT_COMPUTE_SHADER_LOCAL_SIZE.h"
+
+#define game_logic__util__rigid_body_WARM_START_CONTACT_IMPULSES_LOCAL_SIZE(environment) \
+	game_logic__util__rigid_body_DEFAULT_COMPUTE_SHADER_LOCAL_SIZE(environment)

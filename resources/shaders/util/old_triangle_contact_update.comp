@@ -79,11 +79,11 @@ buffer Positions
 	ivec4 p[MAX_RIGID_BODY_COUNT];
 } positions;
 
-layout(shared, binding = VELOCITY_BINDING) restrict writeonly
+/*layout(shared, binding = VELOCITY_BINDING) restrict readonly
 buffer Velocities
 {
 	ivec4 v[MAX_RIGID_BODY_COUNT];
-} velocities;
+} velocities;*/
 
 layout(local_size_x = LOCAL_SIZE) in;
 void main()
@@ -363,7 +363,7 @@ void main()
 			inverse_mass_1 + inverse_inertia_1 * temp_1 * temp_1
 		);
 		contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_normals[primary_incident_vertex_side].mass = primary_normal_mass;
-
+		/*
 		vec2 secondary_impulse = 
 		(
 			contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_tangents[secondary_incident_vertex_side].impulse * tangent + 
@@ -394,7 +394,7 @@ void main()
 
 		atomicAdd(velocities.v[triangles[1u].w].x, delta_velocity_1.x);
 		atomicAdd(velocities.v[triangles[1u].w].y, delta_velocity_1.y);
-		atomicAdd(velocities.v[triangles[1u].w].z, delta_velocity_1.z);
+		atomicAdd(velocities.v[triangles[1u].w].z, delta_velocity_1.z);*/
 /*
 #if DIRECT_POSITION_CORRECTION == 1
 		if (secondary_penetration_error > 0.0 || primary_penetration_error > 0.0)

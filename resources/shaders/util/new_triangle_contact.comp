@@ -341,7 +341,8 @@ void main()
 		contact_surfaces.contact_surfaces[index].contact_point_tangents[primary_incident_vertex_side].impulse = 0.0;
 
 		// TODO: Handle infinite masses
-		// TODO: Solve normal impulses
+		// TODO: Solve normal impulses NOOO!! INSTEAD SET IMPULSE TO 0 WITHOUT BRANCHING (UNLESS THE 
+		// IMPULSE IS ALREADY 0!?)
 
 		float secondary_penetration = dot(vertices[reference_edge] - secondary_contact_point, normals[reference_edge]);
 		float secondary_penetration_error = secondary_penetration - ALLOWED_PENETRATION;

@@ -110,12 +110,14 @@ namespace game_state
 
 		GLuint new_triangle_contact_shader;
 
+		GLuint warm_start_contact_impulses_shader;
 		GLuint solve_contact_velocities_shader;
 
 		proximity::Tree proximity_tree;
 
 		// TODO: Consider using std::430 layout to improve runtime performance
 		GLuint current_contact_count;
+		GLuint current_persistent_contact_count;
 		GLuint contact_buffer;
 		GLint contact_buffer_size;
 		GLint contact_buffer_contacts_offset;
