@@ -41,10 +41,10 @@
 #include <algorithm>
 
 #define game_logic_MAX_RIGID_BODY_COUNT(environment) \
-	10u * game_logic__util__rigid_body_VELOCITY_INTEGRATION_LOCAL_SIZE(environment)
+	20u * game_logic__util__rigid_body_VELOCITY_INTEGRATION_LOCAL_SIZE(environment)
 
 #define game_logic_MAX_TRIANGLE_COUNT(environment) \
-	10u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment)
+	20u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment)
 
 #define game_logic_MAX_VERTEX_COUNT(environment) \
 	3u * game_logic_MAX_TRIANGLE_COUNT(environment)
@@ -58,8 +58,8 @@
 #define game_logic_TANGENT_IMPULSE_SCALE(environment) 0.05f
 #define game_logic_NORMAL_IMPULSE_SCALE(environment) 0.05f
 #define game_logic_DIRECT_POSITION_CORRECTION(environment) 0
-#define game_logic_ALLOWED_PENETRATION(environment) game_logic__util__spatial_FLOAT_FROM_METERS(environment, 0.1f)
-#define game_logic_PENETRATION_VELOCITY_SCALE(environment) 0.001f * game_logic__util__spatial_METER_INVERSE(environment)
+#define game_logic_ALLOWED_PENETRATION(environment) game_logic__util__spatial_FLOAT_FROM_METERS(environment, 0.05f)
+#define game_logic_PENETRATION_VELOCITY_SCALE(environment) 0.002f * game_logic__util__spatial_METER_INVERSE(environment)
 #define game_logic_POSITION_IMPULSE_SCALE(environment) 0.1f * game_logic__util__spatial_METER_INVERSE(environment)
 
 // TODO: Store separate masses for each body in buffer
@@ -79,8 +79,6 @@ namespace game_logic
 {
 	void initialize(game_environment::Environment& environment)
 	{
-		std::cout << game_logic_POSITION_IMPULSE_SCALE(environment) << std::endl;
-
 		// TODO: Use glBindBuffersBase (note the s) for binding multiple buffers at once
 		// IMPORTANT TODO: We do not need to do a position snapshot if velocity-based position correction 
 		// is sufficient.
@@ -660,7 +658,7 @@ namespace game_logic
 			);
 		}
 
-		environment.state.current_rigid_body_count = 10u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment);//500000u;
+		environment.state.current_rigid_body_count = 20u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment);//500000u;
 		environment.state.current_triangle_count = 1u * environment.state.current_rigid_body_count;
 		environment.state.current_contact_count = 0u;
 
@@ -2446,9 +2444,9 @@ namespace game_logic
 		//glUseProgram(environment.state.leaf_contact_draw_shader);
 		//glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 2u);
 
-		//glUseProgram(environment.state.contact_point_positions_draw_shader);
-		//glPointSize(10.0f);
-		//glDrawArrays(GL_POINTS, 0, environment.state.current_contact_count * 4u);
+		glUseProgram(environment.state.contact_point_positions_draw_shader);
+		glPointSize(10.0f);
+		glDrawArrays(GL_POINTS, 0, environment.state.current_contact_count * 4u);
 
 		//glUseProgram(environment.state.contact_point_offsets_draw_shader);
 		//glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 8u);
@@ -2456,8 +2454,8 @@ namespace game_logic
 		//glUseProgram(environment.state.contact_basis_draw_shader);
 		//glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 4u);
 
-		//glUseProgram(environment.state.contact_impulses_draw_shader);
-		//glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 16u);
+		glUseProgram(environment.state.contact_impulses_draw_shader);
+		glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 16u);
 	}
 
 	void free(game_environment::Environment& environment)
