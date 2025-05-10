@@ -12,6 +12,7 @@ namespace game_state
 	struct Game
 	{
 		GLFWcursor* grab_cursor;
+		GLFWcursor* point_cursor;
 
 		camera::Camera camera;
 		GLboolean point_grabbed;
@@ -147,6 +148,8 @@ namespace game_state
 
 		GLuint triangle_draw_shader;
 		GLuint triangle_wireframes_draw_shader;
+		GLuint hovered_triangle_wireframe_draw_shader;
+		GLint hovered_triangle_wireframe_hovered_triangle_uniform_location;
 		GLuint triangle_normal_draw_shader;
 		GLuint triangle_bounding_box_draw_shader;
 		GLuint parent_bounding_box_draw_shader;
