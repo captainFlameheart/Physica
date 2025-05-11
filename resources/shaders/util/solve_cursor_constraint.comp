@@ -9,7 +9,8 @@ layout(shared, binding = CURSOR_POSITION_BINDING) uniform Cursor_Position
 	ivec2 position;
 } cursor_position;
 
-layout(shared, binding = CURSOR_CONSTRAINT_BINDING) restrict readonly Cursor_Constraint
+layout(shared, binding = CURSOR_CONSTRAINT_BINDING) restrict 
+buffer Cursor_Constraint
 {
 	vec2 offset;
 	vec2 target_velocity;
@@ -49,7 +50,7 @@ void main()
 
 	vec2 velocity = body_velocity.xy + body_velocity.z * offset;
 	vec2 old_impulse = impulse;
-	impulse += mass * (target_velocity - velocity);
+	impulse += IMPULSE_SCALE * (mass * (target_velocity - velocity));
 	float impulse_magnitude = length(impulse);
 	float clamp_scale = min(1.0, MAX_IMPULSE / impulse_magnitude);
 	impulse *= clamp_scale;

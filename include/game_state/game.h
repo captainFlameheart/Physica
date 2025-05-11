@@ -118,7 +118,9 @@ namespace game_state
 		GLuint new_triangle_contact_shader;
 
 		GLuint warm_start_contact_impulses_shader;
+		GLuint update_and_warm_start_cursor_constraint_shader;
 		GLuint solve_contact_velocities_shader;
+		GLuint solve_cursor_constraint_shader;
 
 		proximity::Tree proximity_tree;
 
@@ -129,6 +131,23 @@ namespace game_state
 		GLint contact_buffer_size;
 		GLint contact_buffer_contacts_offset;
 		GLint contact_buffer_contacts_stride;
+
+		GLuint cursor_position_buffer;
+		GLint cursor_position_buffer_size;
+		GLint cursor_position_buffer_position_offset;
+
+		GLuint cursor_constrained_point_buffer;
+		GLint cursor_constrained_point_buffer_size;
+		GLint cursor_constrained_point_buffer_body_offset;
+		GLint cursor_constrained_point_buffer_local_point_offset;
+
+		GLuint cursor_constraint_buffer;
+		GLint cursor_constraint_buffer_size;
+		GLint cursor_constraint_buffer_offset_offset;
+		GLint cursor_constraint_buffer_target_velocity_offset;
+		GLint cursor_constraint_buffer_mass_offset;
+		GLint cursor_constraint_buffer_mass_matrix_stride;
+		GLint cursor_constraint_buffer_impulse_offset;
 
 		GLuint rigid_body_velocity_integration_shader;
 		GLuint triangle_bounding_box_update_shader;

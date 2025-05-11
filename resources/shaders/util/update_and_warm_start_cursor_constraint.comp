@@ -9,7 +9,8 @@ layout(shared, binding = CURSOR_POSITION_BINDING) uniform Cursor_Position
 	ivec2 position;
 } cursor_position;
 
-layout(shared, binding = CURSOR_CONSTRAINT_BINDING) restrict readonly Cursor_Constraint
+layout(shared, binding = CURSOR_CONSTRAINT_BINDING) restrict 
+buffer Cursor_Constraint
 {
 	vec2 offset;
 	vec2 target_velocity;

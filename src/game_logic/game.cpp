@@ -64,6 +64,10 @@
 #define game_logic_PENETRATION_VELOCITY_SCALE(environment) 0.002f * game_logic__util__spatial_METER_INVERSE(environment)
 #define game_logic_POSITION_IMPULSE_SCALE(environment) 0.1f * game_logic__util__spatial_METER_INVERSE(environment)
 
+#define game_logic_CURSOR_CONSTRAINT_VELOCITY_SCALE(environment) 0.5f
+#define game_logic_CURSOR_CONSTRAINT_IMPULSE_SCALE(environment) 0.05f
+#define game_logic_CURSOR_CONSTRAINT_MAX_IMPULSE(environment) 999.9f
+
 // TODO: Store separate masses for each body in buffer
 #define INVERSE_MASS 1.0f
 #define INVERSE_INERTIA 2.0f
@@ -587,6 +591,29 @@ namespace game_logic
 		(
 			compute_shader,
 			util_shader_VERSION,
+			max_rigid_body_count_definition,
+			util_shader_DEFINE("CURSOR_CONSTRAINED_POINT_BINDING", STRINGIFY(game_logic__util_CURSOR_CONSTRAINED_POINT_BINDING)),
+			util_shader_DEFINE("CURSOR_POSITION_BINDING", STRINGIFY(game_logic__util_CURSOR_POSITION_BINDING)),
+			util_shader_DEFINE("CURSOR_CONSTRAINT_BINDING", STRINGIFY(game_logic__util_CURSOR_CONSTRAINT_BINDING)),
+			util_shader_DEFINE("POSITION_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_POSITION_BINDING)),
+			util_shader_DEFINE("VELOCITY_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_VELOCITY_BINDING)),
+			util_shader_DEFINE("METER_INVERSE", STRINGIFY(game_logic__util__spatial_METER_INVERSE(environment))),
+			util_shader_DEFINE("RADIAN_INVERSE", STRINGIFY(game_logic__util__spatial_RADIAN_INVERSE(environment))),
+			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))),
+			util_shader_DEFINE("RADIAN", STRINGIFY(game_logic__util__spatial_RADIAN(environment))),
+			util_shader_DEFINE("INVERSE_MASS", STRINGIFY(INVERSE_MASS)),
+			util_shader_DEFINE("INVERSE_INERTIA", STRINGIFY(INVERSE_INERTIA)),
+			util_shader_DEFINE("VELOCITY_SCALE", STRINGIFY(game_logic_CURSOR_CONSTRAINT_VELOCITY_SCALE(environment))),
+			util_shader_DEFINE("IMPULSE_SCALE", STRINGIFY(game_logic_CURSOR_CONSTRAINT_IMPULSE_SCALE(environment))),
+			::util::shader::file_to_string("util/update_and_warm_start_cursor_constraint.comp")
+		);
+		environment.state.update_and_warm_start_cursor_constraint_shader = ::util::shader::create_program(compute_shader);
+		std::cout << "Update and warm start cursor constraint shader compiled" << std::endl;
+
+		::util::shader::set_shader_statically
+		(
+			compute_shader,
+			util_shader_VERSION,
 			max_contact_count_definition,
 			max_rigid_body_count_definition,
 			util_shader_DEFINE("CONTACT_SURFACE_BINDING", STRINGIFY(game_logic__util_CONTACT_SURFACE_BINDING)),
@@ -608,6 +635,31 @@ namespace game_logic
 		environment.state.solve_contact_velocities_shader = ::util::shader::create_program(compute_shader);
 		std::cout << "Solve contact velocities shader compiled" << std::endl;
 
+		::util::shader::set_shader_statically
+		(
+			compute_shader,
+			util_shader_VERSION,
+			max_rigid_body_count_definition,
+			util_shader_DEFINE("CURSOR_CONSTRAINED_POINT_BINDING", STRINGIFY(game_logic__util_CURSOR_CONSTRAINED_POINT_BINDING)),
+			util_shader_DEFINE("CURSOR_POSITION_BINDING", STRINGIFY(game_logic__util_CURSOR_POSITION_BINDING)),
+			util_shader_DEFINE("CURSOR_CONSTRAINT_BINDING", STRINGIFY(game_logic__util_CURSOR_CONSTRAINT_BINDING)),
+			util_shader_DEFINE("POSITION_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_POSITION_BINDING)),
+			util_shader_DEFINE("VELOCITY_SNAPSHOT_BINDING", STRINGIFY(game_logic__util_VELOCITY_SNAPSHOT_BINDING)),
+			util_shader_DEFINE("VELOCITY_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_VELOCITY_BINDING)),
+			util_shader_DEFINE("METER_INVERSE", STRINGIFY(game_logic__util__spatial_METER_INVERSE(environment))),
+			util_shader_DEFINE("RADIAN_INVERSE", STRINGIFY(game_logic__util__spatial_RADIAN_INVERSE(environment))),
+			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))),
+			util_shader_DEFINE("RADIAN", STRINGIFY(game_logic__util__spatial_RADIAN(environment))),
+			util_shader_DEFINE("INVERSE_MASS", STRINGIFY(INVERSE_MASS)),
+			util_shader_DEFINE("INVERSE_INERTIA", STRINGIFY(INVERSE_INERTIA)),
+			util_shader_DEFINE("VELOCITY_SCALE", STRINGIFY(game_logic_CURSOR_CONSTRAINT_VELOCITY_SCALE(environment))),
+			util_shader_DEFINE("IMPULSE_SCALE", STRINGIFY(game_logic_CURSOR_CONSTRAINT_IMPULSE_SCALE(environment))),
+			util_shader_DEFINE("MAX_IMPULSE", STRINGIFY(game_logic_CURSOR_CONSTRAINT_MAX_IMPULSE(environment))),
+			::util::shader::file_to_string("util/solve_cursor_constraint.comp")
+		);
+		environment.state.solve_cursor_constraint_shader = ::util::shader::create_program(compute_shader);
+		std::cout << "Solve cursor constraint shader compiled" << std::endl;
+
 		::util::shader::delete_shader(compute_shader);
 
 		std::cout << std::endl;
@@ -628,7 +680,10 @@ namespace game_logic
 			environment.state.contact_count_buffer, 
 			environment.state.persistent_contact_count_buffer, 
 			environment.state.rigid_body_velocity_snapshot_buffer, 
-			environment.state.rigid_body_position_snapshot_buffer
+			environment.state.rigid_body_position_snapshot_buffer, 
+			environment.state.cursor_position_buffer, 
+			environment.state.cursor_constrained_point_buffer, 
+			environment.state.cursor_constraint_buffer
 		};
 		glCreateBuffers(std::size(buffers), buffers);
 		environment.state.camera_buffer = buffers[0u];
@@ -644,8 +699,11 @@ namespace game_logic
 		environment.state.persistent_contact_count_buffer = buffers[10u];
 		environment.state.rigid_body_velocity_snapshot_buffer = buffers[11u];
 		environment.state.rigid_body_position_snapshot_buffer = buffers[12u];
+		environment.state.cursor_position_buffer = buffers[13u];
+		environment.state.cursor_constrained_point_buffer = buffers[14u];
+		environment.state.cursor_constraint_buffer = buffers[15u];
 
-		{
+		{ // Camera buffer
 			GLuint const block_index
 			{
 				glGetProgramResourceIndex(environment.state.shader, GL_UNIFORM_BLOCK, "Camera")
@@ -1633,6 +1691,152 @@ namespace game_logic
 			glBindBufferBase(GL_UNIFORM_BUFFER, game_logic__util_PERSISTENT_CONTACT_COUNT_BINDING, environment.state.persistent_contact_count_buffer);
 		}
 
+		{ // Cursor position buffer
+			GLuint const position_index
+			{
+				glGetProgramResourceIndex(environment.state.update_and_warm_start_cursor_constraint_shader, GL_UNIFORM, "Cursor_Position.position")
+			};
+
+			GLenum offset_label{ GL_OFFSET };
+			glGetProgramResourceiv
+			(
+				environment.state.update_and_warm_start_cursor_constraint_shader, GL_UNIFORM, position_index,
+				1u, &offset_label, 1u, nullptr, &environment.state.cursor_position_buffer_position_offset
+			);
+
+			GLuint const block_index
+			{
+				glGetProgramResourceIndex(environment.state.update_and_warm_start_cursor_constraint_shader, GL_UNIFORM_BLOCK, "Cursor_Position")
+			};
+			GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
+			glGetProgramResourceiv
+			(
+				environment.state.update_and_warm_start_cursor_constraint_shader, GL_UNIFORM_BLOCK, block_index,
+				1u, &buffer_size_label, 1u, nullptr, &environment.state.cursor_position_buffer_size
+			);
+
+			
+			glNamedBufferStorage
+			(
+				environment.state.cursor_position_buffer, environment.state.cursor_position_buffer_size, nullptr,
+				0u
+			);
+
+			glBindBufferBase(GL_UNIFORM_BUFFER, game_logic__util_CURSOR_POSITION_BINDING, environment.state.cursor_position_buffer);
+		}
+
+		{ // Cursor constrained point buffer
+			GLenum offset_label{ GL_OFFSET };
+
+			GLuint const body_index
+			{
+				glGetProgramResourceIndex(environment.state.update_and_warm_start_cursor_constraint_shader, GL_UNIFORM, "Cursor_Constrained_Point.body")
+			};
+			glGetProgramResourceiv
+			(
+				environment.state.update_and_warm_start_cursor_constraint_shader, GL_UNIFORM, body_index,
+				1u, &offset_label, 1u, nullptr, &environment.state.cursor_constrained_point_buffer_body_offset
+			);
+
+			GLuint const local_point_index
+			{
+				glGetProgramResourceIndex(environment.state.update_and_warm_start_cursor_constraint_shader, GL_UNIFORM, "Cursor_Constrained_Point.local_point")
+			};
+			glGetProgramResourceiv
+			(
+				environment.state.update_and_warm_start_cursor_constraint_shader, GL_UNIFORM, local_point_index,
+				1u, &offset_label, 1u, nullptr, &environment.state.cursor_constrained_point_buffer_local_point_offset
+			);
+
+			GLuint const block_index
+			{
+				glGetProgramResourceIndex(environment.state.update_and_warm_start_cursor_constraint_shader, GL_UNIFORM_BLOCK, "Cursor_Constrained_Point")
+			};
+			GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
+			glGetProgramResourceiv
+			(
+				environment.state.update_and_warm_start_cursor_constraint_shader, GL_UNIFORM_BLOCK, block_index,
+				1u, &buffer_size_label, 1u, nullptr, &environment.state.cursor_constrained_point_buffer_size
+			);
+
+
+			glNamedBufferStorage
+			(
+				environment.state.cursor_constrained_point_buffer, environment.state.cursor_constrained_point_buffer_size, nullptr,
+				0u
+			);
+
+			glBindBufferBase(GL_UNIFORM_BUFFER, game_logic__util_CURSOR_CONSTRAINED_POINT_BINDING, environment.state.cursor_constrained_point_buffer);
+		}
+
+		{ // Cursor constraint buffer
+			GLenum const offset_label{ GL_OFFSET };
+
+			GLuint const offset_index
+			{
+				glGetProgramResourceIndex(environment.state.update_and_warm_start_cursor_constraint_shader, GL_BUFFER_VARIABLE, "Cursor_Constraint.offset")
+			};
+			glGetProgramResourceiv
+			(
+				environment.state.update_and_warm_start_cursor_constraint_shader, GL_BUFFER_VARIABLE, offset_index,
+				1u, &offset_label, 1u, nullptr, &environment.state.cursor_constraint_buffer_offset_offset
+			);
+
+			GLuint const target_velocity_index
+			{
+				glGetProgramResourceIndex(environment.state.update_and_warm_start_cursor_constraint_shader, GL_BUFFER_VARIABLE, "Cursor_Constraint.target_velocity")
+			};
+			glGetProgramResourceiv
+			(
+				environment.state.update_and_warm_start_cursor_constraint_shader, GL_BUFFER_VARIABLE, target_velocity_index,
+				1u, &offset_label, 1u, nullptr, &environment.state.cursor_constraint_buffer_target_velocity_offset
+			);
+
+			GLenum const prop_labels[]{ GL_OFFSET, GL_MATRIX_STRIDE };
+			GLint props[2u];
+			GLuint const mass_index
+			{
+				glGetProgramResourceIndex(environment.state.update_and_warm_start_cursor_constraint_shader, GL_BUFFER_VARIABLE, "Cursor_Constraint.mass")
+			};
+			glGetProgramResourceiv
+			(
+				environment.state.update_and_warm_start_cursor_constraint_shader, GL_BUFFER_VARIABLE, mass_index,
+				std::size(prop_labels), prop_labels, 2u, nullptr, props
+			);
+			// TODO: Consider putting offset and matrix stride contigously in game state
+			environment.state.cursor_constraint_buffer_mass_offset = props[0u];
+			environment.state.cursor_constraint_buffer_mass_matrix_stride = props[1u];
+
+			GLuint const impulse_index
+			{
+				glGetProgramResourceIndex(environment.state.update_and_warm_start_cursor_constraint_shader, GL_BUFFER_VARIABLE, "Cursor_Constraint.impulse")
+			};
+			glGetProgramResourceiv
+			(
+				environment.state.update_and_warm_start_cursor_constraint_shader, GL_BUFFER_VARIABLE, impulse_index,
+				1u, &offset_label, 1u, nullptr, &environment.state.cursor_constraint_buffer_impulse_offset
+			);
+
+			GLuint const block_index
+			{
+				glGetProgramResourceIndex(environment.state.update_and_warm_start_cursor_constraint_shader, GL_SHADER_STORAGE_BLOCK, "Cursor_Constraint")
+			};
+			GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
+			glGetProgramResourceiv
+			(
+				environment.state.update_and_warm_start_cursor_constraint_shader, GL_SHADER_STORAGE_BLOCK, block_index,
+				1, &buffer_size_label, 1, nullptr, &environment.state.cursor_constraint_buffer_size
+			);
+
+			glNamedBufferStorage
+			(
+				environment.state.cursor_constraint_buffer, environment.state.cursor_constraint_buffer_size, nullptr,
+				0u
+			);
+
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_CURSOR_CONSTRAINT_BINDING, environment.state.cursor_constraint_buffer);
+		}
+
 		util::proximity::initialize
 		(
 			environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment), 
@@ -1750,6 +1954,26 @@ namespace game_logic
 		std::cout << "Persistent contact count buffer (" << environment.state.persistent_contact_count_buffer << "):" << std::endl;
 		std::cout << "size: " << environment.state.persistent_contact_count_buffer_size << std::endl;
 		std::cout << "persistent contact count offset: " << environment.state.persistent_contact_count_buffer_persistent_contact_count_offset << std::endl;
+		std::cout << std::endl;
+
+		std::cout << "Cursor position buffer (" << environment.state.cursor_position_buffer << "):" << std::endl;
+		std::cout << "size: " << environment.state.cursor_position_buffer_size << std::endl;
+		std::cout << "position offset: " << environment.state.cursor_position_buffer_position_offset << std::endl;
+		std::cout << std::endl;
+
+		std::cout << "Cursor constrained point buffer (" << environment.state.cursor_constrained_point_buffer << "):" << std::endl;
+		std::cout << "size: " << environment.state.cursor_constrained_point_buffer_size << std::endl;
+		std::cout << "body offset: " << environment.state.cursor_constrained_point_buffer_body_offset << std::endl;
+		std::cout << "local point offset: " << environment.state.cursor_constrained_point_buffer_local_point_offset << std::endl;
+		std::cout << std::endl;
+
+		std::cout << "Cursor constraint buffer (" << environment.state.cursor_constraint_buffer << "):" << std::endl;
+		std::cout << "size: " << environment.state.cursor_constraint_buffer_size << std::endl;
+		std::cout << "offset offset: " << environment.state.cursor_constraint_buffer_offset_offset << std::endl;
+		std::cout << "target velocity offset: " << environment.state.cursor_constraint_buffer_target_velocity_offset << std::endl;
+		std::cout << "mass offset: " << environment.state.cursor_constraint_buffer_mass_offset << std::endl;
+		std::cout << "mass matrix stride: " << environment.state.cursor_constraint_buffer_mass_matrix_stride << std::endl;
+		std::cout << "impulse offset: " << environment.state.cursor_constraint_buffer_impulse_offset << std::endl;
 		std::cout << std::endl;
 
 		glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
@@ -3120,7 +3344,10 @@ namespace game_logic
 			environment.state.contact_count_buffer, 
 			environment.state.persistent_contact_count_buffer, 
 			environment.state.rigid_body_velocity_snapshot_buffer, 
-			environment.state.rigid_body_position_snapshot_buffer
+			environment.state.rigid_body_position_snapshot_buffer, 
+			environment.state.cursor_position_buffer, 
+			environment.state.cursor_constrained_point_buffer, 
+			environment.state.cursor_constraint_buffer
 		};
 		glDeleteBuffers(std::size(buffers), buffers);
 
