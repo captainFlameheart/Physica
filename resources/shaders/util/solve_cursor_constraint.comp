@@ -1,0 +1,67 @@
+layout(shared, binding = CURSOR_CONSTRAINED_POINT_BINDING) uniform Cursor_Constrained_Point
+{
+	uint body;
+	vec2 local_point;
+} cursor_constrained_point;
+
+layout(shared, binding = CURSOR_POSITION_BINDING) uniform Cursor_Position
+{
+	ivec2 position;
+} cursor_position;
+
+layout(shared, binding = CURSOR_CONSTRAINT_BINDING) restrict readonly Cursor_Constraint
+{
+	vec2 offset;
+	vec2 target_velocity;
+	mat2 mass;
+	vec2 impulse;
+} cursor_constraint;
+
+layout(shared, binding = VELOCITY_SNAPSHOT_BINDING) restrict readonly
+buffer Velocities_Snapshot
+{
+	ivec4 v[MAX_RIGID_BODY_COUNT];
+} velocities_snapshot;
+
+layout(shared, binding = VELOCITY_BINDING) restrict writeonly
+buffer Velocities
+{
+	ivec4 v[MAX_RIGID_BODY_COUNT];
+} velocities;
+
+layout(local_size_x = 1u) in;
+void main()
+{
+	uint body = cursor_constrained_point.body;
+
+	vec2 offset = cursor_constraint.offset;
+	vec2 target_velocity = cursor_constraint.target_velocity;
+	mat2 mass = cursor_constraint.mass;
+	vec2 impulse = cursor_constraint.impulse;
+
+	// TODO: Fetch masses from buffer
+	float inverse_mass = INVERSE_MASS;
+	float inverse_inertia = INVERSE_INERTIA;
+
+	vec3 body_velocity = vec3(velocities_snapshot.v[body].xyz);
+	body_velocity.xy *= METER_INVERSE;
+	body_velocity.z *= RADIAN_INVERSE;
+
+	vec2 velocity = body_velocity.xy + body_velocity.z * offset;
+	vec2 old_impulse = impulse;
+	impulse += mass * (target_velocity - velocity);
+	float impulse_magnitude = length(impulse);
+	float clamp_scale = min(1.0, MAX_IMPULSE / impulse_magnitude);
+	impulse *= clamp_scale;
+	vec2 delta_impulse = impulse - old_impulse;
+
+	ivec3 delta_velocity = ivec3
+	(
+		METER * inverse_mass * delta_impulse, 
+		RADIAN * inverse_inertia * dot(delta_impulse, offset)
+	);
+
+	atomicAdd(velocities.v[body].x, delta_velocity.x);
+	atomicAdd(velocities.v[body].y, delta_velocity.y);
+	atomicAdd(velocities.v[body].z, delta_velocity.z);
+}
