@@ -15,7 +15,7 @@ buffer Cursor_Constraint
 	vec2 offset;
 	vec2 target_velocity;
 	mat2 mass;
-	vec2 impulse;	// TODO: CLEAR THE IMPULSE WHEN NEW CONSTRAINT IS CREATED
+	vec2 impulse;
 } cursor_constraint;
 
 layout(shared, binding = POSITION_BINDING) restrict readonly
@@ -48,7 +48,7 @@ void main()
 
 	// TODO: See if it's faster to construct and multiply with a matrix
 	vec2 offset = local_point.x * vec2(right_x, right_y) + local_point.y * vec2(-right_y, right_x);
-	vec2 target_velocity = VELOCITY_SCALE * (vec2(cursor_position.position - body_position.xy) - offset);
+	vec2 target_velocity = VELOCITY_SCALE * (METER_INVERSE * vec2(cursor_position.position - body_position.xy) - offset);
 	offset = vec2(-offset.y, offset.x);
 	float secondary_diagonal = inverse_inertia * offset.x * offset.y;
 	mat2 mass = inverse(mat2

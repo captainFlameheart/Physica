@@ -162,7 +162,7 @@ namespace game_state
 
 		GLsync physics_tick_results_fence;
 
-		bool body_is_grabbed;
+		GLuint grabbed_triangle;
 
 		GLuint tick;
 		bool physics_running;

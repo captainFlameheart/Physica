@@ -39,7 +39,7 @@ void main()
 		// TODO: See if it's faster to construct and multiply with a matrix
 		vec2 offset = local_point.x * vec2(right_x, right_y) + local_point.y * vec2(-right_y, right_x);
 
-		vec2 camera_relative_xy = vec2(body_position.xy - camera.xy) + offset;
+		vec2 camera_relative_xy = vec2(body_position.xy - camera.xy) + offset * METER;
 		gl_Position = vec4
 		(
 			camera.view_rotation * camera_relative_xy * PROJECTION_SCALE, 

@@ -24,7 +24,7 @@ buffer Velocities_Snapshot
 	ivec4 v[MAX_RIGID_BODY_COUNT];
 } velocities_snapshot;
 
-layout(shared, binding = VELOCITY_BINDING) restrict writeonly
+layout(shared, binding = VELOCITY_BINDING) restrict
 buffer Velocities
 {
 	ivec4 v[MAX_RIGID_BODY_COUNT];
@@ -54,6 +54,7 @@ void main()
 	float impulse_magnitude = length(impulse);
 	float clamp_scale = min(1.0, MAX_IMPULSE / impulse_magnitude);
 	impulse *= clamp_scale;
+	cursor_constraint.impulse = impulse;
 	vec2 delta_impulse = impulse - old_impulse;
 
 	ivec3 delta_velocity = ivec3
