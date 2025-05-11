@@ -15,7 +15,7 @@ buffer Cursor_Constraint
 	vec2 offset;
 	vec2 target_velocity;
 	mat2 mass;
-	vec2 impulse;
+	vec2 impulse;	// TODO: CLEAR THE IMPULSE WHEN NEW CONSTRAINT IS CREATED
 } cursor_constraint;
 
 layout(shared, binding = POSITION_BINDING) restrict readonly

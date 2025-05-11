@@ -459,6 +459,29 @@ namespace game_logic
 		(
 			vertex_shader,
 			util_shader_VERSION,
+			util_shader_DEFINE("CURSOR_CONSTRAINED_POINT_BINDING", STRINGIFY(game_logic__util_CURSOR_CONSTRAINED_POINT_BINDING)),
+			util_shader_DEFINE("POSITION_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_POSITION_BINDING)), 
+			util_shader_DEFINE("MAX_RIGID_BODY_COUNT", STRINGIFY(game_logic_MAX_RIGID_BODY_COUNT(environment))),
+			util_shader_DEFINE("CURSOR_POSITION_BINDING", STRINGIFY(game_logic__util_CURSOR_POSITION_BINDING)),
+			util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
+			util_shader_DEFINE("RADIAN_INVERSE", STRINGIFY(game_logic__util__spatial_RADIAN_INVERSE(environment))),
+			game_PROJECTION_SCALE_DEFINITION(environment),
+			::util::shader::file_to_string("util/cursor_constraint.vert")
+		);
+		::util::shader::set_shader_statically
+		(
+			fragment_shader,
+			util_shader_VERSION,
+			util_shader_DEFINE("COLOR", "vec4(1.0, 1.0, 0.0, 1.0)"),
+			::util::shader::file_to_string("util/static_color.frag")
+		);
+		environment.state.cursor_constraint_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+		std::cout << "Cursor constraint draw shader compiled" << std::endl;
+
+		::util::shader::set_shader_statically
+		(
+			vertex_shader,
+			util_shader_VERSION,
 			util_shader_DEFINE("CURSOR_POSITION_BINDING", STRINGIFY(game_logic__util_CURSOR_POSITION_BINDING)),
 			util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
 			game_PROJECTION_SCALE_DEFINITION(environment),
@@ -3020,14 +3043,13 @@ namespace game_logic
 								GL_RG, GL_FLOAT,
 								local_point
 							);
-						}
-						else
-						{
+							environment.state.body_is_grabbed = true;
 						}
 					}
 				}
 				break;
 			case GLFW_RELEASE:
+				environment.state.body_is_grabbed = false;
 				break;
 			}
 			break;
@@ -3505,6 +3527,12 @@ namespace game_logic
 
 		//glUseProgram(environment.state.contact_impulses_draw_shader);
 		//glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 16u);
+
+		if (environment.state.body_is_grabbed)
+		{
+			glUseProgram(environment.state.cursor_constraint_draw_shader);
+			glDrawArrays(GL_LINES, 0, 2u);
+		}
 
 		glUseProgram(environment.state.cursor_position_draw_shader);
 		glPointSize(5.0f);

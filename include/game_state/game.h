@@ -181,6 +181,7 @@ namespace game_state
 		GLuint contact_basis_draw_shader;
 		GLuint contact_impulses_draw_shader;
 		GLuint rigid_body_debug_rendering_shader;
+		GLuint cursor_constraint_draw_shader;
 		GLuint cursor_position_draw_shader;
 	};
 }
