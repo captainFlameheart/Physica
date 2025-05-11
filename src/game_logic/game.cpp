@@ -116,6 +116,8 @@ namespace game_logic
 		environment.state.tick = 0u;
 		environment.state.physics_running = true;
 
+		environment.state.body_is_grabbed = false;
+
 		environment.state.grab_cursor = glfwCreateStandardCursor(GLFW_CROSSHAIR_CURSOR);
 		environment.state.point_cursor = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
 
@@ -452,6 +454,25 @@ namespace game_logic
 		);
 		environment.state.contact_impulses_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
 		std::cout << "Contact impulses draw shader compiled" << std::endl;
+
+		::util::shader::set_shader_statically
+		(
+			vertex_shader,
+			util_shader_VERSION,
+			util_shader_DEFINE("CURSOR_POSITION_BINDING", STRINGIFY(game_logic__util_CURSOR_POSITION_BINDING)),
+			util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
+			game_PROJECTION_SCALE_DEFINITION(environment),
+			::util::shader::file_to_string("util/cursor_position.vert")
+		);
+		::util::shader::set_shader_statically
+		(
+			fragment_shader,
+			util_shader_VERSION,
+			util_shader_DEFINE("COLOR", "vec4(1.0, 1.0, 0.0, 1.0)"),
+			::util::shader::file_to_string("util/static_color.frag")
+		);
+		environment.state.cursor_position_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+		std::cout << "Cursor position draw shader compiled" << std::endl;
 
 		::util::shader::delete_shader(vertex_shader);
 		::util::shader::delete_shader(fragment_shader);
@@ -1330,7 +1351,7 @@ namespace game_logic
 				 environment.state.changed_bounding_box_buffer, 
 				 GL_R32UI, 
 				 environment.state.changed_bounding_box_buffer_size_offset, sizeof(GLuint), 
-				 GL_RED, GL_UNSIGNED_INT, 
+				 GL_RED_INTEGER, GL_UNSIGNED_INT, 
 				 nullptr
 			 );
 
@@ -2121,7 +2142,7 @@ namespace game_logic
 			environment.state.changed_bounding_box_buffer,
 			GL_R32UI,
 			environment.state.changed_bounding_box_buffer_size_offset, sizeof(GLuint),
-			GL_RED, GL_UNSIGNED_INT,
+			GL_RED_INTEGER, GL_UNSIGNED_INT,
 			nullptr
 		);
 
@@ -2268,7 +2289,7 @@ namespace game_logic
 						environment.state.persistent_contact_count_buffer,
 						GL_R32UI,
 						environment.state.persistent_contact_count_buffer_persistent_contact_count_offset, sizeof(GLuint),
-						GL_RED, GL_UNSIGNED_INT,
+						GL_RED_INTEGER, GL_UNSIGNED_INT,
 						&environment.state.current_contact_count
 					);
 
@@ -2349,7 +2370,7 @@ namespace game_logic
 						environment.state.contact_count_buffer,
 						GL_R32UI,
 						environment.state.contact_count_buffer_contact_count_offset, sizeof(GLuint),
-						GL_RED, GL_UNSIGNED_INT,
+						GL_RED_INTEGER, GL_UNSIGNED_INT,
 						&environment.state.current_contact_count
 					);
 					glUseProgram(environment.state.new_triangle_contact_shader);
@@ -2845,6 +2866,58 @@ namespace game_logic
 	{
 	}
 
+	bool triangle_contains_point
+	(
+		game_environment::Environment const& environment, GLuint const triangle_index,
+		GLint x, GLint y, GLfloat& local_x, GLfloat& local_y
+	)
+	{
+		game_state::rigid_body::Triangle const& triangle{ environment.state.triangles[triangle_index] };
+		util::rigid_body::Position body_position;
+		std::memcpy
+		(
+			&body_position,
+			environment.state.position_mapping + environment.state.rigid_body_position_buffer_p_offset + triangle.body * environment.state.rigid_body_position_buffer_p_stride,
+			sizeof(body_position)
+		);
+		local_x = static_cast<GLfloat>(x - body_position.position.x);
+		local_y = static_cast<GLfloat>(y - body_position.position.y);
+
+		// TODO: Do not loose precision for large angles
+		GLfloat angle = game_logic__util__spatial_TO_RADIANS(environment, body_position.angle);
+		GLfloat right_x = std::cos(angle);
+		GLfloat right_y = std::sin(angle);
+
+		GLfloat const old_local_x{ local_x };
+		local_x = local_x * right_x + local_y * right_y;
+		local_y = local_y * right_x - old_local_x * right_y;
+
+		GLfloat vertex_0_x{ environment.state.vertices[triangle.vertices[0u]][0u] };
+		GLfloat vertex_0_y{ environment.state.vertices[triangle.vertices[0u]][1u] };
+
+		GLfloat vertex_1_x{ environment.state.vertices[triangle.vertices[1u]][0u] };
+		GLfloat vertex_1_y{ environment.state.vertices[triangle.vertices[1u]][1u] };
+
+		GLfloat vertex_2_x{ environment.state.vertices[triangle.vertices[2u]][0u] };
+		GLfloat vertex_2_y{ environment.state.vertices[triangle.vertices[2u]][1u] };
+
+		GLfloat normal_0_x = vertex_1_y - vertex_0_y;
+		GLfloat normal_0_y = vertex_0_x - vertex_1_x;
+
+		GLfloat normal_1_x = vertex_2_y - vertex_1_y;
+		GLfloat normal_1_y = vertex_1_x - vertex_2_x;
+
+		GLfloat normal_2_x = vertex_0_y - vertex_2_y;
+		GLfloat normal_2_y = vertex_2_x - vertex_0_x;
+
+		return
+		(
+			local_x * normal_0_x + local_y * normal_0_y <= vertex_0_x * normal_0_x + vertex_0_y * normal_0_y &&
+			local_x * normal_1_x + local_y * normal_1_y <= vertex_1_x * normal_1_x + vertex_1_y * normal_1_y &&
+			local_x * normal_2_x + local_y * normal_2_y <= vertex_2_x * normal_2_x + vertex_2_y * normal_2_y
+		);
+	}
+
 	void on_mouse_button_event(
 		game_environment::Environment& environment,
 		int const button,
@@ -2854,6 +2927,110 @@ namespace game_logic
 	{
 		switch (button)
 		{
+		case GLFW_MOUSE_BUTTON_LEFT:
+			switch (action)
+			{
+			case GLFW_PRESS:
+				if (!environment.state.point_grabbed)
+				{
+					GLenum fence_status = glClientWaitSync(environment.state.physics_tick_results_fence, 0u, 0u);
+					while (fence_status != GL_ALREADY_SIGNALED && fence_status != GL_CONDITION_SATISFIED)
+					{
+						// TODO: Do something useful but not necessary while we wait. 
+						// Example: Optimize proximity tree.
+						fence_status = glClientWaitSync(environment.state.physics_tick_results_fence, 0u, 0u);
+					}
+
+					if (util::proximity::is_empty(environment.state.proximity_tree))
+					{
+
+					}
+					else if (util::proximity::has_single_node(environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment)))
+					{
+
+					}
+					else
+					{
+						GLint cursor_world_x, cursor_world_y;
+						window_to_world::window_screen_cursor_position_to_world_position
+						(
+							environment,
+							&cursor_world_x, &cursor_world_y
+						);
+
+						struct On_Leaf_Found
+						{
+							game_environment::Environment& environment;
+							GLint const cursor_world_x;
+							GLint const cursor_world_y;
+							GLuint& hovered_triangle;
+							GLfloat& hovered_local_x;
+							GLfloat& hovered_local_y;
+
+							void operator()(GLuint const leaf_index, game_state::proximity::Node const& leaf)
+							{
+								game_state::rigid_body::Triangle const& triangle{ environment.state.triangles[leaf_index] };
+								GLint body_position[4u];
+								std::memcpy
+								(
+									&body_position,
+									environment.state.position_mapping + environment.state.rigid_body_position_buffer_p_offset + triangle.body * environment.state.rigid_body_position_buffer_p_stride,
+									sizeof(body_position)
+								);
+								GLfloat local_x;
+								GLfloat local_y;
+								if (
+									triangle_contains_point(environment, leaf_index, cursor_world_x, cursor_world_y, local_x, local_y) &&
+									leaf_index < hovered_triangle
+								)
+								{
+									hovered_triangle = leaf_index;
+									hovered_local_x = local_x;
+									hovered_local_y = local_y;
+								}
+							}
+						};
+						GLuint hovered_triangle{ game_logic__util__proximity_NULL_INDEX };
+						GLfloat hovered_local_x;
+						GLfloat hovered_local_y;
+						On_Leaf_Found on_leaf_found{ environment, cursor_world_x, cursor_world_y, hovered_triangle, hovered_local_x, hovered_local_y };
+						util::proximity::query_point_of_multinode_tree
+						(
+							environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment),
+							cursor_world_x, cursor_world_y,
+							on_leaf_found
+						);
+						if (hovered_triangle != game_logic__util__proximity_NULL_INDEX)
+						{
+							glClearNamedBufferSubData
+							(
+								environment.state.cursor_constrained_point_buffer,
+								GL_R32UI,
+								environment.state.cursor_constrained_point_buffer_body_offset, sizeof(GLuint),
+								GL_RED_INTEGER, GL_UNSIGNED_INT,
+								&environment.state.triangles[hovered_triangle].body
+							);
+							// TODO: Put hovered_local_x, hovered_local_y in array from start
+							GLfloat local_point[2u]{ hovered_local_x, hovered_local_y };
+							glClearNamedBufferSubData
+							(
+								environment.state.cursor_constrained_point_buffer,
+								GL_RG32F,
+								environment.state.cursor_constrained_point_buffer_local_point_offset, sizeof(local_point),
+								GL_RG, GL_FLOAT,
+								local_point
+							);
+						}
+						else
+						{
+						}
+					}
+				}
+				break;
+			case GLFW_RELEASE:
+				break;
+			}
+			break;
 		case GLFW_MOUSE_BUTTON_RIGHT:
 			switch (action)
 			{ 
@@ -2959,6 +3136,17 @@ namespace game_logic
 
 	void tick(game_environment::Environment& environment)
 	{
+		GLint cursor_world_position[2u];
+		window_to_world::window_screen_cursor_position_to_world_position(environment, &cursor_world_position[0], &cursor_world_position[1]);
+		glClearNamedBufferSubData
+		(
+			environment.state.cursor_position_buffer,
+			GL_RG32I,
+			environment.state.cursor_position_buffer_position_offset, sizeof(cursor_world_position),
+			GL_RG_INTEGER, GL_INT,
+			cursor_world_position
+		);
+
 		// TODO: See if we can load and run these opengl commands in GPU buffer (using indirect something)
 		if (environment.state.physics_running)
 		{
@@ -3211,17 +3399,16 @@ namespace game_logic
 		glUseProgram(environment.state.triangle_wireframes_draw_shader);
 		glDrawArrays(GL_LINES, 0, environment.state.current_triangle_count * 6u);
 
-
-		GLenum fence_status = glClientWaitSync(environment.state.physics_tick_results_fence, 0u, 0u);
-		while (fence_status != GL_ALREADY_SIGNALED && fence_status != GL_CONDITION_SATISFIED)
-		{
-			// TODO: Do something useful but not necessary while we wait. 
-			// Example: Optimize proximity tree.
-			fence_status = glClientWaitSync(environment.state.physics_tick_results_fence, 0u, 0u);
-		}
-
 		if (!environment.state.point_grabbed)
 		{
+			GLenum fence_status = glClientWaitSync(environment.state.physics_tick_results_fence, 0u, 0u);
+			while (fence_status != GL_ALREADY_SIGNALED && fence_status != GL_CONDITION_SATISFIED)
+			{
+				// TODO: Do something useful but not necessary while we wait. 
+				// Example: Optimize proximity tree.
+				fence_status = glClientWaitSync(environment.state.physics_tick_results_fence, 0u, 0u);
+			}
+
 			if (util::proximity::is_empty(environment.state.proximity_tree))
 			{
 
@@ -3318,6 +3505,10 @@ namespace game_logic
 
 		//glUseProgram(environment.state.contact_impulses_draw_shader);
 		//glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 16u);
+
+		glUseProgram(environment.state.cursor_position_draw_shader);
+		glPointSize(5.0f);
+		glDrawArrays(GL_POINTS, 0, 1u);
 	}
 
 	void free(game_environment::Environment& environment)

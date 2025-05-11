@@ -162,6 +162,8 @@ namespace game_state
 
 		GLsync physics_tick_results_fence;
 
+		bool body_is_grabbed;
+
 		GLuint tick;
 		bool physics_running;
 
@@ -179,5 +181,6 @@ namespace game_state
 		GLuint contact_basis_draw_shader;
 		GLuint contact_impulses_draw_shader;
 		GLuint rigid_body_debug_rendering_shader;
+		GLuint cursor_position_draw_shader;
 	};
 }
