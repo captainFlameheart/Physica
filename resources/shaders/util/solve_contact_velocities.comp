@@ -98,20 +98,13 @@ void main()
 	float normal_impulse_1 = contact_surfaces.contact_surfaces[gl_GlobalInvocationID.x].contact_point_normals[1u].impulse;
 
 	vec3 body_0_velocity = vec3(velocities_snapshot.v[body_0].xyz);
-	body_0_velocity.xy *= METER_INVERSE;
-	body_0_velocity.z *= RADIAN_INVERSE;
-
 	vec3 body_1_velocity = vec3(velocities_snapshot.v[body_1].xyz);
-	body_1_velocity.xy *= METER_INVERSE;
-	body_1_velocity.z *= RADIAN_INVERSE;
-
+	vec2 xy_velocity = (body_0_velocity.xy - body_1_velocity.xy) * METER_INVERSE;
 	vec2 contact_point_0_velocity = 
-		(body_0_velocity.xy + body_0_velocity.z * offset_0_0) - 
-		(body_1_velocity.xy + body_1_velocity.z * offset_0_1);
+		xy_velocity + (offset_0_0 * body_0_velocity.z - offset_0_1 * body_1_velocity.z) * RADIAN_INVERSE;
 	vec2 contact_point_1_velocity = 
-		(body_0_velocity.xy + body_0_velocity.z * offset_1_0) - 
-		(body_1_velocity.xy + body_1_velocity.z * offset_1_1);
-
+		xy_velocity + (offset_1_0 * body_0_velocity.z - offset_1_1 * body_1_velocity.z) * RADIAN_INVERSE;
+	
 	float old_tangent_impulse_0 = tangent_impulse_0;
 	float tangent_impulse_limit_0 = normal_impulse_0 * FRICTION_COEFFICIENT;
 	tangent_impulse_0 = clamp
