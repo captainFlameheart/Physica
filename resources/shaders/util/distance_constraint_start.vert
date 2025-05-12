@@ -10,10 +10,10 @@ struct Distance_Constraint
 	float impulse;
 };
 
-layout(shared, binding = DISTANCE_CONSTRAINT_BINDING) restrict
+layout(shared, binding = DISTANCE_CONSTRAINT_BINDING) restrict readonly
 buffer Distance_Constraints
 {
-	readonly uint count;
+	uint count;
 	Distance_Constraint distance_constraints[MAX_DISTANCE_CONSTRAINT_COUNT];
 } distance_constraints;
 

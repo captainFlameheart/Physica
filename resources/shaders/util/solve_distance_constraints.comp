@@ -78,6 +78,8 @@ void main()
 		RADIAN * inverse_inertia_1 * dot(delta_impulse_vector, offset_1)
 	);
 
+	distance_constraints.distance_constraints[gl_GlobalInvocationID.x].impulse = impulse;
+
 	atomicAdd(velocities.v[bodies.x].x, delta_velocity_0.x);
 	atomicAdd(velocities.v[bodies.x].y, delta_velocity_0.y);
 	atomicAdd(velocities.v[bodies.x].z, delta_velocity_0.z);

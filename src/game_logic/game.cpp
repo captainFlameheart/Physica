@@ -77,16 +77,16 @@
 	game_logic__util__rigid_body_DEFAULT_COMPUTE_SHADER_LOCAL_SIZE(environment)
 
 #define game_logic_ALLOWED_DISTANCE_CONSTRAINT_PENETRATION(environment) \
-	game_logic__util__spatial_FLOAT_FROM_METERS(environment, 0.05f)
+	0.05f//game_logic__util__spatial_FLOAT_FROM_METERS(environment, 0.05f)
 
 #define game_logic_DISTANCE_CONSTRAINT_PENETRATION_VELOCITY_SCALE(environment) \
-	game_logic__util__spatial_FLOAT_FROM_METERS(environment, 0.05f)
+	0.05f//game_logic__util__spatial_FLOAT_FROM_METERS(environment, 0.05f)
 
 #define game_logic_DISTANCE_CONSTRAINT_IMPULSE_SCALE(environment) 0.05f
 
 #define game_logic_CURSOR_CONSTRAINT_VELOCITY_SCALE(environment) 0.1f
 #define game_logic_CURSOR_CONSTRAINT_IMPULSE_SCALE(environment) 0.05f
-#define game_logic_CURSOR_CONSTRAINT_MAX_IMPULSE(environment) 10.0f
+#define game_logic_CURSOR_CONSTRAINT_MAX_IMPULSE(environment) 0.5f
 
 // TODO: Store separate masses for each body in buffer
 #define INVERSE_MASS 1.0f
@@ -509,6 +509,31 @@ namespace game_logic
 			util_shader_VERSION,
 			util_shader_DEFINE("DISTANCE_CONSTRAINT_BINDING", STRINGIFY(game_logic__util_DISTANCE_CONSTRAINT_BINDING)),
 			max_distance_constraint_count_definition,
+			util_shader_DEFINE("POSITION_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_POSITION_BINDING)),
+			util_shader_DEFINE("MAX_RIGID_BODY_COUNT", STRINGIFY(game_logic_MAX_RIGID_BODY_COUNT(environment))),
+			util_shader_DEFINE("CURSOR_POSITION_BINDING", STRINGIFY(game_logic__util_CURSOR_POSITION_BINDING)),
+			util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
+			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))),
+			util_shader_DEFINE("RADIAN_INVERSE", STRINGIFY(game_logic__util__spatial_RADIAN_INVERSE(environment))),
+			game_PROJECTION_SCALE_DEFINITION(environment),
+			::util::shader::file_to_string("util/distance_constraints.vert")
+		);
+		::util::shader::set_shader_statically
+		(
+			fragment_shader,
+			util_shader_VERSION,
+			util_shader_DEFINE("COLOR", "vec4(0.0, 1.0, 0.0, 1.0)"),
+			::util::shader::file_to_string("util/static_color.frag")
+		);
+		environment.state.distance_constraints_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+		std::cout << "Distance constraints draw shader compiled" << std::endl;
+
+		::util::shader::set_shader_statically
+		(
+			vertex_shader,
+			util_shader_VERSION,
+			util_shader_DEFINE("DISTANCE_CONSTRAINT_BINDING", STRINGIFY(game_logic__util_DISTANCE_CONSTRAINT_BINDING)),
+			max_distance_constraint_count_definition,
 			util_shader_DEFINE("POSITION_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_POSITION_BINDING)), 
 			util_shader_DEFINE("MAX_RIGID_BODY_COUNT", STRINGIFY(game_logic_MAX_RIGID_BODY_COUNT(environment))),
 			util_shader_DEFINE("CURSOR_POSITION_BINDING", STRINGIFY(game_logic__util_CURSOR_POSITION_BINDING)),
@@ -590,6 +615,28 @@ namespace game_logic
 		);
 		environment.state.triangle_bounding_box_update_shader = ::util::shader::create_program(compute_shader);
 		std::cout << "Triangle bounding box update shader compiled" << std::endl;
+
+		::util::shader::set_shader_statically
+		(
+			compute_shader,
+			util_shader_VERSION,
+			max_distance_constraint_count_definition,
+			max_rigid_body_count_definition,
+			util_shader_DEFINE("POSITION_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_POSITION_BINDING)),
+			util_shader_DEFINE("DISTANCE_CONSTRAINT_BINDING", STRINGIFY(game_logic__util_DISTANCE_CONSTRAINT_BINDING)),
+			util_shader_DEFINE("RADIAN_INVERSE", STRINGIFY(game_logic__util__spatial_RADIAN_INVERSE(environment))),
+			util_shader_DEFINE("INVERSE_MASS", STRINGIFY(INVERSE_MASS)),
+			util_shader_DEFINE("INVERSE_INERTIA", STRINGIFY(INVERSE_INERTIA)),
+			util_shader_DEFINE("METER_INVERSE", STRINGIFY(game_logic__util__spatial_METER_INVERSE(environment))),
+			util_shader_DEFINE("VELOCITY_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_VELOCITY_BINDING)),
+			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))),
+			util_shader_DEFINE("RADIAN", STRINGIFY(game_logic__util__spatial_RADIAN(environment))),
+			util_shader_DEFINE("ALLOWED_PENETRATION", STRINGIFY(game_logic_ALLOWED_DISTANCE_CONSTRAINT_PENETRATION(environment))),
+			util_shader_DEFINE("PENETRATION_VELOCITY_SCALE", STRINGIFY(game_logic_DISTANCE_CONSTRAINT_PENETRATION_VELOCITY_SCALE(environment))),
+			::util::shader::file_to_string("util/add_distance_constraint.comp")
+		);
+		environment.state.add_distance_constraint_shader = ::util::shader::create_program(compute_shader);
+		std::cout << "Add distance constraint shader compiled" << std::endl;
 
 		::util::shader::set_shader_statically
 		(
@@ -945,7 +992,7 @@ namespace game_logic
 			);
 		}
 
-		environment.state.current_rigid_body_count = 1u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment);//500000u;
+		environment.state.current_rigid_body_count = 10u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment);//500000u;
 		environment.state.current_triangle_count = 1u * environment.state.current_rigid_body_count;
 		environment.state.current_contact_count = 0u;
 		environment.state.current_persistent_contact_count = 0u;
@@ -2449,6 +2496,13 @@ namespace game_logic
 			1u, 1u
 		);
 
+		glUseProgram(environment.state.update_distance_constraints_shader);
+		glDispatchCompute
+		(
+			ceil_div(environment.state.current_distance_constraint_count, game_logic_UPDATE_DISTANCE_CONSTRAINTS_LOCAL_SIZE(environment)),
+			1u, 1u
+		);
+
 		// TODO: Potential one-time CPU operations we must do before 
 		// waiting for the GPU to be done.
 
@@ -3346,6 +3400,8 @@ namespace game_logic
 						);
 						if (hovered_triangle != game_logic__util__proximity_NULL_INDEX)
 						{
+							glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
+
 							glClearNamedBufferSubData
 							(
 								environment.state.cursor_constrained_point_buffer,
@@ -3480,6 +3536,8 @@ namespace game_logic
 						);
 						if (hovered_triangle != game_logic__util__proximity_NULL_INDEX)
 						{
+							glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
+
 							GLuint const count_jump{ environment.state.current_distance_constraint_count * environment.state.distance_constraint_buffer_distance_constraints_stride };
 							glClearNamedBufferSubData
 							(
@@ -3522,6 +3580,123 @@ namespace game_logic
 				}
 				break;
 			case GLFW_RELEASE:
+				if (!environment.state.point_grabbed)
+				{
+					GLenum fence_status = glClientWaitSync(environment.state.physics_tick_results_fence, 0u, 0u);
+					while (fence_status != GL_ALREADY_SIGNALED && fence_status != GL_CONDITION_SATISFIED)
+					{
+						// TODO: Do something useful but not necessary while we wait. 
+						// Example: Optimize proximity tree.
+						fence_status = glClientWaitSync(environment.state.physics_tick_results_fence, 0u, 0u);
+					}
+
+					if (util::proximity::is_empty(environment.state.proximity_tree))
+					{
+
+					}
+					else if (util::proximity::has_single_node(environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment)))
+					{
+
+					}
+					else
+					{
+						GLint cursor_world_x, cursor_world_y;
+						window_to_world::window_screen_cursor_position_to_world_position
+						(
+							environment,
+							&cursor_world_x, &cursor_world_y
+						);
+
+						struct On_Leaf_Found
+						{
+							game_environment::Environment& environment;
+							GLint const cursor_world_x;
+							GLint const cursor_world_y;
+							GLuint& hovered_triangle;
+							GLfloat& hovered_local_x;
+							GLfloat& hovered_local_y;
+
+							void operator()(GLuint const leaf_index, game_state::proximity::Node const& leaf)
+							{
+								game_state::rigid_body::Triangle const& triangle{ environment.state.triangles[leaf_index] };
+								GLint body_position[4u];
+								std::memcpy
+								(
+									&body_position,
+									environment.state.position_mapping + environment.state.rigid_body_position_buffer_p_offset + triangle.body * environment.state.rigid_body_position_buffer_p_stride,
+									sizeof(body_position)
+								);
+								GLfloat local_x;
+								GLfloat local_y;
+								if (
+									triangle_contains_point(environment, leaf_index, cursor_world_x, cursor_world_y, local_x, local_y) &&
+									leaf_index < hovered_triangle
+									)
+								{
+									hovered_triangle = leaf_index;
+									hovered_local_x = local_x;
+									hovered_local_y = local_y;
+								}
+							}
+						};
+						GLuint hovered_triangle{ game_logic__util__proximity_NULL_INDEX };
+						GLfloat hovered_local_x;
+						GLfloat hovered_local_y;
+						On_Leaf_Found on_leaf_found{ environment, cursor_world_x, cursor_world_y, hovered_triangle, hovered_local_x, hovered_local_y };
+						util::proximity::query_point_of_multinode_tree
+						(
+							environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment),
+							cursor_world_x, cursor_world_y,
+							on_leaf_found
+						);
+						if (hovered_triangle != game_logic__util__proximity_NULL_INDEX && hovered_triangle != environment.state.distance_constraint_start_triangle)
+						{
+							glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
+
+							GLuint const count_jump{ environment.state.current_distance_constraint_count * environment.state.distance_constraint_buffer_distance_constraints_stride };
+							glClearNamedBufferSubData
+							(
+								environment.state.distance_constraint_buffer, 
+								GL_R32UI, 
+								environment.state.distance_constraint_buffer_distance_constraints_bodies_offset + 4u + count_jump,
+								sizeof(GLuint),
+								GL_RED_INTEGER, GL_UNSIGNED_INT,
+								&environment.state.triangles[hovered_triangle].body
+							);
+							// TODO: Put hovered_local_x, hovered_local_y in array from start
+							GLfloat local_point[2u]
+							{
+								game_logic__util__spatial_TO_METERS(environment, hovered_local_x),
+								game_logic__util__spatial_TO_METERS(environment, hovered_local_y)
+							};
+							glClearNamedBufferSubData
+							(
+								environment.state.distance_constraint_buffer,
+								GL_RG32F,
+								environment.state.distance_constraint_buffer_distance_constraints_local_points_offset + environment.state.distance_constraint_buffer_distance_constraints_local_points_stride + count_jump,
+								sizeof(local_point),
+								GL_RG, GL_FLOAT,
+								local_point
+							);
+
+							/*GLfloat const max_distance{2.0f};
+							glClearNamedBufferSubData
+							(
+								environment.state.distance_constraint_buffer,
+								GL_R32F,
+								environment.state.distance_constraint_buffer_distance_constraints_max_distance_offset + count_jump,
+								sizeof(GLfloat),
+								GL_R, GL_FLOAT,
+								&max_distance
+							);*/
+
+							glUseProgram(environment.state.add_distance_constraint_shader);
+							glDispatchCompute(1u, 1u, 1u);
+
+							++environment.state.current_distance_constraint_count;
+						}
+					}
+				}
 				environment.state.distance_constraint_start_triangle = game_logic__util__proximity_NULL_INDEX;
 				break;
 			}
@@ -3992,6 +4167,9 @@ namespace game_logic
 
 		//glUseProgram(environment.state.contact_impulses_draw_shader);
 		//glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 16u);
+
+		glUseProgram(environment.state.distance_constraints_draw_shader);
+		glDrawArrays(GL_LINES, 0, environment.state.current_distance_constraint_count * 2u);
 
 		if (environment.state.distance_constraint_start_triangle != game_logic__util__proximity_NULL_INDEX)
 		{

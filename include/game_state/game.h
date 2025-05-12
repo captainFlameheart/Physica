@@ -130,6 +130,7 @@ namespace game_state
 		GLint distance_constraint_buffer_distance_constraints_impulse_offset;
 
 		GLuint current_distance_constraint_count;
+		GLuint add_distance_constraint_shader;
 
 		GLuint old_triangle_contact_update_shader;
 		GLuint new_triangle_contact_shader;
@@ -203,6 +204,7 @@ namespace game_state
 		GLuint contact_basis_draw_shader;
 		GLuint contact_impulses_draw_shader;
 		GLuint rigid_body_debug_rendering_shader;
+		GLuint distance_constraints_draw_shader;
 		GLuint distance_constraint_start_draw_shader;
 		GLuint cursor_constraint_draw_shader;
 		GLuint cursor_position_draw_shader;

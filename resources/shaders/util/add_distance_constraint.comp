@@ -13,7 +13,7 @@ struct Distance_Constraint
 layout(shared, binding = DISTANCE_CONSTRAINT_BINDING) restrict
 buffer Distance_Constraints
 {
-	readonly uint count;
+	uint count;
 	Distance_Constraint distance_constraints[MAX_DISTANCE_CONSTRAINT_COUNT];
 } distance_constraints;
 
@@ -29,21 +29,23 @@ buffer Velocities
 	ivec4 v[MAX_RIGID_BODY_COUNT];
 } velocities;
 
-layout(local_size_x = LOCAL_SIZE) in;
+layout(local_size_x = 1u) in;
 void main()
 {
-	if (gl_GlobalInvocationID.x >= distance_constraints.count)
-	{
-		return;
-	}
-
-	uvec2 bodies = distance_constraints.distance_constraints[gl_GlobalInvocationID.x].bodies;
-	vec2 local_point_0 = distance_constraints.distance_constraints[gl_GlobalInvocationID.x].local_points[0u];
-	vec2 local_point_1 = distance_constraints.distance_constraints[gl_GlobalInvocationID.x].local_points[1u];
-	float max_distance = distance_constraints.distance_constraints[gl_GlobalInvocationID.x].max_distance;
+	uint index = distance_constraints.count;
+	uvec2 bodies = distance_constraints.distance_constraints[index].bodies;
+	vec2 local_point_0 = distance_constraints.distance_constraints[index].local_points[0u];
+	vec2 local_point_1 = distance_constraints.distance_constraints[index].local_points[1u];
 
 	ivec4 body_position_0 = positions.p[bodies.x];
 	ivec4 body_position_1 = positions.p[bodies.y];
+
+	// TODO: Fetch masses from buffer
+	float inverse_mass_0 = INVERSE_MASS;
+	float inverse_inertia_0 = INVERSE_INERTIA;
+
+	float inverse_mass_1 = INVERSE_MASS;
+	float inverse_inertia_1 = INVERSE_INERTIA;
 
 	float angle_0 = float(body_position_0.z) * RADIAN_INVERSE;
 	float right_x_0 = cos(angle_0);
@@ -56,29 +58,17 @@ void main()
 	float right_y_1 = sin(angle_1);
 	// TODO: See if it's faster to construct and multiply with a matrix
 	vec2 offset_1 = local_point_1.x * vec2(right_x_1, right_y_1) + local_point_1.y * vec2(-right_y_1, right_x_1);
-	
+
 	vec2 direction = METER_INVERSE * vec2(body_position_0.xy - body_position_1.xy) + offset_0 - offset_1;
 	float distance = length(direction);
-	float penetration = distance - max_distance;
-	if (penetration < 0.0)
-	{
-		distance_constraints.distance_constraints[gl_GlobalInvocationID.x].mass = 0.0;
-		distance_constraints.distance_constraints[gl_GlobalInvocationID.x].impulse = 0.0;
-		return;
-	}
+
 	// TODO: Handle distance being zero
 	direction /= distance;
-	float target_velocity = PENETRATION_VELOCITY_SCALE * (penetration - ALLOWED_PENETRATION);
+	// TODO: Bounciness
+	float target_velocity = 0.0;
 	
 	offset_0 = vec2(-offset_0.y, offset_0.x);
 	offset_1 = vec2(-offset_1.y, offset_1.x);
-
-	// TODO: Fetch masses from buffer
-	float inverse_mass_0 = INVERSE_MASS;
-	float inverse_inertia_0 = INVERSE_INERTIA;
-
-	float inverse_mass_1 = INVERSE_MASS;
-	float inverse_inertia_1 = INVERSE_INERTIA;
 
 	// TODO: Handle infinite mass
 	float temp_0 = dot(offset_0, direction);
@@ -88,11 +78,12 @@ void main()
 		inverse_mass_1 + inverse_inertia_1 * temp_1 * temp_1
 	);
 
-	distance_constraints.distance_constraints[gl_GlobalInvocationID.x].offsets[0u] = offset_0;
-	distance_constraints.distance_constraints[gl_GlobalInvocationID.x].offsets[1u] = offset_1;
-	distance_constraints.distance_constraints[gl_GlobalInvocationID.x].direction = direction;
-	distance_constraints.distance_constraints[gl_GlobalInvocationID.x].target_velocity = target_velocity;
-	distance_constraints.distance_constraints[gl_GlobalInvocationID.x].mass = mass;
-	
-	// TODO: Bounciness
+	distance_constraints.count = index + 1u;
+	distance_constraints.distance_constraints[index].offsets[0u] = offset_0;
+	distance_constraints.distance_constraints[index].offsets[1u] = offset_1;
+	distance_constraints.distance_constraints[index].direction = direction;
+	distance_constraints.distance_constraints[index].max_distance = distance;
+	distance_constraints.distance_constraints[index].target_velocity = target_velocity;
+	distance_constraints.distance_constraints[index].mass = mass;
+	distance_constraints.distance_constraints[index].impulse = 0.0;	
 }
