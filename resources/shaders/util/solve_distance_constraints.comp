@@ -14,7 +14,7 @@ layout(shared, binding = DISTANCE_CONSTRAINT_BINDING) restrict
 buffer Distance_Constraints
 {
 	readonly uint count;
-	ivec4 distance_constraints[MAX_DISTANCE_CONSTRAINT_COUNT];
+	Distance_Constraint distance_constraints[MAX_DISTANCE_CONSTRAINT_COUNT];
 } distance_constraints;
 
 layout(shared, binding = VELOCITY_SNAPSHOT_BINDING) restrict readonly
@@ -45,8 +45,8 @@ void main()
 	float mass = distance_constraints.distance_constraints[gl_GlobalInvocationID.x].mass;
 	float impulse = distance_constraints.distance_constraints[gl_GlobalInvocationID.x].impulse;
 
-	ivec4 read_velocity_0 = velocities_snapshot.v[bodies[0u]];
-	ivec4 read_velocity_1 = velocities_snapshot.v[bodies[1u]];
+	ivec4 read_velocity_0 = velocities_snapshot.v[bodies.x];
+	ivec4 read_velocity_1 = velocities_snapshot.v[bodies.y];
 
 	// TODO: Fetch masses from buffer
 	float inverse_mass_0 = INVERSE_MASS;
@@ -57,9 +57,8 @@ void main()
 
 	vec3 velocity_0 = vec3(read_velocity_0.xyz);
 	vec3 velocity_1 = vec3(read_velocity_1.xyz);
-	// IMPORTANT TODO: Apply this optimization to contacts as well!
 	float velocity = dot(
-		(velocity_0 - velocity_1) * INVERSE_METER + (offset_0 * velocity_0.z - offset_1 * velocity_1.z) * INVERSE_RADIAN,
+		(velocity_0.xy - velocity_1.xy) * INVERSE_METER + (offset_0 * velocity_0.z - offset_1 * velocity_1.z) * INVERSE_RADIAN,
 		direction
 	);
 	float old_impulse = impulse;
@@ -79,11 +78,11 @@ void main()
 		RADIAN * inverse_inertia_1 * dot(delta_impulse_vector, offset_1)
 	);
 
-	atomicAdd(velocities[bodies[0u]].x, delta_velocity_0.x);
-	atomicAdd(velocities[bodies[0u]].y, delta_velocity_0.y);
-	atomicAdd(velocities[bodies[0u]].z, delta_velocity_0.z);
+	atomicAdd(velocities.v[bodies.x].x, delta_velocity_0.x);
+	atomicAdd(velocities.v[bodies.x].y, delta_velocity_0.y);
+	atomicAdd(velocities.v[bodies.x].z, delta_velocity_0.z);
 
-	atomicAdd(velocities[bodies[1u]].x, delta_velocity_1.x);
-	atomicAdd(velocities[bodies[1u]].y, delta_velocity_1.y);
-	atomicAdd(velocities[bodies[1u]].z, delta_velocity_1.z);
+	atomicAdd(velocities.v[bodies.y].x, delta_velocity_1.x);
+	atomicAdd(velocities.v[bodies.y].y, delta_velocity_1.y);
+	atomicAdd(velocities.v[bodies.y].z, delta_velocity_1.z);
 }

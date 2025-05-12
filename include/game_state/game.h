@@ -113,13 +113,32 @@ namespace game_state
 		GLint changed_bounding_box_buffer_boxes_max_x_offset;
 		GLint changed_bounding_box_buffer_boxes_max_y_offset;
 
-		GLuint old_triangle_contact_update_shader;
+		GLuint distance_constraint_buffer;
+		GLint distance_constraint_buffer_size;
+		GLint distance_constraint_buffer_count_offset;
+		GLint distance_constraint_buffer_distance_constraints_offset;
+		GLint distance_constraint_buffer_distance_constraints_stride;
+		GLint distance_constraint_buffer_distance_constraints_bodies_offset;
+		GLint distance_constraint_buffer_distance_constraints_local_points_offset;
+		GLint distance_constraint_buffer_distance_constraints_local_points_stride;
+		GLint distance_constraint_buffer_distance_constraints_offsets_offset;
+		GLint distance_constraint_buffer_distance_constraints_offsets_stride;
+		GLint distance_constraint_buffer_distance_constraints_direction_offset;
+		GLint distance_constraint_buffer_distance_constraints_max_distance_offset;
+		GLint distance_constraint_buffer_distance_constraints_target_velocity_offset;
+		GLint distance_constraint_buffer_distance_constraints_mass_offset;
+		GLint distance_constraint_buffer_distance_constraints_impulse_offset;
 
+		GLuint old_triangle_contact_update_shader;
 		GLuint new_triangle_contact_shader;
+		GLuint update_distance_constraints_shader;
 
 		GLuint warm_start_contact_impulses_shader;
+		GLuint warm_start_distance_constraints_shader;
 		GLuint update_and_warm_start_cursor_constraint_shader;
+
 		GLuint solve_contact_velocities_shader;
+		GLuint solve_distance_constraints_shader;
 		GLuint solve_cursor_constraint_shader;
 
 		proximity::Tree proximity_tree;

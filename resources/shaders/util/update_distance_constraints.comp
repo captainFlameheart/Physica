@@ -14,7 +14,7 @@ layout(shared, binding = DISTANCE_CONSTRAINT_BINDING) restrict
 buffer Distance_Constraints
 {
 	readonly uint count;
-	ivec4 distance_constraints[MAX_DISTANCE_CONSTRAINT_COUNT];
+	Distance_Constraint distance_constraints[MAX_DISTANCE_CONSTRAINT_COUNT];
 } distance_constraints;
 
 layout(shared, binding = POSITION_BINDING) restrict readonly
@@ -36,7 +36,6 @@ void main()
 	{
 		return;
 	}
-
 	uvec2 bodies = distance_constraints.distance_constraints[gl_GlobalInvocationID.x].bodies;
 	vec2 local_point_0 = distance_constraints.distance_constraints[gl_GlobalInvocationID.x].local_points[0u];
 	vec2 local_point_1 = distance_constraints.distance_constraints[gl_GlobalInvocationID.x].local_points[1u];
@@ -45,13 +44,13 @@ void main()
 	ivec4 body_position_0 = positions.p[bodies.x];
 	ivec4 body_position_1 = positions.p[bodies.y];
 
-	float angle_0 = body_position_0.z * RADIAN_INVERSE;
+	float angle_0 = float(body_position_0.z) * RADIAN_INVERSE;
 	float right_x_0 = cos(angle_0);
 	float right_y_0 = sin(angle_0);
 	// TODO: See if it's faster to construct and multiply with a matrix
 	vec2 offset_0 = local_point_0.x * vec2(right_x_0, right_y_0) + local_point_0.y * vec2(-right_y_0, right_x_0);
 
-	float angle_1 = body_position_1.z * RADIAN_INVERSE;
+	float angle_1 = float(body_position_1.z) * RADIAN_INVERSE;
 	float right_x_1 = cos(angle_1);
 	float right_y_1 = sin(angle_1);
 	// TODO: See if it's faster to construct and multiply with a matrix
@@ -68,7 +67,7 @@ void main()
 	}
 	// TODO: Handle distance being zero
 	direction /= distance;
-	target_velocity = PENETRATION_VELOCITY_SCALE * (penetration - ALLOWED_PENETRATION);
+	float target_velocity = PENETRATION_VELOCITY_SCALE * (penetration - ALLOWED_PENETRATION);
 	
 	offset_0 = vec2(-offset_0.y, offset_0.x);
 	offset_1 = vec2(-offset_1.y, offset_1.x);

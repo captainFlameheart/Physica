@@ -64,6 +64,20 @@
 #define game_logic_PENETRATION_VELOCITY_SCALE(environment) 0.002f * game_logic__util__spatial_METER_INVERSE(environment)
 #define game_logic_POSITION_IMPULSE_SCALE(environment) 0.1f * game_logic__util__spatial_METER_INVERSE(environment)
 
+#define game_logic_MAX_DISTANCE_CONSTRAINT_COUNT(environment) \
+	1000000u
+
+#define game_logic_UPDATE_DISTANCE_CONSTRAINTS_LOCAL_SIZE(environmnent) \
+	game_logic__util__rigid_body_DEFAULT_COMPUTE_SHADER_LOCAL_SIZE(environment)
+
+#define game_logic_ALLOWED_DISTANCE_CONSTRAINT_PENETRATION(environment) \
+	game_logic__util__spatial_FLOAT_FROM_METERS(environment, 0.05f)
+
+#define game_logic_DISTANCE_CONSTRAINT_PENETRATION_VELOCITY_SCALE(environment) \
+	game_logic__util__spatial_FLOAT_FROM_METERS(environment, 0.05f)
+
+#define game_logic_DISTANCE_CONSTRAINT_IMPULSE_SCALE(environment) 0.05f
+
 #define game_logic_CURSOR_CONSTRAINT_VELOCITY_SCALE(environment) 0.1f
 #define game_logic_CURSOR_CONSTRAINT_IMPULSE_SCALE(environment) 0.05f
 #define game_logic_CURSOR_CONSTRAINT_MAX_IMPULSE(environment) 10.0f
@@ -98,16 +112,19 @@ namespace game_logic
 		char const* max_triangle_count_definition;
 		char const* max_vertex_count_definition;
 		char const* max_contact_count_definition;
+		char const* max_distance_constraint_count_definition;
 #if USE_DYNAMIC_SIZES == true
 		max_rigid_body_count_definition = util_shader_DEFINE("MAX_RIGID_BODY_COUNT", "");
 		max_triangle_count_definition = util_shader_DEFINE("MAX_TRIANGLE_COUNT", "");
 		max_vertex_count_definition = util_shader_DEFINE("MAX_VERTEX_COUNT", "");
 		max_contact_count_definition = util_shader_DEFINE("MAX_CONTACT_COUNT", "");
+		max_distance_constraint_count_definition = util_shader_DEFINE("MAX_DISTANCE_CONSTRAINT_COUNT", "");
 #else
 		max_rigid_body_count_definition = util_shader_DEFINE("MAX_RIGID_BODY_COUNT", STRINGIFY(game_logic_MAX_RIGID_BODY_COUNT(environment)));
 		max_triangle_count_definition = util_shader_DEFINE("MAX_TRIANGLE_COUNT", STRINGIFY(game_logic_MAX_TRIANGLE_COUNT(environment)));
 		max_vertex_count_definition = util_shader_DEFINE("MAX_VERTEX_COUNT", STRINGIFY(game_logic_MAX_VERTEX_COUNT(environment)));
 		max_contact_count_definition = util_shader_DEFINE("MAX_CONTACT_COUNT", STRINGIFY(game_logic_MAX_CONTACT_COUNT(environment)));
+		max_distance_constraint_count_definition = util_shader_DEFINE("MAX_DISTANCE_CONSTRAINT_COUNT", STRINGIFY(game_logic_MAX_DISTANCE_CONSTRAINT_COUNT(environment)));
 #endif
 
 		std::cout << "Initializing..." << std::endl;
@@ -611,6 +628,29 @@ namespace game_logic
 		(
 			compute_shader,
 			util_shader_VERSION,
+			max_distance_constraint_count_definition,
+			max_rigid_body_count_definition,
+			util_shader_DEFINE("POSITION_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_POSITION_BINDING)),
+			util_shader_DEFINE("DISTANCE_CONSTRAINT_BINDING", STRINGIFY(game_logic__util_DISTANCE_CONSTRAINT_BINDING)),
+			util_shader_DEFINE("LOCAL_SIZE", STRINGIFY(game_logic_UPDATE_DISTANCE_CONSTRAINTS_LOCAL_SIZE(environment))),
+			util_shader_DEFINE("RADIAN_INVERSE", STRINGIFY(game_logic__util__spatial_RADIAN_INVERSE(environment))),
+			util_shader_DEFINE("INVERSE_MASS", STRINGIFY(INVERSE_MASS)),
+			util_shader_DEFINE("INVERSE_INERTIA", STRINGIFY(INVERSE_INERTIA)),
+			util_shader_DEFINE("METER_INVERSE", STRINGIFY(game_logic__util__spatial_METER_INVERSE(environment))),
+			util_shader_DEFINE("VELOCITY_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_VELOCITY_BINDING)),
+			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))),
+			util_shader_DEFINE("RADIAN", STRINGIFY(game_logic__util__spatial_RADIAN(environment))),
+			util_shader_DEFINE("ALLOWED_PENETRATION", STRINGIFY(game_logic_ALLOWED_DISTANCE_CONSTRAINT_PENETRATION(environment))),
+			util_shader_DEFINE("PENETRATION_VELOCITY_SCALE", STRINGIFY(game_logic_DISTANCE_CONSTRAINT_PENETRATION_VELOCITY_SCALE(environment))),
+			::util::shader::file_to_string("util/update_distance_constraints.comp")
+		);
+		environment.state.update_distance_constraints_shader = ::util::shader::create_program(compute_shader);
+		std::cout << "Update distance constraints shader compiled" << std::endl;
+
+		::util::shader::set_shader_statically
+		(
+			compute_shader,
+			util_shader_VERSION,
 			max_contact_count_definition,
 			max_rigid_body_count_definition,
 			util_shader_DEFINE("CONTACT_SURFACE_BINDING", STRINGIFY(game_logic__util_CONTACT_SURFACE_BINDING)),
@@ -631,6 +671,29 @@ namespace game_logic
 		);
 		environment.state.warm_start_contact_impulses_shader = ::util::shader::create_program(compute_shader);
 		std::cout << "Warm start contact impulses shader compiled" << std::endl;
+
+		::util::shader::set_shader_statically
+		(
+			compute_shader,
+			util_shader_VERSION,
+			max_distance_constraint_count_definition,
+			max_rigid_body_count_definition,
+			util_shader_DEFINE("POSITION_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_POSITION_BINDING)),
+			util_shader_DEFINE("DISTANCE_CONSTRAINT_BINDING", STRINGIFY(game_logic__util_DISTANCE_CONSTRAINT_BINDING)),
+			util_shader_DEFINE("LOCAL_SIZE", STRINGIFY(game_logic_UPDATE_DISTANCE_CONSTRAINTS_LOCAL_SIZE(environment))),
+			util_shader_DEFINE("RADIAN_INVERSE", STRINGIFY(game_logic__util__spatial_RADIAN_INVERSE(environment))),
+			util_shader_DEFINE("INVERSE_MASS", STRINGIFY(INVERSE_MASS)),
+			util_shader_DEFINE("INVERSE_INERTIA", STRINGIFY(INVERSE_INERTIA)),
+			util_shader_DEFINE("METER_INVERSE", STRINGIFY(game_logic__util__spatial_METER_INVERSE(environment))),
+			util_shader_DEFINE("VELOCITY_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_VELOCITY_BINDING)),
+			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))),
+			util_shader_DEFINE("RADIAN", STRINGIFY(game_logic__util__spatial_RADIAN(environment))),
+			util_shader_DEFINE("ALLOWED_PENETRATION", STRINGIFY(game_logic_ALLOWED_DISTANCE_CONSTRAINT_PENETRATION(environment))),
+			util_shader_DEFINE("PENETRATION_VELOCITY_SCALE", STRINGIFY(game_logic_DISTANCE_CONSTRAINT_PENETRATION_VELOCITY_SCALE(environment))),
+			::util::shader::file_to_string("util/warm_start_distance_constraints.comp")
+		);
+		environment.state.warm_start_distance_constraints_shader = ::util::shader::create_program(compute_shader);
+		std::cout << "Warm start distance constraints shader compiled" << std::endl;
 
 		::util::shader::set_shader_statically
 		(
@@ -684,6 +747,33 @@ namespace game_logic
 		(
 			compute_shader,
 			util_shader_VERSION,
+			max_distance_constraint_count_definition,
+			max_rigid_body_count_definition,
+			util_shader_DEFINE("POSITION_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_POSITION_BINDING)),
+			util_shader_DEFINE("DISTANCE_CONSTRAINT_BINDING", STRINGIFY(game_logic__util_DISTANCE_CONSTRAINT_BINDING)),
+			util_shader_DEFINE("LOCAL_SIZE", STRINGIFY(game_logic_UPDATE_DISTANCE_CONSTRAINTS_LOCAL_SIZE(environment))),
+			util_shader_DEFINE("RADIAN_INVERSE", STRINGIFY(game_logic__util__spatial_RADIAN_INVERSE(environment))),
+			util_shader_DEFINE("INVERSE_MASS", STRINGIFY(INVERSE_MASS)),
+			util_shader_DEFINE("INVERSE_METER", STRINGIFY(game_logic__util__spatial_METER_INVERSE(environment))),
+			util_shader_DEFINE("INVERSE_RADIAN", STRINGIFY(game_logic__util__spatial_RADIAN_INVERSE(environment))),
+			util_shader_DEFINE("INVERSE_INERTIA", STRINGIFY(INVERSE_INERTIA)),
+			util_shader_DEFINE("METER_INVERSE", STRINGIFY(game_logic__util__spatial_METER_INVERSE(environment))),
+			util_shader_DEFINE("VELOCITY_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_VELOCITY_BINDING)),
+			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))),
+			util_shader_DEFINE("RADIAN", STRINGIFY(game_logic__util__spatial_RADIAN(environment))),
+			util_shader_DEFINE("ALLOWED_PENETRATION", STRINGIFY(game_logic_ALLOWED_DISTANCE_CONSTRAINT_PENETRATION(environment))),
+			util_shader_DEFINE("PENETRATION_VELOCITY_SCALE", STRINGIFY(game_logic_DISTANCE_CONSTRAINT_PENETRATION_VELOCITY_SCALE(environment))),
+			util_shader_DEFINE("IMPULSE_SCALE", STRINGIFY(game_logic_DISTANCE_CONSTRAINT_IMPULSE_SCALE(environment))),
+			util_shader_DEFINE("VELOCITY_SNAPSHOT_BINDING", STRINGIFY(game_logic__util_VELOCITY_SNAPSHOT_BINDING)),
+			::util::shader::file_to_string("util/solve_distance_constraints.comp")
+		);
+		environment.state.solve_distance_constraints_shader = ::util::shader::create_program(compute_shader);
+		std::cout << "Solve distance constraints shader compiled" << std::endl;
+
+		::util::shader::set_shader_statically
+		(
+			compute_shader,
+			util_shader_VERSION,
 			max_rigid_body_count_definition,
 			util_shader_DEFINE("CURSOR_CONSTRAINED_POINT_BINDING", STRINGIFY(game_logic__util_CURSOR_CONSTRAINED_POINT_BINDING)),
 			util_shader_DEFINE("CURSOR_POSITION_BINDING", STRINGIFY(game_logic__util_CURSOR_POSITION_BINDING)),
@@ -728,7 +818,8 @@ namespace game_logic
 			environment.state.rigid_body_position_snapshot_buffer, 
 			environment.state.cursor_position_buffer, 
 			environment.state.cursor_constrained_point_buffer, 
-			environment.state.cursor_constraint_buffer
+			environment.state.cursor_constraint_buffer, 
+			environment.state.distance_constraint_buffer
 		};
 		glCreateBuffers(std::size(buffers), buffers);
 		environment.state.camera_buffer = buffers[0u];
@@ -747,6 +838,7 @@ namespace game_logic
 		environment.state.cursor_position_buffer = buffers[13u];
 		environment.state.cursor_constrained_point_buffer = buffers[14u];
 		environment.state.cursor_constraint_buffer = buffers[15u];
+		environment.state.distance_constraint_buffer = buffers[16u];
 
 		{ // Camera buffer
 			GLuint const block_index
@@ -1882,6 +1974,150 @@ namespace game_logic
 			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_CURSOR_CONSTRAINT_BINDING, environment.state.cursor_constraint_buffer);
 		}
 
+		{ // Distance constraint buffer
+			{
+				GLenum const offset_label{ GL_OFFSET };
+
+				GLuint const count_index
+				{
+					glGetProgramResourceIndex(environment.state.update_distance_constraints_shader, GL_BUFFER_VARIABLE, "Distance_Constraints.count")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.update_distance_constraints_shader, GL_BUFFER_VARIABLE, count_index,
+					1u, &offset_label, 1u, nullptr, &environment.state.distance_constraint_buffer_count_offset
+				);
+
+				GLuint const distance_constraints_bodies_index
+				{
+					glGetProgramResourceIndex(environment.state.update_distance_constraints_shader, GL_BUFFER_VARIABLE, "Distance_Constraints.distance_constraints[0].bodies")
+				};
+				GLenum const prop_labels[]{ GL_OFFSET, GL_TOP_LEVEL_ARRAY_STRIDE };
+				GLint props[std::size(prop_labels)];
+				glGetProgramResourceiv
+				(
+					environment.state.update_distance_constraints_shader, GL_BUFFER_VARIABLE, distance_constraints_bodies_index,
+					std::size(prop_labels), prop_labels, 2u, nullptr, props
+				);
+				// TODO: Consider putting offset and stride contigously in game state (but probably not)
+				environment.state.distance_constraint_buffer_distance_constraints_bodies_offset = props[0u];
+				environment.state.distance_constraint_buffer_distance_constraints_stride = props[1u];
+
+				GLenum const array_prop_labels[]{ GL_OFFSET, GL_ARRAY_STRIDE };
+				GLint array_props[std::size(array_prop_labels)];
+
+				GLuint const distance_constraints_local_points_index
+				{
+					glGetProgramResourceIndex(environment.state.update_distance_constraints_shader, GL_BUFFER_VARIABLE, "Distance_Constraints.distance_constraints[0].local_points[0]")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.update_distance_constraints_shader, GL_BUFFER_VARIABLE, distance_constraints_local_points_index,
+					std::size(array_prop_labels), array_prop_labels, 2u, nullptr, array_props
+				);
+				environment.state.distance_constraint_buffer_distance_constraints_local_points_offset = array_props[0u];
+				environment.state.distance_constraint_buffer_distance_constraints_local_points_stride = array_props[1u];
+
+				GLuint const distance_constraints_offsets_index
+				{
+					glGetProgramResourceIndex(environment.state.update_distance_constraints_shader, GL_BUFFER_VARIABLE, "Distance_Constraints.distance_constraints[0].offsets[0]")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.update_distance_constraints_shader, GL_BUFFER_VARIABLE, distance_constraints_offsets_index,
+					std::size(array_prop_labels), array_prop_labels, 2u, nullptr, array_props
+				);
+				environment.state.distance_constraint_buffer_distance_constraints_offsets_offset = array_props[0u];
+				environment.state.distance_constraint_buffer_distance_constraints_offsets_stride = array_props[1u];
+
+				GLuint const distance_constraints_direction_index
+				{
+					glGetProgramResourceIndex(environment.state.update_distance_constraints_shader, GL_BUFFER_VARIABLE, "Distance_Constraints.distance_constraints[0].direction")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.update_distance_constraints_shader, GL_BUFFER_VARIABLE, distance_constraints_direction_index,
+					1u, &offset_label, 1u, nullptr, &environment.state.distance_constraint_buffer_distance_constraints_direction_offset
+				);
+
+				GLuint const distance_constraints_max_distance_index
+				{
+					glGetProgramResourceIndex(environment.state.update_distance_constraints_shader, GL_BUFFER_VARIABLE, "Distance_Constraints.distance_constraints[0].max_distance")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.update_distance_constraints_shader, GL_BUFFER_VARIABLE, distance_constraints_max_distance_index,
+					1u, &offset_label, 1u, nullptr, &environment.state.distance_constraint_buffer_distance_constraints_max_distance_offset
+				);
+
+				GLuint const distance_constraints_target_velocity_index
+				{
+					glGetProgramResourceIndex(environment.state.update_distance_constraints_shader, GL_BUFFER_VARIABLE, "Distance_Constraints.distance_constraints[0].target_velocity")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.update_distance_constraints_shader, GL_BUFFER_VARIABLE, distance_constraints_target_velocity_index,
+					1u, &offset_label, 1u, nullptr, &environment.state.distance_constraint_buffer_distance_constraints_target_velocity_offset
+				);
+
+				GLuint const distance_constraints_mass_index
+				{
+					glGetProgramResourceIndex(environment.state.update_distance_constraints_shader, GL_BUFFER_VARIABLE, "Distance_Constraints.distance_constraints[0].mass")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.update_distance_constraints_shader, GL_BUFFER_VARIABLE, distance_constraints_mass_index,
+					1u, &offset_label, 1u, nullptr, &environment.state.distance_constraint_buffer_distance_constraints_mass_offset
+				);
+
+				GLuint const distance_constraints_impulse_index
+				{
+					glGetProgramResourceIndex(environment.state.update_distance_constraints_shader, GL_BUFFER_VARIABLE, "Distance_Constraints.distance_constraints[0].impulse")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.update_distance_constraints_shader, GL_BUFFER_VARIABLE, distance_constraints_impulse_index,
+					1u, &offset_label, 1u, nullptr, &environment.state.distance_constraint_buffer_distance_constraints_impulse_offset
+				);
+
+				GLint offsets[]
+				{
+					environment.state.distance_constraint_buffer_distance_constraints_bodies_offset,
+					environment.state.distance_constraint_buffer_distance_constraints_local_points_offset, 
+					environment.state.distance_constraint_buffer_distance_constraints_offsets_offset, 
+					environment.state.distance_constraint_buffer_distance_constraints_direction_offset, 
+					environment.state.distance_constraint_buffer_distance_constraints_max_distance_offset,
+					environment.state.distance_constraint_buffer_distance_constraints_target_velocity_offset,
+					environment.state.distance_constraint_buffer_distance_constraints_mass_offset,
+					environment.state.distance_constraint_buffer_distance_constraints_impulse_offset,
+				};
+				environment.state.distance_constraint_buffer_distance_constraints_offset = *std::min_element(std::begin(offsets), std::end(offsets));
+			}
+
+#if USE_DYNAMIC_SIZES == true
+			environment.state.distance_constraint_buffer_size = environment.state.distance_constraint_buffer_distance_constraints_offset + game_logic_MAX_DISTANCE_CONSTRAINT_COUNT(environment) * environment.state.distance_constraint_buffer_distance_constraints_stride;
+#else
+			GLuint const block_index
+			{
+				glGetProgramResourceIndex(environment.state.update_distance_constraints_shader, GL_SHADER_STORAGE_BLOCK, "Distance_Constraints")
+			};
+			GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
+			glGetProgramResourceiv
+			(
+				environment.state.update_distance_constraints_shader, GL_SHADER_STORAGE_BLOCK, block_index,
+				1u, &buffer_size_label, 1u, nullptr, &environment.state.distance_constraint_buffer_size
+			);
+#endif
+
+			glNamedBufferStorage
+			(
+				environment.state.distance_constraint_buffer, environment.state.distance_constraint_buffer_size, nullptr,
+				GL_MAP_PERSISTENT_BIT | GL_MAP_READ_BIT | GL_MAP_WRITE_BIT
+			);
+
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_DISTANCE_CONSTRAINT_BINDING, environment.state.distance_constraint_buffer);
+		}
+
 		util::proximity::initialize
 		(
 			environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment), 
@@ -2019,6 +2255,24 @@ namespace game_logic
 		std::cout << "mass offset: " << environment.state.cursor_constraint_buffer_mass_offset << std::endl;
 		std::cout << "mass matrix stride: " << environment.state.cursor_constraint_buffer_mass_matrix_stride << std::endl;
 		std::cout << "impulse offset: " << environment.state.cursor_constraint_buffer_impulse_offset << std::endl;
+		std::cout << std::endl;
+
+		std::cout << "Distance constraint buffer (" << environment.state.distance_constraint_buffer << "):" << std::endl;
+		std::cout << "size: " << environment.state.distance_constraint_buffer_size << std::endl;
+		std::cout << "count offset: " << environment.state.distance_constraint_buffer_count_offset << std::endl;
+		std::cout << "distance constraints offset: " << environment.state.distance_constraint_buffer_distance_constraints_offset << std::endl;
+		std::cout << "distance constraints stride: " << environment.state.distance_constraint_buffer_distance_constraints_stride << std::endl;
+		std::cout << "distance constraints bodies offset: " << environment.state.distance_constraint_buffer_distance_constraints_bodies_offset << std::endl;
+		std::cout << "distance constraints local points offset: " << environment.state.distance_constraint_buffer_distance_constraints_local_points_offset << std::endl;
+		std::cout << "distance constraints local points stride: " << environment.state.distance_constraint_buffer_distance_constraints_local_points_stride << std::endl;
+		std::cout << "distance constraints offsets offset: " << environment.state.distance_constraint_buffer_distance_constraints_offsets_offset << std::endl;
+		std::cout << "distance constraints offsets stride: " << environment.state.distance_constraint_buffer_distance_constraints_offsets_stride << std::endl;
+		std::cout << "distance constraints direction offset: " << environment.state.distance_constraint_buffer_distance_constraints_direction_offset << std::endl;
+		std::cout << "distance constraints max distance offset: " << environment.state.distance_constraint_buffer_distance_constraints_max_distance_offset << std::endl;
+		std::cout << "distance constraints target velocity offset: " << environment.state.distance_constraint_buffer_distance_constraints_target_velocity_offset << std::endl;
+		std::cout << "distance constraints mass offset: " << environment.state.distance_constraint_buffer_distance_constraints_mass_offset << std::endl;
+		std::cout << "distance constraints impulse offset: " << environment.state.distance_constraint_buffer_distance_constraints_impulse_offset << std::endl;
+
 		std::cout << std::endl;
 
 		glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
@@ -3603,7 +3857,8 @@ namespace game_logic
 			environment.state.rigid_body_position_snapshot_buffer, 
 			environment.state.cursor_position_buffer, 
 			environment.state.cursor_constrained_point_buffer, 
-			environment.state.cursor_constraint_buffer
+			environment.state.cursor_constraint_buffer, 
+			environment.state.distance_constraint_buffer
 		};
 		glDeleteBuffers(std::size(buffers), buffers);
 

@@ -14,7 +14,7 @@ layout(shared, binding = DISTANCE_CONSTRAINT_BINDING) restrict
 buffer Distance_Constraints
 {
 	readonly uint count;
-	ivec4 distance_constraints[MAX_DISTANCE_CONSTRAINT_COUNT];
+	Distance_Constraint distance_constraints[MAX_DISTANCE_CONSTRAINT_COUNT];
 } distance_constraints;
 
 layout(shared, binding = VELOCITY_BINDING) restrict
@@ -36,7 +36,7 @@ void main()
 	vec2 offset_1 = distance_constraints.distance_constraints[gl_GlobalInvocationID.x].offsets[1u];
 	vec2 direction = distance_constraints.distance_constraints[gl_GlobalInvocationID.x].direction;
 	float impulse = distance_constraints.distance_constraints[gl_GlobalInvocationID.x].impulse;
-
+	
 	// TODO: Fetch masses from buffer
 	float inverse_mass_0 = INVERSE_MASS;
 	float inverse_inertia_0 = INVERSE_INERTIA;
@@ -58,11 +58,11 @@ void main()
 		RADIAN * inverse_inertia_1 * dot(impulse_vector, offset_1)
 	);
 
-	atomicAdd(velocities[bodies[0u]].x, delta_velocity_0.x);
-	atomicAdd(velocities[bodies[0u]].y, delta_velocity_0.y);
-	atomicAdd(velocities[bodies[0u]].z, delta_velocity_0.z);
+	atomicAdd(velocities.v[bodies.x].x, delta_velocity_0.x);
+	atomicAdd(velocities.v[bodies.x].y, delta_velocity_0.y);
+	atomicAdd(velocities.v[bodies.x].z, delta_velocity_0.z);
 
-	atomicAdd(velocities[bodies[1u]].x, delta_velocity_1.x);
-	atomicAdd(velocities[bodies[1u]].y, delta_velocity_1.y);
-	atomicAdd(velocities[bodies[1u]].z, delta_velocity_1.z);
+	atomicAdd(velocities.v[bodies.y].x, delta_velocity_1.x);
+	atomicAdd(velocities.v[bodies.y].y, delta_velocity_1.y);
+	atomicAdd(velocities.v[bodies.y].z, delta_velocity_1.z);
 }
