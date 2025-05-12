@@ -1,0 +1,89 @@
+struct Distance_Constraint
+{
+	uvec2 bodies;
+	vec2 local_points[2u];
+	vec2 offsets[2u];
+	vec2 direction;
+	float max_distance;
+	float target_velocity;
+	float mass;
+	float impulse;
+};
+
+layout(shared, binding = DISTANCE_CONSTRAINT_BINDING) restrict
+buffer Distance_Constraints
+{
+	readonly uint count;
+	ivec4 distance_constraints[MAX_DISTANCE_CONSTRAINT_COUNT];
+} distance_constraints;
+
+layout(shared, binding = VELOCITY_SNAPSHOT_BINDING) restrict readonly
+buffer Velocities_Snapshot
+{
+	ivec4 v[MAX_RIGID_BODY_COUNT];
+} velocities_snapshot;
+
+layout(shared, binding = VELOCITY_BINDING) restrict
+buffer Velocities
+{
+	ivec4 v[MAX_RIGID_BODY_COUNT];
+} velocities;
+
+layout(local_size_x = LOCAL_SIZE) in;
+void main()
+{
+	if (gl_GlobalInvocationID.x >= distance_constraints.count)
+	{
+		return;
+	}
+
+	uvec2 bodies = distance_constraints.distance_constraints[gl_GlobalInvocationID.x].bodies;
+	vec2 offset_0 = distance_constraints.distance_constraints[gl_GlobalInvocationID.x].offsets[0u];
+	vec2 offset_1 = distance_constraints.distance_constraints[gl_GlobalInvocationID.x].offsets[1u];
+	vec2 direction = distance_constraints.distance_constraints[gl_GlobalInvocationID.x].direction;
+	float target_velocity = distance_constraints.distance_constraints[gl_GlobalInvocationID.x].target_velocity;
+	float mass = distance_constraints.distance_constraints[gl_GlobalInvocationID.x].mass;
+	float impulse = distance_constraints.distance_constraints[gl_GlobalInvocationID.x].impulse;
+
+	ivec4 read_velocity_0 = velocities_snapshot.v[bodies[0u]];
+	ivec4 read_velocity_1 = velocities_snapshot.v[bodies[1u]];
+
+	// TODO: Fetch masses from buffer
+	float inverse_mass_0 = INVERSE_MASS;
+	float inverse_inertia_0 = INVERSE_INERTIA;
+
+	float inverse_mass_1 = INVERSE_MASS;
+	float inverse_inertia_1 = INVERSE_INERTIA;
+
+	vec3 velocity_0 = vec3(read_velocity_0.xyz);
+	vec3 velocity_1 = vec3(read_velocity_1.xyz);
+	// IMPORTANT TODO: Apply this optimization to contacts as well!
+	float velocity = dot(
+		(velocity_0 - velocity_1) * INVERSE_METER + (offset_0 * velocity_0.z - offset_1 * velocity_1.z) * INVERSE_RADIAN,
+		direction
+	);
+	float old_impulse = impulse;
+	impulse = max(0.0, impulse + IMPULSE_SCALE * mass * (target_velocity + velocity));
+	float delta_impulse = impulse - old_impulse;
+	vec2 delta_impulse_vector = delta_impulse * direction;
+
+	ivec3 delta_velocity_0 = ivec3
+	(
+		-METER * inverse_mass_0 * delta_impulse_vector, 
+		-RADIAN * inverse_inertia_0 * dot(delta_impulse_vector, offset_0)
+	);
+
+	ivec3 delta_velocity_1 = ivec3
+	(
+		METER * inverse_mass_1 * delta_impulse_vector, 
+		RADIAN * inverse_inertia_1 * dot(delta_impulse_vector, offset_1)
+	);
+
+	atomicAdd(velocities[bodies[0u]].x, delta_velocity_0.x);
+	atomicAdd(velocities[bodies[0u]].y, delta_velocity_0.y);
+	atomicAdd(velocities[bodies[0u]].z, delta_velocity_0.z);
+
+	atomicAdd(velocities[bodies[1u]].x, delta_velocity_1.x);
+	atomicAdd(velocities[bodies[1u]].y, delta_velocity_1.y);
+	atomicAdd(velocities[bodies[1u]].z, delta_velocity_1.z);
+}

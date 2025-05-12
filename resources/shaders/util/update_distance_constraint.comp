@@ -1,0 +1,98 @@
+struct Distance_Constraint
+{
+	uvec2 bodies;
+	vec2 local_points[2u];
+	vec2 offsets[2u];
+	vec2 direction;
+	float max_distance;
+	float target_velocity;
+	float mass;
+	float impulse;
+};
+
+layout(shared, binding = DISTANCE_CONSTRAINT_BINDING) restrict
+buffer Distance_Constraints
+{
+	readonly uint count;
+	ivec4 distance_constraints[MAX_DISTANCE_CONSTRAINT_COUNT];
+} distance_constraints;
+
+layout(shared, binding = POSITION_BINDING) restrict readonly
+buffer Positions
+{
+	ivec4 p[MAX_RIGID_BODY_COUNT];
+} positions;
+
+layout(shared, binding = VELOCITY_BINDING) restrict readonly
+buffer Velocities
+{
+	ivec4 v[MAX_RIGID_BODY_COUNT];
+} velocities;
+
+layout(local_size_x = LOCAL_SIZE) in;
+void main()
+{
+	if (gl_GlobalInvocationID.x >= distance_constraints.count)
+	{
+		return;
+	}
+
+	uvec2 bodies = distance_constraints.distance_constraints[gl_GlobalInvocationID.x].bodies;
+	vec2 local_point_0 = distance_constraints.distance_constraints[gl_GlobalInvocationID.x].local_points[0u];
+	vec2 local_point_1 = distance_constraints.distance_constraints[gl_GlobalInvocationID.x].local_points[1u];
+	float max_distance = distance_constraints.distance_constraints[gl_GlobalInvocationID.x].max_distance;
+
+	ivec4 body_position_0 = positions.p[bodies.x];
+	ivec4 body_position_1 = positions.p[bodies.y];
+
+	float angle_0 = body_position_0.z * RADIAN_INVERSE;
+	float right_x_0 = cos(angle_0);
+	float right_y_0 = sin(angle_0);
+	// TODO: See if it's faster to construct and multiply with a matrix
+	vec2 offset_0 = local_point_0.x * vec2(right_x_0, right_y_0) + local_point_0.y * vec2(-right_y_0, right_x_0);
+
+	float angle_1 = body_position_1.z * RADIAN_INVERSE;
+	float right_x_1 = cos(angle_1);
+	float right_y_1 = sin(angle_1);
+	// TODO: See if it's faster to construct and multiply with a matrix
+	vec2 offset_1 = local_point_1.x * vec2(right_x_1, right_y_1) + local_point_1.y * vec2(-right_y_1, right_x_1);
+	
+	vec2 direction = METER_INVERSE * vec2(body_position_0.xy - body_position_1.xy) + offset_0 - offset_1;
+	float distance = length(direction);
+	float penetration = distance - max_distance;
+	if (penetration < 0.0)
+	{
+		distance_constraints.distance_constraints[gl_GlobalInvocationID.x].mass = 0.0;
+		distance_constraints.distance_constraints[gl_GlobalInvocationID.x].impulse = 0.0;
+		return;
+	}
+	// TODO: Handle distance being zero
+	direction /= distance;
+	target_velocity = PENETRATION_VELOCITY_SCALE * (penetration - ALLOWED_PENETRATION);
+	
+	offset_0 = vec2(-offset_0.y, offset_0.x);
+	offset_1 = vec2(-offset_1.y, offset_1.x);
+
+	// TODO: Fetch masses from buffer
+	float inverse_mass_0 = INVERSE_MASS;
+	float inverse_inertia_0 = INVERSE_INERTIA;
+
+	float inverse_mass_1 = INVERSE_MASS;
+	float inverse_inertia_1 = INVERSE_INERTIA;
+
+	// TODO: Handle infinite mass
+	float temp_0 = dot(offset_0, direction);
+	float temp_1 = dot(offset_1, direction);
+	float mass = 1.0 / (
+		inverse_mass_0 + inverse_inertia_0 * temp_0 * temp_0 + 
+		inverse_mass_1 + inverse_inertia_1 * temp_1 * temp_1
+	);
+
+	distance_constraints.distance_constraints[gl_GlobalInvocationID.x].offsets[0u] = offset_0;
+	distance_constraints.distance_constraints[gl_GlobalInvocationID.x].offsets[1u] = offset_1;
+	distance_constraints.distance_constraints[gl_GlobalInvocationID.x].direction = direction;
+	distance_constraints.distance_constraints[gl_GlobalInvocationID.x].target_velocity = target_velocity;
+	distance_constraints.distance_constraints[gl_GlobalInvocationID.x].mass = mass;
+	
+	// TODO: Bounciness
+}
