@@ -13,6 +13,11 @@ void main()
     }
     else
     {
-        color = vec4(color.rgb / color.a, 1.0);
+        float alpha = color.a;
+        color = vec4(color.rgb / alpha, 1.0);
+        if (alpha < 1.3)
+        {
+            color.rgb *= 0.5;
+        }
     }
 }

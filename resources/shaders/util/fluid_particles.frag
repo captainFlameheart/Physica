@@ -13,7 +13,7 @@ void main()
     if ((gl_PrimitiveID / 2u) % 2u == 0u)
     {
         R = 1.0;
-        G = 1.0;
+        G = 0.0;
         B = 0.0;
     }
 
