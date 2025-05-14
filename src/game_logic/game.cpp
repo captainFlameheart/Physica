@@ -42,6 +42,9 @@
 #include "game_logic/util/proximity/query_point_of_multinode_tree.h"
 #include <algorithm>
 
+#define INTEGRATE_FLUID_VELOCITY_LOCAL_SIZE(environment) \
+	game_logic__util__rigid_body_DEFAULT_COMPUTE_SHADER_LOCAL_SIZE(environment)
+
 #define game_logic_MAX_RIGID_BODY_COUNT(environment) \
 	20u * game_logic__util__rigid_body_VELOCITY_INTEGRATION_LOCAL_SIZE(environment)
 
@@ -50,6 +53,9 @@
 
 #define game_logic_MAX_VERTEX_COUNT(environment) \
 	3u * game_logic_MAX_TRIANGLE_COUNT(environment)
+
+#define game_logic_MAX_FLUID_PARTICLE_COUNT(environment) \
+	20u * INTEGRATE_FLUID_VELOCITY_LOCAL_SIZE(environment)
 
 #define game_logic_MAX_LEAF_COUNT(environment) \
 	game_logic_MAX_TRIANGLE_COUNT(environment)
@@ -103,6 +109,21 @@
 
 namespace game_logic
 {
+	void print_capabilities(game_environment::Environment& environment)
+	{
+		std::cout << "OpenGL Capabilities:\n";
+
+		GLint max_uniform_buffer_bindings;
+		glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &max_uniform_buffer_bindings);
+		std::cout << "Max uniform buffer bindings: " << max_uniform_buffer_bindings << '\n';
+
+		GLint max_shader_storage_buffer_bindings;
+		glGetIntegerv(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS, &max_shader_storage_buffer_bindings);
+		std::cout << "Max shader storage buffer bindings: " << max_shader_storage_buffer_bindings << '\n';
+		
+		std::cout << std::endl;
+	}
+
 	void adapt_to_default_framebuffer_size
 	(
 		game_environment::Environment& environment, 
@@ -139,6 +160,8 @@ namespace game_logic
 
 	void initialize(game_environment::Environment& environment)
 	{
+		print_capabilities(environment);
+
 		int width, height;
 		glfwGetFramebufferSize(environment.window, &width, &height);
 		adapt_to_default_framebuffer_size(environment, width, height);
@@ -157,18 +180,21 @@ namespace game_logic
 		char const* max_vertex_count_definition;
 		char const* max_contact_count_definition;
 		char const* max_distance_constraint_count_definition;
+		char const* max_fluid_particle_count_definition;
 #if USE_DYNAMIC_SIZES == true
 		max_rigid_body_count_definition = util_shader_DEFINE("MAX_RIGID_BODY_COUNT", "");
 		max_triangle_count_definition = util_shader_DEFINE("MAX_TRIANGLE_COUNT", "");
 		max_vertex_count_definition = util_shader_DEFINE("MAX_VERTEX_COUNT", "");
 		max_contact_count_definition = util_shader_DEFINE("MAX_CONTACT_COUNT", "");
 		max_distance_constraint_count_definition = util_shader_DEFINE("MAX_DISTANCE_CONSTRAINT_COUNT", "");
+		max_fluid_particle_count_definition = util_shader_DEFINE("MAX_FLUID_PARTICLE_COUNT", "");
 #else
 		max_rigid_body_count_definition = util_shader_DEFINE("MAX_RIGID_BODY_COUNT", STRINGIFY(game_logic_MAX_RIGID_BODY_COUNT(environment)));
 		max_triangle_count_definition = util_shader_DEFINE("MAX_TRIANGLE_COUNT", STRINGIFY(game_logic_MAX_TRIANGLE_COUNT(environment)));
 		max_vertex_count_definition = util_shader_DEFINE("MAX_VERTEX_COUNT", STRINGIFY(game_logic_MAX_VERTEX_COUNT(environment)));
 		max_contact_count_definition = util_shader_DEFINE("MAX_CONTACT_COUNT", STRINGIFY(game_logic_MAX_CONTACT_COUNT(environment)));
 		max_distance_constraint_count_definition = util_shader_DEFINE("MAX_DISTANCE_CONSTRAINT_COUNT", STRINGIFY(game_logic_MAX_DISTANCE_CONSTRAINT_COUNT(environment)));
+		max_fluid_particle_count_definition = util_shader_DEFINE("MAX_FLUID_PARTICLE_COUNT", STRINGIFY(game_logic_MAX_FLUID_PARTICLE_COUNT(environment)));
 #endif
 
 		std::cout << "Initializing..." << std::endl;
@@ -648,6 +674,19 @@ namespace game_logic
 		environment.state.rigid_body_velocity_integration_shader = ::util::shader::create_program(compute_shader);
 		std::cout << "Rigid body velocity integration shader compiled" << std::endl;
 
+		::util::shader::set_shader_statically
+		(
+			compute_shader,
+			util_shader_VERSION,
+			max_fluid_particle_count_definition,
+			util_shader_DEFINE("FLUID_POSITION_BINDING", STRINGIFY(game_logic__util_FLUID_POSITION_BINDING)),
+			util_shader_DEFINE("FLUID_VELOCITY_BINDING", STRINGIFY(game_logic__util_FLUID_VELOCITY_BINDING)),
+			util_shader_DEFINE("LOCAL_SIZE", STRINGIFY(INTEGRATE_FLUID_VELOCITY_LOCAL_SIZE(environment))),
+			::util::shader::file_to_string("util/integrate_fluid_velocity.comp")
+		);
+		environment.state.integrate_fluid_velocity_shader = ::util::shader::create_program(compute_shader);
+		std::cout << "Integrate fluid velocity shader compiled" << std::endl;
+
 		// TODO: Think about how to deal with this temporary variable
 		std::string padding_definition
 		{ 
@@ -956,7 +995,9 @@ namespace game_logic
 			environment.state.cursor_position_buffer, 
 			environment.state.cursor_constrained_point_buffer, 
 			environment.state.cursor_constraint_buffer, 
-			environment.state.distance_constraint_buffer
+			environment.state.distance_constraint_buffer, 
+			environment.state.fluid_position_buffer, 
+			environment.state.fluid_velocity_buffer,
 		};
 		glCreateBuffers(std::size(buffers), buffers);
 		environment.state.camera_buffer = buffers[0u];
@@ -976,6 +1017,8 @@ namespace game_logic
 		environment.state.cursor_constrained_point_buffer = buffers[14u];
 		environment.state.cursor_constraint_buffer = buffers[15u];
 		environment.state.distance_constraint_buffer = buffers[16u];
+		environment.state.fluid_position_buffer = buffers[17u];
+		environment.state.fluid_velocity_buffer = buffers[18u];
 
 		{ // Camera buffer
 			GLuint const block_index
@@ -1055,6 +1098,7 @@ namespace game_logic
 		environment.state.current_contact_count = 0u;
 		environment.state.current_persistent_contact_count = 0u;
 		environment.state.current_distance_constraint_count = 0u;
+		environment.state.current_fluid_particle_count = 1u * INTEGRATE_FLUID_VELOCITY_LOCAL_SIZE(environment);
 
 		{ // Position buffer
 			GLuint const p_index
@@ -2265,6 +2309,156 @@ namespace game_logic
 			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_DISTANCE_CONSTRAINT_BINDING, environment.state.distance_constraint_buffer);
 		}
 
+		{ // Fluid position buffer
+			GLuint const p_index
+			{
+				glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, "Fluid_Position.p")
+			};
+
+			GLenum const prop_labels[]{ GL_OFFSET, GL_ARRAY_STRIDE };
+			GLint props[std::size(prop_labels)];
+			glGetProgramResourceiv
+			(
+				environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, p_index,
+				std::size(prop_labels), prop_labels, 2, nullptr, props
+			);
+			// TODO: Consider putting p_offset and p_stride contigously in game state
+			environment.state.fluid_position_buffer_p_offset = props[0u];
+			environment.state.fluid_position_buffer_p_stride = props[1u];
+
+#if USE_DYNAMIC_SIZES == true
+			environment.state.fluid_position_buffer_size = environment.state.fluid_position_buffer_p_offset + game_logic_MAX_FLUID_PARTICLE_COUNT(environment) * environment.state.fluid_position_buffer_p_stride;
+#else
+			GLuint const block_index
+			{
+				glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_SHADER_STORAGE_BLOCK, "Fluid_Position")
+			};
+			GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
+			glGetProgramResourceiv
+			(
+				environment.state.integrate_fluid_velocity_shader, GL_SHADER_STORAGE_BLOCK, block_index,
+				1, &buffer_size_label, 1, nullptr, &environment.state.fluid_position_buffer_size
+			);
+#endif
+
+			// TODO: Don't initialize a few positions by copying over the ENTIRE buffer 
+			// content from CPU to GPU like this. Instead, use persistent mapping 
+			// for both initialization and updating.
+			unsigned char* const initial_fluid_position = new unsigned char[environment.state.fluid_position_buffer_size];
+
+			for (GLuint i = 0; i < environment.state.current_fluid_particle_count; ++i)
+			{
+				GLuint const width{ 316u };
+
+				::util::math::Vector_2D position
+				{
+					-game_logic__util__spatial_FROM_METERS(environment, (i % width) * 0.5f),
+					-game_logic__util__spatial_FROM_METERS(environment, (i / width) * 0.5f)
+				};
+
+				std::memcpy
+				(
+					initial_fluid_position + environment.state.fluid_position_buffer_p_offset + i * environment.state.fluid_position_buffer_p_stride,
+					&position, sizeof(position)
+				);
+			}
+
+			glNamedBufferStorage
+			(
+				environment.state.fluid_position_buffer, environment.state.fluid_position_buffer_size, initial_fluid_position,
+				GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT
+			);
+
+			delete[] initial_fluid_position;
+
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_FLUID_POSITION_BINDING, environment.state.fluid_position_buffer);
+
+			/*environment.state.position_mapping = static_cast<unsigned char*>
+			(
+				glMapNamedBufferRange
+				(
+					environment.state.rigid_body_position_buffer,
+					0u, environment.state.rigid_body_position_buffer_size,
+					GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_FLUSH_EXPLICIT_BIT
+				)
+			);*/
+		}
+
+		{ // Fluid velocity buffer
+			GLuint const v_index
+			{
+				glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, "Fluid_Velocity.v")
+			};
+
+			GLenum const prop_labels[]{ GL_OFFSET, GL_ARRAY_STRIDE };
+			GLint props[std::size(prop_labels)];
+			glGetProgramResourceiv
+			(
+				environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, v_index,
+				std::size(prop_labels), prop_labels, 2, nullptr, props
+			);
+			// TODO: Consider putting v_offset and v_stride contigously in game state
+			environment.state.fluid_velocity_buffer_v_offset = props[0u];
+			environment.state.fluid_velocity_buffer_v_stride = props[1u];
+
+#if USE_DYNAMIC_SIZES == true
+			environment.state.fluid_velocity_buffer_size = environment.state.fluid_velocity_buffer_v_offset + game_logic_MAX_FLUID_PARTICLE_COUNT(environment) * environment.state.fluid_velocity_buffer_v_stride;
+#else
+			GLuint const block_index
+			{
+				glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_SHADER_STORAGE_BLOCK, "Fluid_Velocity")
+			};
+			GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
+			glGetProgramResourceiv
+			(
+				environment.state.integrate_fluid_velocity_shader, GL_SHADER_STORAGE_BLOCK, block_index,
+				1, &buffer_size_label, 1, nullptr, &environment.state.fluid_velocity_buffer_size
+			);
+#endif
+
+			// TODO: Don't initialize a few velocities by copying over the ENTIRE buffer 
+			// content from CPU to GPU like this. Instead, use persistent mapping 
+			// for both initialization and updating.
+			unsigned char* const initial_fluid_velocity = new unsigned char[environment.state.fluid_velocity_buffer_size];
+
+			for (GLuint i = 0; i < environment.state.current_fluid_particle_count; ++i)
+			{
+				//GLuint const width{ 316u };
+
+				::util::math::Vector_2D velocity
+				{
+					game_logic__util__spatial_FROM_METERS(environment, 0.0f),
+					game_logic__util__spatial_FROM_METERS(environment, 0.0f)
+				};
+
+				std::memcpy
+				(
+					initial_fluid_velocity + environment.state.fluid_velocity_buffer_v_offset + i * environment.state.fluid_velocity_buffer_v_stride,
+					&velocity, sizeof(velocity)
+				);
+			}
+
+			glNamedBufferStorage
+			(
+				environment.state.fluid_velocity_buffer, environment.state.fluid_velocity_buffer_size, initial_fluid_velocity,
+				GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT
+			);
+
+			delete[] initial_fluid_velocity;
+
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_FLUID_VELOCITY_BINDING, environment.state.fluid_velocity_buffer);
+
+			/*environment.state.position_mapping = static_cast<unsigned char*>
+			(
+				glMapNamedBufferRange
+				(
+					environment.state.rigid_body_position_buffer,
+					0u, environment.state.rigid_body_position_buffer_size,
+					GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_FLUSH_EXPLICIT_BIT
+				)
+			);*/
+		}
+
 		util::proximity::initialize
 		(
 			environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment), 
@@ -2419,7 +2613,18 @@ namespace game_logic
 		std::cout << "distance constraints target velocity offset: " << environment.state.distance_constraint_buffer_distance_constraints_target_velocity_offset << std::endl;
 		std::cout << "distance constraints mass offset: " << environment.state.distance_constraint_buffer_distance_constraints_mass_offset << std::endl;
 		std::cout << "distance constraints impulse offset: " << environment.state.distance_constraint_buffer_distance_constraints_impulse_offset << std::endl;
+		std::cout << std::endl;
 
+		std::cout << "Fluid position buffer (" << environment.state.fluid_position_buffer << "):" << std::endl;
+		std::cout << "size: " << environment.state.fluid_position_buffer_size << std::endl;
+		std::cout << "p offset: " << environment.state.fluid_position_buffer_p_offset << std::endl;
+		std::cout << "p stride: " << environment.state.fluid_position_buffer_p_stride << std::endl;
+		std::cout << std::endl;
+
+		std::cout << "Fluid velocity buffer (" << environment.state.fluid_velocity_buffer << "):" << std::endl;
+		std::cout << "size: " << environment.state.fluid_velocity_buffer_size << std::endl;
+		std::cout << "v offset: " << environment.state.fluid_velocity_buffer_v_offset << std::endl;
+		std::cout << "v stride: " << environment.state.fluid_velocity_buffer_v_stride << std::endl;
 		std::cout << std::endl;
 
 		glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
@@ -4296,7 +4501,9 @@ namespace game_logic
 			environment.state.cursor_position_buffer, 
 			environment.state.cursor_constrained_point_buffer, 
 			environment.state.cursor_constraint_buffer, 
-			environment.state.distance_constraint_buffer
+			environment.state.distance_constraint_buffer, 
+			environment.state.fluid_position_buffer,
+			environment.state.fluid_velocity_buffer, 
 		};
 		glDeleteBuffers(std::size(buffers), buffers);
 

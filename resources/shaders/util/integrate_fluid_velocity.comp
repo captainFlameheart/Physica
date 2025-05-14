@@ -1,0 +1,31 @@
+// TODO: Move to CPU
+#define DAMPING_NUMERATOR 990
+#define DAMPING_DENOMINATOR 1000
+
+layout(shared, binding = FLUID_POSITION_BINDING) restrict
+buffer Fluid_Position
+{
+	ivec2 p[MAX_FLUID_PARTICLE_COUNT];
+} fluid_position;
+
+layout(shared, binding = FLUID_VELOCITY_BINDING) restrict /*readonly*/
+buffer Fluid_Velocity
+{
+	ivec2 v[MAX_FLUID_PARTICLE_COUNT];
+} fluid_velocity;
+
+layout(local_size_x = LOCAL_SIZE) in;
+void main()
+{
+	ivec2 position = fluid_position.p[gl_GlobalInvocationID.x];
+	ivec2 velocity = fluid_velocity.v[gl_GlobalInvocationID.x];
+	
+	position += velocity;
+	velocity = (velocity * DAMPING_NUMERATOR) / DAMPING_DENOMINATOR;
+	velocity.xy -= ivec2(0.002 * 1000000.0 * normalize(vec2(position.xy))); // / 400000;
+	
+	fluid_position.p[gl_GlobalInvocationID.x] = position;
+	fluid_velocity.v[gl_GlobalInvocationID.x] = velocity;
+
+	// TODO: Update bounding boxes
+}

@@ -129,6 +129,18 @@ namespace game_state
 		GLint distance_constraint_buffer_distance_constraints_mass_offset;
 		GLint distance_constraint_buffer_distance_constraints_impulse_offset;
 
+		GLuint fluid_position_buffer;
+		GLint fluid_position_buffer_size;
+		GLint fluid_position_buffer_p_offset;
+		GLint fluid_position_buffer_p_stride;
+
+		GLuint fluid_velocity_buffer;
+		GLint fluid_velocity_buffer_size;
+		GLint fluid_velocity_buffer_v_offset;
+		GLint fluid_velocity_buffer_v_stride;
+
+		GLint current_fluid_particle_count;
+
 		GLuint current_distance_constraint_count;
 		GLuint add_distance_constraint_shader;
 
@@ -172,7 +184,9 @@ namespace game_state
 		GLint cursor_constraint_buffer_impulse_offset;
 
 		GLuint rigid_body_velocity_integration_shader;
+		GLuint integrate_fluid_velocity_shader;
 		GLuint triangle_bounding_box_update_shader;
+
 		unsigned char* changed_bounding_boxes_mapping;
 		
 		// TODO: Consider using std::430 layout to improve runtime performance
