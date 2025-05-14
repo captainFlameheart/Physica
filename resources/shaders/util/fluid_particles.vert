@@ -1,5 +1,3 @@
-#define RADIUS 0.5 * METER
-
 // TODO: It MIGHT be faster with more triangles to reduce the number of fragments
 const vec2 offsets[6u] = vec2[6u]
 (

@@ -45,6 +45,12 @@
 #define INTEGRATE_FLUID_VELOCITY_LOCAL_SIZE(environment) \
 	game_logic__util__rigid_body_DEFAULT_COMPUTE_SHADER_LOCAL_SIZE(environment)
 
+#define game_logic_MAX_FLUID_PARTICLE_COUNT(environment) \
+	20u * INTEGRATE_FLUID_VELOCITY_LOCAL_SIZE(environment)
+
+#define game_logic_FLUID_PARTICLE_DRAW_RADIUS(environment) \
+	game_logic__util__spatial_FLOAT_FROM_METERS(environment, 0.5f)
+
 #define game_logic_MAX_RIGID_BODY_COUNT(environment) \
 	20u * game_logic__util__rigid_body_VELOCITY_INTEGRATION_LOCAL_SIZE(environment)
 
@@ -53,9 +59,6 @@
 
 #define game_logic_MAX_VERTEX_COUNT(environment) \
 	3u * game_logic_MAX_TRIANGLE_COUNT(environment)
-
-#define game_logic_MAX_FLUID_PARTICLE_COUNT(environment) \
-	20u * INTEGRATE_FLUID_VELOCITY_LOCAL_SIZE(environment)
 
 #define game_logic_MAX_LEAF_COUNT(environment) \
 	game_logic_MAX_TRIANGLE_COUNT(environment)
@@ -169,7 +172,7 @@ namespace game_logic
 
 		glEnablei(GL_BLEND, 1);
 		glBlendEquationSeparatei(1, GL_FUNC_ADD, GL_FUNC_ADD);
-		glBlendFuncSeparatei(1, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
+		glBlendFuncSeparatei(1, GL_SRC_ALPHA, GL_ONE, GL_ONE, GL_ONE);
 
 		// TODO: Use glBindBuffersBase (note the s) for binding multiple buffers at once
 		// IMPORTANT TODO: We do not need to do a position snapshot if velocity-based position correction 
@@ -274,6 +277,7 @@ namespace game_logic
 			vertex_shader,
 			util_shader_VERSION,
 			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))),
+			util_shader_DEFINE("RADIUS", STRINGIFY(game_logic_FLUID_PARTICLE_DRAW_RADIUS(environment))),
 			max_fluid_particle_count_definition,
 			util_shader_DEFINE("FLUID_POSITION_BINDING", STRINGIFY(game_logic__util_FLUID_POSITION_BINDING)),
 			util_shader_DEFINE("FLUID_VELOCITY_BINDING", STRINGIFY(game_logic__util_FLUID_VELOCITY_BINDING)),
@@ -285,6 +289,8 @@ namespace game_logic
 		(
 			fragment_shader,
 			util_shader_VERSION,
+			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))),
+			util_shader_DEFINE("RADIUS", STRINGIFY(game_logic_FLUID_PARTICLE_DRAW_RADIUS(environment))),
 			::util::shader::file_to_string("util/fluid_particles.frag")
 		);
 		environment.state.fluid_particles_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
@@ -2378,8 +2384,8 @@ namespace game_logic
 
 				::util::math::Vector_2D position
 				{
-					-game_logic__util__spatial_FROM_METERS(environment, (i % width) * 0.5f),
-					-game_logic__util__spatial_FROM_METERS(environment, (i / width) * 0.5f)
+					-game_logic__util__spatial_FROM_METERS(environment, (i % width) * 1.5f),
+					-game_logic__util__spatial_FROM_METERS(environment, (i / width) * 1.5f)
 				};
 
 				std::memcpy
