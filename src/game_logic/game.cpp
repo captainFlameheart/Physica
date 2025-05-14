@@ -2384,7 +2384,7 @@ namespace game_logic
 
 				::util::math::Vector_2D position
 				{
-					-game_logic__util__spatial_FROM_METERS(environment, (i % width) * 0.5f),
+					-game_logic__util__spatial_FROM_METERS(environment, (i % width) * 1.5f),
 					-game_logic__util__spatial_FROM_METERS(environment, (i / width) * 1.2f)
 				};
 

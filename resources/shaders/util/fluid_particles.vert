@@ -21,7 +21,21 @@ buffer Fluid_Velocity
 {
 	ivec2 v[MAX_FLUID_PARTICLE_COUNT];
 } fluid_velocity;
+/*
+struct Fluid_Draw_Type
+{
+	float red;
+	float green;
+	float blue;
+	float alpha;
+	float radius;
+};
 
+layout(shared, binding = CAMERA_BINDING) uniform Fluid_Draw_Types
+{
+	Fluid_Draw_Type types[FLUID_TYPE_COUNT];
+} fluid_draw_types;
+*/
 layout(shared, binding = CAMERA_BINDING) uniform Camera
 {
 	ivec2 xy;

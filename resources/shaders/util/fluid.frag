@@ -6,18 +6,18 @@ layout (location = 0) out vec4 color;
 
 void main()
 {
-    color = texture(fluid_texture, texture_position);
-    if (color.a < 1.0)
+    vec4 texture_color = texture(fluid_texture, texture_position);
+    if (texture_color.a < 1.0)
     {
-        color = vec4(0.0, 0.0, 0.0, 1.0);
+        color.rgb = texture_color.rgb * texture_color.a * 0.3f;
     }
     else
     {
-        float alpha = color.a;
-        color = vec4(color.rgb / alpha, 1.0);
-        if (alpha < 1.3)
+        color.rgb = vec3(texture_color.rgb / texture_color.a);
+        if (texture_color.a < 1.3)
         {
             color.rgb *= 0.5;
         }
     }
+    color.a = 1.0;
 }
