@@ -118,10 +118,13 @@ namespace game_logic
 		glTextureParameteri(environment.state.fluid_texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTextureStorage2D(environment.state.fluid_texture, 1u, GL_RGBA32F, width, height);
 
+		glBindTextureUnit(0u, environment.state.fluid_texture);
+
 		glCreateFramebuffers(1u, &environment.state.fluid_framebuffer);
 		glNamedFramebufferTexture(environment.state.fluid_framebuffer, GL_COLOR_ATTACHMENT0, environment.state.fluid_texture, 0);
+		glNamedFramebufferDrawBuffer(environment.state.fluid_framebuffer, GL_COLOR_ATTACHMENT0);
 
-		GLenum framebuffer_status = glCheckNamedFramebufferStatus(environment.state.fluid_framebuffer, GL_FRAMEBUFFER);
+		GLenum framebuffer_status = glCheckNamedFramebufferStatus(environment.state.fluid_framebuffer, GL_DRAW_FRAMEBUFFER);
 		if (framebuffer_status != GL_FRAMEBUFFER_COMPLETE)
 		{
 			std::cerr << "Fluid framebuffer not completed, status code: " << framebuffer_status << std::endl;
@@ -212,6 +215,29 @@ namespace game_logic
 		environment.state.shader = ::util::shader::create_program(vertex_shader, fragment_shader);
 		std::cout << "Dummy shader compiled" << std::endl;
 
+		// TODO: This vertex shader compilation should be done ONCE
+		::util::shader::set_shader_statically
+		(
+			vertex_shader,
+			util_shader_VERSION,
+			::util::shader::file_to_string("util/full_screen.vert")
+		);
+		::util::shader::set_shader_statically
+		(
+			fragment_shader,
+			util_shader_VERSION,
+			::util::shader::file_to_string("util/fluid.frag")
+		);
+		environment.state.fluid_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+		environment.state.fluid_draw_shader_fluid_texture_uniform_location = glGetUniformLocation(environment.state.fluid_draw_shader, "fluid_texture");
+		glProgramUniform1i
+		(
+			environment.state.fluid_draw_shader, 
+			environment.state.fluid_draw_shader_fluid_texture_uniform_location, 
+			0
+		);
+		std::cout << "Fluid draw shader compiled. Fluid texture uniform location: " << environment.state.fluid_draw_shader_fluid_texture_uniform_location << std::endl;
+
 		::util::shader::set_shader_statically
 		(
 			vertex_shader,
@@ -224,9 +250,6 @@ namespace game_logic
 			util_shader_DEFINE("RADIAN_INVERSE", STRINGIFY(game_logic__util__spatial_RADIAN_INVERSE(environment))), 
 			::util::shader::file_to_string("util/rigid_body_debug.vert")
 		);
-		// TODO: REMOVE
-		//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		//glEnable(GL_BLEND);
 		::util::shader::set_shader_statically
 		(
 			fragment_shader,
@@ -4079,11 +4102,17 @@ namespace game_logic
 	// which includes compute shaders
 	void render(game_environment::Environment& environment)
 	{
-		glClear(GL_COLOR_BUFFER_BIT);
+		// TODO: Indirect drawing for increased performance
+
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, environment.state.fluid_framebuffer);
+		GLfloat const fluid_clear_color[4u]{ 0.0f, 0.0f, 0.0f, 0.0f };
+		glClearBufferfv(GL_COLOR, 0, fluid_clear_color);
+
+		//glClear(GL_COLOR_BUFFER_BIT);
+
+		//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0u);
 
 		update_GPU_camera(environment);
-
-		// TODO: Indirect drawing
 		
 		//glUseProgram(environment.state.shader);
 		//glBindVertexArray(environment.state.vao);
@@ -4230,6 +4259,11 @@ namespace game_logic
 		glUseProgram(environment.state.cursor_position_draw_shader);
 		glPointSize(5.0f);
 		glDrawArrays(GL_POINTS, 0, 1u);
+
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0u);
+
+		glUseProgram(environment.state.fluid_draw_shader);
+		glDrawArrays(GL_TRIANGLES, 0, 6u);
 	}
 
 	void free(game_environment::Environment& environment)

@@ -193,6 +193,9 @@ namespace game_state
 		GLuint fluid_texture;
 		GLuint fluid_framebuffer;
 
+		GLuint fluid_draw_shader;
+		GLint fluid_draw_shader_fluid_texture_uniform_location;
+
 		GLuint triangle_draw_shader;
 		GLuint triangle_wireframes_draw_shader;
 		GLuint hovered_triangle_wireframe_draw_shader;
