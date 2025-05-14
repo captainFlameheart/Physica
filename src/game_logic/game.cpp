@@ -103,8 +103,43 @@
 
 namespace game_logic
 {
+	void adapt_to_default_framebuffer_size
+	(
+		game_environment::Environment& environment, 
+		GLint const width, GLint const height
+	)
+	{
+		glViewport(0, 0, width, height);
+
+		// TODO: Make sure supersampling is not used for the default framebuffer. Otherwise, we should 
+		// make the fluid texture use supersampling and resolve (downscale) it manually to another texture.
+		glCreateTextures(GL_TEXTURE_2D, 1u, &environment.state.fluid_texture);
+		glTextureParameteri(environment.state.fluid_texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTextureParameteri(environment.state.fluid_texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTextureStorage2D(environment.state.fluid_texture, 1u, GL_RGBA32F, width, height);
+
+		glCreateFramebuffers(1u, &environment.state.fluid_framebuffer);
+		glNamedFramebufferTexture(environment.state.fluid_framebuffer, GL_COLOR_ATTACHMENT0, environment.state.fluid_texture, 0);
+
+		GLenum framebuffer_status = glCheckNamedFramebufferStatus(environment.state.fluid_framebuffer, GL_FRAMEBUFFER);
+		if (framebuffer_status != GL_FRAMEBUFFER_COMPLETE)
+		{
+			std::cerr << "Fluid framebuffer not completed, status code: " << framebuffer_status << std::endl;
+		}
+	}
+
+	void delete_fluid_texture_and_framebuffer(game_environment::Environment& environment)
+	{
+		glDeleteTextures(1u, &environment.state.fluid_texture);
+		glDeleteFramebuffers(1u, &environment.state.fluid_framebuffer);
+	}
+
 	void initialize(game_environment::Environment& environment)
 	{
+		int width, height;
+		glfwGetFramebufferSize(environment.window, &width, &height);
+		adapt_to_default_framebuffer_size(environment, width, height);
+
 		// TODO: Use glBindBuffersBase (note the s) for binding multiple buffers at once
 		// IMPORTANT TODO: We do not need to do a position snapshot if velocity-based position correction 
 		// is sufficient.
@@ -3217,6 +3252,15 @@ namespace game_logic
 		//}
 	}
 
+	void on_framebuffer_size_changed(
+		game_environment::Environment& environment,
+		int width, int height
+	)
+	{
+		delete_fluid_texture_and_framebuffer(environment);
+		adapt_to_default_framebuffer_size(environment, width, height);
+	}
+
 	void on_key_event(
 		game_environment::Environment& environment,
 		int const key,
@@ -4190,6 +4234,8 @@ namespace game_logic
 
 	void free(game_environment::Environment& environment)
 	{
+		delete_fluid_texture_and_framebuffer(environment);
+
 		glUnmapNamedBuffer(environment.state.rigid_body_position_buffer);
 		glUnmapNamedBuffer(environment.state.changed_bounding_box_buffer);
 		glUnmapNamedBuffer(environment.state.contact_buffer);

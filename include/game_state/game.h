@@ -190,6 +190,9 @@ namespace game_state
 		GLuint tick;
 		bool physics_running;
 
+		GLuint fluid_texture;
+		GLuint fluid_framebuffer;
+
 		GLuint triangle_draw_shader;
 		GLuint triangle_wireframes_draw_shader;
 		GLuint hovered_triangle_wireframe_draw_shader;

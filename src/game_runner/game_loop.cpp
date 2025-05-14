@@ -9,7 +9,11 @@ namespace game_runner
 {
 	static void on_framebuffer_size_changed(GLFWwindow* window, int width, int height)
 	{
-		glViewport(0, 0, width, height);
+		game_logic::on_framebuffer_size_changed
+		(
+			game_environment::from(window), 
+			width, height
+		);
 	}
 
 	static void on_glfw_key_event(GLFWwindow *window, int key, int scancode, int action, int mods)
@@ -68,9 +72,6 @@ namespace game_runner
 
 		glfwSetTime(0.0);
 	
-		int width, height;
-		glfwGetFramebufferSize(window, &width, &height);
-		glViewport(0, 0, width, height);
 		game_logic::render(game_environment);
 		glfwSwapBuffers(window);
 

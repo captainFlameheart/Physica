@@ -6,6 +6,11 @@ namespace game_logic
 {
 	void initialize(game_environment::Environment &environment);
 
+	void on_framebuffer_size_changed(
+		game_environment::Environment& environment,
+		int width, int height
+	);
+
 	void on_key_event(
 		game_environment::Environment& environment,
 		int const key,
