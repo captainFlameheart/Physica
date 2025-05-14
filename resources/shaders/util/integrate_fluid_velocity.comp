@@ -25,7 +25,7 @@ void main()
 	
 	position += velocity;
 	velocity = (velocity * DAMPING_NUMERATOR) / DAMPING_DENOMINATOR;
-	velocity.xy -= ivec2(0.002 * 1000000.0 * normalize(vec2(position.xy))); // / 400000;
+	//velocity.xy -= ivec2(0.002 * 1000000.0 * normalize(vec2(position.xy))); // / 400000;
 	
 	fluid_position.p[gl_GlobalInvocationID.x] = position;
 	fluid_velocity.v[gl_GlobalInvocationID.x] = velocity;

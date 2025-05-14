@@ -2459,9 +2459,13 @@ namespace game_logic
 
 				::util::math::Vector_2D velocity
 				{
-					game_logic__util__spatial_FROM_METERS(environment, 0.0f),
-					game_logic__util__spatial_FROM_METERS(environment, 0.0f)
+					game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, 0.0f),
+					game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, 0.0f)
 				};
+				if (i % 2u == 0u)
+				{
+					velocity.x = game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, -1.5f);
+				}
 
 				std::memcpy
 				(
@@ -2750,6 +2754,13 @@ namespace game_logic
 		glDispatchCompute
 		(
 			ceil_div(environment.state.current_rigid_body_count, game_logic__util__rigid_body_VELOCITY_INTEGRATION_LOCAL_SIZE(environment)),
+			1u, 1u
+		);
+
+		glUseProgram(environment.state.integrate_fluid_velocity_shader);
+		glDispatchCompute
+		(
+			ceil_div(environment.state.current_fluid_particle_count, INTEGRATE_FLUID_VELOCITY_LOCAL_SIZE(environment)), 
 			1u, 1u
 		);
 	}
