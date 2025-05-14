@@ -2,6 +2,9 @@
 #define DAMPING_NUMERATOR 990
 #define DAMPING_DENOMINATOR 1000
 
+// TODO: It MIGHT be faster to store a particle's position AND velocity in a single vec4, so the buffers 
+// could be merged
+
 layout(shared, binding = FLUID_POSITION_BINDING) restrict
 buffer Fluid_Position
 {

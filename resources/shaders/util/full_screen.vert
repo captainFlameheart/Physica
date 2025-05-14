@@ -9,7 +9,7 @@ const vec2 vertices[6u] = vec2[6u]
 	vec2(1.0, 1.0)
 );
 
-out vec2 texture_position;
+noperspective out vec2 texture_position;
 
 void main()
 {

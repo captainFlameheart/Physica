@@ -143,7 +143,8 @@ namespace game_logic
 
 		glCreateFramebuffers(1u, &environment.state.fluid_framebuffer);
 		glNamedFramebufferTexture(environment.state.fluid_framebuffer, GL_COLOR_ATTACHMENT0, environment.state.fluid_texture, 0);
-		glNamedFramebufferDrawBuffer(environment.state.fluid_framebuffer, GL_COLOR_ATTACHMENT0);
+		GLenum const draw_buffers[]{ GL_NONE, GL_COLOR_ATTACHMENT0 };
+		glNamedFramebufferDrawBuffers(environment.state.fluid_framebuffer, std::size(draw_buffers), draw_buffers);
 
 		GLenum framebuffer_status = glCheckNamedFramebufferStatus(environment.state.fluid_framebuffer, GL_DRAW_FRAMEBUFFER);
 		if (framebuffer_status != GL_FRAMEBUFFER_COMPLETE)
@@ -165,6 +166,10 @@ namespace game_logic
 		int width, height;
 		glfwGetFramebufferSize(environment.window, &width, &height);
 		adapt_to_default_framebuffer_size(environment, width, height);
+
+		glEnablei(GL_BLEND, 1);
+		glBlendEquationSeparatei(1, GL_FUNC_ADD, GL_FUNC_ADD);
+		glBlendFuncSeparatei(1, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
 
 		// TODO: Use glBindBuffersBase (note the s) for binding multiple buffers at once
 		// IMPORTANT TODO: We do not need to do a position snapshot if velocity-based position correction 
@@ -268,6 +273,27 @@ namespace game_logic
 		(
 			vertex_shader,
 			util_shader_VERSION,
+			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))),
+			max_fluid_particle_count_definition,
+			util_shader_DEFINE("FLUID_POSITION_BINDING", STRINGIFY(game_logic__util_FLUID_POSITION_BINDING)),
+			util_shader_DEFINE("FLUID_VELOCITY_BINDING", STRINGIFY(game_logic__util_FLUID_VELOCITY_BINDING)),
+			util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
+			game_PROJECTION_SCALE_DEFINITION(environment),
+			::util::shader::file_to_string("util/fluid_particles.vert")
+		);
+		::util::shader::set_shader_statically
+		(
+			fragment_shader,
+			util_shader_VERSION,
+			::util::shader::file_to_string("util/fluid_particles.frag")
+		);
+		environment.state.fluid_particles_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+		std::cout << "Fluid particles draw shader compiled" << std::endl;
+
+		::util::shader::set_shader_statically
+		(
+			vertex_shader,
+			util_shader_VERSION,
 			game_PROJECTION_SCALE_DEFINITION(environment),
 			max_rigid_body_count_definition,
 			util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
@@ -306,7 +332,7 @@ namespace game_logic
 		(
 			fragment_shader,
 			util_shader_VERSION,
-			util_shader_DEFINE("COLOR", "vec4(0.3, 0.3, 0.3, 1.0)"),
+			util_shader_DEFINE("COLOR", "vec4(0.3, 0.3, 0.3, 0.5)"), // TODO: REMOVE ALPHA
 			::util::shader::file_to_string("util/static_color.frag") // TODO: Should only be done once
 		);
 		environment.state.triangle_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
@@ -4309,22 +4335,32 @@ namespace game_logic
 	{
 		// TODO: Indirect drawing for increased performance
 
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, environment.state.fluid_framebuffer);
-		GLfloat const fluid_clear_color[4u]{ 0.0f, 0.0f, 0.0f, 0.0f };
-		glClearBufferfv(GL_COLOR, 0, fluid_clear_color);
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
-		//glClear(GL_COLOR_BUFFER_BIT);
+		update_GPU_camera(environment);
+
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, environment.state.fluid_framebuffer);
+
+		GLfloat const fluid_clear_color[4u]{ 0.0f, 0.0f, 0.0f, 0.0f }; // IMPORTANT!!!! ALPHA SHOULD BE 0
+		glClearBufferfv(GL_COLOR, 1, fluid_clear_color);
+
+		glUseProgram(environment.state.fluid_particles_draw_shader);
+		glDrawArrays(GL_TRIANGLES, 0, environment.state.current_fluid_particle_count * 6u);
+
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0u);
+
+		glUseProgram(environment.state.fluid_draw_shader);
+		glDrawArrays(GL_TRIANGLES, 0, 6u);
 
 		//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0u);
 
-		update_GPU_camera(environment);
 		
 		//glUseProgram(environment.state.shader);
 		//glBindVertexArray(environment.state.vao);
 		//glDrawArrays(GL_TRIANGLES, 0, 6);
 
+
 		glUseProgram(environment.state.triangle_draw_shader);
-		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 		glDrawArrays(GL_TRIANGLES, 0, environment.state.current_triangle_count * 3u);
 
 		//glUseProgram(environment.state.triangle_wireframes_draw_shader);
@@ -4464,11 +4500,6 @@ namespace game_logic
 		glUseProgram(environment.state.cursor_position_draw_shader);
 		glPointSize(5.0f);
 		glDrawArrays(GL_POINTS, 0, 1u);
-
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0u);
-
-		glUseProgram(environment.state.fluid_draw_shader);
-		glDrawArrays(GL_TRIANGLES, 0, 6u);
 	}
 
 	void free(game_environment::Environment& environment)
