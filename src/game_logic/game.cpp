@@ -300,6 +300,29 @@ namespace game_logic
 		(
 			vertex_shader,
 			util_shader_VERSION,
+			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))),
+			util_shader_DEFINE("RADIUS", STRINGIFY(game_logic_FLUID_PARTICLE_DRAW_RADIUS(environment))),
+			max_fluid_particle_count_definition,
+			util_shader_DEFINE("FLUID_POSITION_BINDING", STRINGIFY(game_logic__util_FLUID_POSITION_BINDING)),
+			util_shader_DEFINE("FLUID_VELOCITY_BINDING", STRINGIFY(game_logic__util_FLUID_VELOCITY_BINDING)),
+			util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
+			game_PROJECTION_SCALE_DEFINITION(environment),
+			::util::shader::file_to_string("util/debug_fluid_particles.vert")
+		);
+		::util::shader::set_shader_statically
+		(
+			fragment_shader,
+			util_shader_VERSION,
+			util_shader_DEFINE("COLOR", "vec4(1.0, 1.0, 1.0, 1.0)"),
+			::util::shader::file_to_string("util/static_color.frag")
+		);
+		environment.state.debug_fluid_particles_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+		std::cout << "Debug fluid particles draw shader compiled" << std::endl;
+
+		::util::shader::set_shader_statically
+		(
+			vertex_shader,
+			util_shader_VERSION,
 			game_PROJECTION_SCALE_DEFINITION(environment),
 			max_rigid_body_count_definition,
 			util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
@@ -4368,6 +4391,10 @@ namespace game_logic
 
 		glUseProgram(environment.state.fluid_draw_shader);
 		glDrawArrays(GL_TRIANGLES, 0, 6u);
+
+		glUseProgram(environment.state.debug_fluid_particles_draw_shader);
+		glPointSize(10.0f);
+		glDrawArrays(GL_POINTS, 0, environment.state.current_fluid_particle_count);
 
 		//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0u);
 

@@ -10,10 +10,6 @@ void main()
     float B = 1.0;
     float A = 4.0;
 
-    R = 1.0;
-    G = 0.1;
-    B = 0.0;
-
     if ((gl_PrimitiveID / 2u) % 2u == 0u)
     {
         R = 0.0;

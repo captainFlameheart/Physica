@@ -208,6 +208,7 @@ namespace game_state
 		GLuint fluid_framebuffer;
 
 		GLuint fluid_particles_draw_shader;
+		GLuint debug_fluid_particles_draw_shader;
 
 		GLuint fluid_draw_shader;
 		GLint fluid_draw_shader_fluid_texture_uniform_location;
