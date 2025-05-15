@@ -60,6 +60,9 @@
 #define game_logic_MAX_RIGID_BODY_COUNT(environment) \
 	20u * game_logic__util__rigid_body_VELOCITY_INTEGRATION_LOCAL_SIZE(environment)
 
+#define game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment) \
+	game_logic_MAX_FLUID_PARTICLE_COUNT(environment)
+
 #define game_logic_MAX_TRIANGLE_COUNT(environment) \
 	20u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment)
 
@@ -67,7 +70,7 @@
 	3u * game_logic_MAX_TRIANGLE_COUNT(environment)
 
 #define game_logic_MAX_LEAF_COUNT(environment) \
-	game_logic_MAX_TRIANGLE_COUNT(environment)
+	game_logic_MAX_FLUID_PARTICLE_COUNT(environment) + game_logic_MAX_TRIANGLE_COUNT(environment)
 
 #define game_logic_MAX_CONTACT_COUNT(environment) \
 	2000u * game_logic_MAX_TRIANGLE_COUNT(environment)
@@ -814,6 +817,7 @@ namespace game_logic
 			util_shader_DEFINE("VELOCITY_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_VELOCITY_BINDING)),
 			util_shader_DEFINE("LOCAL_SIZE", STRINGIFY(game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment))),
 			util_shader_DEFINE("RADIAN_INVERSE", STRINGIFY(game_logic__util__spatial_RADIAN_INVERSE(environment))),
+			util_shader_DEFINE("TRIANGLE_LEAFS_BASE_INDEX", STRINGIFY(game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment))),
 			::util::shader::file_to_string("util/triangle_bounding_box_update.comp")
 		);
 		environment.state.triangle_bounding_box_update_shader = ::util::shader::create_program(compute_shader);
@@ -2775,11 +2779,21 @@ namespace game_logic
 			0, 
 			0, 0, -1, -1
 		);
-		for (GLuint i = 1; i < environment.state.current_triangle_count; ++i)
+		for (GLuint i{ 1u }; i < environment.state.current_fluid_particle_count; ++i)
 		{
 			util::proximity::insert_leaf_to_nonempty_tree(
 				environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment),
 				i, 
+				0, 0, -1, -1
+			);
+		}
+
+		GLuint const current_triangle_leaf_index_end{ game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment) + environment.state.current_triangle_count };
+		for (GLuint i{ game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment) }; i < current_triangle_leaf_index_end; ++i)
+		{
+			util::proximity::insert_leaf_to_nonempty_tree(
+				environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment),
+				i,
 				0, 0, -1, -1
 			);
 		}
@@ -3135,9 +3149,35 @@ namespace game_logic
 		}
 		else
 		{
-			if (changed_fluid_leaf_count != 0)
+			unsigned char const* index_start{ environment.state.changed_fluid_bounding_boxes_mapping + environment.state.changed_fluid_bounding_box_buffer_boxes_index_offset };
+			unsigned char const* min_x_start{ environment.state.changed_fluid_bounding_boxes_mapping + environment.state.changed_fluid_bounding_box_buffer_boxes_min_x_offset };
+			unsigned char const* min_y_start{ environment.state.changed_fluid_bounding_boxes_mapping + environment.state.changed_fluid_bounding_box_buffer_boxes_min_y_offset };
+			unsigned char const* max_x_start{ environment.state.changed_fluid_bounding_boxes_mapping + environment.state.changed_fluid_bounding_box_buffer_boxes_max_x_offset };
+			unsigned char const* max_y_start{ environment.state.changed_fluid_bounding_boxes_mapping + environment.state.changed_fluid_bounding_box_buffer_boxes_max_y_offset };
+
+			for (GLuint i{ 0u }; i < changed_fluid_leaf_count; ++i)
 			{
-				std::cout << changed_fluid_leaf_count << std::endl;
+				GLuint index;
+				GLint min_x, min_y, max_x, max_y;
+				std::memcpy(&index, index_start, sizeof(GLuint));
+				std::memcpy(&min_x, min_x_start, sizeof(GLint));
+				std::memcpy(&min_y, min_y_start, sizeof(GLint));
+				std::memcpy(&max_x, max_x_start, sizeof(GLint));
+				std::memcpy(&max_y, max_y_start, sizeof(GLint));
+
+				util::proximity::change_leaf_of_multinode_tree
+				(
+					environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment),
+					index, i, min_x, min_y, max_x, max_y
+				);
+
+				index_start += environment.state.changed_bounding_box_buffer_boxes_stride;
+				min_x_start += environment.state.changed_bounding_box_buffer_boxes_stride;
+				min_y_start += environment.state.changed_bounding_box_buffer_boxes_stride;
+				max_x_start += environment.state.changed_bounding_box_buffer_boxes_stride;
+				max_y_start += environment.state.changed_bounding_box_buffer_boxes_stride;
+
+				//std::cout << i << ": " << index << std::endl;
 			}
 		}
 
@@ -3159,9 +3199,10 @@ namespace game_logic
 				break;
 		}*/
 
+		GLuint changed_triangle_leaf_count;
 		std::memcpy
 		(
-			&environment.state.proximity_tree.changed_leaf_count,
+			&changed_triangle_leaf_count,//&environment.state.proximity_tree.changed_leaf_count,
 			environment.state.changed_bounding_boxes_mapping + environment.state.changed_bounding_box_buffer_size_offset,
 			sizeof(GLuint)
 		);
@@ -3195,7 +3236,8 @@ namespace game_logic
 			unsigned char const* max_x_start{ environment.state.changed_bounding_boxes_mapping + environment.state.changed_bounding_box_buffer_boxes_max_x_offset };
 			unsigned char const* max_y_start{ environment.state.changed_bounding_boxes_mapping + environment.state.changed_bounding_box_buffer_boxes_max_y_offset };
 
-			for (GLuint i{ 0 }; i < environment.state.proximity_tree.changed_leaf_count; ++i)
+			environment.state.proximity_tree.changed_leaf_count = changed_fluid_leaf_count + changed_triangle_leaf_count;
+			for (GLuint i{ changed_fluid_leaf_count }; i < environment.state.proximity_tree.changed_leaf_count/*environment.state.proximity_tree.changed_leaf_count*/; ++i)
 			{
 				GLuint index;
 				GLint min_x, min_y, max_x, max_y;
@@ -3238,6 +3280,8 @@ namespace game_logic
 
 				void operator()(GLuint const contact_index, GLuint& next_contact_index)
 				{
+					// TODO: Check the type of contact
+
 					--environment.state.current_contact_count;
 
 					if (contact_index != environment.state.current_contact_count)
@@ -3363,7 +3407,12 @@ namespace game_logic
 
 				bool operator()(GLuint const leaf_0_index, GLuint const leaf_1_index)
 				{
-					return environment.state.current_contact_count < game_logic_MAX_CONTACT_COUNT(environment);
+					return 
+					(
+						environment.state.current_contact_count < game_logic_MAX_CONTACT_COUNT(environment) && 
+						leaf_0_index >= game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment) && 
+						leaf_1_index >= game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment)
+					);
 				}
 			};
 
@@ -3373,7 +3422,11 @@ namespace game_logic
 
 				GLuint operator()(GLuint const leaf_0_index, GLuint const leaf_1_index)
 				{
-					GLuint leaf_indices[2]{ leaf_0_index, leaf_1_index };
+					// TODO: Check which type of contact it is
+					GLuint leaf_indices[2u]{ 
+						leaf_0_index - game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment), 
+						leaf_1_index - game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment) 
+					};
 					// TODO: Do addition between mapping pointer and offset once during initialization
 					std::memcpy
 					(
@@ -3658,8 +3711,14 @@ namespace game_logic
 							GLfloat& hovered_local_x;
 							GLfloat& hovered_local_y;
 
-							void operator()(GLuint const leaf_index, game_state::proximity::Node const& leaf)
+							void operator()(GLuint leaf_index, game_state::proximity::Node const& leaf)
 							{
+								if (leaf_index < game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment))
+								{
+									return;
+								}
+								leaf_index -= game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment);
+
 								game_state::rigid_body::Triangle const& triangle{ environment.state.triangles[leaf_index] };
 								GLint body_position[4u];
 								std::memcpy
@@ -3794,8 +3853,14 @@ namespace game_logic
 							GLfloat& hovered_local_x;
 							GLfloat& hovered_local_y;
 
-							void operator()(GLuint const leaf_index, game_state::proximity::Node const& leaf)
+							void operator()(GLuint leaf_index, game_state::proximity::Node const& leaf)
 							{
+								if (leaf_index < game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment))
+								{
+									return;
+								}
+								leaf_index -= game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment);
+
 								game_state::rigid_body::Triangle const& triangle{ environment.state.triangles[leaf_index] };
 								GLint body_position[4u];
 								std::memcpy
@@ -3909,8 +3974,14 @@ namespace game_logic
 							GLfloat& hovered_local_x;
 							GLfloat& hovered_local_y;
 
-							void operator()(GLuint const leaf_index, game_state::proximity::Node const& leaf)
+							void operator()(GLuint leaf_index, game_state::proximity::Node const& leaf)
 							{
+								if (leaf_index < game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment))
+								{
+									return;
+								}
+								leaf_index -= game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment);
+
 								game_state::rigid_body::Triangle const& triangle{ environment.state.triangles[leaf_index] };
 								GLint body_position[4u];
 								std::memcpy
@@ -4405,8 +4476,14 @@ namespace game_logic
 						GLint const cursor_world_y;
 						GLuint& hovered_triangle;
 
-						void operator()(GLuint const leaf_index, game_state::proximity::Node const& leaf)
+						void operator()(GLuint leaf_index, game_state::proximity::Node const& leaf)
 						{
+							if (leaf_index < game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment))
+							{
+								return;
+							}
+							leaf_index -= game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment);
+
 							game_state::rigid_body::Triangle const& triangle{ environment.state.triangles[leaf_index] };
 							GLint body_position[4u];
 							std::memcpy

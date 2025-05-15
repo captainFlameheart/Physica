@@ -94,7 +94,7 @@ void main()
 		uint push_index = atomicAdd(changed_bounding_boxes.size, 1u);
 		changed_bounding_boxes.boxes[push_index] = Changed_Bounding_Box
 		(
-			gl_GlobalInvocationID.x, 
+			TRIANGLE_LEAFS_BASE_INDEX + gl_GlobalInvocationID.x, 
 			new_min.x, new_min.y, new_max.x, new_max.y
 		);
 	}
