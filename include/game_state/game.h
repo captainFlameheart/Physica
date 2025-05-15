@@ -139,6 +139,23 @@ namespace game_state
 		GLint fluid_velocity_buffer_v_offset;
 		GLint fluid_velocity_buffer_v_stride;
 
+		GLuint fluid_bounding_box_buffer;
+		GLint fluid_bounding_box_buffer_size;
+		GLint fluid_bounding_box_buffer_boxes_offset;
+		GLint fluid_bounding_box_buffer_boxes_stride;
+
+		GLuint changed_fluid_bounding_box_buffer;
+		GLint changed_fluid_bounding_box_buffer_size;
+		GLint changed_fluid_bounding_box_buffer_size_offset;
+		GLint changed_fluid_bounding_box_buffer_boxes_stride;
+		GLint changed_fluid_bounding_box_buffer_boxes_index_offset;
+		GLint changed_fluid_bounding_box_buffer_boxes_min_x_offset;
+		GLint changed_fluid_bounding_box_buffer_boxes_min_y_offset;
+		GLint changed_fluid_bounding_box_buffer_boxes_max_x_offset;
+		GLint changed_fluid_bounding_box_buffer_boxes_max_y_offset;
+
+		unsigned char* changed_fluid_bounding_boxes_mapping;
+
 		GLint current_fluid_particle_count;
 
 		GLuint current_distance_constraint_count;

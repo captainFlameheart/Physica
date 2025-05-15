@@ -2,6 +2,8 @@
 #define DAMPING_NUMERATOR 990
 #define DAMPING_DENOMINATOR 1000
 
+#define TRAJECTORY_PADDING 120
+
 // TODO: It MIGHT be faster to store a particle's position AND velocity in a single vec4, so the buffers 
 // could be merged
 
@@ -17,6 +19,28 @@ buffer Fluid_Velocity
 	ivec2 v[MAX_FLUID_PARTICLE_COUNT];
 } fluid_velocity;
 
+layout(shared, binding = FLUID_BOUNDING_BOX_BINDING) restrict
+buffer Fluid_Bounding_Boxes
+{
+	ivec4 boxes[MAX_FLUID_PARTICLE_COUNT];	// Bounding box: (min_x, min_y, max_x, max_y)
+} fluid_bounding_boxes;
+
+struct Changed_Fluid_Bounding_Box
+{
+	uint index;
+	int min_x;
+	int min_y;
+	int max_x;
+	int max_y;
+};
+
+layout(shared, binding = CHANGED_FLUID_BOUNDING_BOX_BINDING)
+buffer Changed_Fluid_Bounding_Boxes
+{
+	restrict uint size; // TODO: coherent MIGHT be necessary (conflicting reports)
+	restrict writeonly Changed_Fluid_Bounding_Box boxes[MAX_FLUID_PARTICLE_COUNT];
+} changed_fluid_bounding_boxes;
+
 layout(local_size_x = LOCAL_SIZE) in;
 void main()
 {
@@ -30,5 +54,27 @@ void main()
 	fluid_position.p[gl_GlobalInvocationID.x] = position;
 	fluid_velocity.v[gl_GlobalInvocationID.x] = velocity;
 
-	// TODO: Update bounding boxes
+	// Update bounding boxes
+	ivec2 new_min = position - RADIUS;
+	ivec2 new_max = position + RADIUS;
+	ivec4 bounding_box = fluid_bounding_boxes.boxes[gl_GlobalInvocationID.x];
+		
+	if (any(lessThan(new_min, bounding_box.xy)) || any(greaterThan(new_max, bounding_box.zw)))
+	{
+		new_min -= PADDING;
+		new_max += PADDING;
+		
+		ivec2 trajectory_padding = TRAJECTORY_PADDING * velocity;
+		ivec2 predicted_position = position + trajectory_padding;
+		new_min = min(new_min, predicted_position);
+		new_max = max(new_max, predicted_position);
+
+		fluid_bounding_boxes.boxes[gl_GlobalInvocationID.x] = ivec4(new_min, new_max);
+		uint push_index = atomicAdd(changed_fluid_bounding_boxes.size, 1u);
+		changed_fluid_bounding_boxes.boxes[push_index] = Changed_Fluid_Bounding_Box
+		(
+			gl_GlobalInvocationID.x, 
+			new_min.x, new_min.y, new_max.x, new_max.y
+		);
+	}
 }
