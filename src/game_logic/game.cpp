@@ -174,6 +174,17 @@ namespace game_logic
 		glBlendEquationSeparatei(1, GL_FUNC_ADD, GL_FUNC_ADD);
 		glBlendFuncSeparatei(1, GL_SRC_ALPHA, GL_ONE, GL_ONE, GL_ONE);
 
+		environment.state.debug_fluid_particles_visible = false;
+		environment.state.triangle_wireframes_visible = false;
+		environment.state.rigid_bodies_visible = false;
+		environment.state.triangle_normals_visible = false;
+		environment.state.triangle_bounding_boxes_visible = false;
+		environment.state.parent_bounding_boxes_visible = false;
+		environment.state.leaf_triangle_contacts_visible = false;
+		environment.state.contact_point_positions_visible = false;
+		environment.state.contact_basis_visible = false;
+		environment.state.contact_impulses_visible = false;
+
 		// TODO: Use glBindBuffersBase (note the s) for binding multiple buffers at once
 		// IMPORTANT TODO: We do not need to do a position snapshot if velocity-based position correction 
 		// is sufficient.
@@ -3573,6 +3584,48 @@ namespace game_logic
 			case GLFW_KEY_ENTER:
 				tick_physics(environment);
 				break;
+			case GLFW_KEY_F:
+				environment.state.debug_fluid_particles_visible = !environment.state.debug_fluid_particles_visible;
+				break;
+			case GLFW_KEY_W:
+				environment.state.triangle_wireframes_visible = !environment.state.triangle_wireframes_visible;
+				break;
+			case GLFW_KEY_R:
+				environment.state.rigid_bodies_visible = !environment.state.rigid_bodies_visible;
+				break;
+			case GLFW_KEY_N:
+				environment.state.triangle_normals_visible = !environment.state.triangle_normals_visible;
+				break;
+			case GLFW_KEY_B:
+				environment.state.triangle_bounding_boxes_visible = !environment.state.triangle_bounding_boxes_visible;
+				break;
+			case GLFW_KEY_P:
+				environment.state.parent_bounding_boxes_visible = !environment.state.parent_bounding_boxes_visible;
+				break;
+			case GLFW_KEY_L:
+				environment.state.leaf_triangle_contacts_visible = !environment.state.leaf_triangle_contacts_visible;
+				break;
+			case GLFW_KEY_C:
+				environment.state.contact_point_positions_visible = !environment.state.contact_point_positions_visible;
+				break;
+			case GLFW_KEY_T:
+				environment.state.contact_basis_visible = !environment.state.contact_basis_visible;
+				break;
+			case GLFW_KEY_I:
+				environment.state.contact_impulses_visible = !environment.state.contact_impulses_visible;
+				break;
+			case GLFW_KEY_BACKSPACE:
+				environment.state.debug_fluid_particles_visible = false;
+				environment.state.triangle_wireframes_visible = false;
+				environment.state.rigid_bodies_visible = false;
+				environment.state.triangle_normals_visible = false;
+				environment.state.triangle_bounding_boxes_visible = false;
+				environment.state.parent_bounding_boxes_visible = false;
+				environment.state.leaf_triangle_contacts_visible = false;
+				environment.state.contact_point_positions_visible = false;
+				environment.state.contact_basis_visible = false;
+				environment.state.contact_impulses_visible = false;
+				break;
 			case GLFW_KEY_ESCAPE:
 				glfwSetWindowShouldClose(environment.window, GLFW_TRUE);
 				break;
@@ -4392,23 +4445,21 @@ namespace game_logic
 		glUseProgram(environment.state.fluid_draw_shader);
 		glDrawArrays(GL_TRIANGLES, 0, 6u);
 
-		glUseProgram(environment.state.debug_fluid_particles_draw_shader);
-		glPointSize(10.0f);
-		glDrawArrays(GL_POINTS, 0, environment.state.current_fluid_particle_count);
-
-		//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0u);
-
-		
-		//glUseProgram(environment.state.shader);
-		//glBindVertexArray(environment.state.vao);
-		//glDrawArrays(GL_TRIANGLES, 0, 6);
-
+		if (environment.state.debug_fluid_particles_visible)
+		{
+			glUseProgram(environment.state.debug_fluid_particles_draw_shader);
+			glPointSize(10.0f);
+			glDrawArrays(GL_POINTS, 0, environment.state.current_fluid_particle_count);
+		}
 
 		glUseProgram(environment.state.triangle_draw_shader);
 		glDrawArrays(GL_TRIANGLES, 0, environment.state.current_triangle_count * 3u);
 
-		//glUseProgram(environment.state.triangle_wireframes_draw_shader);
-		//glDrawArrays(GL_LINES, 0, environment.state.current_triangle_count * 6u);
+		if (environment.state.triangle_wireframes_visible)
+		{
+			glUseProgram(environment.state.triangle_wireframes_draw_shader);
+			glDrawArrays(GL_LINES, 0, environment.state.current_triangle_count * 6u);
+		}
 
 		if (!environment.state.point_grabbed)
 		{
@@ -4495,36 +4546,58 @@ namespace game_logic
 			}
 		}
 
-		//glUseProgram(environment.state.rigid_body_debug_rendering_shader);
-		//glDrawArrays(GL_LINES, 0, environment.state.current_rigid_body_count * 4u);
+		if (environment.state.rigid_bodies_visible)
+		{
+			glUseProgram(environment.state.rigid_body_debug_rendering_shader);
+			glDrawArrays(GL_LINES, 0, environment.state.current_rigid_body_count * 4u);
+		}
 
-		//glUseProgram(environment.state.triangle_normal_draw_shader);
-		//glDrawArrays(GL_LINES, 0, environment.state.current_triangle_count * 6u);
+		if (environment.state.triangle_normals_visible)
+		{
+			glUseProgram(environment.state.triangle_normal_draw_shader);
+			glDrawArrays(GL_LINES, 0, environment.state.current_triangle_count * 6u);
+		}
 
-		//glUseProgram(environment.state.triangle_bounding_box_draw_shader);
-		//glDrawArrays(GL_LINES, 0, environment.state.current_triangle_count * 8u);
+		if (environment.state.triangle_bounding_boxes_visible)
+		{
+			glUseProgram(environment.state.triangle_bounding_box_draw_shader);
+			glDrawArrays(GL_LINES, 0, environment.state.current_triangle_count * 8u);
+		}
 
-		/*if (!util::proximity::is_empty(environment.state.proximity_tree))
+		if (environment.state.parent_bounding_boxes_visible && !util::proximity::is_empty(environment.state.proximity_tree))
 		{
 			glUseProgram(environment.state.parent_bounding_box_draw_shader);
 			draw_inner_bounding_boxes(environment, environment.state.proximity_tree.root);
-		}*/
+		}
 
-		//glUseProgram(environment.state.leaf_contact_draw_shader);
-		//glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 2u);
+		if (environment.state.leaf_triangle_contacts_visible)
+		{
+			glUseProgram(environment.state.leaf_contact_draw_shader);
+			glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 2u);
+		}
 
-		//glUseProgram(environment.state.contact_point_positions_draw_shader);
-		//glPointSize(10.0f);
-		//glDrawArrays(GL_POINTS, 0, environment.state.current_contact_count * 4u);
+		if (environment.state.contact_point_positions_visible)
+		{
+			glUseProgram(environment.state.contact_point_positions_draw_shader);
+			glPointSize(10.0f);
+			glDrawArrays(GL_POINTS, 0, environment.state.current_contact_count * 4u);
+		}
 
 		//glUseProgram(environment.state.contact_point_offsets_draw_shader);
 		//glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 8u);
 
-		//glUseProgram(environment.state.contact_basis_draw_shader);
-		//glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 4u);
 
-		//glUseProgram(environment.state.contact_impulses_draw_shader);
-		//glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 16u);
+		if (environment.state.contact_basis_visible)
+		{
+			glUseProgram(environment.state.contact_basis_draw_shader);
+			glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 4u);
+		}
+
+		if (environment.state.contact_impulses_visible)
+		{
+			glUseProgram(environment.state.contact_impulses_draw_shader);
+			glDrawArrays(GL_LINES, 0, environment.state.current_contact_count * 16u);
+		}
 
 		glUseProgram(environment.state.distance_constraints_draw_shader);
 		glDrawArrays(GL_LINES, 0, environment.state.current_distance_constraint_count * 2u);

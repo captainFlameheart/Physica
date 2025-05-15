@@ -208,28 +208,54 @@ namespace game_state
 		GLuint fluid_framebuffer;
 
 		GLuint fluid_particles_draw_shader;
+
+		bool debug_fluid_particles_visible;
 		GLuint debug_fluid_particles_draw_shader;
 
 		GLuint fluid_draw_shader;
 		GLint fluid_draw_shader_fluid_texture_uniform_location;
 
 		GLuint triangle_draw_shader;
+
+		bool triangle_wireframes_visible;
 		GLuint triangle_wireframes_draw_shader;
+		
 		GLuint hovered_triangle_wireframe_draw_shader;
 		GLint hovered_triangle_wireframe_hovered_triangle_uniform_location;
+
+		bool rigid_bodies_visible;
+		GLuint rigid_body_debug_rendering_shader;
+
+		bool triangle_normals_visible;
 		GLuint triangle_normal_draw_shader;
+		
+		bool triangle_bounding_boxes_visible;
 		GLuint triangle_bounding_box_draw_shader;
+
+		bool parent_bounding_boxes_visible;
 		GLuint parent_bounding_box_draw_shader;
 		GLint parent_bounding_box_uniform_location;
+
+		bool leaf_triangle_contacts_visible;
 		GLuint leaf_contact_draw_shader;
+
+		bool contact_point_positions_visible;
 		GLuint contact_point_positions_draw_shader;
+
 		GLuint contact_point_offsets_draw_shader;
+		
+		bool contact_basis_visible;
 		GLuint contact_basis_draw_shader;
+		
+		bool contact_impulses_visible;
 		GLuint contact_impulses_draw_shader;
-		GLuint rigid_body_debug_rendering_shader;
+
 		GLuint distance_constraints_draw_shader;
+
 		GLuint distance_constraint_start_draw_shader;
+		
 		GLuint cursor_constraint_draw_shader;
+		
 		GLuint cursor_position_draw_shader;
 	};
 }
