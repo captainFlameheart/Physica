@@ -72,8 +72,23 @@
 #define game_logic_MAX_LEAF_COUNT(environment) \
 	game_logic_MAX_FLUID_PARTICLE_COUNT(environment) + game_logic_MAX_TRIANGLE_COUNT(environment)
 
-#define game_logic_MAX_CONTACT_COUNT(environment) \
-	2000u * game_logic_MAX_TRIANGLE_COUNT(environment)
+#define MAX_FLUID_CONTACT_COUNT(environment) \
+	(2000u * game_logic_MAX_FLUID_PARTICLE_COUNT(environment))
+
+#define MAX_FLUID_TRIANGLE_CONTACT_COUNT(environment) \
+	(2000u * game_logic_MAX_FLUID_PARTICLE_COUNT(environment))
+
+#define game_logic_MAX_TRIANGLE_CONTACT_COUNT(environment) \
+	(2000u * game_logic_MAX_TRIANGLE_COUNT(environment))
+
+#define FLUID_TRIANGLE_CONTACT_BASE_INDEX(environment) \
+	MAX_FLUID_CONTACT_COUNT(environment)
+
+#define TRIANGLE_CONTACT_BASE_INDEX(environment) \
+	(FLUID_TRIANGLE_CONTACT_BASE_INDEX(environment) + MAX_FLUID_TRIANGLE_CONTACT_COUNT(environment))
+
+#define MAX_CONTACT_COUNT(environment) \
+	(TRIANGLE_CONTACT_BASE_INDEX(environment) + game_logic_MAX_TRIANGLE_CONTACT_COUNT(environment))
 
 #define game_logic_TANGENT_IMPULSE_SCALE(environment) 0.05f
 #define game_logic_NORMAL_IMPULSE_SCALE(environment) 0.05f
@@ -173,6 +188,15 @@ namespace game_logic
 
 	void initialize(game_environment::Environment& environment)
 	{
+		std::cout << "Initializing...\n" << std::endl;
+
+		std::cout << "Max fluid particle count: " << game_logic_MAX_FLUID_PARTICLE_COUNT(environment) << '\n';
+		std::cout << "Max rigid body count: " << game_logic_MAX_RIGID_BODY_COUNT(environment) << '\n';
+		std::cout << "Max triangle count: " << game_logic_MAX_TRIANGLE_COUNT(environment) << '\n';
+		std::cout << "Max vertex count: " << game_logic_MAX_VERTEX_COUNT(environment) << '\n';
+		std::cout << "Max leaf count: " << game_logic_MAX_LEAF_COUNT(environment) << " (Capacity: " << 0b01111111111111111111111111111111u << ")\n";
+		std::cout << "Max triangle contact count: " << game_logic_MAX_TRIANGLE_CONTACT_COUNT(environment) << "\n" << std::endl;
+
 		print_capabilities(environment);
 
 		int width, height;
@@ -220,13 +244,10 @@ namespace game_logic
 		max_rigid_body_count_definition = util_shader_DEFINE("MAX_RIGID_BODY_COUNT", STRINGIFY(game_logic_MAX_RIGID_BODY_COUNT(environment)));
 		max_triangle_count_definition = util_shader_DEFINE("MAX_TRIANGLE_COUNT", STRINGIFY(game_logic_MAX_TRIANGLE_COUNT(environment)));
 		max_vertex_count_definition = util_shader_DEFINE("MAX_VERTEX_COUNT", STRINGIFY(game_logic_MAX_VERTEX_COUNT(environment)));
-		max_contact_count_definition = util_shader_DEFINE("MAX_CONTACT_COUNT", STRINGIFY(game_logic_MAX_CONTACT_COUNT(environment)));
+		max_contact_count_definition = util_shader_DEFINE("MAX_CONTACT_COUNT", STRINGIFY(game_logic_MAX_TRIANGLE_CONTACT_COUNT(environment)));
 		max_distance_constraint_count_definition = util_shader_DEFINE("MAX_DISTANCE_CONSTRAINT_COUNT", STRINGIFY(game_logic_MAX_DISTANCE_CONSTRAINT_COUNT(environment)));
 		max_fluid_particle_count_definition = util_shader_DEFINE("MAX_FLUID_PARTICLE_COUNT", STRINGIFY(game_logic_MAX_FLUID_PARTICLE_COUNT(environment)));
 #endif
-
-		std::cout << "Initializing..." << std::endl;
-		std::cout << "Max contact count: " << game_logic_MAX_CONTACT_COUNT(environment) << std::endl;
 
 		environment.state.tick = 0u;
 		environment.state.physics_running = true;
@@ -1798,7 +1819,7 @@ namespace game_logic
 			 environment.state.contact_buffer_contacts_stride = props[1];
 
 #if USE_DYNAMIC_SIZES == true
-			 environment.state.contact_buffer_size = environment.state.contact_buffer_contacts_offset + game_logic_MAX_CONTACT_COUNT(environment) * environment.state.contact_buffer_contacts_stride;
+			 environment.state.contact_buffer_size = environment.state.contact_buffer_contacts_offset + game_logic_MAX_TRIANGLE_CONTACT_COUNT(environment) * environment.state.contact_buffer_contacts_stride;
 #else
 			 GLuint const block_index
 			 {
@@ -2025,7 +2046,7 @@ namespace game_logic
 			}
 
 #if USE_DYNAMIC_SIZES == true
-			environment.state.contact_surface_buffer_size = environment.state.contact_surface_buffer_contact_surfaces_offset + game_logic_MAX_CONTACT_COUNT(environment) * environment.state.contact_surface_buffer_contact_surfaces_stride;
+			environment.state.contact_surface_buffer_size = environment.state.contact_surface_buffer_contact_surfaces_offset + game_logic_MAX_TRIANGLE_CONTACT_COUNT(environment) * environment.state.contact_surface_buffer_contact_surfaces_stride;
 #else
 			GLuint const block_index
 			{
@@ -2772,7 +2793,7 @@ namespace game_logic
 		util::proximity::initialize
 		(
 			environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment), 
-			game_logic_MAX_CONTACT_COUNT(environment)
+			MAX_CONTACT_COUNT(environment)
 		);
 		util::proximity::insert_leaf_to_empty_tree(
 			environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment),
@@ -3237,7 +3258,7 @@ namespace game_logic
 			unsigned char const* max_y_start{ environment.state.changed_bounding_boxes_mapping + environment.state.changed_bounding_box_buffer_boxes_max_y_offset };
 
 			environment.state.proximity_tree.changed_leaf_count = changed_fluid_leaf_count + changed_triangle_leaf_count;
-			for (GLuint i{ changed_fluid_leaf_count }; i < environment.state.proximity_tree.changed_leaf_count/*environment.state.proximity_tree.changed_leaf_count*/; ++i)
+			for (GLuint i{ changed_fluid_leaf_count }; i < environment.state.proximity_tree.changed_leaf_count; ++i)
 			{
 				GLuint index;
 				GLint min_x, min_y, max_x, max_y;
@@ -3282,29 +3303,33 @@ namespace game_logic
 				{
 					// TODO: Check the type of contact
 
+					//contact_index -= TRIANGLE_CONTACT_BASE_INDEX(environment);
+					GLuint const triangle_contact_index{ contact_index - TRIANGLE_CONTACT_BASE_INDEX(environment) };
+
 					--environment.state.current_contact_count;
 
-					if (contact_index != environment.state.current_contact_count)
+					if (triangle_contact_index != environment.state.current_contact_count)
 					{
 						// MAYBE TODO: Avoid multiplications by using members that are added/subtracted along with contact count
 						glCopyNamedBufferSubData
 						(
 							environment.state.contact_buffer, environment.state.contact_buffer,
 							environment.state.contact_buffer_contacts_offset + environment.state.current_contact_count * environment.state.contact_buffer_contacts_stride,
-							environment.state.contact_buffer_contacts_offset + contact_index * environment.state.contact_buffer_contacts_stride,
+							environment.state.contact_buffer_contacts_offset + triangle_contact_index * environment.state.contact_buffer_contacts_stride,
 							sizeof(GLuint[2])
 						);
 						glCopyNamedBufferSubData
 						(
 							environment.state.contact_surface_buffer, environment.state.contact_surface_buffer,
 							environment.state.contact_surface_buffer_contact_surfaces_offset + environment.state.current_contact_count * environment.state.contact_surface_buffer_contact_surfaces_stride,
-							environment.state.contact_surface_buffer_contact_surfaces_offset + contact_index * environment.state.contact_surface_buffer_contact_surfaces_stride,
+							environment.state.contact_surface_buffer_contact_surfaces_offset + triangle_contact_index * environment.state.contact_surface_buffer_contact_surfaces_stride,
 							environment.state.contact_surface_buffer_contact_surfaces_stride
 						);
 
+						GLuint const moved_contact_index{ TRIANGLE_CONTACT_BASE_INDEX(environment) + environment.state.current_contact_count };
 						game_state::proximity::Contact const& moved_contact
 						{
-							environment.state.proximity_tree.contacts[environment.state.current_contact_count]
+							environment.state.proximity_tree.contacts[moved_contact_index]
 						};
 						environment.state.proximity_tree.contacts[contact_index] = moved_contact;
 
@@ -3315,13 +3340,13 @@ namespace game_logic
 						else
 						{
 							game_state::proximity::Contact& previous{ environment.state.proximity_tree.contacts[moved_contact.child_0_neighbor_pair.previous] };
-							GLuint const side{ static_cast<GLuint>(previous.child_1_neighbor_pair.next == environment.state.current_contact_count) };
+							GLuint const side{ static_cast<GLuint>(previous.child_1_neighbor_pair.next == moved_contact_index) };
 							previous.neighbor_pairs[side].next = contact_index;
 						}
 						if (moved_contact.child_0_neighbor_pair.next != game_logic__util__proximity_NULL_INDEX)
 						{
 							game_state::proximity::Contact& next{ environment.state.proximity_tree.contacts[moved_contact.child_0_neighbor_pair.next] };
-							GLuint const side{ static_cast<GLuint>(next.child_1_neighbor_pair.previous == environment.state.current_contact_count) };
+							GLuint const side{ static_cast<GLuint>(next.child_1_neighbor_pair.previous == moved_contact_index) };
 							next.neighbor_pairs[side].previous = contact_index;
 						}
 
@@ -3332,17 +3357,17 @@ namespace game_logic
 						else
 						{
 							game_state::proximity::Contact& previous{ environment.state.proximity_tree.contacts[moved_contact.child_1_neighbor_pair.previous] };
-							GLuint const side{ static_cast<GLuint>(previous.child_1_neighbor_pair.next == environment.state.current_contact_count) };
+							GLuint const side{ static_cast<GLuint>(previous.child_1_neighbor_pair.next == moved_contact_index) };
 							previous.neighbor_pairs[side].next = contact_index;
 						}
 						if (moved_contact.child_1_neighbor_pair.next != game_logic__util__proximity_NULL_INDEX)
 						{
 							game_state::proximity::Contact& next{ environment.state.proximity_tree.contacts[moved_contact.child_1_neighbor_pair.next] };
-							GLuint const side{ static_cast<GLuint>(next.child_1_neighbor_pair.previous == environment.state.current_contact_count) };
+							GLuint const side{ static_cast<GLuint>(next.child_1_neighbor_pair.previous == moved_contact_index) };
 							next.neighbor_pairs[side].previous = contact_index;
 						}
 
-						if (next_contact_index == environment.state.current_contact_count)
+						if (next_contact_index == moved_contact_index)
 						{
 							next_contact_index = contact_index;
 						}
@@ -3409,7 +3434,7 @@ namespace game_logic
 				{
 					return 
 					(
-						environment.state.current_contact_count < game_logic_MAX_CONTACT_COUNT(environment) && 
+						environment.state.current_contact_count < game_logic_MAX_TRIANGLE_CONTACT_COUNT(environment) && 
 						leaf_0_index >= game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment) && 
 						leaf_1_index >= game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment)
 					);
@@ -3423,6 +3448,7 @@ namespace game_logic
 				GLuint operator()(GLuint const leaf_0_index, GLuint const leaf_1_index)
 				{
 					// TODO: Check which type of contact it is
+					// IMPORTANT TODO: Do the base index subtraction in the new contact shaders
 					GLuint leaf_indices[2u]{ 
 						leaf_0_index - game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment), 
 						leaf_1_index - game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment) 
@@ -3435,7 +3461,9 @@ namespace game_logic
 						&leaf_indices,
 						sizeof(leaf_indices)
 					);
-					return environment.state.current_contact_count++;
+					GLuint const contact_index = TRIANGLE_CONTACT_BASE_INDEX(environment) + environment.state.current_contact_count;
+					++environment.state.current_contact_count;
+					return contact_index;
 				}
 			};
 
