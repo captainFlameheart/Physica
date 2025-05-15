@@ -157,9 +157,13 @@ namespace game_state
 		unsigned char* changed_fluid_bounding_boxes_mapping;
 
 		GLint current_fluid_particle_count;
-
+		
 		GLuint current_distance_constraint_count;
 		GLuint add_distance_constraint_shader;
+
+		GLuint current_fluid_contact_count;
+		GLuint current_fluid_triangle_contact_count;
+		GLuint current_triangle_contact_count;
 
 		GLuint old_triangle_contact_update_shader;
 		GLuint new_triangle_contact_shader;
@@ -176,7 +180,6 @@ namespace game_state
 		proximity::Tree proximity_tree;
 
 		// TODO: Consider using std::430 layout to improve runtime performance
-		GLuint current_contact_count;
 		GLuint current_persistent_contact_count;
 		GLuint contact_buffer;
 		GLint contact_buffer_size;
