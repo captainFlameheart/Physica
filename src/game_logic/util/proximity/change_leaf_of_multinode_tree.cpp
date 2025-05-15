@@ -46,6 +46,17 @@ namespace game_logic::util::proximity
 				tree.nodes[grandparent.children[1]].bounding_box,
 				grandparent.bounding_box
 			);
+			GLuint ancestor_index{ parent.parent };
+			while (ancestor_index != tree.root)
+			{
+				ancestor_index = tree.nodes[ancestor_index].parent;
+				game_state::proximity::Node& ancestor{ tree.nodes[ancestor_index] };
+				wrap
+				(
+					tree.nodes[ancestor.child_0].bounding_box, tree.nodes[ancestor.child_1].bounding_box, 
+					ancestor.bounding_box
+				);
+			}
 		}
 		tree.nodes[sibling_index].parent = parent.parent;
 		
