@@ -29,7 +29,8 @@
 #include "game_logic/util/rigid_body/Triangle_Bounding_Box.h"
 #include "game_logic/util/proximity/initialize.h"
 #include "game_logic/util/proximity/change_leaf_of_multinode_tree.h"
-#include "game_logic/util/proximity/update_contacts.h"
+#include "game_logic/util/proximity/remove_contacts.h"
+#include "game_logic/util/proximity/add_contacts.h"
 #include "game_logic/util/proximity/insert_leaf_to_empty_tree.h"
 #include "game_logic/util/proximity/insert_leaf_to_nonempty_tree.h"
 #include "game_logic/util/proximity/print_tree.h"
@@ -3375,7 +3376,7 @@ namespace game_logic
 				}
 			};
 
-			struct On_Contacts_Removed
+			/*struct On_Contacts_Removed
 			{
 				game_environment::Environment& environment;
 
@@ -3417,7 +3418,7 @@ namespace game_logic
 						fence_status = glClientWaitSync(fence, 0u, 0u);
 					}
 				}
-			};
+			};*/
 
 			struct On_Adding_Contacts_For
 			{
@@ -3467,7 +3468,7 @@ namespace game_logic
 				}
 			};
 
-			struct On_Contacts_Added
+			/*struct On_Contacts_Added
 			{
 				game_environment::Environment const& environment;
 				void operator()()
@@ -3494,21 +3495,107 @@ namespace game_logic
 						1u, 1u
 					);
 				}
-			};
+			};*/
 			On_Removing_Contacts_For on_removing_contacts_for{};
 			Remove_Contact remove_contact{ environment };
-			On_Contacts_Removed on_contacts_removed{ environment };
+			//On_Contacts_Removed on_contacts_removed{ environment };
 			On_Adding_Contacts_For on_adding_contacts_for{};
 			Contact_Can_Be_Added contact_can_be_added{ environment };
 			Add_Contact add_contact{ environment };
-			On_Contacts_Added on_contacts_added{ environment };
+			//On_Contacts_Added on_contacts_added{ environment };
 
 			glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT); // Updated persistent contact surfaces
-			util::proximity::update_contacts
+			/*util::proximity::update_contacts
 			(
 				environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment),
 				on_removing_contacts_for, remove_contact, on_contacts_removed,
 				on_adding_contacts_for, contact_can_be_added, add_contact, on_contacts_added
+			);*/
+
+			util::proximity::remove_contacts
+			(
+				environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment), 
+				0u, changed_fluid_leaf_count, 
+				on_removing_contacts_for, remove_contact
+			);
+
+			util::proximity::remove_contacts
+			(
+				environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment),
+				changed_fluid_leaf_count, environment.state.proximity_tree.changed_leaf_count,	// TODO: changed leaf count can be a local variable
+				on_removing_contacts_for, remove_contact
+			);
+
+			// TODO: Check if this memory barrier is necessary
+			glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
+			GLsync const fence{ glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0u) };	// Contact copying
+			glFlush();
+
+			glClearNamedBufferSubData
+			(
+				environment.state.persistent_contact_count_buffer,
+				GL_R32UI,
+				environment.state.persistent_contact_count_buffer_persistent_contact_count_offset, sizeof(GLuint),
+				GL_RED_INTEGER, GL_UNSIGNED_INT,
+				&environment.state.current_contact_count
+			);
+
+			// TODO: Give GPU something heavy to do while we write the new contacts
+
+			environment.state.current_persistent_contact_count = environment.state.current_contact_count;
+
+			// TODO: Other operations that we let the GPU perform while it is copying contact 
+			// to old contact positions.
+
+			// TODO: Potential one-time CPU operations we must do before 
+			// waiting for the GPU to be done. Example: Find the first 
+			// new contact before waiting.
+
+			// IMPORTANT TODO: Collect new contacts in temporary array while waiting for GPU
+			// ALTERNATIVE: Write to separate buffer that is then copied.
+
+			GLenum fence_status = glClientWaitSync(fence, 0u, 0u);
+			while (fence_status != GL_ALREADY_SIGNALED && fence_status != GL_CONDITION_SATISFIED)
+			{
+				// TODO: Do something useful but not necessary while we wait. 
+				// Example: Optimize proximity tree.
+				fence_status = glClientWaitSync(fence, 0u, 0u);
+			}
+
+			util::proximity::add_contacts
+			(
+				environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment),
+				0u, changed_fluid_leaf_count,
+				on_adding_contacts_for, contact_can_be_added, add_contact
+			);
+
+			util::proximity::add_contacts
+			(
+				environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment),
+				changed_fluid_leaf_count, environment.state.proximity_tree.changed_leaf_count,
+				on_adding_contacts_for, contact_can_be_added, add_contact
+			);
+
+			GLuint const new_contact_count{ environment.state.current_contact_count - environment.state.current_persistent_contact_count };
+			glFlushMappedNamedBufferRange
+			(
+				environment.state.contact_buffer,
+				environment.state.contact_buffer_contacts_offset + environment.state.current_persistent_contact_count * environment.state.contact_buffer_contacts_stride,
+				new_contact_count * environment.state.contact_buffer_contacts_stride
+			);
+			glClearNamedBufferSubData
+			(
+				environment.state.contact_count_buffer,
+				GL_R32UI,
+				environment.state.contact_count_buffer_contact_count_offset, sizeof(GLuint),
+				GL_RED_INTEGER, GL_UNSIGNED_INT,
+				&environment.state.current_contact_count
+			);
+			glUseProgram(environment.state.new_triangle_contact_shader);
+			glDispatchCompute
+			(
+				ceil_div(new_contact_count, game_logic__util__rigid_body_NEW_TRIANGLE_CONTACT_LOCAL_SIZE(environment)),
+				1u, 1u
 			);
 
 			if (environment.state.tick % 120u == 0u)

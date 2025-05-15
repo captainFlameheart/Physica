@@ -5,7 +5,7 @@
 #include "game_logic/util/proximity/overlap.h"
 #include "game_logic/util/proximity/separated.h"
 #include "game_logic/util/proximity/print_leaf_contacts.h"
-
+/*
 namespace game_logic::util::proximity
 {
 	template <typename Contact_Can_Be_Added, typename Add_Contact>
@@ -192,3 +192,4 @@ namespace game_logic::util::proximity
 		on_contacts_added();
 	}
 }
+*/
