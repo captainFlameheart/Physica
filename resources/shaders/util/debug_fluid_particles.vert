@@ -14,8 +14,7 @@ layout(shared, binding = CAMERA_BINDING) uniform Camera
 
 void main()
 {
-	uint particle_index = gl_VertexID / 6u;
-	ivec2 position = fluid_position.p[particle_index];
+	ivec2 position = fluid_position.p[gl_VertexID];
 
 	vec2 camera_relative_xy = vec2(position - camera.xy);
 	gl_Position = vec4

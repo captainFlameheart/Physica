@@ -246,8 +246,9 @@ namespace game_state
 		bool triangle_normals_visible;
 		GLuint triangle_normal_draw_shader;
 		
-		bool triangle_bounding_boxes_visible;
+		bool leaf_bounding_boxes_visible;
 		GLuint triangle_bounding_box_draw_shader;
+		GLuint fluid_bounding_boxes_draw_shader;
 
 		bool parent_bounding_boxes_visible;
 		GLuint parent_bounding_box_draw_shader;

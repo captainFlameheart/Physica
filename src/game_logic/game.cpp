@@ -184,7 +184,7 @@ namespace game_logic
 		environment.state.triangle_wireframes_visible = false;
 		environment.state.rigid_bodies_visible = false;
 		environment.state.triangle_normals_visible = false;
-		environment.state.triangle_bounding_boxes_visible = false;
+		environment.state.leaf_bounding_boxes_visible = false;
 		environment.state.parent_bounding_boxes_visible = false;
 		environment.state.leaf_triangle_contacts_visible = false;
 		environment.state.contact_point_positions_visible = false;
@@ -486,6 +486,27 @@ namespace game_logic
 		);
 		environment.state.triangle_bounding_box_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
 		std::cout << "Triangle bounding box draw shader compiled" << std::endl;
+
+		::util::shader::set_shader_statically
+		(
+			vertex_shader,
+			util_shader_VERSION,
+			game_PROJECTION_SCALE_DEFINITION(environment),
+			max_fluid_particle_count_definition,
+			max_vertex_count_definition,
+			util_shader_DEFINE("FLUID_BOUNDING_BOX_BINDING", STRINGIFY(game_logic__util_FLUID_BOUNDING_BOX_BINDING)),
+			util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
+			::util::shader::file_to_string("util/fluid_bounding_boxes.vert")
+		);
+		::util::shader::set_shader_statically
+		(
+			fragment_shader,
+			util_shader_VERSION,
+			util_shader_DEFINE("COLOR", "vec4(1.0, 1.0, 1.0, 1.0)"),
+			::util::shader::file_to_string("util/static_color.frag") // TODO: Should only be done once
+		);
+		environment.state.fluid_bounding_boxes_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+		std::cout << "Fluid bounding boxes draw shader compiled" << std::endl;
 
 		::util::shader::set_shader_statically
 		(
@@ -3829,7 +3850,7 @@ namespace game_logic
 				environment.state.triangle_normals_visible = !environment.state.triangle_normals_visible;
 				break;
 			case GLFW_KEY_B:
-				environment.state.triangle_bounding_boxes_visible = !environment.state.triangle_bounding_boxes_visible;
+				environment.state.leaf_bounding_boxes_visible = !environment.state.leaf_bounding_boxes_visible;
 				break;
 			case GLFW_KEY_P:
 				environment.state.parent_bounding_boxes_visible = !environment.state.parent_bounding_boxes_visible;
@@ -3851,7 +3872,7 @@ namespace game_logic
 				environment.state.triangle_wireframes_visible = false;
 				environment.state.rigid_bodies_visible = false;
 				environment.state.triangle_normals_visible = false;
-				environment.state.triangle_bounding_boxes_visible = false;
+				environment.state.leaf_bounding_boxes_visible = false;
 				environment.state.parent_bounding_boxes_visible = false;
 				environment.state.leaf_triangle_contacts_visible = false;
 				environment.state.contact_point_positions_visible = false;
@@ -4790,10 +4811,13 @@ namespace game_logic
 			glDrawArrays(GL_LINES, 0, environment.state.current_triangle_count * 6u);
 		}
 
-		if (environment.state.triangle_bounding_boxes_visible)
+		if (environment.state.leaf_bounding_boxes_visible)
 		{
 			glUseProgram(environment.state.triangle_bounding_box_draw_shader);
 			glDrawArrays(GL_LINES, 0, environment.state.current_triangle_count * 8u);
+			
+			glUseProgram(environment.state.fluid_bounding_boxes_draw_shader);
+			glDrawArrays(GL_LINES, 0, environment.state.current_fluid_particle_count * 8u);
 		}
 
 		if (environment.state.parent_bounding_boxes_visible && !util::proximity::is_empty(environment.state.proximity_tree))
