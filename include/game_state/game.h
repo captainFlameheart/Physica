@@ -281,8 +281,9 @@ namespace game_state
 		GLuint parent_bounding_box_draw_shader;
 		GLint parent_bounding_box_uniform_location;
 
-		bool leaf_triangle_contacts_visible;
-		GLuint leaf_contact_draw_shader;
+		bool leaf_contacts_visible;
+		GLuint fluid_leaf_contacts_draw_shader;
+		GLuint leaf_triangle_contact_draw_shader;
 
 		bool contact_point_positions_visible;
 		GLuint contact_point_positions_draw_shader;

@@ -226,7 +226,7 @@ namespace game_logic
 		environment.state.triangle_normals_visible = false;
 		environment.state.leaf_bounding_boxes_visible = false;
 		environment.state.parent_bounding_boxes_visible = false;
-		environment.state.leaf_triangle_contacts_visible = false;
+		environment.state.leaf_contacts_visible = false;
 		environment.state.contact_point_positions_visible = false;
 		environment.state.contact_basis_visible = false;
 		environment.state.contact_impulses_visible = false;
@@ -575,6 +575,38 @@ namespace game_logic
 		(
 			vertex_shader,
 			util_shader_VERSION,
+			util_shader_DEFINE("FLUID_CONTACT_COUNT_BINDING", STRINGIFY(game_logic__util_FLUID_CONTACT_COUNT_BINDING)),
+			util_shader_DEFINE("FLUID_CONTACT_BINDING", STRINGIFY(game_logic__util_FLUID_CONTACT_BINDING)),
+			max_fluid_contact_count_definition,
+			max_fluid_particle_count_definition,
+			util_shader_DEFINE("FLUID_POSITION_BINDING", STRINGIFY(game_logic__util_FLUID_POSITION_BINDING)),
+			util_shader_DEFINE("FLUID_VELOCITY_BINDING", STRINGIFY(game_logic__util_FLUID_VELOCITY_BINDING)),
+			util_shader_DEFINE("LOCAL_SIZE", STRINGIFY(PERSIST_FLUID_CONTACT_LOCAL_SIZE(environment))),
+			util_shader_DEFINE("INVERSE_MASS", STRINGIFY(FLUID_INVERSE_MASS(environment))),
+			util_shader_DEFINE("STRENGTH_RADIUS", STRINGIFY(FLUID_STRENGTH_RADIUS(environment))),
+			util_shader_DEFINE("MAX_STRENGTH", STRINGIFY(FLUID_MAX_STRENGTH(environment))),
+			util_shader_DEFINE("TARGET_RADIUS", STRINGIFY(FLUID_TARGET_RADIUS(environment))),
+			util_shader_DEFINE("METER_INVERSE", STRINGIFY(game_logic__util__spatial_METER_INVERSE(environment))),
+			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))),
+			util_shader_DEFINE("BOUNDING_BOX_BINDING", STRINGIFY(game_logic__util_TRIANGLE_BOUNDING_BOX_BINDING)),
+			util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
+			game_PROJECTION_SCALE_DEFINITION(environment),
+			::util::shader::file_to_string("util/fluid_leaf_contacts.vert")
+		);
+		::util::shader::set_shader_statically
+		(
+			fragment_shader,
+			util_shader_VERSION,
+			util_shader_DEFINE("COLOR", "vec4(0.0, 1.0, 0.0, 1.0)"),
+			::util::shader::file_to_string("util/static_color.frag") // TODO: Should only be done once
+		);
+		environment.state.fluid_leaf_contacts_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+		std::cout << "Fluid leaf contacts draw shader compiled" << std::endl;
+
+		::util::shader::set_shader_statically
+		(
+			vertex_shader,
+			util_shader_VERSION,
 			util_shader_DEFINE("CONTACT_BINDING", STRINGIFY(game_logic__util_CONTACT_BINDING)),
 			max_contact_count_definition,
 			max_triangle_count_definition,
@@ -597,7 +629,7 @@ namespace game_logic
 			util_shader_DEFINE("COLOR", "vec4(0.0, 1.0, 0.0, 1.0)"),
 			::util::shader::file_to_string("util/static_color.frag") // TODO: Should only be done once
 		);
-		environment.state.leaf_contact_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+		environment.state.leaf_triangle_contact_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
 		std::cout << "Leaf contact draw shader compiled" << std::endl;
 
 		::util::shader::set_shader_statically
@@ -1870,14 +1902,14 @@ namespace game_logic
 		 { // Contact buffer
 			 GLuint const contacts_index
 			 {
-				 glGetProgramResourceIndex(environment.state.leaf_contact_draw_shader, GL_BUFFER_VARIABLE, "Contacts.contacts")
+				 glGetProgramResourceIndex(environment.state.leaf_triangle_contact_draw_shader, GL_BUFFER_VARIABLE, "Contacts.contacts")
 			 };
 
 			 GLenum const prop_labels[]{ GL_OFFSET, GL_ARRAY_STRIDE };
 			 GLint props[std::size(prop_labels)];
 			 glGetProgramResourceiv
 			 (
-				 environment.state.leaf_contact_draw_shader, GL_BUFFER_VARIABLE, contacts_index,
+				 environment.state.leaf_triangle_contact_draw_shader, GL_BUFFER_VARIABLE, contacts_index,
 				 std::size(prop_labels), prop_labels, 2, nullptr, props
 			 );
 			 // TODO: Consider putting offset and stride contigously in game state
@@ -2553,7 +2585,7 @@ namespace game_logic
 
 				::util::math::Vector_2D position
 				{
-					-game_logic__util__spatial_FROM_METERS(environment, (i % width) * 1.5f),
+					-game_logic__util__spatial_FROM_METERS(environment, (i % width) * 5.0f),
 					-game_logic__util__spatial_FROM_METERS(environment, (i / width) * 1.2f)
 				};
 
@@ -2633,7 +2665,7 @@ namespace game_logic
 				};
 				if (i % 2u == 0u)
 				{
-					velocity.x = game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, -1.5f);
+					velocity.x = game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, -5.5f);
 				}
 
 				std::memcpy
@@ -3362,12 +3394,12 @@ namespace game_logic
 		// so that this memory barrier becomes unnecessary.
 		//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);	// Writes to bounding boxes must occur before constraining the positions and velocities
 
-		/*glUseProgram(environment.state.persist_fluid_contacts_shader);
+		glUseProgram(environment.state.persist_fluid_contacts_shader);
 		glDispatchCompute
 		(
 			ceil_div(environment.state.current_fluid_contact_count, PERSIST_FLUID_CONTACT_LOCAL_SIZE(environment)), 
 			1u, 1u
-		);*/
+		);
 
 		glUseProgram(environment.state.old_triangle_contact_update_shader);
 		glDispatchCompute
@@ -3669,7 +3701,7 @@ namespace game_logic
 				environment.state.fluid_contact_count_buffer,
 				GL_R32UI,
 				environment.state.fluid_contact_count_buffer_persistent_count_offset, sizeof(GLuint),
-				GL_RED_INTEGER, GL_UNSIGNED_INT,
+				GL_RED_INTEGER, GL_UNSIGNED_INT, 
 				&environment.state.current_fluid_contact_count
 			);
 
@@ -3805,12 +3837,12 @@ namespace game_logic
 				GL_RED_INTEGER, GL_UNSIGNED_INT,
 				&environment.state.current_fluid_contact_count
 			);
-			/*glUseProgram(environment.state.new_fluid_contacts_shader);
+			glUseProgram(environment.state.new_fluid_contacts_shader);
 			glDispatchCompute
 			(
 				ceil_div(new_fluid_contact_count, NEW_FLUID_CONTACT_LOCAL_SIZE(environment)),
 				1u, 1u
-			);*/
+			);
 
 			{	// Triangle contact add
 				struct On_Adding_Contacts_For
@@ -3977,7 +4009,7 @@ namespace game_logic
 				environment.state.parent_bounding_boxes_visible = !environment.state.parent_bounding_boxes_visible;
 				break;
 			case GLFW_KEY_L:
-				environment.state.leaf_triangle_contacts_visible = !environment.state.leaf_triangle_contacts_visible;
+				environment.state.leaf_contacts_visible = !environment.state.leaf_contacts_visible;
 				break;
 			case GLFW_KEY_C:
 				environment.state.contact_point_positions_visible = !environment.state.contact_point_positions_visible;
@@ -3995,7 +4027,7 @@ namespace game_logic
 				environment.state.triangle_normals_visible = false;
 				environment.state.leaf_bounding_boxes_visible = false;
 				environment.state.parent_bounding_boxes_visible = false;
-				environment.state.leaf_triangle_contacts_visible = false;
+				environment.state.leaf_contacts_visible = false;
 				environment.state.contact_point_positions_visible = false;
 				environment.state.contact_basis_visible = false;
 				environment.state.contact_impulses_visible = false;
@@ -4971,9 +5003,12 @@ namespace game_logic
 			draw_inner_bounding_boxes(environment, environment.state.proximity_tree.root);
 		}
 
-		if (environment.state.leaf_triangle_contacts_visible)
+		if (environment.state.leaf_contacts_visible)
 		{
-			glUseProgram(environment.state.leaf_contact_draw_shader);
+			glUseProgram(environment.state.fluid_leaf_contacts_draw_shader);
+			glDrawArrays(GL_LINES, 0, environment.state.current_fluid_contact_count * 2u);
+
+			glUseProgram(environment.state.leaf_triangle_contact_draw_shader);
 			glDrawArrays(GL_LINES, 0, environment.state.current_triangle_contact_count * 2u);
 		}
 
