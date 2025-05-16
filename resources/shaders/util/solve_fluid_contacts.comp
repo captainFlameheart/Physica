@@ -14,11 +14,17 @@ struct Fluid_Contact
 	float impulse;
 };
 
-layout(shared, binding = FLUID_CONTACT_BINDING) restrict readonly
+layout(shared, binding = FLUID_CONTACT_BINDING) restrict
 buffer Fluid_Contacts
 {
 	Fluid_Contact contacts[MAX_FLUID_CONTACT_COUNT];
 } fluid_contacts;
+
+layout(shared, binding = FLUID_VELOCITY_SNAPSHOT_BINDING) restrict readonly
+buffer Fluid_Velocity_Snapshot
+{
+	ivec2 v[MAX_FLUID_PARTICLE_COUNT];
+} fluid_velocity_snapshot;
 
 layout(shared, binding = FLUID_VELOCITY_BINDING) restrict
 buffer Fluid_Velocity
@@ -29,8 +35,6 @@ buffer Fluid_Velocity
 layout(local_size_x = LOCAL_SIZE) in;
 void main()
 {
-	// TODO: Apply warm start impulses to ALL triangle contacts as well (we should initialize new contact impulses 
-	// to non-zero for faster convergence).
 	if (gl_GlobalInvocationID.x >= fluid_contact_count.count)
 	{
 		return;
@@ -43,16 +47,27 @@ void main()
 
 	uvec2 particles = fluid_contacts.contacts[gl_GlobalInvocationID.x].particles;
 	vec2 direction = fluid_contacts.contacts[gl_GlobalInvocationID.x].direction;
+	float target_velocity = fluid_contacts.contacts[gl_GlobalInvocationID.x].target_velocity;
+	float mass = fluid_contacts.contacts[gl_GlobalInvocationID.x].mass;
 	float impulse = fluid_contacts.contacts[gl_GlobalInvocationID.x].impulse;
 	
 	// TODO: Fetch masses from buffer
 	float inverse_mass_0 = INVERSE_MASS;
 	float inverse_mass_1 = INVERSE_MASS;
 
-	vec2 impulse_vector = impulse * direction;
+	ivec2 velocity_0 = fluid_velocity_snapshot.v[particles.x];
+	ivec2 velocity_1 = fluid_velocity_snapshot.v[particles.y];
 
-	ivec2 delta_velocity_0 = ivec2(-inverse_mass_0 * impulse_vector);
-	ivec2 delta_velocity_1 = ivec2(inverse_mass_1 * impulse_vector);
+	float velocity = dot(direction, vec2(velocity_0 - velocity_1));
+	float old_impulse = impulse;
+	impulse = clamp(impulse + IMPULSE_SCALE * mass * (target_velocity + velocity), -max_impulse, max_impulse);
+	float delta_impulse = impulse - old_impulse;
+	vec2 delta_impulse_vector = delta_impulse * direction;
+
+	ivec2 delta_velocity_0 = ivec2(-inverse_mass_0 * delta_impulse_vector);
+	ivec2 delta_velocity_1 = ivec2(inverse_mass_1 * delta_impulse_vector);
+
+	fluid_contacts.contacts[gl_GlobalInvocationID.x].impulse = impulse;
 
 	atomicAdd(fluid_velocity.v[particles.x].x, delta_velocity_0.x);
 	atomicAdd(fluid_velocity.v[particles.x].y, delta_velocity_0.y);

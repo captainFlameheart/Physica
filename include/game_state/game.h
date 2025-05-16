@@ -177,6 +177,8 @@ namespace game_state
 		GLuint current_fluid_persistent_contact_count;
 		GLuint current_fluid_contact_count;
 
+		GLuint fluid_velocity_snapshot_buffer;
+
 		GLint current_fluid_particle_count;
 		
 		GLuint current_distance_constraint_count;
@@ -198,6 +200,7 @@ namespace game_state
 		GLuint warm_start_distance_constraints_shader;
 		GLuint update_and_warm_start_cursor_constraint_shader;
 
+		GLuint solve_fluid_contacts_shader;
 		GLuint solve_contact_velocities_shader;
 		GLuint solve_distance_constraints_shader;
 		GLuint solve_cursor_constraint_shader;

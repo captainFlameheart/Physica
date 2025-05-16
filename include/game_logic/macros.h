@@ -65,7 +65,7 @@
 #define game_logic__util_FLUID_BOUNDING_BOX_BINDING 14
 #define game_logic__util_CHANGED_FLUID_BOUNDING_BOX_BINDING 15
 #define game_logic__util_FLUID_CONTACT_BINDING 16
-
+#define game_logic__util_FLUID_VELOCITY_SNAPSHOT_BINDING 17
 
 
 #define game_CAMERA_DEFAULT_DISTANCE_PER_TICK(environment) \

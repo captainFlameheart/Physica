@@ -56,6 +56,11 @@
 #define WARM_START_FLUID_CONTACTS_LOCAL_SIZE(environment) \
 	game_logic__util__rigid_body_DEFAULT_COMPUTE_SHADER_LOCAL_SIZE(environment)
 
+#define SOLVE_FLUID_CONTACTS_LOCAL_SIZE(environment) \
+	game_logic__util__rigid_body_DEFAULT_COMPUTE_SHADER_LOCAL_SIZE(environment)
+
+#define SOLVE_FLUID_CONTACTS_IMPULSE_SCALE(environment) 0.05f
+
 #define FLUID_INVERSE_MASS(environment) 1.0f
 #define FLUID_STRENGTH_RADIUS(environment) 1.0f
 #define FLUID_MAX_STRENGTH(environment) 1.0f
@@ -1146,6 +1151,30 @@ namespace game_logic
 		(
 			compute_shader,
 			util_shader_VERSION,
+			util_shader_DEFINE("FLUID_CONTACT_COUNT_BINDING", STRINGIFY(game_logic__util_FLUID_CONTACT_COUNT_BINDING)),
+			util_shader_DEFINE("FLUID_CONTACT_BINDING", STRINGIFY(game_logic__util_FLUID_CONTACT_BINDING)),
+			max_fluid_contact_count_definition,
+			max_fluid_particle_count_definition,
+			util_shader_DEFINE("FLUID_POSITION_BINDING", STRINGIFY(game_logic__util_FLUID_POSITION_BINDING)),
+			util_shader_DEFINE("FLUID_VELOCITY_SNAPSHOT_BINDING", STRINGIFY(game_logic__util_FLUID_VELOCITY_SNAPSHOT_BINDING)),
+			util_shader_DEFINE("FLUID_VELOCITY_BINDING", STRINGIFY(game_logic__util_FLUID_VELOCITY_BINDING)),
+			util_shader_DEFINE("LOCAL_SIZE", STRINGIFY(SOLVE_FLUID_CONTACTS_LOCAL_SIZE(environment))),
+			util_shader_DEFINE("IMPULSE_SCALE", STRINGIFY(SOLVE_FLUID_CONTACTS_IMPULSE_SCALE(environment))),
+			util_shader_DEFINE("INVERSE_MASS", STRINGIFY(FLUID_INVERSE_MASS(environment))),
+			util_shader_DEFINE("STRENGTH_RADIUS", STRINGIFY(FLUID_STRENGTH_RADIUS(environment))),
+			util_shader_DEFINE("MAX_STRENGTH", STRINGIFY(FLUID_MAX_STRENGTH(environment))),
+			util_shader_DEFINE("TARGET_RADIUS", STRINGIFY(FLUID_TARGET_RADIUS(environment))),
+			util_shader_DEFINE("METER_INVERSE", STRINGIFY(game_logic__util__spatial_METER_INVERSE(environment))),
+			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))),
+			::util::shader::file_to_string("util/solve_fluid_contacts.comp")
+		);
+		environment.state.solve_fluid_contacts_shader = ::util::shader::create_program(compute_shader);
+		std::cout << "Solve fluid contacts shader compiled" << std::endl;
+
+		::util::shader::set_shader_statically
+		(
+			compute_shader,
+			util_shader_VERSION,
 			max_contact_count_definition,
 			max_rigid_body_count_definition,
 			util_shader_DEFINE("CONTACT_SURFACE_BINDING", STRINGIFY(game_logic__util_CONTACT_SURFACE_BINDING)),
@@ -1249,7 +1278,8 @@ namespace game_logic
 			environment.state.fluid_bounding_box_buffer, 
 			environment.state.changed_fluid_bounding_box_buffer,
 			environment.state.fluid_contact_buffer, 
-			environment.state.fluid_contact_count_buffer
+			environment.state.fluid_contact_count_buffer, 
+			environment.state.fluid_velocity_snapshot_buffer
 		};
 		glCreateBuffers(std::size(buffers), buffers);
 		environment.state.camera_buffer = buffers[0u];
@@ -1275,6 +1305,7 @@ namespace game_logic
 		environment.state.changed_fluid_bounding_box_buffer = buffers[20u];
 		environment.state.fluid_contact_buffer = buffers[21u];
 		environment.state.fluid_contact_count_buffer = buffers[22u];
+		environment.state.fluid_velocity_snapshot_buffer = buffers[23u];
 
 		{ // Camera buffer
 			GLuint const block_index
@@ -3074,6 +3105,16 @@ namespace game_logic
 			delete[] initial_fluid_contact_count;
 
 			glBindBufferBase(GL_UNIFORM_BUFFER, game_logic__util_FLUID_CONTACT_COUNT_BINDING, environment.state.fluid_contact_count_buffer);
+		}
+
+
+		{ // Fluid velocity snapshot buffer
+			glNamedBufferStorage
+			(
+				environment.state.fluid_velocity_snapshot_buffer, environment.state.fluid_velocity_buffer_size, nullptr,
+				0u
+			);
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_FLUID_VELOCITY_SNAPSHOT_BINDING, environment.state.fluid_velocity_snapshot_buffer);
 		}
 
 		util::proximity::initialize
@@ -5123,7 +5164,8 @@ namespace game_logic
 			environment.state.fluid_bounding_box_buffer, 
 			environment.state.changed_fluid_bounding_box_buffer, 
 			environment.state.fluid_contact_buffer, 
-			environment.state.fluid_contact_count_buffer
+			environment.state.fluid_contact_count_buffer, 
+			environment.state.fluid_velocity_snapshot_buffer
 		};
 		glDeleteBuffers(std::size(buffers), buffers);
 
