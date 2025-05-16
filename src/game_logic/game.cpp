@@ -47,6 +47,14 @@
 #define INTEGRATE_FLUID_VELOCITY_LOCAL_SIZE(environment) \
 	game_logic__util__rigid_body_DEFAULT_COMPUTE_SHADER_LOCAL_SIZE(environment)
 
+#define PERSIST_FLUID_CONTACT_LOCAL_SIZE(environment) \
+	game_logic__util__rigid_body_DEFAULT_COMPUTE_SHADER_LOCAL_SIZE(environment)
+
+#define FLUID_INVERSE_MASS(environment) 1.0f
+#define FLUID_STRENGTH_RADIUS(environment) 1.0f
+#define FLUID_MAX_STRENGTH(environment) 1.0f
+#define FLUID_TARGET_RADIUS(environment) 0.5f
+
 #define game_logic_MAX_FLUID_PARTICLE_COUNT(environment) \
 	20u * INTEGRATE_FLUID_VELOCITY_LOCAL_SIZE(environment)
 
@@ -235,6 +243,7 @@ namespace game_logic
 		char const* max_contact_count_definition;
 		char const* max_distance_constraint_count_definition;
 		char const* max_fluid_particle_count_definition;
+		char const* max_fluid_contact_count_definition;
 #if USE_DYNAMIC_SIZES == true
 		max_rigid_body_count_definition = util_shader_DEFINE("MAX_RIGID_BODY_COUNT", "");
 		max_triangle_count_definition = util_shader_DEFINE("MAX_TRIANGLE_COUNT", "");
@@ -242,6 +251,7 @@ namespace game_logic
 		max_contact_count_definition = util_shader_DEFINE("MAX_CONTACT_COUNT", "");
 		max_distance_constraint_count_definition = util_shader_DEFINE("MAX_DISTANCE_CONSTRAINT_COUNT", "");
 		max_fluid_particle_count_definition = util_shader_DEFINE("MAX_FLUID_PARTICLE_COUNT", "");
+		max_fluid_contact_count_definition = util_shader_DEFINE("MAX_FLUID_CONTACT_COUNT", "");
 #else
 		max_rigid_body_count_definition = util_shader_DEFINE("MAX_RIGID_BODY_COUNT", STRINGIFY(game_logic_MAX_RIGID_BODY_COUNT(environment)));
 		max_triangle_count_definition = util_shader_DEFINE("MAX_TRIANGLE_COUNT", STRINGIFY(game_logic_MAX_TRIANGLE_COUNT(environment)));
@@ -249,6 +259,7 @@ namespace game_logic
 		max_contact_count_definition = util_shader_DEFINE("MAX_CONTACT_COUNT", STRINGIFY(game_logic_MAX_TRIANGLE_CONTACT_COUNT(environment)));
 		max_distance_constraint_count_definition = util_shader_DEFINE("MAX_DISTANCE_CONSTRAINT_COUNT", STRINGIFY(game_logic_MAX_DISTANCE_CONSTRAINT_COUNT(environment)));
 		max_fluid_particle_count_definition = util_shader_DEFINE("MAX_FLUID_PARTICLE_COUNT", STRINGIFY(game_logic_MAX_FLUID_PARTICLE_COUNT(environment)));
+		max_fluid_contact_count_definition = util_shader_DEFINE("MAX_FLUID_CONTACT_COUNT", STRINGIFY(MAX_FLUID_CONTACT_COUNT(environment)));
 #endif
 
 		environment.state.tick = 0u;
@@ -867,6 +878,28 @@ namespace game_logic
 		);
 		environment.state.add_distance_constraint_shader = ::util::shader::create_program(compute_shader);
 		std::cout << "Add distance constraint shader compiled" << std::endl;
+
+		::util::shader::set_shader_statically
+		(
+			compute_shader,
+			util_shader_VERSION,
+			util_shader_DEFINE("FLUID_CONTACT_COUNT_BINDING", STRINGIFY(game_logic__util_FLUID_CONTACT_COUNT_BINDING)),
+			util_shader_DEFINE("FLUID_CONTACT_BINDING", STRINGIFY(game_logic__util_FLUID_CONTACT_BINDING)),
+			max_fluid_contact_count_definition,
+			max_fluid_particle_count_definition,
+			util_shader_DEFINE("FLUID_POSITION_BINDING", STRINGIFY(game_logic__util_FLUID_POSITION_BINDING)),
+			util_shader_DEFINE("FLUID_VELOCITY_BINDING", STRINGIFY(game_logic__util_FLUID_VELOCITY_BINDING)),
+			util_shader_DEFINE("LOCAL_SIZE", STRINGIFY(PERSIST_FLUID_CONTACT_LOCAL_SIZE(environment))),
+			util_shader_DEFINE("INVERSE_MASS", STRINGIFY(FLUID_INVERSE_MASS(environment))),
+			util_shader_DEFINE("STRENGTH_RADIUS", STRINGIFY(FLUID_STRENGTH_RADIUS(environment))),
+			util_shader_DEFINE("MAX_STRENGTH", STRINGIFY(FLUID_MAX_STRENGTH(environment))),
+			util_shader_DEFINE("TARGET_RADIUS", STRINGIFY(FLUID_TARGET_RADIUS(environment))),
+			util_shader_DEFINE("METER_INVERSE", STRINGIFY(game_logic__util__spatial_METER_INVERSE(environment))),
+			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))),
+			::util::shader::file_to_string("util/persist_fluid_contacts.comp")
+		);
+		environment.state.persist_fluid_contacts_shader = ::util::shader::create_program(compute_shader);
+		std::cout << "Persist fluid contacts shader compiled" << std::endl;
 
 		::util::shader::set_shader_statically
 		(

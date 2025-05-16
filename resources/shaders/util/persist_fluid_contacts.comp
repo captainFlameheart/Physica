@@ -14,19 +14,19 @@ struct Fluid_Contact
 	float impulse;
 };
 
-layout(shared, binding = FLUID_CONTACT_BINDING) restrict readonly
+layout(shared, binding = FLUID_CONTACT_BINDING) restrict
 buffer Fluid_Contacts
 {
-	Fluid_Contact contacts[MAX_CONTACT_COUNT];
+	Fluid_Contact contacts[MAX_FLUID_CONTACT_COUNT];
 } fluid_contacts;
 
-layout(shared, binding = FLUID_POSITION_BINDING) restrict
+layout(shared, binding = FLUID_POSITION_BINDING) restrict readonly
 buffer Fluid_Position
 {
 	ivec2 p[MAX_FLUID_PARTICLE_COUNT];
 } fluid_position;
 
-layout(shared, binding = FLUID_VELOCITY_BINDING) restrict /*readonly*/
+layout(shared, binding = FLUID_VELOCITY_BINDING) restrict readonly
 buffer Fluid_Velocity
 {
 	ivec2 v[MAX_FLUID_PARTICLE_COUNT];
@@ -35,20 +35,13 @@ buffer Fluid_Velocity
 layout(local_size_x = LOCAL_SIZE) in;
 void main()
 {
-	uint index = persistent_contact_count.persistent_contact_count + gl_GlobalInvocationID.x;
-	if (index >= fluid_contact_count.count)
+	if (gl_GlobalInvocationID.x >= fluid_contact_count.count)
 	{
 		return;
 	}
 
-	uvec2 particles = fluid_contacts.contacts[index].particles;
-
-	// TODO: Fetch from buffer
-	float inverse_mass_0 = INVERSE_MASS;
-	float inverse_mass_1 = INVERSE_MASS;
-	float mass = 1.0 / (inverse_mass_0 + inverse_mass_1);
-	fluid_contacts.contacts[index].mass = mass;
-
+	uvec2 particles = fluid_contacts.contacts[gl_GlobalInvocationID.x].particles;
+	
 	// TODO: Fetch from buffer
 	float strength_radius_0 = STRENGTH_RADIUS;
 	float strength_radius_1 = STRENGTH_RADIUS;
@@ -61,7 +54,7 @@ void main()
 	float max_distance = max(strength_radius_0, strength_radius_1);
 	if (distance >= max_distance)
 	{
-		fluid_contacts.contacts[index].max_impulse = 0.0;	// TODO: This might not be needed
+		fluid_contacts.contacts[gl_GlobalInvocationID.x].max_impulse = 0.0;
 	}
 	else
 	{
@@ -72,15 +65,11 @@ void main()
 		float max_strength_from_1 = MAX_STRENGTH;
 		float target_radius_from_1 = TARGET_RADIUS;
 
-		// TODO: Fetch from buffer
-		float inverse_mass_0 = INVERSE_MASS;
-		float inverse_mass_1 = INVERSE_MASS;
-
 		// TODO: Handle distance being 0
 		direction /= distance;
 
-		float strength_from_0 = max_strength_from_0 * max(0.0, (1.0 - distance / max_strength_radius_0));
-		float strength_from_1 = max_strength_from_1 * max(0.0, (1.0 - distance / max_strength_radius_1));
+		float strength_from_0 = max_strength_from_0 * max(0.0, (1.0 - distance / strength_radius_0));
+		float strength_from_1 = max_strength_from_1 * max(0.0, (1.0 - distance / strength_radius_1));
 
 		float max_impulse = strength_from_0 + strength_from_1;
 
@@ -89,14 +78,14 @@ void main()
 		
 		float target_velocity = (strength_from_0 * target_velocity_from_0 + strength_from_1 * target_velocity_from_1) / (strength_from_0 + strength_from_1);
 
-		if (fluid_contacts.contacts[index].max_impulse == 0.0)
+		if (fluid_contacts.contacts[gl_GlobalInvocationID.x].max_impulse == 0.0)
 		{
 			// IMPORTANT TODO: COMPUTE (SCALED) INITIAL IMPULSE BASED ON VELOCITY FOR FASTER CONVERGENCE
-			fluid_contacts.contacts[index].impulse = 0.0;
+			fluid_contacts.contacts[gl_GlobalInvocationID.x].impulse = 0.0;
 		}
 
-		fluid_contacts.contacts[index].direction = direction;
-		fluid_contacts.contacts[index].max_impulse = max_impulse;
-		fluid_contacts.contacts[index].target_velocity = target_velocity;
+		fluid_contacts.contacts[gl_GlobalInvocationID.x].direction = direction;
+		fluid_contacts.contacts[gl_GlobalInvocationID.x].max_impulse = max_impulse;
+		fluid_contacts.contacts[gl_GlobalInvocationID.x].target_velocity = target_velocity;
 	}
 }
