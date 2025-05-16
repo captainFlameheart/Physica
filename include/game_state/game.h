@@ -193,6 +193,7 @@ namespace game_state
 
 		GLuint update_distance_constraints_shader;
 
+		GLuint warm_start_fluid_contacts_shader;
 		GLuint warm_start_contact_impulses_shader;
 		GLuint warm_start_distance_constraints_shader;
 		GLuint update_and_warm_start_cursor_constraint_shader;
