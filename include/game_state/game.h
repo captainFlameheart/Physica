@@ -156,6 +156,18 @@ namespace game_state
 
 		unsigned char* changed_fluid_bounding_boxes_mapping;
 
+		GLuint fluid_contact_buffer;
+		GLint fluid_contact_buffer_size;
+		GLint fluid_contact_buffer_contacts_stride;
+		GLint fluid_contact_buffer_contacts_particles_offset;
+		GLint fluid_contact_buffer_contacts_direction_offset;
+		GLint fluid_contact_buffer_contacts_max_impulse_offset;
+		GLint fluid_contact_buffer_contacts_target_velocity_offset;
+		GLint fluid_contact_buffer_contacts_mass_offset;
+		GLint fluid_contact_buffer_contacts_impulse_offset;
+
+		unsigned char* fluid_contact_mapping;
+
 		GLint current_fluid_particle_count;
 		
 		GLuint current_distance_constraint_count;
