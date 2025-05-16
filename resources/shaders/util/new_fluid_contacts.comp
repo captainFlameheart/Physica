@@ -68,9 +68,11 @@ void main()
 		// TODO: Fetch from buffer
 		float max_strength_from_0 = MAX_STRENGTH;
 		float target_radius_from_0 = TARGET_RADIUS;
+		float target_velocity_scale_from_0 = TARGET_VELOCITY_SCALE;
 
 		float max_strength_from_1 = MAX_STRENGTH;
 		float target_radius_from_1 = TARGET_RADIUS;
+		float target_velocity_scale_from_1 = TARGET_VELOCITY_SCALE;
 
 		// TODO: Fetch from buffer
 		float inverse_mass_0 = INVERSE_MASS;
@@ -84,8 +86,8 @@ void main()
 
 		float max_impulse = strength_from_0 + strength_from_1;
 
-		float target_velocity_from_0 = distance - target_radius_from_0;
-		float target_velocity_from_1 = distance - target_radius_from_1;
+		float target_velocity_from_0 = target_velocity_scale_from_0 * (distance - target_radius_from_0);
+		float target_velocity_from_1 = target_velocity_scale_from_1 * (distance - target_radius_from_1);
 		
 		float target_velocity = (strength_from_0 * target_velocity_from_0 + strength_from_1 * target_velocity_from_1) / (strength_from_0 + strength_from_1);
 

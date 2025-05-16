@@ -62,9 +62,10 @@
 #define SOLVE_FLUID_CONTACTS_IMPULSE_SCALE(environment) 0.05f
 
 #define FLUID_INVERSE_MASS(environment) 1.0f
-#define FLUID_STRENGTH_RADIUS(environment) 1.0f
-#define FLUID_MAX_STRENGTH(environment) 1.0f
-#define FLUID_TARGET_RADIUS(environment) 0.5f
+#define FLUID_STRENGTH_RADIUS(environment) 0.7f * game_logic__util__spatial_METER(environment)
+#define FLUID_MAX_STRENGTH(environment) 0.001f * game_logic__util__spatial_METER(environment)
+#define FLUID_TARGET_RADIUS(environment) 0.4f * game_logic__util__spatial_METER(environment)
+#define FLUID_TARGET_VELOCITY_SCALE(environment) 0.03f
 
 #define game_logic_MAX_FLUID_PARTICLE_COUNT(environment) \
 	20u * INTEGRATE_FLUID_VELOCITY_LOCAL_SIZE(environment)
@@ -937,6 +938,7 @@ namespace game_logic
 			util_shader_DEFINE("STRENGTH_RADIUS", STRINGIFY(FLUID_STRENGTH_RADIUS(environment))),
 			util_shader_DEFINE("MAX_STRENGTH", STRINGIFY(FLUID_MAX_STRENGTH(environment))),
 			util_shader_DEFINE("TARGET_RADIUS", STRINGIFY(FLUID_TARGET_RADIUS(environment))),
+			util_shader_DEFINE("TARGET_VELOCITY_SCALE", STRINGIFY(FLUID_TARGET_VELOCITY_SCALE(environment))),
 			util_shader_DEFINE("METER_INVERSE", STRINGIFY(game_logic__util__spatial_METER_INVERSE(environment))),
 			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))),
 			::util::shader::file_to_string("util/persist_fluid_contacts.comp")
@@ -991,6 +993,7 @@ namespace game_logic
 			util_shader_DEFINE("STRENGTH_RADIUS", STRINGIFY(FLUID_STRENGTH_RADIUS(environment))),
 			util_shader_DEFINE("MAX_STRENGTH", STRINGIFY(FLUID_MAX_STRENGTH(environment))),
 			util_shader_DEFINE("TARGET_RADIUS", STRINGIFY(FLUID_TARGET_RADIUS(environment))),
+			util_shader_DEFINE("TARGET_VELOCITY_SCALE", STRINGIFY(FLUID_TARGET_VELOCITY_SCALE(environment))),
 			util_shader_DEFINE("METER_INVERSE", STRINGIFY(game_logic__util__spatial_METER_INVERSE(environment))),
 			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))),
 			::util::shader::file_to_string("util/new_fluid_contacts.comp")
@@ -2721,7 +2724,7 @@ namespace game_logic
 				};
 				if (i % 2u == 0u)
 				{
-					velocity.x = game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, -5.5f);
+					velocity.x = game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, -10.0f);
 				}
 
 				std::memcpy
@@ -3379,9 +3382,13 @@ namespace game_logic
 
 	void improve_constraint_impulses(game_environment::Environment& environment)
 	{
+		GLuint const solve_fluid_contacts_work_group_count
+		{
+			ceil_div(environment.state.current_fluid_contact_count, SOLVE_FLUID_CONTACTS_LOCAL_SIZE(environment))
+		};
 		GLuint const solve_contact_velocities_work_group_count
 		{
-			ceil_div(environment.state.current_triangle_contact_count, game_logic__util__rigid_body_WARM_START_CONTACT_IMPULSES_LOCAL_SIZE(environment))
+			ceil_div(environment.state.current_triangle_contact_count, game_logic__util__rigid_body_SOLVE_CONTACT_VELOCITIES_LOCAL_SIZE(environment))
 		};
 		GLuint const solve_distance_constraint_work_group_count
 		{
@@ -3390,6 +3397,16 @@ namespace game_logic
 		for (GLuint i{ 0u }; i < 4u; ++i)
 		{
 			glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT); // Updated velocities
+
+			glCopyNamedBufferSubData
+			(
+				environment.state.fluid_velocity_buffer, environment.state.fluid_velocity_snapshot_buffer,
+				environment.state.fluid_velocity_buffer_v_offset, environment.state.fluid_velocity_buffer_v_offset,
+				environment.state.current_fluid_particle_count * environment.state.fluid_velocity_buffer_v_stride
+			);
+
+			glUseProgram(environment.state.solve_fluid_contacts_shader);
+			glDispatchCompute(solve_fluid_contacts_work_group_count, 1u, 1u);
 
 			glCopyNamedBufferSubData
 			(
