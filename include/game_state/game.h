@@ -168,6 +168,11 @@ namespace game_state
 
 		unsigned char* fluid_contact_mapping;
 
+		GLuint fluid_contact_count_buffer;
+		GLint fluid_contact_count_buffer_size;
+		GLint fluid_contact_count_buffer_persistent_count_offset;
+		GLint fluid_contact_count_buffer_count_offset;
+
 		GLint current_fluid_particle_count;
 		
 		GLuint current_distance_constraint_count;

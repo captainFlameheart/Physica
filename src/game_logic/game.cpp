@@ -1188,7 +1188,8 @@ namespace game_logic
 			environment.state.fluid_velocity_buffer,
 			environment.state.fluid_bounding_box_buffer, 
 			environment.state.changed_fluid_bounding_box_buffer,
-			environment.state.fluid_contact_buffer
+			environment.state.fluid_contact_buffer, 
+			environment.state.fluid_contact_count_buffer
 		};
 		glCreateBuffers(std::size(buffers), buffers);
 		environment.state.camera_buffer = buffers[0u];
@@ -1213,6 +1214,7 @@ namespace game_logic
 		environment.state.fluid_bounding_box_buffer = buffers[19u];
 		environment.state.changed_fluid_bounding_box_buffer = buffers[20u];
 		environment.state.fluid_contact_buffer = buffers[21u];
+		environment.state.fluid_contact_count_buffer = buffers[22u];
 
 		{ // Camera buffer
 			GLuint const block_index
@@ -2963,6 +2965,55 @@ namespace game_logic
 			);
 		}
 
+		{ // Fluid contact count buffer
+			GLenum offset_label{ GL_OFFSET };
+
+			GLuint const persistent_count_index
+			{
+				glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_UNIFORM, "Fluid_Contact_Count.persistent_count")
+			};
+			glGetProgramResourceiv
+			(
+				environment.state.persist_fluid_contacts_shader, GL_UNIFORM, persistent_count_index,
+				1u, &offset_label, 1u, nullptr, &environment.state.fluid_contact_count_buffer_persistent_count_offset
+			);
+			
+			GLuint const count_index
+			{
+				glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_UNIFORM, "Fluid_Contact_Count.count")
+			};
+			glGetProgramResourceiv
+			(
+				environment.state.persist_fluid_contacts_shader, GL_UNIFORM, count_index,
+				1u, &offset_label, 1u, nullptr, &environment.state.fluid_contact_count_buffer_count_offset
+			);
+
+			GLuint const block_index
+			{
+				glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_UNIFORM_BLOCK, "Fluid_Contact_Count")
+			};
+			GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
+			glGetProgramResourceiv
+			(
+				environment.state.persist_fluid_contacts_shader, GL_UNIFORM_BLOCK, block_index,
+				1u, &buffer_size_label, 1u, nullptr, &environment.state.fluid_contact_count_buffer_size
+			);
+
+			unsigned char* const initial_fluid_contact_count = new unsigned char[environment.state.fluid_contact_count_buffer_size];
+			std::memcpy(initial_fluid_contact_count + environment.state.fluid_contact_count_buffer_persistent_count_offset, &environment.state.current_fluid_contact_count, sizeof(GLuint));
+			std::memcpy(initial_fluid_contact_count + environment.state.fluid_contact_count_buffer_count_offset, &environment.state.current_fluid_contact_count, sizeof(GLuint));
+
+			glNamedBufferStorage
+			(
+				environment.state.fluid_contact_count_buffer, environment.state.fluid_contact_count_buffer_size, initial_fluid_contact_count,
+				0u
+			);
+
+			delete[] initial_fluid_contact_count;
+
+			glBindBufferBase(GL_UNIFORM_BUFFER, game_logic__util_FLUID_CONTACT_COUNT_BINDING, environment.state.fluid_contact_count_buffer);
+		}
+
 		util::proximity::initialize
 		(
 			environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment), 
@@ -3167,6 +3218,12 @@ namespace game_logic
 		std::cout << "contacts target velocity offset: " << environment.state.fluid_contact_buffer_contacts_target_velocity_offset << std::endl;
 		std::cout << "contacts mass offset: " << environment.state.fluid_contact_buffer_contacts_mass_offset << std::endl;
 		std::cout << "contacts impulse offset: " << environment.state.fluid_contact_buffer_contacts_impulse_offset << std::endl;
+		std::cout << std::endl;
+
+		std::cout << "Fluid contact count buffer (" << environment.state.fluid_contact_count_buffer << "):" << std::endl;
+		std::cout << "size: " << environment.state.fluid_contact_count_buffer_size << std::endl;
+		std::cout << "persistent count offset: " << environment.state.fluid_contact_count_buffer_persistent_count_offset << std::endl;
+		std::cout << "count offset: " << environment.state.fluid_contact_count_buffer_count_offset << std::endl;
 		std::cout << std::endl;
 
 		glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
@@ -5161,7 +5218,8 @@ namespace game_logic
 			environment.state.fluid_velocity_buffer, 
 			environment.state.fluid_bounding_box_buffer, 
 			environment.state.changed_fluid_bounding_box_buffer, 
-			environment.state.fluid_contact_buffer
+			environment.state.fluid_contact_buffer, 
+			environment.state.fluid_contact_count_buffer
 		};
 		glDeleteBuffers(std::size(buffers), buffers);
 
