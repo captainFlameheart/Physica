@@ -6,10 +6,10 @@ layout(shared, binding = FLUID_CONTACT_COUNT_BINDING) uniform Fluid_Contact_Coun
 
 struct Fluid_Contact
 {
-	uvec2 particles;
-	vec2 direction;
 	float max_impulse;
 	float target_velocity;
+	uvec2 particles;
+	vec2 direction;
 	float mass;
 	float impulse;
 };
@@ -45,9 +45,9 @@ void main()
 		return;
 	}
 
+	float target_velocity = fluid_contacts.contacts[gl_GlobalInvocationID.x].target_velocity;
 	uvec2 particles = fluid_contacts.contacts[gl_GlobalInvocationID.x].particles;
 	vec2 direction = fluid_contacts.contacts[gl_GlobalInvocationID.x].direction;
-	float target_velocity = fluid_contacts.contacts[gl_GlobalInvocationID.x].target_velocity;
 	float mass = fluid_contacts.contacts[gl_GlobalInvocationID.x].mass;
 	float impulse = fluid_contacts.contacts[gl_GlobalInvocationID.x].impulse;
 	
@@ -60,7 +60,8 @@ void main()
 
 	float velocity = dot(direction, vec2(velocity_0 - velocity_1));
 	float old_impulse = impulse;
-	impulse = clamp(impulse + IMPULSE_SCALE * mass * (target_velocity + velocity), -max_impulse, max_impulse);
+	//impulse = clamp(impulse + IMPULSE_SCALE * mass * (target_velocity + velocity), -max_impulse, max_impulse);
+	impulse = min(0.0, impulse + IMPULSE_SCALE * mass * (target_velocity + velocity));
 	float delta_impulse = impulse - old_impulse;
 	vec2 delta_impulse_vector = delta_impulse * direction;
 

@@ -1,9 +1,9 @@
 struct Fluid_Contact
 {
-	uvec2 particles;
-	vec2 direction;
 	float max_impulse;
 	float target_velocity;
+	uvec2 particles;
+	vec2 direction;
 	float mass;
 	float impulse;
 };

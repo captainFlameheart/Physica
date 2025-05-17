@@ -59,19 +59,19 @@
 #define SOLVE_FLUID_CONTACTS_LOCAL_SIZE(environment) \
 	game_logic__util__rigid_body_DEFAULT_COMPUTE_SHADER_LOCAL_SIZE(environment)
 
-#define SOLVE_FLUID_CONTACTS_IMPULSE_SCALE(environment) 0.05f
+#define SOLVE_FLUID_CONTACTS_IMPULSE_SCALE(environment) 0.2f
 
 #define FLUID_INVERSE_MASS(environment) 1.0f
-#define FLUID_STRENGTH_RADIUS(environment) 0.7f * game_logic__util__spatial_METER(environment)
-#define FLUID_MAX_STRENGTH(environment) 0.001f * game_logic__util__spatial_METER(environment)
-#define FLUID_TARGET_RADIUS(environment) 0.4f * game_logic__util__spatial_METER(environment)
+#define FLUID_STRENGTH_RADIUS(environment) 0.1f * game_logic__util__spatial_METER(environment);//0.21f * game_logic__util__spatial_METER(environment)//0.35f * game_logic__util__spatial_METER(environment)
+#define FLUID_MAX_STRENGTH(environment) 0.1f * game_logic__util__spatial_METER(environment)//0.02f * game_logic__util__spatial_METER(environment)
+#define FLUID_TARGET_RADIUS(environment) 0.2f * game_logic__util__spatial_METER(environment)
 #define FLUID_TARGET_VELOCITY_SCALE(environment) 0.03f
 
 #define game_logic_MAX_FLUID_PARTICLE_COUNT(environment) \
-	20u * INTEGRATE_FLUID_VELOCITY_LOCAL_SIZE(environment)
+	25u * INTEGRATE_FLUID_VELOCITY_LOCAL_SIZE(environment)
 
 #define game_logic_FLUID_PARTICLE_PHYSICAL_RADIUS(environment) \
-	game_logic__util__spatial_FROM_METERS(environment, 0.5f)
+	static_cast<GLint>(0.1f * game_logic__util__spatial_METER(environment))
 
 #define game_logic_FLUID_PARTICLE_BOUNDING_BOX_PADDING(environment) \
 	game_logic__util__spatial_FROM_METERS(environment, 0.1f)
@@ -80,13 +80,13 @@
 	game_logic__util__spatial_FLOAT_FROM_METERS(environment, 0.5f)
 
 #define game_logic_MAX_RIGID_BODY_COUNT(environment) \
-	20u * game_logic__util__rigid_body_VELOCITY_INTEGRATION_LOCAL_SIZE(environment)
+	100u * game_logic__util__rigid_body_VELOCITY_INTEGRATION_LOCAL_SIZE(environment)
 
 #define game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment) \
 	game_logic_MAX_FLUID_PARTICLE_COUNT(environment)
 
 #define game_logic_MAX_TRIANGLE_COUNT(environment) \
-	20u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment)
+	100u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment)
 
 #define game_logic_MAX_VERTEX_COUNT(environment) \
 	3u * game_logic_MAX_TRIANGLE_COUNT(environment)
@@ -1383,12 +1383,12 @@ namespace game_logic
 			);
 		}
 
-		environment.state.current_rigid_body_count = 10u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment);//500000u;
+		environment.state.current_rigid_body_count = 1u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment);//500000u;
 		environment.state.current_triangle_count = 1u * environment.state.current_rigid_body_count;
 		environment.state.current_triangle_contact_count = 0u;
 		environment.state.current_persistent_contact_count = 0u;
 		environment.state.current_distance_constraint_count = 0u;
-		environment.state.current_fluid_particle_count = 1u * INTEGRATE_FLUID_VELOCITY_LOCAL_SIZE(environment);
+		environment.state.current_fluid_particle_count = 25u * INTEGRATE_FLUID_VELOCITY_LOCAL_SIZE(environment);
 		environment.state.current_fluid_contact_count = 0u;
 		environment.state.current_fluid_persistent_contact_count = 0u;
 
@@ -2640,7 +2640,7 @@ namespace game_logic
 
 			for (GLuint i = 0; i < environment.state.current_fluid_particle_count; ++i)
 			{
-				GLuint const width{ 316u };
+				GLuint const width{ 10u };
 
 				::util::math::Vector_2D position
 				{
@@ -3646,7 +3646,8 @@ namespace game_logic
 				//std::cout << i << ": " << index << std::endl;
 			}
 
-			GLuint const old_contact_count{ environment.state.current_triangle_contact_count };
+			GLuint const old_triangle_contact_count{ environment.state.current_triangle_contact_count };
+			GLuint const old_fluid_contact_count{ environment.state.current_fluid_contact_count };
 
 			glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT); // Updated persistent contacts
 			
@@ -4031,7 +4032,8 @@ namespace game_logic
 					environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment)
 				) << '\n';
 				std::cout << "Changed leaf count: " << environment.state.proximity_tree.changed_leaf_count << '\n';
-				std::cout << "Contact count: " << old_contact_count << " - " << old_contact_count - environment.state.current_persistent_contact_count << " + " << environment.state.current_triangle_contact_count - environment.state.current_persistent_contact_count << " = " << environment.state.current_triangle_contact_count << '\n';
+				std::cout << "Fluid contact count: " << old_fluid_contact_count << " - " << old_fluid_contact_count - environment.state.current_fluid_persistent_contact_count << " + " << environment.state.current_fluid_contact_count - environment.state.current_fluid_persistent_contact_count << " = " << environment.state.current_fluid_contact_count << '\n';
+				std::cout << "Triangle contact count: " << old_triangle_contact_count << " - " << old_triangle_contact_count - environment.state.current_persistent_contact_count << " + " << environment.state.current_triangle_contact_count - environment.state.current_persistent_contact_count << " = " << environment.state.current_triangle_contact_count << '\n';
 				std::cout << std::endl;
 			}
 		}
@@ -4955,6 +4957,7 @@ namespace game_logic
 		glDrawArrays(GL_TRIANGLES, 0, environment.state.current_fluid_particle_count * 6u);
 
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0u);
+		glClear(GL_COLOR_BUFFER_BIT);
 
 		glUseProgram(environment.state.fluid_draw_shader);
 		glDrawArrays(GL_TRIANGLES, 0, 6u);

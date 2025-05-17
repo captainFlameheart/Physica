@@ -21,6 +21,7 @@ buffer Fluid_Velocity
 {
 	ivec2 v[MAX_FLUID_PARTICLE_COUNT];
 } fluid_velocity;
+
 /*
 struct Fluid_Draw_Type
 {
@@ -45,6 +46,7 @@ layout(shared, binding = CAMERA_BINDING) uniform Camera
 } camera;
 
 noperspective out vec2 offset;
+noperspective out vec4 base_color;
 
 void main()
 {
@@ -54,6 +56,8 @@ void main()
 
 	uint offset_index = gl_VertexID % 6u;
 	offset = offsets[offset_index];
+
+	base_color = vec4(0.0, 0.0, 1.0, 4.0);
 
 	vec2 camera_relative_xy = vec2(position - camera.xy) + offset;
 	gl_Position = vec4

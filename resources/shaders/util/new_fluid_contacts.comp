@@ -6,10 +6,10 @@ layout(shared, binding = FLUID_CONTACT_COUNT_BINDING) uniform Fluid_Contact_Coun
 
 struct Fluid_Contact
 {
-	uvec2 particles;
-	vec2 direction;
 	float max_impulse;
 	float target_velocity;
+	uvec2 particles;
+	vec2 direction;
 	float mass;
 	float impulse;
 };
@@ -58,7 +58,8 @@ void main()
 
 	vec2 direction = vec2(position_0 - position_1);
 	float distance = length(direction);
-	float max_distance = max(strength_radius_0, strength_radius_1);
+	//float max_distance = max(strength_radius_0, strength_radius_1);
+	float max_distance = strength_radius_0 + strength_radius_1;
 	if (distance >= max_distance)
 	{
 		fluid_contacts.contacts[index].max_impulse = 0.0;	// TODO: This might not be needed
@@ -81,19 +82,35 @@ void main()
 		// TODO: Handle distance being 0
 		direction /= distance;
 
-		float strength_from_0 = max_strength_from_0 * max(0.0, (1.0 - distance / strength_radius_0));
-		float strength_from_1 = max_strength_from_1 * max(0.0, (1.0 - distance / strength_radius_1));
+		//float strength_from_0 = max_strength_from_0 * max(0.0, (1.0 - distance / strength_radius_0));
+		//float strength_from_1 = max_strength_from_1 * max(0.0, (1.0 - distance / strength_radius_1));
 
-		float max_impulse = strength_from_0 + strength_from_1;
+		//float strength_from_0 = max_strength_from_0 * max(0.0, sign(1.0 - distance / strength_radius_0)); //max_strength_from_0 * max(0.0, (1.0 - distance / strength_radius_0));
+		//float strength_from_1 = max_strength_from_1 * max(0.0, sign(1.0 - distance / strength_radius_1));//max_strength_from_1 * max(0.0, (1.0 - distance / strength_radius_1));
 
-		float target_velocity_from_0 = target_velocity_scale_from_0 * (distance - target_radius_from_0);
-		float target_velocity_from_1 = target_velocity_scale_from_1 * (distance - target_radius_from_1);
+		//float max_impulse = strength_from_0 + strength_from_1;
+
+		float max_impulse = 1.0;
+
+		//float target_velocity_from_0 = target_velocity_scale_from_0 * (distance - target_radius_from_0);
+		//float target_velocity_from_1 = target_velocity_scale_from_1 * (distance - target_radius_from_1);
 		
-		float target_velocity = (strength_from_0 * target_velocity_from_0 + strength_from_1 * target_velocity_from_1) / (strength_from_0 + strength_from_1);
+		//float target_velocity = (strength_from_0 * target_velocity_from_0 + strength_from_1 * target_velocity_from_1) / (strength_from_0 + strength_from_1);
+		float target_velocity = 0.0;
 
-		fluid_contacts.contacts[index].direction = direction;
+		/*if (target_velocity < 0.0)
+		{
+			target_velocity = 0.0;
+			max_impulse = 999999999.0;
+		}*/
+
+		ivec2 velocity_0 = fluid_velocity.v[particles.x];
+		ivec2 velocity_1 = fluid_velocity.v[particles.y];
+		target_velocity = 1.0 * min(0.0, dot(direction, vec2(velocity_0 - velocity_1))); // Is min necessary?
+
 		fluid_contacts.contacts[index].max_impulse = max_impulse;
 		fluid_contacts.contacts[index].target_velocity = target_velocity;
+		fluid_contacts.contacts[index].direction = direction;
 
 		// IMPORTANT TODO: COMPUTE (SCALED) INITIAL IMPULSE BASED ON VELOCITY FOR FASTER CONVERGENCE
 		fluid_contacts.contacts[index].impulse = 0.0;

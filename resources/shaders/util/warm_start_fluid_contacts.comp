@@ -6,10 +6,10 @@ layout(shared, binding = FLUID_CONTACT_COUNT_BINDING) uniform Fluid_Contact_Coun
 
 struct Fluid_Contact
 {
-	uvec2 particles;
-	vec2 direction;
 	float max_impulse;
 	float target_velocity;
+	uvec2 particles;
+	vec2 direction;
 	float mass;
 	float impulse;
 };
