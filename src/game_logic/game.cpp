@@ -69,13 +69,13 @@
 #define FLUID_TARGET_VELOCITY_SCALE(environment) 0.03f
 
 #define game_logic_MAX_FLUID_PARTICLE_COUNT(environment) \
-	40u * INTEGRATE_FLUID_VELOCITY_LOCAL_SIZE(environment)
+	100u * INTEGRATE_FLUID_VELOCITY_LOCAL_SIZE(environment)
 
 #define game_logic_FLUID_PARTICLE_PHYSICAL_RADIUS(environment) \
 	static_cast<GLint>(0.2f * game_logic__util__spatial_METER(environment))
 
 #define game_logic_FLUID_PARTICLE_BOUNDING_BOX_PADDING(environment) \
-	game_logic__util__spatial_FROM_METERS(environment, 0.5f)//0.1f)
+	game_logic__util__spatial_FROM_METERS(environment, 1.0f)//0.5f)//0.1f)
 
 #define game_logic_FLUID_PARTICLE_DRAW_RADIUS(environment) \
 	game_logic__util__spatial_FLOAT_FROM_METERS(environment, 1.0)
@@ -1400,14 +1400,544 @@ namespace game_logic
 			);
 		}
 
-		environment.state.current_rigid_body_count = 40u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment);//500000u;
+		environment.state.current_rigid_body_count = 0u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment);//500000u;
 		environment.state.current_triangle_count = 1u * environment.state.current_rigid_body_count;
 		environment.state.current_triangle_contact_count = 0u;
 		environment.state.current_persistent_contact_count = 0u;
 		environment.state.current_distance_constraint_count = 0u;
-		environment.state.current_fluid_particle_count = 0u * INTEGRATE_FLUID_VELOCITY_LOCAL_SIZE(environment);
+		environment.state.current_fluid_particle_count = 30u * INTEGRATE_FLUID_VELOCITY_LOCAL_SIZE(environment);
 		environment.state.current_fluid_contact_count = 0u;
 		environment.state.current_fluid_persistent_contact_count = 0u;
+
+		{ // Fluid position buffer
+			GLuint const p_index
+			{
+				glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, "Fluid_Position.p")
+			};
+
+			GLenum const prop_labels[]{ GL_OFFSET, GL_ARRAY_STRIDE };
+			GLint props[std::size(prop_labels)];
+			glGetProgramResourceiv
+			(
+				environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, p_index,
+				std::size(prop_labels), prop_labels, 2, nullptr, props
+			);
+			// TODO: Consider putting p_offset and p_stride contigously in game state
+			environment.state.fluid_position_buffer_p_offset = props[0u];
+			environment.state.fluid_position_buffer_p_stride = props[1u];
+
+#if USE_DYNAMIC_SIZES == true
+			environment.state.fluid_position_buffer_size = environment.state.fluid_position_buffer_p_offset + game_logic_MAX_FLUID_PARTICLE_COUNT(environment) * environment.state.fluid_position_buffer_p_stride;
+#else
+			GLuint const block_index
+			{
+				glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_SHADER_STORAGE_BLOCK, "Fluid_Position")
+			};
+			GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
+			glGetProgramResourceiv
+			(
+				environment.state.integrate_fluid_velocity_shader, GL_SHADER_STORAGE_BLOCK, block_index,
+				1, &buffer_size_label, 1, nullptr, &environment.state.fluid_position_buffer_size
+			);
+#endif
+
+			// TODO: Don't initialize a few positions by copying over the ENTIRE buffer 
+			// content from CPU to GPU like this. Instead, use persistent mapping 
+			// for both initialization and updating.
+			unsigned char* const initial_fluid_position = new unsigned char[environment.state.fluid_position_buffer_size];
+
+			for (GLuint i = 0; i < environment.state.current_fluid_particle_count; ++i)
+			{
+				GLuint const width{ 10u };
+
+				::util::math::Vector_2D position
+				{
+					-game_logic__util__spatial_FROM_METERS(environment, (i % width) * 5.0f),
+					-game_logic__util__spatial_FROM_METERS(environment, (i / width) * 1.2f)
+				};
+
+				std::memcpy
+				(
+					initial_fluid_position + environment.state.fluid_position_buffer_p_offset + i * environment.state.fluid_position_buffer_p_stride,
+					&position, sizeof(position)
+				);
+			}
+
+			glNamedBufferStorage
+			(
+				environment.state.fluid_position_buffer, environment.state.fluid_position_buffer_size, initial_fluid_position,
+				0u//GL_MAP_PERSISTENT_BIT | GL_MAP_READ_BIT | GL_MAP_WRITE_BIT //0u
+			);
+
+			delete[] initial_fluid_position;
+
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_FLUID_POSITION_BINDING, environment.state.fluid_position_buffer);
+
+			/*environment.state.position_mapping = static_cast<unsigned char*>
+			(
+				glMapNamedBufferRange
+				(
+					environment.state.rigid_body_position_buffer,
+					0u, environment.state.rigid_body_position_buffer_size,
+					GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_FLUSH_EXPLICIT_BIT
+				)
+			);*/
+		}
+
+		{ // Fluid velocity buffer
+			GLuint const v_index
+			{
+				glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, "Fluid_Velocity.v")
+			};
+
+			GLenum const prop_labels[]{ GL_OFFSET, GL_ARRAY_STRIDE };
+			GLint props[std::size(prop_labels)];
+			glGetProgramResourceiv
+			(
+				environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, v_index,
+				std::size(prop_labels), prop_labels, 2, nullptr, props
+			);
+			// TODO: Consider putting v_offset and v_stride contigously in game state
+			environment.state.fluid_velocity_buffer_v_offset = props[0u];
+			environment.state.fluid_velocity_buffer_v_stride = props[1u];
+
+#if USE_DYNAMIC_SIZES == true
+			environment.state.fluid_velocity_buffer_size = environment.state.fluid_velocity_buffer_v_offset + game_logic_MAX_FLUID_PARTICLE_COUNT(environment) * environment.state.fluid_velocity_buffer_v_stride;
+#else
+			GLuint const block_index
+			{
+				glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_SHADER_STORAGE_BLOCK, "Fluid_Velocity")
+			};
+			GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
+			glGetProgramResourceiv
+			(
+				environment.state.integrate_fluid_velocity_shader, GL_SHADER_STORAGE_BLOCK, block_index,
+				1, &buffer_size_label, 1, nullptr, &environment.state.fluid_velocity_buffer_size
+			);
+#endif
+
+			// TODO: Don't initialize a few velocities by copying over the ENTIRE buffer 
+			// content from CPU to GPU like this. Instead, use persistent mapping 
+			// for both initialization and updating.
+			unsigned char* const initial_fluid_velocity = new unsigned char[environment.state.fluid_velocity_buffer_size];
+
+			for (GLuint i = 0; i < environment.state.current_fluid_particle_count; ++i)
+			{
+				//GLuint const width{ 316u };
+
+				::util::math::Vector_2D velocity
+				{
+					game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, 0.0f),
+					game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, 0.0f)
+				};
+				if (i % 2u == 0u)
+				{
+					velocity.x = game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, -10.0f);
+				}
+
+				std::memcpy
+				(
+					initial_fluid_velocity + environment.state.fluid_velocity_buffer_v_offset + i * environment.state.fluid_velocity_buffer_v_stride,
+					&velocity, sizeof(velocity)
+				);
+			}
+
+			glNamedBufferStorage
+			(
+				environment.state.fluid_velocity_buffer, environment.state.fluid_velocity_buffer_size, initial_fluid_velocity,
+				0u//GL_MAP_PERSISTENT_BIT | GL_MAP_READ_BIT | GL_MAP_WRITE_BIT
+			);
+
+			delete[] initial_fluid_velocity;
+
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_FLUID_VELOCITY_BINDING, environment.state.fluid_velocity_buffer);
+
+			/*environment.state.position_mapping = static_cast<unsigned char*>
+			(
+				glMapNamedBufferRange
+				(
+					environment.state.rigid_body_position_buffer,
+					0u, environment.state.rigid_body_position_buffer_size,
+					GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_FLUSH_EXPLICIT_BIT
+				)
+			);*/
+		}
+
+		{ // Fluid bounding box buffer
+			GLuint const boxes_index
+			{
+				glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, "Fluid_Bounding_Boxes.boxes")
+			};
+
+			GLenum const prop_labels[]{ GL_OFFSET, GL_ARRAY_STRIDE };
+			GLint props[std::size(prop_labels)];
+			glGetProgramResourceiv
+			(
+				environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, boxes_index,
+				std::size(prop_labels), prop_labels, 2u, nullptr, props
+			);
+			// TODO: Consider putting offset and stride contigously in game state
+			environment.state.fluid_bounding_box_buffer_boxes_offset = props[0u];
+			environment.state.fluid_bounding_box_buffer_boxes_stride = props[1u];
+
+#if USE_DYNAMIC_SIZES == true
+			environment.state.fluid_bounding_box_buffer_size = environment.state.fluid_bounding_box_buffer_boxes_offset + game_logic_MAX_FLUID_PARTICLE_COUNT(environment) * environment.state.fluid_bounding_box_buffer_boxes_stride;
+#else
+			GLuint const block_index
+			{
+				glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_SHADER_STORAGE_BLOCK, "Fluid_Bounding_Boxes")
+			};
+			GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
+			glGetProgramResourceiv
+			(
+				environment.state.integrate_fluid_velocity_shader, GL_SHADER_STORAGE_BLOCK, block_index,
+				1u, &buffer_size_label, 1u, nullptr, &environment.state.fluid_bounding_box_buffer_size
+			);
+#endif
+
+			// TODO: Don't initialize a few boxes by copying over the ENTIRE buffer 
+			// content from CPU to GPU like this. Instead, use persistent mapping 
+			// for both initialization and updating.
+			unsigned char* const initial_boxes = new unsigned char[environment.state.fluid_bounding_box_buffer_size];
+
+			util::rigid_body::Triangle_Bounding_Box box
+			{
+				{
+					0,
+					0
+				},
+				{
+					-1,
+					-1
+				}
+			};
+			for (GLuint i = 0u; i < environment.state.current_fluid_particle_count; ++i)
+			{
+				std::memcpy
+				(
+					initial_boxes + environment.state.fluid_bounding_box_buffer_boxes_offset + i * environment.state.fluid_bounding_box_buffer_boxes_stride,
+					&box, sizeof(box)
+				);
+			}
+
+			glNamedBufferStorage
+			(
+				environment.state.fluid_bounding_box_buffer, environment.state.fluid_bounding_box_buffer_size, initial_boxes,
+				0u
+			);
+
+			delete[] initial_boxes;
+
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_FLUID_BOUNDING_BOX_BINDING, environment.state.fluid_bounding_box_buffer);
+		}
+
+		{ // Changed fluid bounding box buffer
+			{
+				GLuint const size_index
+				{
+					glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, "Changed_Fluid_Bounding_Boxes.size")
+				};
+				GLenum const offset_label{ GL_OFFSET };
+				glGetProgramResourceiv
+				(
+					environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, size_index,
+					1u, &offset_label, 1u, nullptr, &environment.state.changed_fluid_bounding_box_buffer_size_offset
+				);
+			}
+
+			{
+				GLuint const boxes_index_index
+				{
+					glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, "Changed_Fluid_Bounding_Boxes.boxes[0].index")
+				};
+				GLenum const prop_labels[]{ GL_OFFSET, GL_TOP_LEVEL_ARRAY_STRIDE };
+				GLint props[std::size(prop_labels)];
+				glGetProgramResourceiv
+				(
+					environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, boxes_index_index,
+					std::size(prop_labels), prop_labels, 2u, nullptr, props
+				);
+				// TODO: Consider putting offset and stride contigously in game state
+				environment.state.changed_fluid_bounding_box_buffer_boxes_index_offset = props[0u];
+				environment.state.changed_fluid_bounding_box_buffer_boxes_stride = props[1u];
+
+				GLenum const offset_label{ GL_OFFSET };
+
+				GLuint const boxes_min_x_index
+				{
+					glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, "Changed_Fluid_Bounding_Boxes.boxes[0].min_x")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, boxes_min_x_index,
+					1u, &offset_label, 1u, nullptr, &environment.state.changed_fluid_bounding_box_buffer_boxes_min_x_offset
+				);
+
+				GLuint const boxes_min_y_index
+				{
+					glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, "Changed_Fluid_Bounding_Boxes.boxes[0].min_y")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, boxes_min_y_index,
+					1u, &offset_label, 1u, nullptr, &environment.state.changed_fluid_bounding_box_buffer_boxes_min_y_offset
+				);
+
+				GLuint const boxes_max_x_index
+				{
+					glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, "Changed_Fluid_Bounding_Boxes.boxes[0].max_x")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, boxes_max_x_index,
+					1u, &offset_label, 1u, nullptr, &environment.state.changed_fluid_bounding_box_buffer_boxes_max_x_offset
+				);
+
+				GLuint const boxes_max_y_index
+				{
+					glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, "Changed_Fluid_Bounding_Boxes.boxes[0].max_y")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, boxes_max_y_index,
+					1u, &offset_label, 1u, nullptr, &environment.state.changed_fluid_bounding_box_buffer_boxes_max_y_offset
+				);
+			}
+
+#if USE_DYNAMIC_SIZES == true
+			GLint const offsets[]
+			{
+			   environment.state.changed_fluid_bounding_box_buffer_boxes_index_offset,
+			   environment.state.changed_fluid_bounding_box_buffer_boxes_min_x_offset,
+			   environment.state.changed_fluid_bounding_box_buffer_boxes_min_y_offset,
+			   environment.state.changed_fluid_bounding_box_buffer_boxes_max_x_offset,
+			   environment.state.changed_fluid_bounding_box_buffer_boxes_max_y_offset
+			};
+			GLint const offset{ *std::min_element(std::begin(offsets), std::end(offsets)) };
+			environment.state.changed_fluid_bounding_box_buffer_size = offset + game_logic_MAX_FLUID_PARTICLE_COUNT(environment) * environment.state.changed_fluid_bounding_box_buffer_boxes_stride;
+#else
+			GLuint const block_index
+			{
+				glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_SHADER_STORAGE_BLOCK, "Changed_Fluid_Bounding_Boxes")
+			};
+			GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
+			glGetProgramResourceiv
+			(
+				environment.state.integrate_fluid_velocity_shader, GL_SHADER_STORAGE_BLOCK, block_index,
+				1u, &buffer_size_label, 1u, nullptr, &environment.state.changed_fluid_bounding_box_buffer_size
+			);
+#endif
+
+			glNamedBufferStorage
+			(
+				environment.state.changed_fluid_bounding_box_buffer, environment.state.changed_fluid_bounding_box_buffer_size, nullptr,
+				GL_MAP_READ_BIT | GL_MAP_PERSISTENT_BIT
+			);
+			glClearNamedBufferSubData
+			(
+				environment.state.changed_fluid_bounding_box_buffer,
+				GL_R32UI,
+				environment.state.changed_fluid_bounding_box_buffer_size_offset, sizeof(GLuint),
+				GL_RED_INTEGER, GL_UNSIGNED_INT,
+				nullptr
+			);
+
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_CHANGED_FLUID_BOUNDING_BOX_BINDING, environment.state.changed_fluid_bounding_box_buffer);
+
+			environment.state.changed_fluid_bounding_boxes_mapping = static_cast<unsigned char*>
+				(
+					glMapNamedBufferRange
+					(
+						environment.state.changed_fluid_bounding_box_buffer,
+						0u, environment.state.changed_fluid_bounding_box_buffer_size,
+						GL_MAP_READ_BIT | GL_MAP_PERSISTENT_BIT
+					)
+					);
+		}
+
+		{ // Fluid contact buffer
+			{
+				GLuint const contacts_inactive_index
+				{
+					glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Contacts.contacts[0].inactive")
+				};
+				GLenum const prop_labels[]{ GL_OFFSET, GL_TOP_LEVEL_ARRAY_STRIDE };
+				GLint props[std::size(prop_labels)];
+				glGetProgramResourceiv
+				(
+					environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, contacts_inactive_index,
+					std::size(prop_labels), prop_labels, 2u, nullptr, props
+				);
+				// TODO: Consider putting offset and stride contigously in game state
+				environment.state.fluid_contact_buffer_contacts_inactive_offset = props[0u];
+				environment.state.fluid_contact_buffer_contacts_stride = props[1u];
+
+				GLenum const offset_label{ GL_OFFSET };
+
+				GLuint const impulse_index
+				{
+					glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Contacts.contacts[0].impulse")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, impulse_index,
+					1u, &offset_label, 1u, nullptr, &environment.state.fluid_contact_buffer_contacts_impulse_offset
+				);
+
+				GLuint const contacts_particles_index
+				{
+					glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Contacts.contacts[0].particles")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, contacts_particles_index,
+					1u, &offset_label, 1u, nullptr, &environment.state.fluid_contact_buffer_contacts_particles_offset
+				);
+
+				GLuint const direction_index
+				{
+					glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Contacts.contacts[0].direction")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, direction_index,
+					1u, &offset_label, 1u, nullptr, &environment.state.fluid_contact_buffer_contacts_direction_offset
+				);
+
+				GLuint const target_velocity_index
+				{
+					glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Contacts.contacts[0].target_velocity")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, target_velocity_index,
+					1u, &offset_label, 1u, nullptr, &environment.state.fluid_contact_buffer_contacts_target_velocity_offset
+				);
+
+				GLuint const mass_index
+				{
+					glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Contacts.contacts[0].mass")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, mass_index,
+					1u, &offset_label, 1u, nullptr, &environment.state.fluid_contact_buffer_contacts_mass_offset
+				);
+
+				GLuint const impulse_range_index
+				{
+					glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Contacts.contacts[0].impulse_range")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, impulse_range_index,
+					1u, &offset_label, 1u, nullptr, &environment.state.fluid_contact_buffer_contacts_impulse_range_offset
+				);
+			}
+
+			GLint const offsets[]
+			{
+			   environment.state.fluid_contact_buffer_contacts_inactive_offset,
+			   environment.state.fluid_contact_buffer_contacts_impulse_offset,
+			   environment.state.fluid_contact_buffer_contacts_particles_offset,
+			   environment.state.fluid_contact_buffer_contacts_direction_offset,
+			   environment.state.fluid_contact_buffer_contacts_target_velocity_offset,
+			   environment.state.fluid_contact_buffer_contacts_mass_offset,
+			   environment.state.fluid_contact_buffer_contacts_impulse_range_offset
+			};
+			environment.state.fluid_contact_buffer_contacts_offset = *std::min_element(std::begin(offsets), std::end(offsets));
+#if USE_DYNAMIC_SIZES == true
+			environment.state.fluid_contact_buffer_size = environment.state.fluid_contact_buffer_contacts_offset + MAX_FLUID_CONTACT_COUNT(environment) * environment.state.fluid_contact_buffer_contacts_stride;
+#else
+			GLuint const block_index
+			{
+				glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_SHADER_STORAGE_BLOCK, "Fluid_Contacts")
+			};
+			GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
+			glGetProgramResourceiv
+			(
+				environment.state.fluid_contact_buffer_size, GL_SHADER_STORAGE_BLOCK, block_index,
+				1u, &buffer_size_label, 1u, nullptr, &environment.state.fluid_contact_buffer_size
+			);
+#endif
+
+			glNamedBufferStorage
+			(
+				environment.state.fluid_contact_buffer, environment.state.fluid_contact_buffer_size, nullptr,
+				0u//GL_MAP_PERSISTENT_BIT | GL_MAP_WRITE_BIT
+			);
+
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_FLUID_CONTACT_BINDING, environment.state.fluid_contact_buffer);
+
+			/*environment.state.fluid_contact_mapping = static_cast<unsigned char*>
+				(
+					glMapNamedBufferRange
+					(
+						environment.state.fluid_contact_buffer,
+						0u, environment.state.fluid_contact_buffer_size,
+						GL_MAP_PERSISTENT_BIT | GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT
+					)
+					);*/
+		}
+
+		{ // Fluid contact count buffer
+			GLenum offset_label{ GL_OFFSET };
+
+			/*GLuint const persistent_count_index
+			{
+				glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_UNIFORM, "Fluid_Contact_Count.persistent_count")
+			};
+			glGetProgramResourceiv
+			(
+				environment.state.persist_fluid_contacts_shader, GL_UNIFORM, persistent_count_index,
+				1u, &offset_label, 1u, nullptr, &environment.state.fluid_contact_count_buffer_persistent_count_offset
+			);*/
+
+			GLuint const count_index
+			{
+				glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_UNIFORM, "Fluid_Contact_Count.count")
+			};
+			glGetProgramResourceiv
+			(
+				environment.state.persist_fluid_contacts_shader, GL_UNIFORM, count_index,
+				1u, &offset_label, 1u, nullptr, &environment.state.fluid_contact_count_buffer_count_offset
+			);
+
+			GLuint const block_index
+			{
+				glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_UNIFORM_BLOCK, "Fluid_Contact_Count")
+			};
+			GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
+			glGetProgramResourceiv
+			(
+				environment.state.persist_fluid_contacts_shader, GL_UNIFORM_BLOCK, block_index,
+				1u, &buffer_size_label, 1u, nullptr, &environment.state.fluid_contact_count_buffer_size
+			);
+
+			unsigned char* const initial_fluid_contact_count = new unsigned char[environment.state.fluid_contact_count_buffer_size];
+			//std::memcpy(initial_fluid_contact_count + environment.state.fluid_contact_count_buffer_persistent_count_offset, &environment.state.current_fluid_contact_count, sizeof(GLuint));
+			std::memcpy(initial_fluid_contact_count + environment.state.fluid_contact_count_buffer_count_offset, &environment.state.current_fluid_contact_count, sizeof(GLuint));
+
+			glNamedBufferStorage
+			(
+				environment.state.fluid_contact_count_buffer, environment.state.fluid_contact_count_buffer_size, initial_fluid_contact_count,
+				0u
+			);
+
+			delete[] initial_fluid_contact_count;
+
+			glBindBufferBase(GL_UNIFORM_BUFFER, game_logic__util_FLUID_CONTACT_COUNT_BINDING, environment.state.fluid_contact_count_buffer);
+		}
+
+
+		{ // Fluid velocity snapshot buffer
+			glNamedBufferStorage
+			(
+				environment.state.fluid_velocity_snapshot_buffer, environment.state.fluid_velocity_buffer_size, nullptr,
+				0u
+			);
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_FLUID_VELOCITY_SNAPSHOT_BINDING, environment.state.fluid_velocity_snapshot_buffer);
+		}
 
 		{ // Position buffer
 			GLuint const p_index
@@ -2618,535 +3148,535 @@ namespace game_logic
 			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_DISTANCE_CONSTRAINT_BINDING, environment.state.distance_constraint_buffer);
 		}
 
-		{ // Fluid position buffer
-			GLuint const p_index
-			{
-				glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, "Fluid_Position.p")
-			};
-
-			GLenum const prop_labels[]{ GL_OFFSET, GL_ARRAY_STRIDE };
-			GLint props[std::size(prop_labels)];
-			glGetProgramResourceiv
-			(
-				environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, p_index,
-				std::size(prop_labels), prop_labels, 2, nullptr, props
-			);
-			// TODO: Consider putting p_offset and p_stride contigously in game state
-			environment.state.fluid_position_buffer_p_offset = props[0u];
-			environment.state.fluid_position_buffer_p_stride = props[1u];
-
-#if USE_DYNAMIC_SIZES == true
-			environment.state.fluid_position_buffer_size = environment.state.fluid_position_buffer_p_offset + game_logic_MAX_FLUID_PARTICLE_COUNT(environment) * environment.state.fluid_position_buffer_p_stride;
-#else
-			GLuint const block_index
-			{
-				glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_SHADER_STORAGE_BLOCK, "Fluid_Position")
-			};
-			GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
-			glGetProgramResourceiv
-			(
-				environment.state.integrate_fluid_velocity_shader, GL_SHADER_STORAGE_BLOCK, block_index,
-				1, &buffer_size_label, 1, nullptr, &environment.state.fluid_position_buffer_size
-			);
-#endif
-
-			// TODO: Don't initialize a few positions by copying over the ENTIRE buffer 
-			// content from CPU to GPU like this. Instead, use persistent mapping 
-			// for both initialization and updating.
-			unsigned char* const initial_fluid_position = new unsigned char[environment.state.fluid_position_buffer_size];
-
-			for (GLuint i = 0; i < environment.state.current_fluid_particle_count; ++i)
-			{
-				GLuint const width{ 10u };
-
-				::util::math::Vector_2D position
-				{
-					-game_logic__util__spatial_FROM_METERS(environment, (i % width) * 5.0f),
-					-game_logic__util__spatial_FROM_METERS(environment, (i / width) * 1.2f)
-				};
-
-				std::memcpy
-				(
-					initial_fluid_position + environment.state.fluid_position_buffer_p_offset + i * environment.state.fluid_position_buffer_p_stride,
-					&position, sizeof(position)
-				);
-			}
-
-			glNamedBufferStorage
-			(
-				environment.state.fluid_position_buffer, environment.state.fluid_position_buffer_size, initial_fluid_position,
-				0u//GL_MAP_PERSISTENT_BIT | GL_MAP_READ_BIT | GL_MAP_WRITE_BIT //0u
-			);
-
-			delete[] initial_fluid_position;
-
-			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_FLUID_POSITION_BINDING, environment.state.fluid_position_buffer);
-
-			/*environment.state.position_mapping = static_cast<unsigned char*>
-			(
-				glMapNamedBufferRange
-				(
-					environment.state.rigid_body_position_buffer,
-					0u, environment.state.rigid_body_position_buffer_size,
-					GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_FLUSH_EXPLICIT_BIT
-				)
-			);*/
-		}
-
-		{ // Fluid velocity buffer
-			GLuint const v_index
-			{
-				glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, "Fluid_Velocity.v")
-			};
-
-			GLenum const prop_labels[]{ GL_OFFSET, GL_ARRAY_STRIDE };
-			GLint props[std::size(prop_labels)];
-			glGetProgramResourceiv
-			(
-				environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, v_index,
-				std::size(prop_labels), prop_labels, 2, nullptr, props
-			);
-			// TODO: Consider putting v_offset and v_stride contigously in game state
-			environment.state.fluid_velocity_buffer_v_offset = props[0u];
-			environment.state.fluid_velocity_buffer_v_stride = props[1u];
-
-#if USE_DYNAMIC_SIZES == true
-			environment.state.fluid_velocity_buffer_size = environment.state.fluid_velocity_buffer_v_offset + game_logic_MAX_FLUID_PARTICLE_COUNT(environment) * environment.state.fluid_velocity_buffer_v_stride;
-#else
-			GLuint const block_index
-			{
-				glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_SHADER_STORAGE_BLOCK, "Fluid_Velocity")
-			};
-			GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
-			glGetProgramResourceiv
-			(
-				environment.state.integrate_fluid_velocity_shader, GL_SHADER_STORAGE_BLOCK, block_index,
-				1, &buffer_size_label, 1, nullptr, &environment.state.fluid_velocity_buffer_size
-			);
-#endif
-
-			// TODO: Don't initialize a few velocities by copying over the ENTIRE buffer 
-			// content from CPU to GPU like this. Instead, use persistent mapping 
-			// for both initialization and updating.
-			unsigned char* const initial_fluid_velocity = new unsigned char[environment.state.fluid_velocity_buffer_size];
-
-			for (GLuint i = 0; i < environment.state.current_fluid_particle_count; ++i)
-			{
-				//GLuint const width{ 316u };
-
-				::util::math::Vector_2D velocity
-				{
-					game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, 0.0f),
-					game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, 0.0f)
-				};
-				if (i % 2u == 0u)
-				{
-					velocity.x = game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, -10.0f);
-				}
-
-				std::memcpy
-				(
-					initial_fluid_velocity + environment.state.fluid_velocity_buffer_v_offset + i * environment.state.fluid_velocity_buffer_v_stride,
-					&velocity, sizeof(velocity)
-				);
-			}
-
-			glNamedBufferStorage
-			(
-				environment.state.fluid_velocity_buffer, environment.state.fluid_velocity_buffer_size, initial_fluid_velocity,
-				0u//GL_MAP_PERSISTENT_BIT | GL_MAP_READ_BIT | GL_MAP_WRITE_BIT
-			);
-
-			delete[] initial_fluid_velocity;
-
-			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_FLUID_VELOCITY_BINDING, environment.state.fluid_velocity_buffer);
-
-			/*environment.state.position_mapping = static_cast<unsigned char*>
-			(
-				glMapNamedBufferRange
-				(
-					environment.state.rigid_body_position_buffer,
-					0u, environment.state.rigid_body_position_buffer_size,
-					GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_FLUSH_EXPLICIT_BIT
-				)
-			);*/
-		}
-
-		{ // Fluid bounding box buffer
-			GLuint const boxes_index
-			{
-				glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, "Fluid_Bounding_Boxes.boxes")
-			};
-
-			GLenum const prop_labels[]{ GL_OFFSET, GL_ARRAY_STRIDE };
-			GLint props[std::size(prop_labels)];
-			glGetProgramResourceiv
-			(
-				environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, boxes_index,
-				std::size(prop_labels), prop_labels, 2u, nullptr, props
-			);
-			// TODO: Consider putting offset and stride contigously in game state
-			environment.state.fluid_bounding_box_buffer_boxes_offset = props[0u];
-			environment.state.fluid_bounding_box_buffer_boxes_stride = props[1u];
-
-#if USE_DYNAMIC_SIZES == true
-			environment.state.fluid_bounding_box_buffer_size = environment.state.fluid_bounding_box_buffer_boxes_offset + game_logic_MAX_FLUID_PARTICLE_COUNT(environment) * environment.state.fluid_bounding_box_buffer_boxes_stride;
-#else
-			GLuint const block_index
-			{
-				glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_SHADER_STORAGE_BLOCK, "Fluid_Bounding_Boxes")
-			};
-			GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
-			glGetProgramResourceiv
-			(
-				environment.state.integrate_fluid_velocity_shader, GL_SHADER_STORAGE_BLOCK, block_index,
-				1u, &buffer_size_label, 1u, nullptr, &environment.state.fluid_bounding_box_buffer_size
-			);
-#endif
-
-			// TODO: Don't initialize a few boxes by copying over the ENTIRE buffer 
-			// content from CPU to GPU like this. Instead, use persistent mapping 
-			// for both initialization and updating.
-			unsigned char* const initial_boxes = new unsigned char[environment.state.fluid_bounding_box_buffer_size];
-
-			util::rigid_body::Triangle_Bounding_Box box
-			{
-				{
-					0,
-					0
-				},
-				{
-					-1,
-					-1
-				}
-			};
-			for (GLuint i = 0u; i < environment.state.current_fluid_particle_count; ++i)
-			{
-				std::memcpy
-				(
-					initial_boxes + environment.state.fluid_bounding_box_buffer_boxes_offset + i * environment.state.fluid_bounding_box_buffer_boxes_stride,
-					&box, sizeof(box)
-				);
-			}
-
-			glNamedBufferStorage
-			(
-				environment.state.fluid_bounding_box_buffer, environment.state.fluid_bounding_box_buffer_size, initial_boxes,
-				0u
-			);
-
-			delete[] initial_boxes;
-
-			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_FLUID_BOUNDING_BOX_BINDING, environment.state.fluid_bounding_box_buffer);
-		}
-
-		{ // Changed fluid bounding box buffer
-			{
-				GLuint const size_index
-				{
-					glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, "Changed_Fluid_Bounding_Boxes.size")
-				};
-				GLenum const offset_label{ GL_OFFSET };
-				glGetProgramResourceiv
-				(
-					environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, size_index,
-					1u, &offset_label, 1u, nullptr, &environment.state.changed_fluid_bounding_box_buffer_size_offset
-				);
-			}
-
-			{
-				GLuint const boxes_index_index
-				{
-					glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, "Changed_Fluid_Bounding_Boxes.boxes[0].index")
-				};
-				GLenum const prop_labels[]{ GL_OFFSET, GL_TOP_LEVEL_ARRAY_STRIDE };
-				GLint props[std::size(prop_labels)];
-				glGetProgramResourceiv
-				(
-					environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, boxes_index_index,
-					std::size(prop_labels), prop_labels, 2u, nullptr, props
-				);
-				// TODO: Consider putting offset and stride contigously in game state
-				environment.state.changed_fluid_bounding_box_buffer_boxes_index_offset = props[0u];
-				environment.state.changed_fluid_bounding_box_buffer_boxes_stride = props[1u];
-
-				GLenum const offset_label{ GL_OFFSET };
-
-				GLuint const boxes_min_x_index
-				{
-					glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, "Changed_Fluid_Bounding_Boxes.boxes[0].min_x")
-				};
-				glGetProgramResourceiv
-				(
-					environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, boxes_min_x_index,
-					1u, &offset_label, 1u, nullptr, &environment.state.changed_fluid_bounding_box_buffer_boxes_min_x_offset
-				);
-
-				GLuint const boxes_min_y_index
-				{
-					glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, "Changed_Fluid_Bounding_Boxes.boxes[0].min_y")
-				};
-				glGetProgramResourceiv
-				(
-					environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, boxes_min_y_index,
-					1u, &offset_label, 1u, nullptr, &environment.state.changed_fluid_bounding_box_buffer_boxes_min_y_offset
-				);
-
-				GLuint const boxes_max_x_index
-				{
-					glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, "Changed_Fluid_Bounding_Boxes.boxes[0].max_x")
-				};
-				glGetProgramResourceiv
-				(
-					environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, boxes_max_x_index,
-					1u, &offset_label, 1u, nullptr, &environment.state.changed_fluid_bounding_box_buffer_boxes_max_x_offset
-				);
-
-				GLuint const boxes_max_y_index
-				{
-					glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, "Changed_Fluid_Bounding_Boxes.boxes[0].max_y")
-				};
-				glGetProgramResourceiv
-				(
-					environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, boxes_max_y_index,
-					1u, &offset_label, 1u, nullptr, &environment.state.changed_fluid_bounding_box_buffer_boxes_max_y_offset
-				);
-			}
-
-#if USE_DYNAMIC_SIZES == true
-			GLint const offsets[]
-			{
-			   environment.state.changed_fluid_bounding_box_buffer_boxes_index_offset,
-			   environment.state.changed_fluid_bounding_box_buffer_boxes_min_x_offset,
-			   environment.state.changed_fluid_bounding_box_buffer_boxes_min_y_offset,
-			   environment.state.changed_fluid_bounding_box_buffer_boxes_max_x_offset,
-			   environment.state.changed_fluid_bounding_box_buffer_boxes_max_y_offset
-			};
-			GLint const offset{ *std::min_element(std::begin(offsets), std::end(offsets)) };
-			environment.state.changed_fluid_bounding_box_buffer_size = offset + game_logic_MAX_FLUID_PARTICLE_COUNT(environment) * environment.state.changed_fluid_bounding_box_buffer_boxes_stride;
-#else
-			GLuint const block_index
-			{
-				glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_SHADER_STORAGE_BLOCK, "Changed_Fluid_Bounding_Boxes")
-			};
-			GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
-			glGetProgramResourceiv
-			(
-				environment.state.integrate_fluid_velocity_shader, GL_SHADER_STORAGE_BLOCK, block_index,
-				1u, &buffer_size_label, 1u, nullptr, &environment.state.changed_fluid_bounding_box_buffer_size
-			);
-#endif
-
-			glNamedBufferStorage
-			(
-				environment.state.changed_fluid_bounding_box_buffer, environment.state.changed_fluid_bounding_box_buffer_size, nullptr,
-				GL_MAP_READ_BIT | GL_MAP_PERSISTENT_BIT
-			);
-			glClearNamedBufferSubData
-			(
-				environment.state.changed_fluid_bounding_box_buffer,
-				GL_R32UI,
-				environment.state.changed_fluid_bounding_box_buffer_size_offset, sizeof(GLuint),
-				GL_RED_INTEGER, GL_UNSIGNED_INT,
-				nullptr
-			);
-
-			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_CHANGED_FLUID_BOUNDING_BOX_BINDING, environment.state.changed_fluid_bounding_box_buffer);
-
-			environment.state.changed_fluid_bounding_boxes_mapping = static_cast<unsigned char*>
-			(
-				glMapNamedBufferRange
-				(
-					environment.state.changed_fluid_bounding_box_buffer,
-					0u, environment.state.changed_fluid_bounding_box_buffer_size,
-					GL_MAP_READ_BIT | GL_MAP_PERSISTENT_BIT
-				)
-			);
-		}
-
-		{ // Fluid contact buffer
-			{
-				GLuint const contacts_inactive_index
-				{
-					glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Contacts.contacts[0].inactive")
-				};
-				GLenum const prop_labels[]{ GL_OFFSET, GL_TOP_LEVEL_ARRAY_STRIDE };
-				GLint props[std::size(prop_labels)];
-				glGetProgramResourceiv
-				(
-					environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, contacts_inactive_index,
-					std::size(prop_labels), prop_labels, 2u, nullptr, props
-				);
-				// TODO: Consider putting offset and stride contigously in game state
-				environment.state.fluid_contact_buffer_contacts_inactive_offset = props[0u];
-				environment.state.fluid_contact_buffer_contacts_stride = props[1u];
-
-				GLenum const offset_label{ GL_OFFSET };
-
-				GLuint const impulse_index
-				{
-					glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Contacts.contacts[0].impulse")
-				};
-				glGetProgramResourceiv
-				(
-					environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, impulse_index,
-					1u, &offset_label, 1u, nullptr, &environment.state.fluid_contact_buffer_contacts_impulse_offset
-				);
-
-				GLuint const contacts_particles_index
-				{
-					glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Contacts.contacts[0].particles")
-				};
-				glGetProgramResourceiv
-				(
-					environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, contacts_particles_index,
-					1u, &offset_label, 1u, nullptr, &environment.state.fluid_contact_buffer_contacts_particles_offset
-				);
-
-				GLuint const direction_index
-				{
-					glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Contacts.contacts[0].direction")
-				};
-				glGetProgramResourceiv
-				(
-					environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, direction_index,
-					1u, &offset_label, 1u, nullptr, &environment.state.fluid_contact_buffer_contacts_direction_offset
-				);
-
-				GLuint const target_velocity_index
-				{
-					glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Contacts.contacts[0].target_velocity")
-				};
-				glGetProgramResourceiv
-				(
-					environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, target_velocity_index,
-					1u, &offset_label, 1u, nullptr, &environment.state.fluid_contact_buffer_contacts_target_velocity_offset
-				);
-
-				GLuint const mass_index
-				{
-					glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Contacts.contacts[0].mass")
-				};
-				glGetProgramResourceiv
-				(
-					environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, mass_index,
-					1u, &offset_label, 1u, nullptr, &environment.state.fluid_contact_buffer_contacts_mass_offset
-				);
-
-				GLuint const impulse_range_index
-				{
-					glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Contacts.contacts[0].impulse_range")
-				};
-				glGetProgramResourceiv
-				(
-					environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, impulse_range_index,
-					1u, &offset_label, 1u, nullptr, &environment.state.fluid_contact_buffer_contacts_impulse_range_offset
-				);			
-			}
-
-			GLint const offsets[]
-			{
-			   environment.state.fluid_contact_buffer_contacts_inactive_offset,
-			   environment.state.fluid_contact_buffer_contacts_impulse_offset,
-			   environment.state.fluid_contact_buffer_contacts_particles_offset,
-			   environment.state.fluid_contact_buffer_contacts_direction_offset,
-			   environment.state.fluid_contact_buffer_contacts_target_velocity_offset,
-			   environment.state.fluid_contact_buffer_contacts_mass_offset,
-			   environment.state.fluid_contact_buffer_contacts_impulse_range_offset
-			};
-			environment.state.fluid_contact_buffer_contacts_offset = *std::min_element(std::begin(offsets), std::end(offsets));
-#if USE_DYNAMIC_SIZES == true
-			environment.state.fluid_contact_buffer_size = environment.state.fluid_contact_buffer_contacts_offset + MAX_FLUID_CONTACT_COUNT(environment) * environment.state.fluid_contact_buffer_contacts_stride;
-#else
-			GLuint const block_index
-			{
-				glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_SHADER_STORAGE_BLOCK, "Fluid_Contacts")
-			};
-			GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
-			glGetProgramResourceiv
-			(
-				environment.state.fluid_contact_buffer_size, GL_SHADER_STORAGE_BLOCK, block_index,
-				1u, &buffer_size_label, 1u, nullptr, &environment.state.fluid_contact_buffer_size
-			);
-#endif
-
-			glNamedBufferStorage
-			(
-				environment.state.fluid_contact_buffer, environment.state.fluid_contact_buffer_size, nullptr,
-				GL_MAP_PERSISTENT_BIT | GL_MAP_WRITE_BIT
-			);
-
-			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_FLUID_CONTACT_BINDING, environment.state.fluid_contact_buffer);
-
-			environment.state.fluid_contact_mapping = static_cast<unsigned char*>
-			(
-				glMapNamedBufferRange
-				(
-					environment.state.fluid_contact_buffer,
-					0u, environment.state.fluid_contact_buffer_size,
-					GL_MAP_PERSISTENT_BIT | GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT
-				)
-			);
-		}
-
-		{ // Fluid contact count buffer
-			GLenum offset_label{ GL_OFFSET };
-
-			/*GLuint const persistent_count_index
-			{
-				glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_UNIFORM, "Fluid_Contact_Count.persistent_count")
-			};
-			glGetProgramResourceiv
-			(
-				environment.state.persist_fluid_contacts_shader, GL_UNIFORM, persistent_count_index,
-				1u, &offset_label, 1u, nullptr, &environment.state.fluid_contact_count_buffer_persistent_count_offset
-			);*/
-			
-			GLuint const count_index
-			{
-				glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_UNIFORM, "Fluid_Contact_Count.count")
-			};
-			glGetProgramResourceiv
-			(
-				environment.state.persist_fluid_contacts_shader, GL_UNIFORM, count_index,
-				1u, &offset_label, 1u, nullptr, &environment.state.fluid_contact_count_buffer_count_offset
-			);
-
-			GLuint const block_index
-			{
-				glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_UNIFORM_BLOCK, "Fluid_Contact_Count")
-			};
-			GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
-			glGetProgramResourceiv
-			(
-				environment.state.persist_fluid_contacts_shader, GL_UNIFORM_BLOCK, block_index,
-				1u, &buffer_size_label, 1u, nullptr, &environment.state.fluid_contact_count_buffer_size
-			);
-
-			unsigned char* const initial_fluid_contact_count = new unsigned char[environment.state.fluid_contact_count_buffer_size];
-			//std::memcpy(initial_fluid_contact_count + environment.state.fluid_contact_count_buffer_persistent_count_offset, &environment.state.current_fluid_contact_count, sizeof(GLuint));
-			std::memcpy(initial_fluid_contact_count + environment.state.fluid_contact_count_buffer_count_offset, &environment.state.current_fluid_contact_count, sizeof(GLuint));
-
-			glNamedBufferStorage
-			(
-				environment.state.fluid_contact_count_buffer, environment.state.fluid_contact_count_buffer_size, initial_fluid_contact_count,
-				0u
-			);
-
-			delete[] initial_fluid_contact_count;
-
-			glBindBufferBase(GL_UNIFORM_BUFFER, game_logic__util_FLUID_CONTACT_COUNT_BINDING, environment.state.fluid_contact_count_buffer);
-		}
-
-
-		{ // Fluid velocity snapshot buffer
-			glNamedBufferStorage
-			(
-				environment.state.fluid_velocity_snapshot_buffer, environment.state.fluid_velocity_buffer_size, nullptr,
-				0u
-			);
-			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_FLUID_VELOCITY_SNAPSHOT_BINDING, environment.state.fluid_velocity_snapshot_buffer);
-		}
+//		{ // Fluid position buffer
+//			GLuint const p_index
+//			{
+//				glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, "Fluid_Position.p")
+//			};
+//
+//			GLenum const prop_labels[]{ GL_OFFSET, GL_ARRAY_STRIDE };
+//			GLint props[std::size(prop_labels)];
+//			glGetProgramResourceiv
+//			(
+//				environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, p_index,
+//				std::size(prop_labels), prop_labels, 2, nullptr, props
+//			);
+//			// TODO: Consider putting p_offset and p_stride contigously in game state
+//			environment.state.fluid_position_buffer_p_offset = props[0u];
+//			environment.state.fluid_position_buffer_p_stride = props[1u];
+//
+//#if USE_DYNAMIC_SIZES == true
+//			environment.state.fluid_position_buffer_size = environment.state.fluid_position_buffer_p_offset + game_logic_MAX_FLUID_PARTICLE_COUNT(environment) * environment.state.fluid_position_buffer_p_stride;
+//#else
+//			GLuint const block_index
+//			{
+//				glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_SHADER_STORAGE_BLOCK, "Fluid_Position")
+//			};
+//			GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
+//			glGetProgramResourceiv
+//			(
+//				environment.state.integrate_fluid_velocity_shader, GL_SHADER_STORAGE_BLOCK, block_index,
+//				1, &buffer_size_label, 1, nullptr, &environment.state.fluid_position_buffer_size
+//			);
+//#endif
+//
+//			// TODO: Don't initialize a few positions by copying over the ENTIRE buffer 
+//			// content from CPU to GPU like this. Instead, use persistent mapping 
+//			// for both initialization and updating.
+//			unsigned char* const initial_fluid_position = new unsigned char[environment.state.fluid_position_buffer_size];
+//
+//			for (GLuint i = 0; i < environment.state.current_fluid_particle_count; ++i)
+//			{
+//				GLuint const width{ 10u };
+//
+//				::util::math::Vector_2D position
+//				{
+//					-game_logic__util__spatial_FROM_METERS(environment, (i % width) * 5.0f),
+//					-game_logic__util__spatial_FROM_METERS(environment, (i / width) * 1.2f)
+//				};
+//
+//				std::memcpy
+//				(
+//					initial_fluid_position + environment.state.fluid_position_buffer_p_offset + i * environment.state.fluid_position_buffer_p_stride,
+//					&position, sizeof(position)
+//				);
+//			}
+//
+//			glNamedBufferStorage
+//			(
+//				environment.state.fluid_position_buffer, environment.state.fluid_position_buffer_size, initial_fluid_position,
+//				0u//GL_MAP_PERSISTENT_BIT | GL_MAP_READ_BIT | GL_MAP_WRITE_BIT //0u
+//			);
+//
+//			delete[] initial_fluid_position;
+//
+//			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_FLUID_POSITION_BINDING, environment.state.fluid_position_buffer);
+//
+//			/*environment.state.position_mapping = static_cast<unsigned char*>
+//			(
+//				glMapNamedBufferRange
+//				(
+//					environment.state.rigid_body_position_buffer,
+//					0u, environment.state.rigid_body_position_buffer_size,
+//					GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_FLUSH_EXPLICIT_BIT
+//				)
+//			);*/
+//		}
+//
+//		{ // Fluid velocity buffer
+//			GLuint const v_index
+//			{
+//				glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, "Fluid_Velocity.v")
+//			};
+//
+//			GLenum const prop_labels[]{ GL_OFFSET, GL_ARRAY_STRIDE };
+//			GLint props[std::size(prop_labels)];
+//			glGetProgramResourceiv
+//			(
+//				environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, v_index,
+//				std::size(prop_labels), prop_labels, 2, nullptr, props
+//			);
+//			// TODO: Consider putting v_offset and v_stride contigously in game state
+//			environment.state.fluid_velocity_buffer_v_offset = props[0u];
+//			environment.state.fluid_velocity_buffer_v_stride = props[1u];
+//
+//#if USE_DYNAMIC_SIZES == true
+//			environment.state.fluid_velocity_buffer_size = environment.state.fluid_velocity_buffer_v_offset + game_logic_MAX_FLUID_PARTICLE_COUNT(environment) * environment.state.fluid_velocity_buffer_v_stride;
+//#else
+//			GLuint const block_index
+//			{
+//				glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_SHADER_STORAGE_BLOCK, "Fluid_Velocity")
+//			};
+//			GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
+//			glGetProgramResourceiv
+//			(
+//				environment.state.integrate_fluid_velocity_shader, GL_SHADER_STORAGE_BLOCK, block_index,
+//				1, &buffer_size_label, 1, nullptr, &environment.state.fluid_velocity_buffer_size
+//			);
+//#endif
+//
+//			// TODO: Don't initialize a few velocities by copying over the ENTIRE buffer 
+//			// content from CPU to GPU like this. Instead, use persistent mapping 
+//			// for both initialization and updating.
+//			unsigned char* const initial_fluid_velocity = new unsigned char[environment.state.fluid_velocity_buffer_size];
+//
+//			for (GLuint i = 0; i < environment.state.current_fluid_particle_count; ++i)
+//			{
+//				//GLuint const width{ 316u };
+//
+//				::util::math::Vector_2D velocity
+//				{
+//					game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, 0.0f),
+//					game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, 0.0f)
+//				};
+//				if (i % 2u == 0u)
+//				{
+//					velocity.x = game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, -10.0f);
+//				}
+//
+//				std::memcpy
+//				(
+//					initial_fluid_velocity + environment.state.fluid_velocity_buffer_v_offset + i * environment.state.fluid_velocity_buffer_v_stride,
+//					&velocity, sizeof(velocity)
+//				);
+//			}
+//
+//			glNamedBufferStorage
+//			(
+//				environment.state.fluid_velocity_buffer, environment.state.fluid_velocity_buffer_size, initial_fluid_velocity,
+//				0u//GL_MAP_PERSISTENT_BIT | GL_MAP_READ_BIT | GL_MAP_WRITE_BIT
+//			);
+//
+//			delete[] initial_fluid_velocity;
+//
+//			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_FLUID_VELOCITY_BINDING, environment.state.fluid_velocity_buffer);
+//
+//			/*environment.state.position_mapping = static_cast<unsigned char*>
+//			(
+//				glMapNamedBufferRange
+//				(
+//					environment.state.rigid_body_position_buffer,
+//					0u, environment.state.rigid_body_position_buffer_size,
+//					GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_FLUSH_EXPLICIT_BIT
+//				)
+//			);*/
+//		}
+//
+//		{ // Fluid bounding box buffer
+//			GLuint const boxes_index
+//			{
+//				glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, "Fluid_Bounding_Boxes.boxes")
+//			};
+//
+//			GLenum const prop_labels[]{ GL_OFFSET, GL_ARRAY_STRIDE };
+//			GLint props[std::size(prop_labels)];
+//			glGetProgramResourceiv
+//			(
+//				environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, boxes_index,
+//				std::size(prop_labels), prop_labels, 2u, nullptr, props
+//			);
+//			// TODO: Consider putting offset and stride contigously in game state
+//			environment.state.fluid_bounding_box_buffer_boxes_offset = props[0u];
+//			environment.state.fluid_bounding_box_buffer_boxes_stride = props[1u];
+//
+//#if USE_DYNAMIC_SIZES == true
+//			environment.state.fluid_bounding_box_buffer_size = environment.state.fluid_bounding_box_buffer_boxes_offset + game_logic_MAX_FLUID_PARTICLE_COUNT(environment) * environment.state.fluid_bounding_box_buffer_boxes_stride;
+//#else
+//			GLuint const block_index
+//			{
+//				glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_SHADER_STORAGE_BLOCK, "Fluid_Bounding_Boxes")
+//			};
+//			GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
+//			glGetProgramResourceiv
+//			(
+//				environment.state.integrate_fluid_velocity_shader, GL_SHADER_STORAGE_BLOCK, block_index,
+//				1u, &buffer_size_label, 1u, nullptr, &environment.state.fluid_bounding_box_buffer_size
+//			);
+//#endif
+//
+//			// TODO: Don't initialize a few boxes by copying over the ENTIRE buffer 
+//			// content from CPU to GPU like this. Instead, use persistent mapping 
+//			// for both initialization and updating.
+//			unsigned char* const initial_boxes = new unsigned char[environment.state.fluid_bounding_box_buffer_size];
+//
+//			util::rigid_body::Triangle_Bounding_Box box
+//			{
+//				{
+//					0,
+//					0
+//				},
+//				{
+//					-1,
+//					-1
+//				}
+//			};
+//			for (GLuint i = 0u; i < environment.state.current_fluid_particle_count; ++i)
+//			{
+//				std::memcpy
+//				(
+//					initial_boxes + environment.state.fluid_bounding_box_buffer_boxes_offset + i * environment.state.fluid_bounding_box_buffer_boxes_stride,
+//					&box, sizeof(box)
+//				);
+//			}
+//
+//			glNamedBufferStorage
+//			(
+//				environment.state.fluid_bounding_box_buffer, environment.state.fluid_bounding_box_buffer_size, initial_boxes,
+//				0u
+//			);
+//
+//			delete[] initial_boxes;
+//
+//			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_FLUID_BOUNDING_BOX_BINDING, environment.state.fluid_bounding_box_buffer);
+//		}
+//
+//		{ // Changed fluid bounding box buffer
+//			{
+//				GLuint const size_index
+//				{
+//					glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, "Changed_Fluid_Bounding_Boxes.size")
+//				};
+//				GLenum const offset_label{ GL_OFFSET };
+//				glGetProgramResourceiv
+//				(
+//					environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, size_index,
+//					1u, &offset_label, 1u, nullptr, &environment.state.changed_fluid_bounding_box_buffer_size_offset
+//				);
+//			}
+//
+//			{
+//				GLuint const boxes_index_index
+//				{
+//					glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, "Changed_Fluid_Bounding_Boxes.boxes[0].index")
+//				};
+//				GLenum const prop_labels[]{ GL_OFFSET, GL_TOP_LEVEL_ARRAY_STRIDE };
+//				GLint props[std::size(prop_labels)];
+//				glGetProgramResourceiv
+//				(
+//					environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, boxes_index_index,
+//					std::size(prop_labels), prop_labels, 2u, nullptr, props
+//				);
+//				// TODO: Consider putting offset and stride contigously in game state
+//				environment.state.changed_fluid_bounding_box_buffer_boxes_index_offset = props[0u];
+//				environment.state.changed_fluid_bounding_box_buffer_boxes_stride = props[1u];
+//
+//				GLenum const offset_label{ GL_OFFSET };
+//
+//				GLuint const boxes_min_x_index
+//				{
+//					glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, "Changed_Fluid_Bounding_Boxes.boxes[0].min_x")
+//				};
+//				glGetProgramResourceiv
+//				(
+//					environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, boxes_min_x_index,
+//					1u, &offset_label, 1u, nullptr, &environment.state.changed_fluid_bounding_box_buffer_boxes_min_x_offset
+//				);
+//
+//				GLuint const boxes_min_y_index
+//				{
+//					glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, "Changed_Fluid_Bounding_Boxes.boxes[0].min_y")
+//				};
+//				glGetProgramResourceiv
+//				(
+//					environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, boxes_min_y_index,
+//					1u, &offset_label, 1u, nullptr, &environment.state.changed_fluid_bounding_box_buffer_boxes_min_y_offset
+//				);
+//
+//				GLuint const boxes_max_x_index
+//				{
+//					glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, "Changed_Fluid_Bounding_Boxes.boxes[0].max_x")
+//				};
+//				glGetProgramResourceiv
+//				(
+//					environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, boxes_max_x_index,
+//					1u, &offset_label, 1u, nullptr, &environment.state.changed_fluid_bounding_box_buffer_boxes_max_x_offset
+//				);
+//
+//				GLuint const boxes_max_y_index
+//				{
+//					glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, "Changed_Fluid_Bounding_Boxes.boxes[0].max_y")
+//				};
+//				glGetProgramResourceiv
+//				(
+//					environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, boxes_max_y_index,
+//					1u, &offset_label, 1u, nullptr, &environment.state.changed_fluid_bounding_box_buffer_boxes_max_y_offset
+//				);
+//			}
+//
+//#if USE_DYNAMIC_SIZES == true
+//			GLint const offsets[]
+//			{
+//			   environment.state.changed_fluid_bounding_box_buffer_boxes_index_offset,
+//			   environment.state.changed_fluid_bounding_box_buffer_boxes_min_x_offset,
+//			   environment.state.changed_fluid_bounding_box_buffer_boxes_min_y_offset,
+//			   environment.state.changed_fluid_bounding_box_buffer_boxes_max_x_offset,
+//			   environment.state.changed_fluid_bounding_box_buffer_boxes_max_y_offset
+//			};
+//			GLint const offset{ *std::min_element(std::begin(offsets), std::end(offsets)) };
+//			environment.state.changed_fluid_bounding_box_buffer_size = offset + game_logic_MAX_FLUID_PARTICLE_COUNT(environment) * environment.state.changed_fluid_bounding_box_buffer_boxes_stride;
+//#else
+//			GLuint const block_index
+//			{
+//				glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_SHADER_STORAGE_BLOCK, "Changed_Fluid_Bounding_Boxes")
+//			};
+//			GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
+//			glGetProgramResourceiv
+//			(
+//				environment.state.integrate_fluid_velocity_shader, GL_SHADER_STORAGE_BLOCK, block_index,
+//				1u, &buffer_size_label, 1u, nullptr, &environment.state.changed_fluid_bounding_box_buffer_size
+//			);
+//#endif
+//
+//			glNamedBufferStorage
+//			(
+//				environment.state.changed_fluid_bounding_box_buffer, environment.state.changed_fluid_bounding_box_buffer_size, nullptr,
+//				GL_MAP_READ_BIT | GL_MAP_PERSISTENT_BIT
+//			);
+//			glClearNamedBufferSubData
+//			(
+//				environment.state.changed_fluid_bounding_box_buffer,
+//				GL_R32UI,
+//				environment.state.changed_fluid_bounding_box_buffer_size_offset, sizeof(GLuint),
+//				GL_RED_INTEGER, GL_UNSIGNED_INT,
+//				nullptr
+//			);
+//
+//			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_CHANGED_FLUID_BOUNDING_BOX_BINDING, environment.state.changed_fluid_bounding_box_buffer);
+//
+//			environment.state.changed_fluid_bounding_boxes_mapping = static_cast<unsigned char*>
+//			(
+//				glMapNamedBufferRange
+//				(
+//					environment.state.changed_fluid_bounding_box_buffer,
+//					0u, environment.state.changed_fluid_bounding_box_buffer_size,
+//					GL_MAP_READ_BIT | GL_MAP_PERSISTENT_BIT
+//				)
+//			);
+//		}
+//
+//		{ // Fluid contact buffer
+//			{
+//				GLuint const contacts_inactive_index
+//				{
+//					glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Contacts.contacts[0].inactive")
+//				};
+//				GLenum const prop_labels[]{ GL_OFFSET, GL_TOP_LEVEL_ARRAY_STRIDE };
+//				GLint props[std::size(prop_labels)];
+//				glGetProgramResourceiv
+//				(
+//					environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, contacts_inactive_index,
+//					std::size(prop_labels), prop_labels, 2u, nullptr, props
+//				);
+//				// TODO: Consider putting offset and stride contigously in game state
+//				environment.state.fluid_contact_buffer_contacts_inactive_offset = props[0u];
+//				environment.state.fluid_contact_buffer_contacts_stride = props[1u];
+//
+//				GLenum const offset_label{ GL_OFFSET };
+//
+//				GLuint const impulse_index
+//				{
+//					glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Contacts.contacts[0].impulse")
+//				};
+//				glGetProgramResourceiv
+//				(
+//					environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, impulse_index,
+//					1u, &offset_label, 1u, nullptr, &environment.state.fluid_contact_buffer_contacts_impulse_offset
+//				);
+//
+//				GLuint const contacts_particles_index
+//				{
+//					glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Contacts.contacts[0].particles")
+//				};
+//				glGetProgramResourceiv
+//				(
+//					environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, contacts_particles_index,
+//					1u, &offset_label, 1u, nullptr, &environment.state.fluid_contact_buffer_contacts_particles_offset
+//				);
+//
+//				GLuint const direction_index
+//				{
+//					glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Contacts.contacts[0].direction")
+//				};
+//				glGetProgramResourceiv
+//				(
+//					environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, direction_index,
+//					1u, &offset_label, 1u, nullptr, &environment.state.fluid_contact_buffer_contacts_direction_offset
+//				);
+//
+//				GLuint const target_velocity_index
+//				{
+//					glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Contacts.contacts[0].target_velocity")
+//				};
+//				glGetProgramResourceiv
+//				(
+//					environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, target_velocity_index,
+//					1u, &offset_label, 1u, nullptr, &environment.state.fluid_contact_buffer_contacts_target_velocity_offset
+//				);
+//
+//				GLuint const mass_index
+//				{
+//					glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Contacts.contacts[0].mass")
+//				};
+//				glGetProgramResourceiv
+//				(
+//					environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, mass_index,
+//					1u, &offset_label, 1u, nullptr, &environment.state.fluid_contact_buffer_contacts_mass_offset
+//				);
+//
+//				GLuint const impulse_range_index
+//				{
+//					glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Contacts.contacts[0].impulse_range")
+//				};
+//				glGetProgramResourceiv
+//				(
+//					environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, impulse_range_index,
+//					1u, &offset_label, 1u, nullptr, &environment.state.fluid_contact_buffer_contacts_impulse_range_offset
+//				);			
+//			}
+//
+//			GLint const offsets[]
+//			{
+//			   environment.state.fluid_contact_buffer_contacts_inactive_offset,
+//			   environment.state.fluid_contact_buffer_contacts_impulse_offset,
+//			   environment.state.fluid_contact_buffer_contacts_particles_offset,
+//			   environment.state.fluid_contact_buffer_contacts_direction_offset,
+//			   environment.state.fluid_contact_buffer_contacts_target_velocity_offset,
+//			   environment.state.fluid_contact_buffer_contacts_mass_offset,
+//			   environment.state.fluid_contact_buffer_contacts_impulse_range_offset
+//			};
+//			environment.state.fluid_contact_buffer_contacts_offset = *std::min_element(std::begin(offsets), std::end(offsets));
+//#if USE_DYNAMIC_SIZES == true
+//			environment.state.fluid_contact_buffer_size = environment.state.fluid_contact_buffer_contacts_offset + MAX_FLUID_CONTACT_COUNT(environment) * environment.state.fluid_contact_buffer_contacts_stride;
+//#else
+//			GLuint const block_index
+//			{
+//				glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_SHADER_STORAGE_BLOCK, "Fluid_Contacts")
+//			};
+//			GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
+//			glGetProgramResourceiv
+//			(
+//				environment.state.fluid_contact_buffer_size, GL_SHADER_STORAGE_BLOCK, block_index,
+//				1u, &buffer_size_label, 1u, nullptr, &environment.state.fluid_contact_buffer_size
+//			);
+//#endif
+//
+//			glNamedBufferStorage
+//			(
+//				environment.state.fluid_contact_buffer, environment.state.fluid_contact_buffer_size, nullptr,
+//				GL_MAP_PERSISTENT_BIT | GL_MAP_WRITE_BIT
+//			);
+//
+//			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_FLUID_CONTACT_BINDING, environment.state.fluid_contact_buffer);
+//
+//			environment.state.fluid_contact_mapping = static_cast<unsigned char*>
+//			(
+//				glMapNamedBufferRange
+//				(
+//					environment.state.fluid_contact_buffer,
+//					0u, environment.state.fluid_contact_buffer_size,
+//					GL_MAP_PERSISTENT_BIT | GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT
+//				)
+//			);
+//		}
+//
+//		{ // Fluid contact count buffer
+//			GLenum offset_label{ GL_OFFSET };
+//
+//			/*GLuint const persistent_count_index
+//			{
+//				glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_UNIFORM, "Fluid_Contact_Count.persistent_count")
+//			};
+//			glGetProgramResourceiv
+//			(
+//				environment.state.persist_fluid_contacts_shader, GL_UNIFORM, persistent_count_index,
+//				1u, &offset_label, 1u, nullptr, &environment.state.fluid_contact_count_buffer_persistent_count_offset
+//			);*/
+//			
+//			GLuint const count_index
+//			{
+//				glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_UNIFORM, "Fluid_Contact_Count.count")
+//			};
+//			glGetProgramResourceiv
+//			(
+//				environment.state.persist_fluid_contacts_shader, GL_UNIFORM, count_index,
+//				1u, &offset_label, 1u, nullptr, &environment.state.fluid_contact_count_buffer_count_offset
+//			);
+//
+//			GLuint const block_index
+//			{
+//				glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_UNIFORM_BLOCK, "Fluid_Contact_Count")
+//			};
+//			GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
+//			glGetProgramResourceiv
+//			(
+//				environment.state.persist_fluid_contacts_shader, GL_UNIFORM_BLOCK, block_index,
+//				1u, &buffer_size_label, 1u, nullptr, &environment.state.fluid_contact_count_buffer_size
+//			);
+//
+//			unsigned char* const initial_fluid_contact_count = new unsigned char[environment.state.fluid_contact_count_buffer_size];
+//			//std::memcpy(initial_fluid_contact_count + environment.state.fluid_contact_count_buffer_persistent_count_offset, &environment.state.current_fluid_contact_count, sizeof(GLuint));
+//			std::memcpy(initial_fluid_contact_count + environment.state.fluid_contact_count_buffer_count_offset, &environment.state.current_fluid_contact_count, sizeof(GLuint));
+//
+//			glNamedBufferStorage
+//			(
+//				environment.state.fluid_contact_count_buffer, environment.state.fluid_contact_count_buffer_size, initial_fluid_contact_count,
+//				0u
+//			);
+//
+//			delete[] initial_fluid_contact_count;
+//
+//			glBindBufferBase(GL_UNIFORM_BUFFER, game_logic__util_FLUID_CONTACT_COUNT_BINDING, environment.state.fluid_contact_count_buffer);
+//		}
+//
+//
+//		{ // Fluid velocity snapshot buffer
+//			glNamedBufferStorage
+//			(
+//				environment.state.fluid_velocity_snapshot_buffer, environment.state.fluid_velocity_buffer_size, nullptr,
+//				0u
+//			);
+//			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_FLUID_VELOCITY_SNAPSHOT_BINDING, environment.state.fluid_velocity_snapshot_buffer);
+//		}
 
 		util::proximity::initialize
 		(
@@ -3904,11 +4434,21 @@ namespace game_logic
 								leaf_1_index
 							};
 							// TODO: Do addition between mapping pointer and offset once during initialization
-							std::memcpy
+							/*std::memcpy
 							(
 								environment.state.fluid_contact_mapping + environment.state.fluid_contact_buffer_contacts_particles_offset
 								+ environment.state.current_fluid_contact_count * environment.state.fluid_contact_buffer_contacts_stride,
 								leaf_indices, sizeof(leaf_indices)
+							);*/
+							glClearNamedBufferSubData
+							(
+								environment.state.fluid_contact_buffer,
+								GL_RG32UI,
+								environment.state.fluid_contact_buffer_contacts_particles_offset 
+								+ environment.state.current_fluid_contact_count * environment.state.fluid_contact_buffer_contacts_stride, 
+								sizeof(leaf_indices),
+								GL_RG_INTEGER, GL_UNSIGNED_INT,
+								leaf_indices
 							);
 
 							return environment.state.current_fluid_contact_count++;
@@ -3947,12 +4487,13 @@ namespace game_logic
 			}
 
 			GLuint const new_fluid_contact_count{environment.state.current_fluid_contact_count - environment.state.current_fluid_persistent_contact_count};
-			glFlushMappedNamedBufferRange
+			//std::cout << new_fluid_contact_count << std::endl;
+			/*glFlushMappedNamedBufferRange
 			(
 				environment.state.fluid_contact_buffer, 
 				environment.state.fluid_contact_buffer_contacts_offset + environment.state.current_fluid_persistent_contact_count * environment.state.fluid_contact_buffer_contacts_stride,
 				new_fluid_contact_count * environment.state.fluid_contact_buffer_contacts_stride
-			);
+			);*/
 			glClearNamedBufferSubData
 			(
 				environment.state.fluid_contact_count_buffer,
@@ -4986,7 +5527,7 @@ namespace game_logic
 
 		update_GPU_camera(environment);
 
-		/*glBindFramebuffer(GL_DRAW_FRAMEBUFFER, environment.state.fluid_framebuffer);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, environment.state.fluid_framebuffer);
 
 		GLfloat const fluid_clear_color[4u]{ 0.0f, 0.0f, 0.0f, 0.0f }; // IMPORTANT!!!! ALPHA SHOULD BE 0
 		glClearBufferfv(GL_COLOR, 1, fluid_clear_color);
@@ -4994,8 +5535,8 @@ namespace game_logic
 		glUseProgram(environment.state.fluid_particles_draw_shader);
 		glDrawArrays(GL_TRIANGLES, 0, environment.state.current_fluid_particle_count * 6u);
 
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0u);*/
-		glClear(GL_COLOR_BUFFER_BIT);	// IMPORTANT TODO: REMOVE!!!
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0u);
+		//glClear(GL_COLOR_BUFFER_BIT);	// IMPORTANT TODO: REMOVE!!!
 
 		glUseProgram(environment.state.fluid_draw_shader);
 		glDrawArrays(GL_TRIANGLES, 0, 6u);

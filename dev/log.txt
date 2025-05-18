@@ -2,7 +2,10 @@
 IMPORTANT:
 
 DO NOT USE ANY FLAGS FOR BUFFERS THAT ARE EXTENSIVELY READ FROM AND WRITTEN TO BY COMPUTE SHADERS (
-for example contact surface buffer). 
+for example contact surface buffer). We noticed perfomance issues when writing the particle pairs 
+to the "Fluid_Contacts" directly. The better option is thus either to write the data using glClearNamedBufferSubData or 
+through persistent mapping to a SEPARATE buffer that is only used to get and copy over the NEW contact pairs.
+TODO: Think about how to remove the flags from the position and velocity buffers too.
 
 NEVER use vec3. Instead use vec4. When switching from vec3 to vec4 the velocity integration 
 went A LOT faster. 300,000 bodies with 2 triangles each is possible without charger instead of 
