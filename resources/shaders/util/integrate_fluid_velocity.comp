@@ -1,5 +1,5 @@
 // TODO: Move to CPU
-#define DAMPING_NUMERATOR 999//999//995//990
+#define DAMPING_NUMERATOR 990//999//995//990
 #define DAMPING_DENOMINATOR 1000
 
 #define TRAJECTORY_PADDING 0//120
@@ -10,13 +10,14 @@
 layout(shared, binding = FLUID_POSITION_BINDING) restrict
 buffer Fluid_Position
 {
-	ivec2 p[MAX_FLUID_PARTICLE_COUNT];
+	ivec4 p[MAX_FLUID_PARTICLE_COUNT];//ivec2 p[MAX_FLUID_PARTICLE_COUNT];
 } fluid_position;
 
 layout(shared, binding = FLUID_VELOCITY_BINDING) restrict /*readonly*/
 buffer Fluid_Velocity
 {
-	ivec2 v[MAX_FLUID_PARTICLE_COUNT];
+	//ivec2 v[MAX_FLUID_PARTICLE_COUNT];
+	ivec4 v[MAX_FLUID_PARTICLE_COUNT];
 } fluid_velocity;
 
 layout(shared, binding = FLUID_BOUNDING_BOX_BINDING) restrict
@@ -44,8 +45,8 @@ buffer Changed_Fluid_Bounding_Boxes
 layout(local_size_x = LOCAL_SIZE) in;
 void main()
 {
-	ivec2 position = fluid_position.p[gl_GlobalInvocationID.x];
-	ivec2 velocity = fluid_velocity.v[gl_GlobalInvocationID.x];
+	ivec4 position = fluid_position.p[gl_GlobalInvocationID.x];
+	ivec4 velocity = fluid_velocity.v[gl_GlobalInvocationID.x];
 	
 	position += velocity;
 	velocity = (velocity * DAMPING_NUMERATOR) / DAMPING_DENOMINATOR;
@@ -55,8 +56,8 @@ void main()
 	fluid_velocity.v[gl_GlobalInvocationID.x] = velocity;
 
 	// Update bounding boxes
-	ivec2 new_min = position - RADIUS;
-	ivec2 new_max = position + RADIUS;
+	ivec2 new_min = position.xy - RADIUS;
+	ivec2 new_max = position.xy + RADIUS;
 	ivec4 bounding_box = fluid_bounding_boxes.boxes[gl_GlobalInvocationID.x];
 		
 	if (any(lessThan(new_min, bounding_box.xy)) || any(greaterThan(new_max, bounding_box.zw)))
@@ -64,8 +65,8 @@ void main()
 		new_min -= PADDING;
 		new_max += PADDING;
 		
-		ivec2 trajectory_padding = TRAJECTORY_PADDING * velocity;
-		ivec2 predicted_position = position + trajectory_padding;
+		ivec2 trajectory_padding = TRAJECTORY_PADDING * velocity.xy;
+		ivec2 predicted_position = position.xy + trajectory_padding;
 		new_min = min(new_min, predicted_position);
 		new_max = max(new_max, predicted_position);
 

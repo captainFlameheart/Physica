@@ -48,24 +48,25 @@
 #define game_logic__util_FLUID_CONTACT_COUNT_BINDING 5
 
 // TODO: Probably flip position and velocity binding and position snapshot and velocity snapshot binding
-#define game_logic__util_RIGID_BODY_POSITION_BINDING 0
-#define game_logic__util_RIGID_BODY_VELOCITY_BINDING 1
-#define game_logic__util_TRIANGLE_BINDING 2
-#define game_logic__util_VERTEX_BINDING 3
-#define game_logic__util_TRIANGLE_BOUNDING_BOX_BINDING 4
-#define game_logic__util_TRIANGLE_CHANGED_BOUNDING_BOX_BINDING 5
-#define game_logic__util_CONTACT_BINDING 6
-#define game_logic__util_CONTACT_SURFACE_BINDING 7
-#define game_logic__util_VELOCITY_SNAPSHOT_BINDING 8
-#define game_logic__util_POSITION_SNAPSHOT_BINDING 9
-#define game_logic__util_CURSOR_CONSTRAINT_BINDING 10
-#define game_logic__util_DISTANCE_CONSTRAINT_BINDING 11
-#define game_logic__util_FLUID_POSITION_BINDING 12
-#define game_logic__util_FLUID_VELOCITY_BINDING 13
-#define game_logic__util_FLUID_BOUNDING_BOX_BINDING 14
-#define game_logic__util_CHANGED_FLUID_BOUNDING_BOX_BINDING 15
-#define game_logic__util_FLUID_CONTACT_BINDING 16
-#define game_logic__util_FLUID_VELOCITY_SNAPSHOT_BINDING 17
+#define game_logic__util_FLUID_POSITION_BINDING 0
+#define game_logic__util_FLUID_VELOCITY_BINDING 1
+#define game_logic__util_FLUID_BOUNDING_BOX_BINDING 2
+#define game_logic__util_CHANGED_FLUID_BOUNDING_BOX_BINDING 3
+#define game_logic__util_FLUID_CONTACT_BINDING 4
+#define game_logic__util_FLUID_VELOCITY_SNAPSHOT_BINDING 5
+
+#define game_logic__util_RIGID_BODY_POSITION_BINDING 6
+#define game_logic__util_RIGID_BODY_VELOCITY_BINDING 7
+#define game_logic__util_TRIANGLE_BINDING 8
+#define game_logic__util_VERTEX_BINDING 9
+#define game_logic__util_TRIANGLE_BOUNDING_BOX_BINDING 10
+#define game_logic__util_TRIANGLE_CHANGED_BOUNDING_BOX_BINDING 11
+#define game_logic__util_CONTACT_BINDING 12
+#define game_logic__util_CONTACT_SURFACE_BINDING 13
+#define game_logic__util_VELOCITY_SNAPSHOT_BINDING 14
+#define game_logic__util_POSITION_SNAPSHOT_BINDING 15
+#define game_logic__util_CURSOR_CONSTRAINT_BINDING 16
+#define game_logic__util_DISTANCE_CONSTRAINT_BINDING 17
 
 
 #define game_CAMERA_DEFAULT_DISTANCE_PER_TICK(environment) \

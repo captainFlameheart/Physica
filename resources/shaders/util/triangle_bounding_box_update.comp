@@ -1,6 +1,6 @@
 // TODO: Move these constants to CPU
-#define TRANSLATIONAL_TRAJECTORY_PADDING 120
-#define ANGULAR_TRAJECTORY_PADDING 60.0
+#define TRANSLATIONAL_TRAJECTORY_PADDING 0//120
+#define ANGULAR_TRAJECTORY_PADDING 0.0//60.0
 
 layout(shared, binding = TRIANGLE_BINDING) restrict readonly
 buffer Triangles

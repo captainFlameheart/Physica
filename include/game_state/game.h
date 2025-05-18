@@ -172,7 +172,7 @@ namespace game_state
 
 		GLuint fluid_contact_count_buffer;
 		GLint fluid_contact_count_buffer_size;
-		GLint fluid_contact_count_buffer_persistent_count_offset;
+		//GLint fluid_contact_count_buffer_persistent_count_offset;
 		GLint fluid_contact_count_buffer_count_offset;
 
 		GLuint current_fluid_persistent_contact_count;
@@ -192,6 +192,7 @@ namespace game_state
 		GLuint old_triangle_contact_update_shader;
 
 		GLuint new_fluid_contacts_shader;
+		GLint new_fluid_contacts_shader_persistent_count_uniform_location;
 		GLuint new_triangle_contact_shader;
 
 		GLuint update_distance_constraints_shader;

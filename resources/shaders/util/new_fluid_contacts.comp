@@ -3,7 +3,7 @@ const float negative_infinity = uintBitsToFloat(0xFF800000);
 
 layout(shared, binding = FLUID_CONTACT_COUNT_BINDING) uniform Fluid_Contact_Count
 {
-	uint persistent_count;
+	//uint persistent_count;
 	uint count;
 } fluid_contact_count;
 
@@ -27,19 +27,22 @@ buffer Fluid_Contacts
 layout(shared, binding = FLUID_POSITION_BINDING) restrict readonly
 buffer Fluid_Position
 {
-	ivec2 p[MAX_FLUID_PARTICLE_COUNT];
+	ivec4 p[MAX_FLUID_PARTICLE_COUNT];//ivec2 p[MAX_FLUID_PARTICLE_COUNT];
 } fluid_position;
 
 layout(shared, binding = FLUID_VELOCITY_BINDING) restrict readonly
 buffer Fluid_Velocity
 {
-	ivec2 v[MAX_FLUID_PARTICLE_COUNT];
+	//ivec2 v[MAX_FLUID_PARTICLE_COUNT];
+	ivec4 v[MAX_FLUID_PARTICLE_COUNT];
 } fluid_velocity;
+
+uniform uint persistent_count;
 
 layout(local_size_x = LOCAL_SIZE) in;
 void main()
 {
-	uint index = fluid_contact_count.persistent_count + gl_GlobalInvocationID.x;
+	uint index = persistent_count + gl_GlobalInvocationID.x;//fluid_contact_count.persistent_count + gl_GlobalInvocationID.x;
 	if (index >= fluid_contact_count.count)
 	{
 		return;
@@ -57,10 +60,10 @@ void main()
 	float radius_0 = RADIUS;
 	float radius_1 = RADIUS;
 
-	ivec2 position_0 = fluid_position.p[particles.x];
-	ivec2 position_1 = fluid_position.p[particles.y];
+	ivec4 position_0 = fluid_position.p[particles.x];
+	ivec4 position_1 = fluid_position.p[particles.y];
 
-	vec2 direction = vec2(position_0 - position_1);
+	vec2 direction = vec2(position_0.xy - position_1.xy);
 	float distance = length(direction);
 	float max_distance = radius_0 + radius_1;
 	if (distance >= max_distance)
@@ -72,15 +75,15 @@ void main()
 		// TODO: Handle distance being 0
 		direction /= distance;
 
-		ivec2 velocity_0 = fluid_velocity.v[particles.x];
-		ivec2 velocity_1 = fluid_velocity.v[particles.y];
-		float target_velocity = 0.5 * min(0.0, dot(direction, vec2(velocity_0 - velocity_1))); // Is min necessary?
+		ivec4 velocity_0 = fluid_velocity.v[particles.x];
+		ivec4 velocity_1 = fluid_velocity.v[particles.y];
+		float target_velocity = 0.5 * min(0.0, dot(direction, vec2(velocity_0.xy - velocity_1.xy))); // Is min necessary?
 
-		fluid_contacts.contacts[gl_GlobalInvocationID.x].inactive = false;
+		fluid_contacts.contacts[index].inactive = false;
 		// IMPORTANT TODO: COMPUTE (SCALED) INITIAL IMPULSE BASED ON VELOCITY FOR FASTER CONVERGENCE
-		fluid_contacts.contacts[gl_GlobalInvocationID.x].impulse = 0.0;
+		fluid_contacts.contacts[index].impulse = 0.0;
 		fluid_contacts.contacts[index].direction = direction;
-		fluid_contacts.contacts[gl_GlobalInvocationID.x].target_velocity = target_velocity;
+		fluid_contacts.contacts[index].target_velocity = target_velocity;
 		fluid_contacts.contacts[index].impulse_range = vec2(negative_infinity, 0.0);
 	}
 }

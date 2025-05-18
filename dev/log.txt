@@ -1,6 +1,9 @@
 ===========================================================================================
 IMPORTANT:
 
+DO NOT USE ANY FLAGS FOR BUFFERS THAT ARE EXTENSIVELY READ FROM AND WRITTEN TO BY COMPUTE SHADERS (
+for example contact surface buffer). 
+
 NEVER use vec3. Instead use vec4. When switching from vec3 to vec4 the velocity integration 
 went A LOT faster. 300,000 bodies with 2 triangles each is possible without charger instead of 
 just 100,000 bodies with 2 triangles each with charger.
