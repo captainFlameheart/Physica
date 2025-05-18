@@ -75,7 +75,7 @@
 	static_cast<GLint>(0.2f * game_logic__util__spatial_METER(environment))
 
 #define game_logic_FLUID_PARTICLE_BOUNDING_BOX_PADDING(environment) \
-	game_logic__util__spatial_FROM_METERS(environment, 1.0f)//0.5f)//0.1f)
+	game_logic__util__spatial_FROM_METERS(environment, 0.2f)//0.1f)
 
 #define game_logic_FLUID_PARTICLE_DRAW_RADIUS(environment) \
 	game_logic__util__spatial_FLOAT_FROM_METERS(environment, 1.0)
@@ -1400,12 +1400,12 @@ namespace game_logic
 			);
 		}
 
-		environment.state.current_rigid_body_count = 0u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment);//500000u;
+		environment.state.current_rigid_body_count = 10u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment);//500000u;
 		environment.state.current_triangle_count = 1u * environment.state.current_rigid_body_count;
 		environment.state.current_triangle_contact_count = 0u;
 		environment.state.current_persistent_contact_count = 0u;
 		environment.state.current_distance_constraint_count = 0u;
-		environment.state.current_fluid_particle_count = 30u * INTEGRATE_FLUID_VELOCITY_LOCAL_SIZE(environment);
+		environment.state.current_fluid_particle_count = 15u * INTEGRATE_FLUID_VELOCITY_LOCAL_SIZE(environment);
 		environment.state.current_fluid_contact_count = 0u;
 		environment.state.current_fluid_persistent_contact_count = 0u;
 
