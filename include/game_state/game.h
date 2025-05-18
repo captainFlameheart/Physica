@@ -160,12 +160,13 @@ namespace game_state
 		GLint fluid_contact_buffer_size;
 		GLint fluid_contact_buffer_contacts_offset;
 		GLint fluid_contact_buffer_contacts_stride;
+		GLint fluid_contact_buffer_contacts_inactive_offset;
+		GLint fluid_contact_buffer_contacts_impulse_offset;
 		GLint fluid_contact_buffer_contacts_particles_offset;
 		GLint fluid_contact_buffer_contacts_direction_offset;
-		GLint fluid_contact_buffer_contacts_max_impulse_offset;
 		GLint fluid_contact_buffer_contacts_target_velocity_offset;
 		GLint fluid_contact_buffer_contacts_mass_offset;
-		GLint fluid_contact_buffer_contacts_impulse_offset;
+		GLint fluid_contact_buffer_contacts_impulse_range_offset;
 
 		unsigned char* fluid_contact_mapping;
 

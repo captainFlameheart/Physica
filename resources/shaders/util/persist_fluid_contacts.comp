@@ -1,3 +1,6 @@
+const float positive_infinity = uintBitsToFloat(0x7F800000);
+const float negative_infinity = uintBitsToFloat(0xFF800000);
+
 layout(shared, binding = FLUID_CONTACT_COUNT_BINDING) uniform Fluid_Contact_Count
 {
 	uint persistent_count;
@@ -6,12 +9,13 @@ layout(shared, binding = FLUID_CONTACT_COUNT_BINDING) uniform Fluid_Contact_Coun
 
 struct Fluid_Contact
 {
-	float max_impulse;
-	float target_velocity;
+	bool inactive;
+	float impulse;
 	uvec2 particles;
 	vec2 direction;
+	float target_velocity;
 	float mass;
-	float impulse;
+	vec2 impulse_range;
 };
 
 layout(shared, binding = FLUID_CONTACT_BINDING) restrict
@@ -43,64 +47,41 @@ void main()
 	uvec2 particles = fluid_contacts.contacts[gl_GlobalInvocationID.x].particles;
 	
 	// TODO: Fetch from buffer
-	float strength_radius_0 = STRENGTH_RADIUS;
-	float strength_radius_1 = STRENGTH_RADIUS;
+	float radius_0 = RADIUS;
+	float radius_1 = RADIUS;
 
 	ivec2 position_0 = fluid_position.p[particles.x];
 	ivec2 position_1 = fluid_position.p[particles.y];
 
 	vec2 direction = vec2(position_0 - position_1);	// TODO: Conversion to vec2 unnecessary???
 	float distance = length(direction);
-	//float max_distance = max(strength_radius_0, strength_radius_1);
-	float max_distance = strength_radius_0 + strength_radius_1;
+	float max_distance = radius_0 + radius_1;
 	if (distance >= max_distance)
 	{
-		fluid_contacts.contacts[gl_GlobalInvocationID.x].max_impulse = 0.0;
+		fluid_contacts.contacts[gl_GlobalInvocationID.x].inactive = true;
 	}
 	else
 	{
-		// TODO: Fetch from buffer
-		float max_strength_from_0 = MAX_STRENGTH;
-		float target_radius_from_0 = TARGET_RADIUS;
-		float target_velocity_scale_from_0 = TARGET_VELOCITY_SCALE;
-
-		float max_strength_from_1 = MAX_STRENGTH;
-		float target_radius_from_1 = TARGET_RADIUS;
-		float target_velocity_scale_from_1 = TARGET_VELOCITY_SCALE;
+		bool was_inactive = fluid_contacts.contacts[gl_GlobalInvocationID.x].inactive;
 
 		// TODO: Handle distance being 0
-		direction /= distance;
+		direction /= distance;		
 
-		//float strength_from_0 = max_strength_from_0 * max(0.0, sign(1.0 - distance / strength_radius_0)); //max_strength_from_0 * max(0.0, (1.0 - distance / strength_radius_0));
-		//float strength_from_1 = max_strength_from_1 * max(0.0, sign(1.0 - distance / strength_radius_1));//max_strength_from_1 * max(0.0, (1.0 - distance / strength_radius_1));
+		float target_velocity = 0.002 * ((0.1 * (METER)) - (max_distance - distance));
 
-		//float max_impulse = strength_from_0 + strength_from_1;
-		float max_impulse = 1.0;
-
-		//float target_velocity_from_0 = target_velocity_scale_from_0 * (distance - target_radius_from_0);
-		//float target_velocity_from_1 = target_velocity_scale_from_1 * (distance - target_radius_from_1);
-		
-		//float target_velocity = (strength_from_0 * target_velocity_from_0 + strength_from_1 * target_velocity_from_1) / (strength_from_0 + strength_from_1);
-		float target_velocity = 0.0;
-
-		/*if (target_velocity < 0.0)
-		{
-			target_velocity = 0.0;
-			max_impulse = 999999999.0;
-		}*/
-
-		if (fluid_contacts.contacts[gl_GlobalInvocationID.x].max_impulse == 0.0)
+		if (was_inactive)
 		{
 			ivec2 velocity_0 = fluid_velocity.v[particles.x];
 			ivec2 velocity_1 = fluid_velocity.v[particles.y];
-			target_velocity = 1.0 * min(0.0, dot(direction, vec2(velocity_0 - velocity_1))); // Is min necessary?
+			target_velocity = 0.5 * min(0.0, dot(direction, vec2(velocity_0 - velocity_1))); // Is min necessary?
 
+			fluid_contacts.contacts[gl_GlobalInvocationID.x].inactive = false;
 			// IMPORTANT TODO: COMPUTE (SCALED) INITIAL IMPULSE BASED ON VELOCITY FOR FASTER CONVERGENCE
 			fluid_contacts.contacts[gl_GlobalInvocationID.x].impulse = 0.0;
 		}
 
-		fluid_contacts.contacts[gl_GlobalInvocationID.x].max_impulse = max_impulse;
-		fluid_contacts.contacts[gl_GlobalInvocationID.x].target_velocity = target_velocity;
 		fluid_contacts.contacts[gl_GlobalInvocationID.x].direction = direction;
+		fluid_contacts.contacts[gl_GlobalInvocationID.x].target_velocity = target_velocity;
+		fluid_contacts.contacts[gl_GlobalInvocationID.x].impulse_range = vec2(negative_infinity, 0.0);
 	}
 }

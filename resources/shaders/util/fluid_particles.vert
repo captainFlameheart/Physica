@@ -57,7 +57,7 @@ void main()
 	uint offset_index = gl_VertexID % 6u;
 	offset = offsets[offset_index];
 
-	base_color = vec4(0.0, 0.0, 1.0, 4.0);
+	base_color = vec4(0.0, 0.0, 1.0, 1.3);
 
 	vec2 camera_relative_xy = vec2(position - camera.xy) + offset;
 	gl_Position = vec4

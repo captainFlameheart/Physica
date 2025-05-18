@@ -6,12 +6,13 @@ layout(shared, binding = FLUID_CONTACT_COUNT_BINDING) uniform Fluid_Contact_Coun
 
 struct Fluid_Contact
 {
-	float max_impulse;
-	float target_velocity;
+	bool inactive;
+	float impulse;
 	uvec2 particles;
 	vec2 direction;
+	float target_velocity;
 	float mass;
-	float impulse;
+	vec2 impulse_range;
 };
 
 layout(shared, binding = FLUID_CONTACT_BINDING) restrict readonly
@@ -19,6 +20,13 @@ buffer Fluid_Contacts
 {
 	Fluid_Contact contacts[MAX_FLUID_CONTACT_COUNT];
 } fluid_contacts;
+
+// IMPORTANT TODO: REMOVE
+layout(shared, binding = FLUID_POSITION_BINDING) restrict readonly
+buffer Fluid_Position
+{
+	ivec2 p[MAX_FLUID_PARTICLE_COUNT];
+} fluid_position;
 
 layout(shared, binding = FLUID_VELOCITY_BINDING) restrict
 buffer Fluid_Velocity
@@ -31,19 +39,14 @@ void main()
 {
 	// TODO: Apply warm start impulses to ALL triangle contacts as well (we should initialize new contact impulses 
 	// to non-zero for faster convergence).
-	if (gl_GlobalInvocationID.x >= fluid_contact_count.count)
-	{
-		return;
-	}
-	float max_impulse = fluid_contacts.contacts[gl_GlobalInvocationID.x].max_impulse;
-	if (max_impulse == 0.0)
+	if (gl_GlobalInvocationID.x >= fluid_contact_count.count || fluid_contacts.contacts[gl_GlobalInvocationID.x].inactive)
 	{
 		return;
 	}
 
+	float impulse = fluid_contacts.contacts[gl_GlobalInvocationID.x].impulse;
 	uvec2 particles = fluid_contacts.contacts[gl_GlobalInvocationID.x].particles;
 	vec2 direction = fluid_contacts.contacts[gl_GlobalInvocationID.x].direction;
-	float impulse = fluid_contacts.contacts[gl_GlobalInvocationID.x].impulse;
 	
 	// TODO: Fetch masses from buffer
 	float inverse_mass_0 = INVERSE_MASS;

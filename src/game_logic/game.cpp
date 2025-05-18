@@ -71,13 +71,13 @@
 	25u * INTEGRATE_FLUID_VELOCITY_LOCAL_SIZE(environment)
 
 #define game_logic_FLUID_PARTICLE_PHYSICAL_RADIUS(environment) \
-	static_cast<GLint>(0.1f * game_logic__util__spatial_METER(environment))
+	static_cast<GLint>(0.2f * game_logic__util__spatial_METER(environment))
 
 #define game_logic_FLUID_PARTICLE_BOUNDING_BOX_PADDING(environment) \
-	game_logic__util__spatial_FROM_METERS(environment, 0.1f)
+	game_logic__util__spatial_FROM_METERS(environment, 0.5f)//0.1f)
 
 #define game_logic_FLUID_PARTICLE_DRAW_RADIUS(environment) \
-	game_logic__util__spatial_FLOAT_FROM_METERS(environment, 0.5f)
+	game_logic__util__spatial_FLOAT_FROM_METERS(environment, 1.0)
 
 #define game_logic_MAX_RIGID_BODY_COUNT(environment) \
 	100u * game_logic__util__rigid_body_VELOCITY_INTEGRATION_LOCAL_SIZE(environment)
@@ -923,6 +923,10 @@ namespace game_logic
 		environment.state.add_distance_constraint_shader = ::util::shader::create_program(compute_shader);
 		std::cout << "Add distance constraint shader compiled" << std::endl;
 
+		std::string fluid_physical_radius_definition{ "#define RADIUS " + std::to_string(game_logic_FLUID_PARTICLE_PHYSICAL_RADIUS(environment)) + '\n'};
+
+		std::cout << fluid_physical_radius_definition << std::endl;
+
 		::util::shader::set_shader_statically
 		(
 			compute_shader,
@@ -936,6 +940,7 @@ namespace game_logic
 			util_shader_DEFINE("LOCAL_SIZE", STRINGIFY(PERSIST_FLUID_CONTACT_LOCAL_SIZE(environment))),
 			util_shader_DEFINE("INVERSE_MASS", STRINGIFY(FLUID_INVERSE_MASS(environment))),
 			util_shader_DEFINE("STRENGTH_RADIUS", STRINGIFY(FLUID_STRENGTH_RADIUS(environment))),
+			fluid_physical_radius_definition,
 			util_shader_DEFINE("MAX_STRENGTH", STRINGIFY(FLUID_MAX_STRENGTH(environment))),
 			util_shader_DEFINE("TARGET_RADIUS", STRINGIFY(FLUID_TARGET_RADIUS(environment))),
 			util_shader_DEFINE("TARGET_VELOCITY_SCALE", STRINGIFY(FLUID_TARGET_VELOCITY_SCALE(environment))),
@@ -993,6 +998,7 @@ namespace game_logic
 			util_shader_DEFINE("STRENGTH_RADIUS", STRINGIFY(FLUID_STRENGTH_RADIUS(environment))),
 			util_shader_DEFINE("MAX_STRENGTH", STRINGIFY(FLUID_MAX_STRENGTH(environment))),
 			util_shader_DEFINE("TARGET_RADIUS", STRINGIFY(FLUID_TARGET_RADIUS(environment))),
+			fluid_physical_radius_definition,
 			util_shader_DEFINE("TARGET_VELOCITY_SCALE", STRINGIFY(FLUID_TARGET_VELOCITY_SCALE(environment))),
 			util_shader_DEFINE("METER_INVERSE", STRINGIFY(game_logic__util__spatial_METER_INVERSE(environment))),
 			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))),
@@ -1057,6 +1063,10 @@ namespace game_logic
 		environment.state.update_distance_constraints_shader = ::util::shader::create_program(compute_shader);
 		std::cout << "Update distance constraints shader compiled" << std::endl;
 
+		std::string force_distance_definition
+		{
+			"#define FORCE_DISTANCE " + std::to_string(game_logic_FLUID_PARTICLE_PHYSICAL_RADIUS(environment)) + '\n'
+		};
 		::util::shader::set_shader_statically
 		(
 			compute_shader,
@@ -1072,6 +1082,7 @@ namespace game_logic
 			util_shader_DEFINE("STRENGTH_RADIUS", STRINGIFY(FLUID_STRENGTH_RADIUS(environment))),
 			util_shader_DEFINE("MAX_STRENGTH", STRINGIFY(FLUID_MAX_STRENGTH(environment))),
 			util_shader_DEFINE("TARGET_RADIUS", STRINGIFY(FLUID_TARGET_RADIUS(environment))),
+			force_distance_definition,
 			util_shader_DEFINE("METER_INVERSE", STRINGIFY(game_logic__util__spatial_METER_INVERSE(environment))),
 			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))),
 			::util::shader::file_to_string("util/warm_start_fluid_contacts.comp")
@@ -1388,7 +1399,7 @@ namespace game_logic
 		environment.state.current_triangle_contact_count = 0u;
 		environment.state.current_persistent_contact_count = 0u;
 		environment.state.current_distance_constraint_count = 0u;
-		environment.state.current_fluid_particle_count = 25u * INTEGRATE_FLUID_VELOCITY_LOCAL_SIZE(environment);
+		environment.state.current_fluid_particle_count = 20u * INTEGRATE_FLUID_VELOCITY_LOCAL_SIZE(environment);
 		environment.state.current_fluid_contact_count = 0u;
 		environment.state.current_fluid_persistent_contact_count = 0u;
 
@@ -2949,22 +2960,42 @@ namespace game_logic
 
 		{ // Fluid contact buffer
 			{
-				GLuint const contacts_particles_index
+				GLuint const contacts_inactive_index
 				{
-					glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Contacts.contacts[0].particles")
+					glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Contacts.contacts[0].inactive")
 				};
 				GLenum const prop_labels[]{ GL_OFFSET, GL_TOP_LEVEL_ARRAY_STRIDE };
 				GLint props[std::size(prop_labels)];
 				glGetProgramResourceiv
 				(
-					environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, contacts_particles_index,
+					environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, contacts_inactive_index,
 					std::size(prop_labels), prop_labels, 2u, nullptr, props
 				);
 				// TODO: Consider putting offset and stride contigously in game state
-				environment.state.fluid_contact_buffer_contacts_particles_offset = props[0u];
+				environment.state.fluid_contact_buffer_contacts_inactive_offset = props[0u];
 				environment.state.fluid_contact_buffer_contacts_stride = props[1u];
 
 				GLenum const offset_label{ GL_OFFSET };
+
+				GLuint const impulse_index
+				{
+					glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Contacts.contacts[0].impulse")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, impulse_index,
+					1u, &offset_label, 1u, nullptr, &environment.state.fluid_contact_buffer_contacts_impulse_offset
+				);
+
+				GLuint const contacts_particles_index
+				{
+					glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Contacts.contacts[0].particles")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, contacts_particles_index,
+					1u, &offset_label, 1u, nullptr, &environment.state.fluid_contact_buffer_contacts_particles_offset
+				);
 
 				GLuint const direction_index
 				{
@@ -2974,16 +3005,6 @@ namespace game_logic
 				(
 					environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, direction_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.fluid_contact_buffer_contacts_direction_offset
-				);
-
-				GLuint const max_impulse_index
-				{
-					glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Contacts.contacts[0].max_impulse")
-				};
-				glGetProgramResourceiv
-				(
-					environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, max_impulse_index,
-					1u, &offset_label, 1u, nullptr, &environment.state.fluid_contact_buffer_contacts_max_impulse_offset
 				);
 
 				GLuint const target_velocity_index
@@ -3006,28 +3027,29 @@ namespace game_logic
 					1u, &offset_label, 1u, nullptr, &environment.state.fluid_contact_buffer_contacts_mass_offset
 				);
 
-				GLuint const impulse_index
+				GLuint const impulse_range_index
 				{
-					glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Contacts.contacts[0].impulse")
+					glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Contacts.contacts[0].impulse_range")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, impulse_index,
-					1u, &offset_label, 1u, nullptr, &environment.state.fluid_contact_buffer_contacts_impulse_offset
-				);
+					environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, impulse_range_index,
+					1u, &offset_label, 1u, nullptr, &environment.state.fluid_contact_buffer_contacts_impulse_range_offset
+				);			
 			}
 
-#if USE_DYNAMIC_SIZES == true
 			GLint const offsets[]
 			{
+			   environment.state.fluid_contact_buffer_contacts_inactive_offset,
+			   environment.state.fluid_contact_buffer_contacts_impulse_offset,
 			   environment.state.fluid_contact_buffer_contacts_particles_offset,
 			   environment.state.fluid_contact_buffer_contacts_direction_offset,
-			   environment.state.fluid_contact_buffer_contacts_max_impulse_offset,
 			   environment.state.fluid_contact_buffer_contacts_target_velocity_offset,
 			   environment.state.fluid_contact_buffer_contacts_mass_offset,
-			   environment.state.fluid_contact_buffer_contacts_impulse_offset
+			   environment.state.fluid_contact_buffer_contacts_impulse_range_offset
 			};
 			environment.state.fluid_contact_buffer_contacts_offset = *std::min_element(std::begin(offsets), std::end(offsets));
+#if USE_DYNAMIC_SIZES == true
 			environment.state.fluid_contact_buffer_size = environment.state.fluid_contact_buffer_contacts_offset + MAX_FLUID_CONTACT_COUNT(environment) * environment.state.fluid_contact_buffer_contacts_stride;
 #else
 			GLuint const block_index
@@ -3318,12 +3340,13 @@ namespace game_logic
 		std::cout << "Fluid contact buffer (" << environment.state.fluid_contact_buffer << "):" << std::endl;
 		std::cout << "size: " << environment.state.fluid_contact_buffer_size << std::endl;
 		std::cout << "contacts stride: " << environment.state.fluid_contact_buffer_contacts_stride << std::endl;
+		std::cout << "contacts intactive offset: " << environment.state.fluid_contact_buffer_contacts_inactive_offset << std::endl;
+		std::cout << "contacts impulse offset: " << environment.state.fluid_contact_buffer_contacts_impulse_offset << std::endl;
 		std::cout << "contacts particles offset: " << environment.state.fluid_contact_buffer_contacts_particles_offset << std::endl;
 		std::cout << "contacts direction offset: " << environment.state.fluid_contact_buffer_contacts_direction_offset << std::endl;
-		std::cout << "contacts max impulse offset: " << environment.state.fluid_contact_buffer_contacts_max_impulse_offset << std::endl;
 		std::cout << "contacts target velocity offset: " << environment.state.fluid_contact_buffer_contacts_target_velocity_offset << std::endl;
 		std::cout << "contacts mass offset: " << environment.state.fluid_contact_buffer_contacts_mass_offset << std::endl;
-		std::cout << "contacts impulse offset: " << environment.state.fluid_contact_buffer_contacts_impulse_offset << std::endl;
+		std::cout << "contacts impulse range offset: " << environment.state.fluid_contact_buffer_contacts_impulse_range_offset << std::endl;
 		std::cout << std::endl;
 
 		std::cout << "Fluid contact count buffer (" << environment.state.fluid_contact_count_buffer << "):" << std::endl;

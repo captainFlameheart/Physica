@@ -6,12 +6,13 @@ layout(shared, binding = FLUID_CONTACT_COUNT_BINDING) uniform Fluid_Contact_Coun
 
 struct Fluid_Contact
 {
-	float max_impulse;
-	float target_velocity;
+	bool inactive;
+	float impulse;
 	uvec2 particles;
 	vec2 direction;
+	float target_velocity;
 	float mass;
-	float impulse;
+	vec2 impulse_range;
 };
 
 layout(shared, binding = FLUID_CONTACT_BINDING) restrict
@@ -35,21 +36,17 @@ buffer Fluid_Velocity
 layout(local_size_x = LOCAL_SIZE) in;
 void main()
 {
-	if (gl_GlobalInvocationID.x >= fluid_contact_count.count)
-	{
-		return;
-	}
-	float max_impulse = fluid_contacts.contacts[gl_GlobalInvocationID.x].max_impulse;
-	if (max_impulse == 0.0)
+	if (gl_GlobalInvocationID.x >= fluid_contact_count.count || fluid_contacts.contacts[gl_GlobalInvocationID.x].inactive)
 	{
 		return;
 	}
 
-	float target_velocity = fluid_contacts.contacts[gl_GlobalInvocationID.x].target_velocity;
+	float impulse = fluid_contacts.contacts[gl_GlobalInvocationID.x].impulse;
 	uvec2 particles = fluid_contacts.contacts[gl_GlobalInvocationID.x].particles;
 	vec2 direction = fluid_contacts.contacts[gl_GlobalInvocationID.x].direction;
+	float target_velocity = fluid_contacts.contacts[gl_GlobalInvocationID.x].target_velocity;
 	float mass = fluid_contacts.contacts[gl_GlobalInvocationID.x].mass;
-	float impulse = fluid_contacts.contacts[gl_GlobalInvocationID.x].impulse;
+	vec2 impulse_range = fluid_contacts.contacts[gl_GlobalInvocationID.x].impulse_range;
 	
 	// TODO: Fetch masses from buffer
 	float inverse_mass_0 = INVERSE_MASS;
@@ -60,8 +57,7 @@ void main()
 
 	float velocity = dot(direction, vec2(velocity_0 - velocity_1));
 	float old_impulse = impulse;
-	//impulse = clamp(impulse + IMPULSE_SCALE * mass * (target_velocity + velocity), -max_impulse, max_impulse);
-	impulse = min(0.0, impulse + IMPULSE_SCALE * mass * (target_velocity + velocity));
+	impulse = clamp(impulse + IMPULSE_SCALE * mass * (target_velocity + velocity), impulse_range.x, impulse_range.y);
 	float delta_impulse = impulse - old_impulse;
 	vec2 delta_impulse_vector = delta_impulse * direction;
 

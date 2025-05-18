@@ -1,11 +1,12 @@
 struct Fluid_Contact
 {
-	float max_impulse;
-	float target_velocity;
+	bool inactive;
+	float impulse;
 	uvec2 particles;
 	vec2 direction;
+	float target_velocity;
 	float mass;
-	float impulse;
+	vec2 impulse_range;
 };
 
 layout(shared, binding = FLUID_CONTACT_BINDING) restrict
