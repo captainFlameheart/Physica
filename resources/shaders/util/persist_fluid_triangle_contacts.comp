@@ -124,7 +124,7 @@ void main()
 		return;
 	}
 
-	vec2 offset = vec2(-particle_offset.y, particle_offset.x);
+	vec2 offset = METER_INVERSE * vec2(-particle_offset.y, particle_offset.x);
 	vec2 direction = normals[reference_edge];
 
 	// TODO: Fetch from buffer
@@ -141,7 +141,7 @@ void main()
 	);
 	fluid_triangle_contacts.contacts[gl_GlobalInvocationID.x].mass = mass;
 
-	float target_velocity = 0.002 * (min_penetration - (0.05 * (METER)));
+	float target_velocity = 0.0;//0.002 * (min_penetration - (0.05 * (METER)));
 	if (old_mass == 0.0)
 	{
 		// TODO: Bounce

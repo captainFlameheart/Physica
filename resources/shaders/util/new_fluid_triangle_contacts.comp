@@ -129,11 +129,11 @@ void main()
 
 	if (min_penetration < 0.0)
 	{
-		fluid_triangle_contacts.contacts[gl_GlobalInvocationID.x].mass = 0.0;
+		fluid_triangle_contacts.contacts[index].mass = 0.0;
 		return;
 	}
 
-	vec2 offset = vec2(-particle_offset.y, particle_offset.x);
+	vec2 offset = METER_INVERSE * vec2(-particle_offset.y, particle_offset.x);
 	vec2 direction = normals[reference_edge];
 
 	// TODO: Fetch from buffer
@@ -150,7 +150,7 @@ void main()
 	);
 	fluid_triangle_contacts.contacts[index].mass = mass;
 
-	float target_velocity = 0.002 * (min_penetration - (0.05 * (METER)));
+	float target_velocity = 0.0;//0.002 * (min_penetration - (0.05 * (METER)));
 	// TODO: Bounce
 	// IMPORTANT TODO: COMPUTE (SCALED) INITIAL IMPULSE BASED ON VELOCITY FOR FASTER CONVERGENCE
 	fluid_triangle_contacts.contacts[index].impulse = 0.0;

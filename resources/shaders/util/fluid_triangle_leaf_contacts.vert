@@ -12,7 +12,7 @@ struct Fluid_Triangle_Contact
 	vec2 impulse_range;
 };
 
-layout(shared, binding = FLUID_TRIANGLE_CONTACT_BINDING) restrict
+layout(shared, binding = FLUID_TRIANGLE_CONTACT_BINDING) restrict readonly
 buffer Fluid_Triangle_Contacts
 {
 	Fluid_Triangle_Contact contacts[MAX_FLUID_TRIANGLE_CONTACT_COUNT];

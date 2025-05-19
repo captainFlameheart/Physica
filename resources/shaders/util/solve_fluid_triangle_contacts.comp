@@ -103,7 +103,7 @@ void main()
 	);
 
 	float old_impulse = impulse;
-	impulse = clamp(impulse + IMPULSE_SCALE * mass * velocity, impulse_range.x, impulse_range.y);
+	impulse = clamp(impulse + IMPULSE_SCALE * mass * (velocity + target_velocity), impulse_range.x, impulse_range.y);
 	float delta_impulse = impulse - old_impulse;
 
 	vec2 delta_impulse_vector = delta_impulse * direction;
