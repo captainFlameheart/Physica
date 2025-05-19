@@ -80,6 +80,22 @@
 #define game_logic_FLUID_PARTICLE_DRAW_RADIUS(environment) \
 	game_logic__util__spatial_FLOAT_FROM_METERS(environment, 1.0)
 
+#define PERSIST_FLUID_TRIANGLE_CONTACT_LOCAL_SIZE(environment) \
+	game_logic__util__rigid_body_DEFAULT_COMPUTE_SHADER_LOCAL_SIZE(environment)
+
+#define NEW_FLUID_TRIANGLE_CONTACT_LOCAL_SIZE(environment) \
+	game_logic__util__rigid_body_DEFAULT_COMPUTE_SHADER_LOCAL_SIZE(environment)
+
+#define WARM_START_FLUID_TRIANGLE_CONTACTS_LOCAL_SIZE(environment) \
+	game_logic__util__rigid_body_DEFAULT_COMPUTE_SHADER_LOCAL_SIZE(environment)
+
+#define SOLVE_FLUID_TRIANGLE_CONTACTS_LOCAL_SIZE(environment) \
+	game_logic__util__rigid_body_DEFAULT_COMPUTE_SHADER_LOCAL_SIZE(environment)
+
+#define SOLVE_FLUID_TRIANGLE_CONTACTS_IMPULSE_SCALE(environment) 0.2f
+
+#define FLUID_TRIANGLE_RADIUS(environment) 0.2f * game_logic__util__spatial_METER(environment)
+
 #define game_logic_MAX_RIGID_BODY_COUNT(environment) \
 	100u * game_logic__util__rigid_body_VELOCITY_INTEGRATION_LOCAL_SIZE(environment)
 
@@ -265,6 +281,7 @@ namespace game_logic
 		char const* max_distance_constraint_count_definition;
 		char const* max_fluid_particle_count_definition;
 		char const* max_fluid_contact_count_definition;
+		char const* max_fluid_triangle_contact_count_definition;
 #if USE_DYNAMIC_SIZES == true
 		max_rigid_body_count_definition = util_shader_DEFINE("MAX_RIGID_BODY_COUNT", "");
 		max_triangle_count_definition = util_shader_DEFINE("MAX_TRIANGLE_COUNT", "");
@@ -273,6 +290,7 @@ namespace game_logic
 		max_distance_constraint_count_definition = util_shader_DEFINE("MAX_DISTANCE_CONSTRAINT_COUNT", "");
 		max_fluid_particle_count_definition = util_shader_DEFINE("MAX_FLUID_PARTICLE_COUNT", "");
 		max_fluid_contact_count_definition = util_shader_DEFINE("MAX_FLUID_CONTACT_COUNT", "");
+		max_fluid_triangle_contact_count_definition = util_shader_DEFINE("MAX_FLUID_TRIANGLE_CONTACT_COUNT", "");
 #else
 		max_rigid_body_count_definition = util_shader_DEFINE("MAX_RIGID_BODY_COUNT", STRINGIFY(game_logic_MAX_RIGID_BODY_COUNT(environment)));
 		max_triangle_count_definition = util_shader_DEFINE("MAX_TRIANGLE_COUNT", STRINGIFY(game_logic_MAX_TRIANGLE_COUNT(environment)));
@@ -281,6 +299,7 @@ namespace game_logic
 		max_distance_constraint_count_definition = util_shader_DEFINE("MAX_DISTANCE_CONSTRAINT_COUNT", STRINGIFY(game_logic_MAX_DISTANCE_CONSTRAINT_COUNT(environment)));
 		max_fluid_particle_count_definition = util_shader_DEFINE("MAX_FLUID_PARTICLE_COUNT", STRINGIFY(game_logic_MAX_FLUID_PARTICLE_COUNT(environment)));
 		max_fluid_contact_count_definition = util_shader_DEFINE("MAX_FLUID_CONTACT_COUNT", STRINGIFY(MAX_FLUID_CONTACT_COUNT(environment)));
+		max_fluid_triangle_contact_count_definition = util_shader_DEFINE("MAX_FLUID_TRIANGLE_CONTACT_COUNT", STRINGIFY(MAX_FLUID_TRIANGLE_CONTACT_COUNT(environment)));
 #endif
 
 		environment.state.tick = 0u;
@@ -934,8 +953,6 @@ namespace game_logic
 
 		std::string fluid_physical_radius_definition{ "#define RADIUS " + std::to_string(game_logic_FLUID_PARTICLE_PHYSICAL_RADIUS(environment)) + '\n'};
 
-		std::cout << fluid_physical_radius_definition << std::endl;
-
 		::util::shader::set_shader_statically
 		(
 			compute_shader,
@@ -959,6 +976,36 @@ namespace game_logic
 		);
 		environment.state.persist_fluid_contacts_shader = ::util::shader::create_program(compute_shader);
 		std::cout << "Persist fluid contacts shader compiled" << std::endl;
+
+		::util::shader::set_shader_statically
+		(
+			compute_shader,
+			util_shader_VERSION,
+			util_shader_DEFINE("FLUID_TRIANGLE_CONTACT_COUNT_BINDING", STRINGIFY(game_logic__util_FLUID_TRIANGLE_CONTACT_COUNT_BINDING)),
+			util_shader_DEFINE("FLUID_TRIANGLE_CONTACT_BINDING", STRINGIFY(game_logic__util_FLUID_TRIANGLE_CONTACT_BINDING)),
+			max_fluid_triangle_contact_count_definition,
+			max_fluid_particle_count_definition,
+			util_shader_DEFINE("POSITION_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_POSITION_BINDING)),
+			max_rigid_body_count_definition, 
+			util_shader_DEFINE("TRIANGLE_BINDING", STRINGIFY(game_logic__util_TRIANGLE_BINDING)),
+			max_triangle_count_definition, 
+			util_shader_DEFINE("VERTEX_BINDING", STRINGIFY(game_logic__util_VERTEX_BINDING)),
+			max_vertex_count_definition, 
+			util_shader_DEFINE("FLUID_POSITION_BINDING", STRINGIFY(game_logic__util_FLUID_POSITION_BINDING)),
+			util_shader_DEFINE("FLUID_VELOCITY_BINDING", STRINGIFY(game_logic__util_FLUID_VELOCITY_BINDING)),
+			util_shader_DEFINE("LOCAL_SIZE", STRINGIFY(PERSIST_FLUID_TRIANGLE_CONTACT_LOCAL_SIZE(environment))),
+			util_shader_DEFINE("RADIAN_INVERSE", STRINGIFY(game_logic__util__spatial_RADIAN_INVERSE(environment))),
+			util_shader_DEFINE("INVERSE_MASS", STRINGIFY(FLUID_INVERSE_MASS(environment))),
+			util_shader_DEFINE("RADIUS", STRINGIFY(FLUID_TRIANGLE_RADIUS(environment))),
+			util_shader_DEFINE("PARTICLE_INVERSE_MASS", STRINGIFY(FLUID_INVERSE_MASS(environment))),
+			util_shader_DEFINE("BODY_INVERSE_MASS", STRINGIFY(INVERSE_MASS)),
+			util_shader_DEFINE("BODY_INVERSE_INERTIA", STRINGIFY(INVERSE_INERTIA)),
+			util_shader_DEFINE("METER_INVERSE", STRINGIFY(game_logic__util__spatial_METER_INVERSE(environment))),
+			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))),
+			::util::shader::file_to_string("util/persist_fluid_triangle_contacts.comp")
+		);
+		environment.state.persist_fluid_triangle_contacts_shader = ::util::shader::create_program(compute_shader);
+		std::cout << "Persist fluid triangle contacts shader compiled" << std::endl;
 
 		::util::shader::set_shader_statically
 		(

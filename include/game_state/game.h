@@ -189,20 +189,24 @@ namespace game_state
 		GLuint current_triangle_contact_count;
 
 		GLuint persist_fluid_contacts_shader;
+		GLuint persist_fluid_triangle_contacts_shader;
 		GLuint old_triangle_contact_update_shader;
 
 		GLuint new_fluid_contacts_shader;
+		GLuint new_fluid_triangle_contacts_shader;
 		GLint new_fluid_contacts_shader_persistent_count_uniform_location;
 		GLuint new_triangle_contact_shader;
 
 		GLuint update_distance_constraints_shader;
 
 		GLuint warm_start_fluid_contacts_shader;
+		GLuint warm_start_fluid_triangle_contacts_shader;
 		GLuint warm_start_contact_impulses_shader;
 		GLuint warm_start_distance_constraints_shader;
 		GLuint update_and_warm_start_cursor_constraint_shader;
 
 		GLuint solve_fluid_contacts_shader;
+		GLuint solve_fluid_triangle_contacts_shader;
 		GLuint solve_contact_velocities_shader;
 		GLuint solve_distance_constraints_shader;
 		GLuint solve_cursor_constraint_shader;

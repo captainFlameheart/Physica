@@ -46,6 +46,7 @@
 #define game_logic__util_CURSOR_POSITION_BINDING 3
 #define game_logic__util_CURSOR_CONSTRAINED_POINT_BINDING 4
 #define game_logic__util_FLUID_CONTACT_COUNT_BINDING 5
+#define game_logic__util_FLUID_TRIANGLE_CONTACT_COUNT_BINDING 6
 
 // TODO: Probably flip position and velocity binding and position snapshot and velocity snapshot binding
 #define game_logic__util_FLUID_POSITION_BINDING 0
@@ -68,6 +69,7 @@
 #define game_logic__util_CURSOR_CONSTRAINT_BINDING 16
 #define game_logic__util_DISTANCE_CONSTRAINT_BINDING 17
 
+#define game_logic__util_FLUID_TRIANGLE_CONTACT_BINDING 18
 
 #define game_CAMERA_DEFAULT_DISTANCE_PER_TICK(environment) \
 	game_METERS_PER_SECOND_TO_FLOAT_LENGTH_PER_TICK(environment, 5.0f)
