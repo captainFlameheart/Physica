@@ -644,6 +644,44 @@ namespace game_logic
 		(
 			vertex_shader,
 			util_shader_VERSION,
+			util_shader_DEFINE("FLUID_TRIANGLE_CONTACT_COUNT_BINDING", STRINGIFY(game_logic__util_FLUID_TRIANGLE_CONTACT_COUNT_BINDING)),
+			util_shader_DEFINE("FLUID_TRIANGLE_CONTACT_BINDING", STRINGIFY(game_logic__util_FLUID_TRIANGLE_CONTACT_BINDING)),
+			max_fluid_triangle_contact_count_definition,
+			max_fluid_particle_count_definition,
+			util_shader_DEFINE("POSITION_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_POSITION_BINDING)),
+			max_rigid_body_count_definition,
+			util_shader_DEFINE("TRIANGLE_BINDING", STRINGIFY(game_logic__util_TRIANGLE_BINDING)),
+			max_triangle_count_definition,
+			util_shader_DEFINE("VERTEX_BINDING", STRINGIFY(game_logic__util_VERTEX_BINDING)),
+			max_vertex_count_definition,
+			util_shader_DEFINE("FLUID_POSITION_BINDING", STRINGIFY(game_logic__util_FLUID_POSITION_BINDING)),
+			util_shader_DEFINE("FLUID_VELOCITY_BINDING", STRINGIFY(game_logic__util_FLUID_VELOCITY_BINDING)),
+			util_shader_DEFINE("RADIAN_INVERSE", STRINGIFY(game_logic__util__spatial_RADIAN_INVERSE(environment))),
+			util_shader_DEFINE("INVERSE_MASS", STRINGIFY(FLUID_INVERSE_MASS(environment))),
+			util_shader_DEFINE("RADIUS", STRINGIFY(FLUID_TRIANGLE_RADIUS(environment))),
+			util_shader_DEFINE("PARTICLE_INVERSE_MASS", STRINGIFY(FLUID_INVERSE_MASS(environment))),
+			util_shader_DEFINE("BODY_INVERSE_MASS", STRINGIFY(INVERSE_MASS)),
+			util_shader_DEFINE("BODY_INVERSE_INERTIA", STRINGIFY(INVERSE_INERTIA)),
+			util_shader_DEFINE("METER_INVERSE", STRINGIFY(game_logic__util__spatial_METER_INVERSE(environment))),
+			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))),
+			util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
+			game_PROJECTION_SCALE_DEFINITION(environment),
+			::util::shader::file_to_string("util/fluid_triangle_leaf_contacts.vert")
+		);
+		::util::shader::set_shader_statically
+		(
+			fragment_shader,
+			util_shader_VERSION,
+			util_shader_DEFINE("COLOR", "vec4(0.0, 1.0, 0.0, 1.0)"),
+			::util::shader::file_to_string("util/static_color.frag") // TODO: Should only be done once
+		);
+		environment.state.fluid_triangle_leaf_contacts_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+		std::cout << "Fluid triangle leaf contacts draw shader compiled" << std::endl;
+
+		::util::shader::set_shader_statically
+		(
+			vertex_shader,
+			util_shader_VERSION,
 			util_shader_DEFINE("CONTACT_BINDING", STRINGIFY(game_logic__util_CONTACT_BINDING)),
 			max_contact_count_definition,
 			max_triangle_count_definition,
@@ -6119,6 +6157,9 @@ namespace game_logic
 		{
 			glUseProgram(environment.state.fluid_leaf_contacts_draw_shader);
 			glDrawArrays(GL_LINES, 0, environment.state.current_fluid_contact_count * 2u);
+
+			glUseProgram(environment.state.fluid_triangle_leaf_contacts_draw_shader);
+			glDrawArrays(GL_LINES, 0, environment.state.current_fluid_triangle_contact_count * 2u);
 
 			glUseProgram(environment.state.leaf_triangle_contact_draw_shader);
 			glDrawArrays(GL_LINES, 0, environment.state.current_triangle_contact_count * 2u);

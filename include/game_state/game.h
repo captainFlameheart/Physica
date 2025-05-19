@@ -312,6 +312,7 @@ namespace game_state
 
 		bool leaf_contacts_visible;
 		GLuint fluid_leaf_contacts_draw_shader;
+		GLuint fluid_triangle_leaf_contacts_draw_shader;
 		GLuint leaf_triangle_contact_draw_shader;
 
 		bool contact_point_positions_visible;
