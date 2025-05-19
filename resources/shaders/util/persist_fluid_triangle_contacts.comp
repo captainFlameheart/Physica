@@ -126,6 +126,7 @@ void main()
 
 	vec2 offset = METER_INVERSE * vec2(-particle_offset.y, particle_offset.x);
 	vec2 direction = normals[reference_edge];
+	direction = direction.x * right + direction.y * up;
 
 	// TODO: Fetch from buffer
 	float particle_inverse_mass = PARTICLE_INVERSE_MASS;

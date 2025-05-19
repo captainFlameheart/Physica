@@ -322,6 +322,7 @@ namespace game_state
 		GLuint contact_point_offsets_draw_shader;
 		
 		bool contact_basis_visible;
+		GLuint fluid_triangle_contact_basis_draw_shader;
 		GLuint contact_basis_draw_shader;
 		
 		bool contact_impulses_visible;
