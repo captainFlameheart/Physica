@@ -167,10 +167,18 @@ namespace game_logic
 		glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &max_uniform_buffer_bindings);
 		std::cout << "Max uniform buffer bindings: " << max_uniform_buffer_bindings << '\n';
 
+		GLint max_uniform_block_size;
+		glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &max_uniform_block_size);
+		std::cout << "Max uniform block size: " << max_uniform_block_size << '\n';
+
 		GLint max_shader_storage_buffer_bindings;
 		glGetIntegerv(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS, &max_shader_storage_buffer_bindings);
 		std::cout << "Max shader storage buffer bindings: " << max_shader_storage_buffer_bindings << '\n';
-		
+
+		GLint max_shader_storage_block_size;
+		glGetIntegerv(GL_MAX_SHADER_STORAGE_BLOCK_SIZE, &max_shader_storage_block_size);
+		std::cout << "Max shader storage block size: " << max_shader_storage_block_size << '\n';
+
 		std::cout << std::endl;
 	}
 
@@ -1405,7 +1413,7 @@ namespace game_logic
 		environment.state.current_triangle_contact_count = 0u;
 		environment.state.current_persistent_contact_count = 0u;
 		environment.state.current_distance_constraint_count = 0u;
-		environment.state.current_fluid_particle_count = 15u * INTEGRATE_FLUID_VELOCITY_LOCAL_SIZE(environment);
+		environment.state.current_fluid_particle_count = /*15u*/15u * INTEGRATE_FLUID_VELOCITY_LOCAL_SIZE(environment);
 		environment.state.current_fluid_contact_count = 0u;
 		environment.state.current_fluid_persistent_contact_count = 0u;
 
@@ -5544,7 +5552,7 @@ namespace game_logic
 		if (environment.state.debug_fluid_particles_visible)
 		{
 			glUseProgram(environment.state.debug_fluid_particles_draw_shader);
-			glPointSize(10.0f);
+			glPointSize(5.0f);
 			glDrawArrays(GL_POINTS, 0, environment.state.current_fluid_particle_count);
 		}
 

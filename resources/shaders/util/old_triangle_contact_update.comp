@@ -139,6 +139,8 @@ void main()
 	);
 
 	// TODO: Make sure that this fits in register memory
+	// IMPORTANT TODO: We can avoid using normalize and instead divide by length AFTER 
+	// finding reference edge
 	vec2 normals[6u] = vec2[6u]
 	(
 		normalize(vec2(vertices[1u].y - vertices[0u].y, vertices[0u].x - vertices[1u].x)),

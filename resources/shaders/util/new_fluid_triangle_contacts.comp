@@ -1,0 +1,177 @@
+const float positive_infinity = uintBitsToFloat(0x7F800000);
+const float negative_infinity = uintBitsToFloat(0xFF800000);
+
+layout(shared, binding = FLUID_TRIANGLE_CONTACT_COUNT_BINDING) uniform Fluid_Triangle_Contact_Count
+{
+	uint count;
+} fluid_triangle_contact_count;
+
+// TODO: Add friction data?
+struct Fluid_Triangle_Contact
+{
+	uint triangle;
+	float mass;
+	float impulse;
+	uint particle;
+	uint body;
+	float target_velocity;
+	vec2 offset;
+	vec2 direction;
+	vec2 impulse_range;
+};
+
+layout(shared, binding = FLUID_TRIANGLE_CONTACT_BINDING) restrict
+buffer Fluid_Triangle_Contacts
+{
+	Fluid_Triangle_Contact contacts[MAX_FLUID_TRIANGLE_CONTACT_COUNT];
+} fluid_triangle_contacts;
+
+layout(shared, binding = POSITION_BINDING) restrict readonly
+buffer Positions
+{
+	ivec4 p[MAX_RIGID_BODY_COUNT];
+} positions;
+
+layout(shared, binding = TRIANGLE_BINDING) restrict readonly
+buffer Triangles
+{
+	uvec4 triangles[MAX_TRIANGLE_COUNT];	// Triangle: (vertex_0, vertex_1, vertex_2, body)
+} triangles;
+
+layout(shared, binding = VERTEX_BINDING) restrict readonly
+buffer Vertices
+{
+	vec2 vertices[MAX_VERTEX_COUNT];
+} vertices;
+
+layout(shared, binding = FLUID_POSITION_BINDING) restrict readonly
+buffer Fluid_Position
+{
+	ivec2 p[MAX_FLUID_PARTICLE_COUNT];
+} fluid_position;
+
+layout(shared, binding = FLUID_VELOCITY_BINDING) restrict readonly
+buffer Fluid_Velocity
+{
+	ivec2 v[MAX_FLUID_PARTICLE_COUNT];
+} fluid_velocity;
+
+uniform uint persistent_count;
+
+layout(local_size_x = LOCAL_SIZE) in;
+void main()
+{
+	uint index = persistent_count + gl_GlobalInvocationID.x;
+	if (index >= fluid_triangle_contact_count.count)
+	{
+		return;
+	}
+
+	uint triangle_index = fluid_triangle_contacts.contacts[index].triangle;
+	uint particle_index = fluid_contacts.contacts[index].particle;
+
+	uvec4 triangle = triangles.triangles[triangle_index];
+
+	vec2 local_vertices[3u] = vec2[3u]
+	(
+		vertices.vertices[triangles.x], 
+		vertices.vertices[triangles.y], 
+		vertices.vertices[triangles.z]
+	);
+
+	fluid_triangle_contacts.contacts[index].body = triangle.w;
+
+	ivec4 body_position = positions.p[triangle.w];
+
+	ivec2 particle_position = fluid_position.p[particle_index];
+
+	vec2 particle_offset = vec2(particle_position - body_position);
+	float angle = body_position.z * RADIAN_INVERSE;
+	vec2 right = vec2(cos(angle), sin(angle));
+	vec2 up = vec2(-right.y, right.x);
+	vec2 local_particle_position = vec2(dot(particle_offset, right), dot(particle_offset, up));
+
+	// TODO: Remove branching
+
+	uint reference_edge = 0u;
+	vec2 normal_0 = local_vertices[0u] - local_vertices[1u];
+	normal_0 = vec2(normal_0.y, -normal_0.x);
+	vec2 particle_to_vertex_0 = local_vertices[0u] - local_particle_position;
+	float max_separation = dot(normal_0, particle_to_vertex_0);
+
+	vec2 normal_1 = local_vertices[1u] - local_vertices[2u];
+	normal_1 = vec2(normal_1.y, -normal_1.x);
+	vec2 particle_to_vertex_1 = local_vertices[1u] - local_particle_position;
+	float separation = dot(normal_1, particle_to_vertex_1);
+	if (separation > max_separation)
+	{
+		reference_edge = 1u;
+		max_separation = separation;
+	}
+
+	vec2 normal_2 = local_vertices[2u] - local_vertices[0u];
+	normal_2 = vec2(normal_2.y, -normal_2.x);
+	vec2 particle_to_vertex_2 = local_vertices[2u] - local_particle_position;
+	float separation = dot(normal_2, particle_to_vertex_2);
+	if (separation > max_separation)
+	{
+		reference_edge = 2u;
+		max_separation = separation;
+	}
+
+	if (max_separation > radius)
+	{
+		fluid_triangle_contacts.contacts[index].mass = 0.0;
+		return;
+	}
+
+	vec2 local_reference_vertex = local_vertices[reference_edge];
+	vec2 reference_edge_vector = local_reference_vertex - local_vertices[(reference_edge + 1u) % 3u];
+	float reference_edge_length_squared = dot(reference_edge_vector, reference_edge_vector);
+	vec2 particle_to_reference_vertex = local_reference_vertex - local_particle_position;
+	float step_fraction = clamp
+	(
+		dot(reference_edge_vector, particle_to_reference_vertex) / reference_edge_length_squared, 
+		0.0, 1.0
+	);
+	vec2 closest_local_point = local_reference_vertex - reference_edge_vector * step_fraction;
+	vec2 offset = closest_local_point.x * right + closest_local_point.y * up;
+
+	vec2 direction = offset - particle_offset;
+	float penetration = direction.length();
+	if (penetration < radius)
+	{
+		fluid_triangle_contacts.contacts[index].mass = 0.0;
+		return;
+	}
+	offset = vec2(-offset.y, offset.x);
+	direction /= penetration;
+	penetration -= radius;
+
+	// TODO: Fetch from buffer
+	float particle_inverse_mass = PARTICLE_INVERSE_MASS;
+	float body_inverse_mass = BODY_INVERSE_MASS;
+	float body_inverse_inertia = BODY_INVERSE_INERTIA;
+
+	float old_mass = fluid_triangle_contacts.contacts[index].mass;
+
+	float temp = dot(offset, direction);
+	float mass = 1.0 / (
+		particle_inverse_mass + 
+		body_inverse_mass + body_inverse_inertia * temp * temp
+	);
+	fluid_contacts.contacts[index].mass = mass;
+
+	float target_velocity = 0.002 * (penetration - (0.05 * (METER)));
+	if (old_mass = 0.0)
+	{
+		// TODO: Bounce
+		// IMPORTANT TODO: COMPUTE (SCALED) INITIAL IMPULSE BASED ON VELOCITY FOR FASTER CONVERGENCE
+		fluid_contacts.contacts[index].impulse = 0.0;
+	}
+	// IMPORTANT TODO: Always change impulse slightly based on velocities for faster convergence
+	fluid_triangle_contacts.contacts[index].target_velocity = target_velocity;
+	fluid_triangle_contacts.contacts[index].offset = offset;
+	fluid_triangle_contacts.contacts[index].direction = direction;
+	fluid_contacts.contacts[index].impulse_range = vec2(0.0, positive_infinity);
+}

@@ -1,0 +1,98 @@
+layout(shared, binding = FLUID_TRIANGLE_CONTACT_COUNT_BINDING) uniform Fluid_Triangle_Contact_Count
+{
+	uint count;
+} fluid_triangle_contact_count;
+
+// TODO: Add friction data?
+struct Fluid_Triangle_Contact
+{
+	uint triangle;
+	float mass;
+	float impulse;
+	uint particle;
+	uint body;
+	float target_velocity;
+	vec2 offset;
+	vec2 direction;
+	vec2 impulse_range;
+};
+
+layout(shared, binding = FLUID_TRIANGLE_CONTACT_BINDING) restrict
+buffer Fluid_Triangle_Contacts
+{
+	Fluid_Triangle_Contact contacts[MAX_FLUID_TRIANGLE_CONTACT_COUNT];
+} fluid_triangle_contacts;
+
+layout(shared, binding = POSITION_BINDING) restrict readonly
+buffer Positions
+{
+	ivec4 p[MAX_RIGID_BODY_COUNT];
+} positions;
+
+layout(shared, binding = TRIANGLE_BINDING) restrict readonly
+buffer Triangles
+{
+	uvec4 triangles[MAX_TRIANGLE_COUNT];	// Triangle: (vertex_0, vertex_1, vertex_2, body)
+} triangles;
+
+layout(shared, binding = VERTEX_BINDING) restrict readonly
+buffer Vertices
+{
+	vec2 vertices[MAX_VERTEX_COUNT];
+} vertices;
+
+layout(shared, binding = FLUID_VELOCITY_BINDING) restrict
+buffer Fluid_Velocity
+{
+	ivec2 v[MAX_FLUID_PARTICLE_COUNT];
+} fluid_velocity;
+
+layout(shared, binding = VELOCITY_BINDING) restrict
+buffer Velocities
+{
+	ivec4 v[MAX_RIGID_BODY_COUNT];
+} velocities;
+
+layout(local_size_x = LOCAL_SIZE) in;
+void main()
+{
+	// TODO: Apply warm start impulses to ALL triangle contacts as well (we should initialize new contact impulses 
+	// to non-zero for faster convergence).
+	if (gl_GlobalInvocationID.x >= fluid_triangle_contact_count.count)
+	{
+		return;
+	}
+
+	float mass = fluid_triangle_contacts.contacts[gl_GlobalInvocationID.x].mass;
+	if (mass = 0.0)
+	{
+		return;
+	}
+
+	float impulse = fluid_triangle_contacts.contacts[gl_GlobalInvocationID.x].impulse;
+	uint particle = fluid_triangle_contacts.contacts[gl_GlobalInvocationID.x].particle;
+	uint body = fluid_triangle_contacts.contacts[gl_GlobalInvocationID.x].body;
+	vec2 offset = fluid_triangle_contacts.contacts[gl_GlobalInvocationID.x].offset;
+	vec2 direction = fluid_triangle_contacts.contacts[gl_GlobalInvocationID.x].direction;
+
+	// TODO: Fetch masses from buffer
+	float particle_inverse_mass = PARTICLE_INVERSE_MASS;
+	float body_inverse_mass = BODY_INVERSE_MASS;
+	float body_inverse_inertia = BODY_INVERSE_INERTIA;
+
+	vec2 impulse_vector = impulse * direction;
+	
+	ivec2 particle_delta_velocity = ivec2(-METER * particle_inverse_mass * impulse_vector);
+	ivec3 body_delta_velocity = ivec3
+	(
+		METER * body_inverse_mass * impulse_vector, 
+		RADIAN * body_inverse_inertia * dot(impulse_vector, offset)
+	);
+	
+	atomicAdd(fluid_velocity.v[particle].x, particle_delta_velocity.x);
+	atomicAdd(fluid_velocity.v[particle].y, particle_delta_velocity.y);
+
+	atomicAdd(velocities.v[body].x, body_delta_velocity.x);
+	atomicAdd(velocities.v[body].y, body_delta_velocity.y);
+	atomicAdd(velocities.v[body].z, body_delta_velocity.z);
+}
