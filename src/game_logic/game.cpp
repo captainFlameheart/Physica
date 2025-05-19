@@ -4397,6 +4397,13 @@ namespace game_logic
 			1u, 1u
 		);
 
+		glUseProgram(environment.state.persist_fluid_triangle_contacts_shader);
+		glDispatchCompute
+		(
+			ceil_div(environment.state.current_fluid_triangle_contact_count, PERSIST_FLUID_TRIANGLE_CONTACT_LOCAL_SIZE(environment)), 
+			1u, 1u
+		);
+
 		glUseProgram(environment.state.old_triangle_contact_update_shader);
 		glDispatchCompute
 		(
@@ -4575,7 +4582,6 @@ namespace game_logic
 
 					void operator()(GLuint const contact_index, GLuint& next_contact_index)
 					{
-						// TODO: Check the type of contact
 						if (contact_index < MAX_FLUID_CONTACT_COUNT(environment))
 						{
 							--environment.state.current_fluid_contact_count;
@@ -4603,6 +4609,14 @@ namespace game_logic
 							--environment.state.current_fluid_triangle_contact_count;
 							if (fluid_triangle_contact_index != environment.state.current_fluid_triangle_contact_count)
 							{
+								glCopyNamedBufferSubData
+								(
+									environment.state.fluid_triangle_contact_buffer, environment.state.fluid_triangle_contact_buffer,
+									environment.state.fluid_triangle_contact_buffer_contacts_offset + environment.state.current_fluid_triangle_contact_count * environment.state.fluid_triangle_contact_buffer_contacts_stride,
+									environment.state.fluid_triangle_contact_buffer_contacts_offset + fluid_triangle_contact_index * environment.state.fluid_triangle_contact_buffer_contacts_stride,
+									environment.state.fluid_triangle_contact_buffer_contacts_stride
+								);
+
 								util::proximity::move_contact
 								(
 									environment.state.proximity_tree,
@@ -4642,6 +4656,14 @@ namespace game_logic
 							--environment.state.current_fluid_triangle_contact_count;
 							if (fluid_triangle_contact_index != environment.state.current_fluid_triangle_contact_count)
 							{
+								glCopyNamedBufferSubData
+								(
+									environment.state.fluid_triangle_contact_buffer, environment.state.fluid_triangle_contact_buffer,
+									environment.state.fluid_triangle_contact_buffer_contacts_offset + environment.state.current_fluid_triangle_contact_count * environment.state.fluid_triangle_contact_buffer_contacts_stride,
+									environment.state.fluid_triangle_contact_buffer_contacts_offset + fluid_triangle_contact_index * environment.state.fluid_triangle_contact_buffer_contacts_stride,
+									environment.state.fluid_triangle_contact_buffer_contacts_stride
+								);
+
 								util::proximity::move_contact
 								(
 									environment.state.proximity_tree, 
@@ -4693,6 +4715,8 @@ namespace game_logic
 			}
 
 			// TODO: Check if this memory barrier is necessary
+			// TODO: This barrier is not necessary if we only use glClearNamedBufferSubData for uploading 
+			// new contacts. Is that the best way though?
 			glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
 			GLsync const fence{ glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0u) };	// Contact copying
 			glFlush();
@@ -4707,6 +4731,8 @@ namespace game_logic
 			);*/
 
 			environment.state.current_fluid_persistent_contact_count = environment.state.current_fluid_contact_count;
+
+			environment.state.current_fluid_triangle_persistent_contact_count = environment.state.current_fluid_triangle_contact_count;
 
 			glClearNamedBufferSubData
 			(
@@ -4800,6 +4826,31 @@ namespace game_logic
 
 							return environment.state.current_fluid_contact_count++;
 						}
+						GLuint contact_key[2u]{
+							leaf_0_index, 
+							leaf_1_index - game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment) // IMPORTANT TODO: DO SUBTRACTION ON GPU
+						};
+						// IMPORTANT TODO: Combine to single clear call
+						glClearNamedBufferSubData
+						(
+							environment.state.fluid_triangle_contact_buffer,
+							GL_R32UI,
+							environment.state.fluid_triangle_contact_buffer_contacts_triangle_offset
+							+ environment.state.current_fluid_triangle_contact_count * environment.state.fluid_triangle_contact_buffer_contacts_stride,
+							sizeof(GLuint),
+							GL_RED_INTEGER, GL_UNSIGNED_INT,
+							&contact_key[1u]
+						);
+						glClearNamedBufferSubData
+						(
+							environment.state.fluid_triangle_contact_buffer,
+							GL_R32UI,
+							environment.state.fluid_triangle_contact_buffer_contacts_particle_offset
+							+ environment.state.current_fluid_triangle_contact_count * environment.state.fluid_triangle_contact_buffer_contacts_stride,
+							sizeof(GLuint),
+							GL_RED_INTEGER, GL_UNSIGNED_INT,
+							&contact_key[0u]
+						);
 						return MAX_FLUID_CONTACT_COUNT(environment) + environment.state.current_fluid_triangle_contact_count++;
 						/*// TODO: Check which type of contact it is
 						// IMPORTANT TODO: Do the base index subtraction in the new contact shaders
@@ -4894,7 +4945,33 @@ namespace game_logic
 					{
 						if (leaf_1_index < game_logic_MAX_FLUID_PARTICLE_COUNT(environment))
 						{
-							return environment.state.current_fluid_triangle_contact_count++;
+							GLuint contact_key[2u]{
+								leaf_1_index,
+								leaf_0_index - game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment) // IMPORTANT TODO: DO SUBTRACTION ON GPU
+							};
+							// IMPORTANT TODO: Combine to single clear call
+							glClearNamedBufferSubData
+							(
+								environment.state.fluid_triangle_contact_buffer,
+								GL_R32UI,
+								environment.state.fluid_triangle_contact_buffer_contacts_triangle_offset
+								+ environment.state.current_fluid_triangle_contact_count * environment.state.fluid_triangle_contact_buffer_contacts_stride,
+								sizeof(GLuint),
+								GL_RED_INTEGER, GL_UNSIGNED_INT,
+								&contact_key[1u]
+							);
+							glClearNamedBufferSubData
+							(
+								environment.state.fluid_triangle_contact_buffer,
+								GL_R32UI,
+								environment.state.fluid_triangle_contact_buffer_contacts_particle_offset
+								+ environment.state.current_fluid_triangle_contact_count * environment.state.fluid_triangle_contact_buffer_contacts_stride,
+								sizeof(GLuint),
+								GL_RED_INTEGER, GL_UNSIGNED_INT,
+								&contact_key[0u]
+							);
+							return MAX_FLUID_CONTACT_COUNT(environment) + environment.state.current_fluid_triangle_contact_count++;
+							//return environment.state.current_fluid_triangle_contact_count++;
 						}
 
 						// IMPORTANT TODO: Do the base index subtraction in the new contact shaders
@@ -4924,6 +5001,22 @@ namespace game_logic
 					on_adding_contacts_for, contact_can_be_added, add_contact
 				);
 			}
+
+			GLuint const added_fluid_triangle_contacts_count{ environment.state.current_fluid_triangle_contact_count - environment.state.current_fluid_triangle_persistent_contact_count };
+			glClearNamedBufferSubData
+			(
+				environment.state.fluid_triangle_contact_count_buffer,
+				GL_R32UI,
+				environment.state.fluid_triangle_contact_count_buffer_count_offset, sizeof(GLuint),
+				GL_RED_INTEGER, GL_UNSIGNED_INT,
+				&environment.state.current_fluid_triangle_contact_count
+			);
+			glUseProgram(environment.state.new_fluid_triangle_contacts_shader);
+			glDispatchCompute
+			(
+				ceil_div(added_fluid_triangle_contacts_count, NEW_FLUID_TRIANGLE_CONTACT_LOCAL_SIZE(environment)), 
+				1u, 1u
+			);
 
 			GLuint const new_contact_count{ environment.state.current_triangle_contact_count - environment.state.current_persistent_contact_count };
 			glFlushMappedNamedBufferRange
