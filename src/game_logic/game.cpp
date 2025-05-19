@@ -1185,6 +1185,38 @@ namespace game_logic
 		(
 			compute_shader,
 			util_shader_VERSION,
+			util_shader_DEFINE("FLUID_TRIANGLE_CONTACT_COUNT_BINDING", STRINGIFY(game_logic__util_FLUID_TRIANGLE_CONTACT_COUNT_BINDING)),
+			util_shader_DEFINE("FLUID_TRIANGLE_CONTACT_BINDING", STRINGIFY(game_logic__util_FLUID_TRIANGLE_CONTACT_BINDING)),
+			max_fluid_triangle_contact_count_definition,
+			max_fluid_particle_count_definition,
+			util_shader_DEFINE("POSITION_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_POSITION_BINDING)),
+			max_rigid_body_count_definition,
+			util_shader_DEFINE("TRIANGLE_BINDING", STRINGIFY(game_logic__util_TRIANGLE_BINDING)),
+			max_triangle_count_definition,
+			util_shader_DEFINE("VERTEX_BINDING", STRINGIFY(game_logic__util_VERTEX_BINDING)),
+			max_vertex_count_definition,
+			util_shader_DEFINE("VELOCITY_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_VELOCITY_BINDING)),
+			util_shader_DEFINE("FLUID_POSITION_BINDING", STRINGIFY(game_logic__util_FLUID_POSITION_BINDING)),
+			util_shader_DEFINE("FLUID_VELOCITY_BINDING", STRINGIFY(game_logic__util_FLUID_VELOCITY_BINDING)),
+			util_shader_DEFINE("LOCAL_SIZE", STRINGIFY(NEW_FLUID_TRIANGLE_CONTACT_LOCAL_SIZE(environment))),
+			util_shader_DEFINE("RADIAN", STRINGIFY(game_logic__util__spatial_RADIAN(environment))),
+			util_shader_DEFINE("RADIAN_INVERSE", STRINGIFY(game_logic__util__spatial_RADIAN_INVERSE(environment))),
+			util_shader_DEFINE("INVERSE_MASS", STRINGIFY(FLUID_INVERSE_MASS(environment))),
+			util_shader_DEFINE("RADIUS", STRINGIFY(FLUID_TRIANGLE_RADIUS(environment))),
+			util_shader_DEFINE("PARTICLE_INVERSE_MASS", STRINGIFY(FLUID_INVERSE_MASS(environment))),
+			util_shader_DEFINE("BODY_INVERSE_MASS", STRINGIFY(INVERSE_MASS)),
+			util_shader_DEFINE("BODY_INVERSE_INERTIA", STRINGIFY(INVERSE_INERTIA)),
+			util_shader_DEFINE("METER_INVERSE", STRINGIFY(game_logic__util__spatial_METER_INVERSE(environment))),
+			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))),
+			::util::shader::file_to_string("util/warm_start_fluid_triangle_contacts.comp")
+		);
+		environment.state.warm_start_fluid_triangle_contacts_shader = ::util::shader::create_program(compute_shader);
+		std::cout << "Warm start fluid triangle contacts shader compiled" << std::endl;
+
+		::util::shader::set_shader_statically
+		(
+			compute_shader,
+			util_shader_VERSION,
 			max_contact_count_definition,
 			max_rigid_body_count_definition,
 			util_shader_DEFINE("CONTACT_SURFACE_BINDING", STRINGIFY(game_logic__util_CONTACT_SURFACE_BINDING)),
