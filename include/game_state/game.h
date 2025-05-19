@@ -168,6 +168,14 @@ namespace game_state
 		GLint fluid_contact_buffer_contacts_mass_offset;
 		GLint fluid_contact_buffer_contacts_impulse_range_offset;
 
+		GLuint fluid_contact_count_buffer;
+		GLint fluid_contact_count_buffer_size;
+		//GLint fluid_contact_count_buffer_persistent_count_offset;
+		GLint fluid_contact_count_buffer_count_offset;
+
+		GLuint current_fluid_persistent_contact_count;
+		GLuint current_fluid_contact_count;
+
 		GLuint fluid_triangle_contact_buffer;
 		GLint fluid_triangle_contact_buffer_size;
 		GLint fluid_triangle_contact_buffer_contacts_offset;
@@ -182,13 +190,12 @@ namespace game_state
 		GLint fluid_triangle_contact_buffer_contacts_direction_offset;
 		GLint fluid_triangle_contact_buffer_contacts_impulse_range_offset;
 
-		GLuint fluid_contact_count_buffer;
-		GLint fluid_contact_count_buffer_size;
-		//GLint fluid_contact_count_buffer_persistent_count_offset;
-		GLint fluid_contact_count_buffer_count_offset;
+		GLuint fluid_triangle_contact_count_buffer;
+		GLint fluid_triangle_contact_count_buffer_size;
+		GLint fluid_triangle_contact_count_buffer_count_offset;
 
-		GLuint current_fluid_persistent_contact_count;
-		GLuint current_fluid_contact_count;
+		GLuint current_fluid_triangle_persistent_contact_count;
+		GLuint current_fluid_triangle_contact_count;
 
 		GLuint fluid_velocity_snapshot_buffer;
 
@@ -197,7 +204,6 @@ namespace game_state
 		GLuint current_distance_constraint_count;
 		GLuint add_distance_constraint_shader;
 
-		GLuint current_fluid_triangle_contact_count;
 		GLuint current_triangle_contact_count;
 
 		GLuint persist_fluid_contacts_shader;

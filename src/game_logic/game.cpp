@@ -1454,7 +1454,8 @@ namespace game_logic
 			environment.state.cursor_constrained_point_buffer, 
 			environment.state.cursor_constraint_buffer, 
 			environment.state.distance_constraint_buffer, 
-			environment.state.fluid_triangle_contact_buffer
+			environment.state.fluid_triangle_contact_buffer, 
+			environment.state.fluid_triangle_contact_count_buffer
 		};
 		glCreateBuffers(std::size(buffers), buffers);
 		environment.state.camera_buffer = buffers[0u];
@@ -1484,6 +1485,7 @@ namespace game_logic
 		environment.state.cursor_constraint_buffer = buffers[22u];
 		environment.state.distance_constraint_buffer = buffers[23u];
 		environment.state.fluid_triangle_contact_buffer = buffers[24u];
+		environment.state.fluid_triangle_contact_count_buffer = buffers[25u];
 
 		{ // Camera buffer
 			GLuint const block_index
@@ -1566,6 +1568,8 @@ namespace game_logic
 		environment.state.current_fluid_particle_count = /*15u*/15u * INTEGRATE_FLUID_VELOCITY_LOCAL_SIZE(environment);
 		environment.state.current_fluid_contact_count = 0u;
 		environment.state.current_fluid_persistent_contact_count = 0u;
+		environment.state.current_fluid_triangle_contact_count = 0u;
+		environment.state.current_fluid_triangle_persistent_contact_count = 0u;
 
 		{ // Fluid position buffer
 			GLuint const p_index
@@ -2041,16 +2045,6 @@ namespace game_logic
 		{ // Fluid contact count buffer
 			GLenum offset_label{ GL_OFFSET };
 
-			/*GLuint const persistent_count_index
-			{
-				glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_UNIFORM, "Fluid_Contact_Count.persistent_count")
-			};
-			glGetProgramResourceiv
-			(
-				environment.state.persist_fluid_contacts_shader, GL_UNIFORM, persistent_count_index,
-				1u, &offset_label, 1u, nullptr, &environment.state.fluid_contact_count_buffer_persistent_count_offset
-			);*/
-
 			GLuint const count_index
 			{
 				glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_UNIFORM, "Fluid_Contact_Count.count")
@@ -2231,6 +2225,45 @@ namespace game_logic
 			);
 
 			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_FLUID_TRIANGLE_CONTACT_BINDING, environment.state.fluid_triangle_contact_buffer);
+		}
+
+		{ // Fluid triangle contact count buffer
+			GLenum offset_label{ GL_OFFSET };
+
+			GLuint const count_index
+			{
+				glGetProgramResourceIndex(environment.state.persist_fluid_triangle_contacts_shader, GL_UNIFORM, "Fluid_Triangle_Contact_Count.count")
+			};
+			glGetProgramResourceiv
+			(
+				environment.state.persist_fluid_triangle_contacts_shader, GL_UNIFORM, count_index,
+				1u, &offset_label, 1u, nullptr, &environment.state.fluid_triangle_contact_count_buffer_count_offset
+			);
+
+			GLuint const block_index
+			{
+				glGetProgramResourceIndex(environment.state.persist_fluid_triangle_contacts_shader, GL_UNIFORM_BLOCK, "Fluid_Triangle_Contact_Count")
+			};
+			GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
+			glGetProgramResourceiv
+			(
+				environment.state.persist_fluid_triangle_contacts_shader, GL_UNIFORM_BLOCK, block_index,
+				1u, &buffer_size_label, 1u, nullptr, &environment.state.fluid_triangle_contact_count_buffer_size
+			);
+
+			unsigned char* const initial_fluid_triangle_contact_count = new unsigned char[environment.state.fluid_triangle_contact_count_buffer_size];
+			//std::memcpy(initial_fluid_contact_count + environment.state.fluid_contact_count_buffer_persistent_count_offset, &environment.state.current_fluid_contact_count, sizeof(GLuint));
+			std::memcpy(initial_fluid_triangle_contact_count + environment.state.fluid_triangle_contact_count_buffer_count_offset, &environment.state.current_fluid_triangle_contact_count, sizeof(GLuint));
+
+			glNamedBufferStorage
+			(
+				environment.state.fluid_triangle_contact_count_buffer, environment.state.fluid_triangle_contact_count_buffer_size, initial_fluid_triangle_contact_count,
+				0u
+			);
+
+			delete[] initial_fluid_triangle_contact_count;
+
+			glBindBufferBase(GL_UNIFORM_BUFFER, game_logic__util_FLUID_TRIANGLE_CONTACT_COUNT_BINDING, environment.state.fluid_triangle_contact_count_buffer);
 		}
 
 		{ // Position buffer
@@ -4200,6 +4233,11 @@ namespace game_logic
 		std::cout << "contacts impulse range offset: " << environment.state.fluid_triangle_contact_buffer_contacts_impulse_range_offset << std::endl;
 		std::cout << std::endl;
 
+		std::cout << "Fluid triangle contact count buffer (" << environment.state.fluid_triangle_contact_count_buffer << "):" << std::endl;
+		std::cout << "size: " << environment.state.fluid_triangle_contact_count_buffer_size << std::endl;
+		std::cout << "count offset: " << environment.state.fluid_triangle_contact_count_buffer_count_offset << std::endl;
+		std::cout << std::endl;
+
 		glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
 		environment.state.physics_tick_results_fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0u);
 		glFlush();
@@ -6074,7 +6112,8 @@ namespace game_logic
 			environment.state.fluid_contact_buffer, 
 			environment.state.fluid_contact_count_buffer, 
 			environment.state.fluid_velocity_snapshot_buffer,
-			environment.state.fluid_triangle_contact_buffer
+			environment.state.fluid_triangle_contact_buffer, 
+			environment.state.fluid_triangle_contact_count_buffer
 		};
 		glDeleteBuffers(std::size(buffers), buffers);
 
