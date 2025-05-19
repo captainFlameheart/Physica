@@ -56,6 +56,12 @@ buffer Fluid_Velocity
 	ivec2 v[MAX_FLUID_PARTICLE_COUNT];
 } fluid_velocity;
 
+layout(shared, binding = VELOCITY_BINDING) restrict readonly
+buffer Velocities
+{
+	ivec4 v[MAX_RIGID_BODY_COUNT];
+} velocities;
+
 layout(local_size_x = LOCAL_SIZE) in;
 void main()
 {
@@ -142,10 +148,17 @@ void main()
 	);
 	fluid_triangle_contacts.contacts[gl_GlobalInvocationID.x].mass = mass;
 
-	float target_velocity = 0.0;//0.002 * (min_penetration - (0.05 * (METER)));
+	float target_velocity = METER_INVERSE * 0.1 * (min_penetration - (0.05 * (METER)));
 	if (old_mass == 0.0)
 	{
-		// TODO: Bounce
+		vec2 particle_velocity = vec2(fluid_velocity.v[particle_index]);
+		vec3 body_velocity = vec3(velocities.v[body_index]);
+		float velocity = dot
+		(
+			direction, 
+			(particle_velocity - body_velocity.xy) * METER_INVERSE - offset * (body_velocity.z * RADIAN_INVERSE)
+		);
+		target_velocity = 1.0 * min(0.0, velocity); // Is min necessary?
 		// IMPORTANT TODO: COMPUTE (SCALED) INITIAL IMPULSE BASED ON VELOCITY FOR FASTER CONVERGENCE
 		fluid_triangle_contacts.contacts[gl_GlobalInvocationID.x].impulse = 0.0;
 	}

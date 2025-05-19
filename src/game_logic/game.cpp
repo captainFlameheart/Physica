@@ -62,7 +62,7 @@
 
 #define SOLVE_FLUID_CONTACTS_IMPULSE_SCALE(environment) 0.2f
 
-#define FLUID_INVERSE_MASS(environment) 10.0f
+#define FLUID_INVERSE_MASS(environment) 40.0f
 #define FLUID_STRENGTH_RADIUS(environment) 0.1f * game_logic__util__spatial_METER(environment);//0.21f * game_logic__util__spatial_METER(environment)//0.35f * game_logic__util__spatial_METER(environment)
 #define FLUID_MAX_STRENGTH(environment) 0.1f * game_logic__util__spatial_METER(environment)//0.02f * game_logic__util__spatial_METER(environment)
 #define FLUID_TARGET_RADIUS(environment) 0.2f * game_logic__util__spatial_METER(environment)
@@ -78,7 +78,7 @@
 	game_logic__util__spatial_FROM_METERS(environment, 0.1f)//0.2f)//0.1f)
 
 #define game_logic_FLUID_PARTICLE_DRAW_RADIUS(environment) \
-	game_logic__util__spatial_FLOAT_FROM_METERS(environment, 1.0)
+	game_logic__util__spatial_FLOAT_FROM_METERS(environment, 1.0f)
 
 #define PERSIST_FLUID_TRIANGLE_CONTACT_LOCAL_SIZE(environment) \
 	game_logic__util__rigid_body_DEFAULT_COMPUTE_SHADER_LOCAL_SIZE(environment)
@@ -1107,6 +1107,7 @@ namespace game_logic
 			max_vertex_count_definition, 
 			util_shader_DEFINE("FLUID_POSITION_BINDING", STRINGIFY(game_logic__util_FLUID_POSITION_BINDING)),
 			util_shader_DEFINE("FLUID_VELOCITY_BINDING", STRINGIFY(game_logic__util_FLUID_VELOCITY_BINDING)),
+			util_shader_DEFINE("VELOCITY_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_VELOCITY_BINDING)),
 			util_shader_DEFINE("LOCAL_SIZE", STRINGIFY(PERSIST_FLUID_TRIANGLE_CONTACT_LOCAL_SIZE(environment))),
 			util_shader_DEFINE("RADIAN_INVERSE", STRINGIFY(game_logic__util__spatial_RADIAN_INVERSE(environment))),
 			util_shader_DEFINE("PARTICLE_INVERSE_MASS", STRINGIFY(FLUID_INVERSE_MASS(environment))),
@@ -1135,6 +1136,7 @@ namespace game_logic
 			max_vertex_count_definition,
 			util_shader_DEFINE("FLUID_POSITION_BINDING", STRINGIFY(game_logic__util_FLUID_POSITION_BINDING)),
 			util_shader_DEFINE("FLUID_VELOCITY_BINDING", STRINGIFY(game_logic__util_FLUID_VELOCITY_BINDING)),
+			util_shader_DEFINE("VELOCITY_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_VELOCITY_BINDING)),
 			util_shader_DEFINE("LOCAL_SIZE", STRINGIFY(NEW_FLUID_TRIANGLE_CONTACT_LOCAL_SIZE(environment))),
 			util_shader_DEFINE("RADIAN_INVERSE", STRINGIFY(game_logic__util__spatial_RADIAN_INVERSE(environment))),
 			util_shader_DEFINE("PARTICLE_INVERSE_MASS", STRINGIFY(FLUID_INVERSE_MASS(environment))),
@@ -1671,7 +1673,7 @@ namespace game_logic
 		environment.state.current_triangle_contact_count = 0u;
 		environment.state.current_persistent_contact_count = 0u;
 		environment.state.current_distance_constraint_count = 0u;
-		environment.state.current_fluid_particle_count = /*15u*/5u * INTEGRATE_FLUID_VELOCITY_LOCAL_SIZE(environment);
+		environment.state.current_fluid_particle_count = 10u * INTEGRATE_FLUID_VELOCITY_LOCAL_SIZE(environment);
 		environment.state.current_fluid_contact_count = 0u;
 		environment.state.current_fluid_persistent_contact_count = 0u;
 		environment.state.current_fluid_triangle_contact_count = 0u;
@@ -6243,13 +6245,13 @@ namespace game_logic
 		if (environment.state.leaf_contacts_visible)
 		{
 			glUseProgram(environment.state.fluid_leaf_contacts_draw_shader);
-			//glDrawArrays(GL_LINES, 0, environment.state.current_fluid_contact_count * 2u);
+			glDrawArrays(GL_LINES, 0, environment.state.current_fluid_contact_count * 2u);
 
 			glUseProgram(environment.state.fluid_triangle_leaf_contacts_draw_shader);
 			glDrawArrays(GL_LINES, 0, environment.state.current_fluid_triangle_contact_count * 2u);
 
 			glUseProgram(environment.state.leaf_triangle_contact_draw_shader);
-			//glDrawArrays(GL_LINES, 0, environment.state.current_triangle_contact_count * 2u);
+			glDrawArrays(GL_LINES, 0, environment.state.current_triangle_contact_count * 2u);
 		}
 
 		if (environment.state.contact_point_positions_visible)

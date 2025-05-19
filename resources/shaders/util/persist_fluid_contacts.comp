@@ -73,7 +73,7 @@ void main()
 		{
 			ivec2 velocity_0 = fluid_velocity.v[particles.x];
 			ivec2 velocity_1 = fluid_velocity.v[particles.y];
-			target_velocity = 0.5 * min(0.0, dot(direction, vec2(velocity_0 - velocity_1))); // Is min necessary?
+			target_velocity = 1.0 * min(0.0, dot(direction, vec2(velocity_0 - velocity_1))); // Is min necessary?
 
 			fluid_contacts.contacts[gl_GlobalInvocationID.x].inactive = false;
 			// IMPORTANT TODO: COMPUTE (SCALED) INITIAL IMPULSE BASED ON VELOCITY FOR FASTER CONVERGENCE

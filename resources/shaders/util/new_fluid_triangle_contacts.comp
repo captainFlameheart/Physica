@@ -56,6 +56,12 @@ buffer Fluid_Velocity
 	ivec2 v[MAX_FLUID_PARTICLE_COUNT];
 } fluid_velocity;
 
+layout(shared, binding = VELOCITY_BINDING) restrict readonly
+buffer Velocities
+{
+	ivec4 v[MAX_RIGID_BODY_COUNT];
+} velocities;
+
 uniform uint persistent_count;
 
 layout(local_size_x = LOCAL_SIZE) in;
@@ -151,10 +157,17 @@ void main()
 	);
 	fluid_triangle_contacts.contacts[index].mass = mass;
 
-	float target_velocity = 0.0;//0.002 * (min_penetration - (0.05 * (METER)));
-	// TODO: Bounce
+	vec2 particle_velocity = vec2(fluid_velocity.v[particle_index]);
+	vec3 body_velocity = vec3(velocities.v[triangle.w]);
+	float velocity = dot
+	(
+		direction, 
+		(particle_velocity - body_velocity.xy) * METER_INVERSE - offset * (body_velocity.z * RADIAN_INVERSE)
+	);
+	float target_velocity = 1.0 * min(0.0, velocity); // Is min necessary?
 	// IMPORTANT TODO: COMPUTE (SCALED) INITIAL IMPULSE BASED ON VELOCITY FOR FASTER CONVERGENCE
 	fluid_triangle_contacts.contacts[index].impulse = 0.0;
+
 	// IMPORTANT TODO: Always change impulse slightly based on velocities for faster convergence
 	fluid_triangle_contacts.contacts[index].target_velocity = target_velocity;
 	fluid_triangle_contacts.contacts[index].offset = offset;
