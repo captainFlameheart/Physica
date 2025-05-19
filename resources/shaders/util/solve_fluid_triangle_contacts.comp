@@ -76,7 +76,7 @@ void main()
 	}
 
 	float mass = fluid_triangle_contacts.contacts[gl_GlobalInvocationID.x].mass;
-	if (mass = 0.0)
+	if (mass == 0.0)
 	{
 		return;
 	}
@@ -99,7 +99,7 @@ void main()
 	float velocity = dot
 	(
 		direction, 
-		(particle_velocity - body_velocity.xy) * METER_INVERSE - offset * (body_velocity.z * RADIAN_INVERSE))
+		(particle_velocity - body_velocity.xy) * METER_INVERSE - offset * (body_velocity.z * RADIAN_INVERSE)
 	);
 
 	float old_impulse = impulse;
