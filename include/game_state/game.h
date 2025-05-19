@@ -168,7 +168,19 @@ namespace game_state
 		GLint fluid_contact_buffer_contacts_mass_offset;
 		GLint fluid_contact_buffer_contacts_impulse_range_offset;
 
-		//unsigned char* fluid_contact_mapping;
+		GLuint fluid_triangle_contact_buffer;
+		GLint fluid_triangle_contact_buffer_size;
+		GLint fluid_triangle_contact_buffer_contacts_offset;
+		GLint fluid_triangle_contact_buffer_contacts_stride;
+		GLint fluid_triangle_contact_buffer_contacts_triangle_offset;
+		GLint fluid_triangle_contact_buffer_contacts_mass_offset;
+		GLint fluid_triangle_contact_buffer_contacts_impulse_offset;
+		GLint fluid_triangle_contact_buffer_contacts_particle_offset;
+		GLint fluid_triangle_contact_buffer_contacts_body_offset;
+		GLint fluid_triangle_contact_buffer_contacts_target_velocity_offset;
+		GLint fluid_triangle_contact_buffer_contacts_offset_offset;
+		GLint fluid_triangle_contact_buffer_contacts_direction_offset;
+		GLint fluid_triangle_contact_buffer_contacts_impulse_range_offset;
 
 		GLuint fluid_contact_count_buffer;
 		GLint fluid_contact_count_buffer_size;
