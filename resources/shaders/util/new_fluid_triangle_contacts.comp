@@ -68,15 +68,15 @@ void main()
 	}
 
 	uint triangle_index = fluid_triangle_contacts.contacts[index].triangle;
-	uint particle_index = fluid_contacts.contacts[index].particle;
+	uint particle_index = fluid_triangle_contacts.contacts[index].particle;
 
 	uvec4 triangle = triangles.triangles[triangle_index];
 
 	vec2 local_vertices[3u] = vec2[3u]
 	(
-		vertices.vertices[triangles.x], 
-		vertices.vertices[triangles.y], 
-		vertices.vertices[triangles.z]
+		vertices.vertices[triangle.x], 
+		vertices.vertices[triangle.y], 
+		vertices.vertices[triangle.z]
 	);
 
 	fluid_triangle_contacts.contacts[index].body = triangle.w;
@@ -85,7 +85,7 @@ void main()
 
 	ivec2 particle_position = fluid_position.p[particle_index];
 
-	vec2 particle_offset = vec2(particle_position - body_position);
+	vec2 particle_offset = vec2(particle_position - body_position.xy);
 	float angle = body_position.z * RADIAN_INVERSE;
 	vec2 right = vec2(cos(angle), sin(angle));
 	vec2 up = vec2(-right.y, right.x);
@@ -112,12 +112,15 @@ void main()
 	vec2 normal_2 = local_vertices[2u] - local_vertices[0u];
 	normal_2 = vec2(normal_2.y, -normal_2.x);
 	vec2 particle_to_vertex_2 = local_vertices[2u] - local_particle_position;
-	float separation = dot(normal_2, particle_to_vertex_2);
+	separation = dot(normal_2, particle_to_vertex_2);
 	if (separation > max_separation)
 	{
 		reference_edge = 2u;
 		max_separation = separation;
 	}
+
+	// TODO: Fetch from buffer
+	float radius = RADIUS;
 
 	if (max_separation > radius)
 	{
@@ -160,18 +163,18 @@ void main()
 		particle_inverse_mass + 
 		body_inverse_mass + body_inverse_inertia * temp * temp
 	);
-	fluid_contacts.contacts[index].mass = mass;
+	fluid_triangle_contacts.contacts[index].mass = mass;
 
 	float target_velocity = 0.002 * (penetration - (0.05 * (METER)));
-	if (old_mass = 0.0)
+	if (old_mass == 0.0)
 	{
 		// TODO: Bounce
 		// IMPORTANT TODO: COMPUTE (SCALED) INITIAL IMPULSE BASED ON VELOCITY FOR FASTER CONVERGENCE
-		fluid_contacts.contacts[index].impulse = 0.0;
+		fluid_triangle_contacts.contacts[index].impulse = 0.0;
 	}
 	// IMPORTANT TODO: Always change impulse slightly based on velocities for faster convergence
 	fluid_triangle_contacts.contacts[index].target_velocity = target_velocity;
 	fluid_triangle_contacts.contacts[index].offset = offset;
 	fluid_triangle_contacts.contacts[index].direction = direction;
-	fluid_contacts.contacts[index].impulse_range = vec2(0.0, positive_infinity);
+	fluid_triangle_contacts.contacts[index].impulse_range = vec2(0.0, positive_infinity);
 }
