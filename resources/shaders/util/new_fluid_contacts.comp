@@ -27,14 +27,13 @@ buffer Fluid_Contacts
 layout(shared, binding = FLUID_POSITION_BINDING) restrict readonly
 buffer Fluid_Position
 {
-	ivec4 p[MAX_FLUID_PARTICLE_COUNT];//ivec2 p[MAX_FLUID_PARTICLE_COUNT];
+	ivec2 p[MAX_FLUID_PARTICLE_COUNT];
 } fluid_position;
 
 layout(shared, binding = FLUID_VELOCITY_BINDING) restrict readonly
 buffer Fluid_Velocity
 {
-	//ivec2 v[MAX_FLUID_PARTICLE_COUNT];
-	ivec4 v[MAX_FLUID_PARTICLE_COUNT];
+	ivec2 v[MAX_FLUID_PARTICLE_COUNT];
 } fluid_velocity;
 
 uniform uint persistent_count;
@@ -60,10 +59,10 @@ void main()
 	float radius_0 = RADIUS;
 	float radius_1 = RADIUS;
 
-	ivec4 position_0 = fluid_position.p[particles.x];
-	ivec4 position_1 = fluid_position.p[particles.y];
+	ivec2 position_0 = fluid_position.p[particles.x];
+	ivec2 position_1 = fluid_position.p[particles.y];
 
-	vec2 direction = vec2(position_0.xy - position_1.xy);
+	vec2 direction = vec2(position_0 - position_1);
 	float distance = length(direction);
 	float max_distance = radius_0 + radius_1;
 	if (distance >= max_distance)
@@ -75,9 +74,9 @@ void main()
 		// TODO: Handle distance being 0
 		direction /= distance;
 
-		ivec4 velocity_0 = fluid_velocity.v[particles.x];
-		ivec4 velocity_1 = fluid_velocity.v[particles.y];
-		float target_velocity = 0.5 * min(0.0, dot(direction, vec2(velocity_0.xy - velocity_1.xy))); // Is min necessary?
+		ivec2 velocity_0 = fluid_velocity.v[particles.x];
+		ivec2 velocity_1 = fluid_velocity.v[particles.y];
+		float target_velocity = 0.5 * min(0.0, dot(direction, vec2(velocity_0 - velocity_1))); // Is min necessary?
 
 		fluid_contacts.contacts[index].inactive = false;
 		// IMPORTANT TODO: COMPUTE (SCALED) INITIAL IMPULSE BASED ON VELOCITY FOR FASTER CONVERGENCE

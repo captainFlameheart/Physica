@@ -24,15 +24,13 @@ buffer Fluid_Contacts
 layout(shared, binding = FLUID_VELOCITY_SNAPSHOT_BINDING) restrict readonly
 buffer Fluid_Velocity_Snapshot
 {
-	//ivec2 v[MAX_FLUID_PARTICLE_COUNT];
-	ivec4 v[MAX_FLUID_PARTICLE_COUNT];
+	ivec2 v[MAX_FLUID_PARTICLE_COUNT];
 } fluid_velocity_snapshot;
 
 layout(shared, binding = FLUID_VELOCITY_BINDING) restrict
 buffer Fluid_Velocity
 {
-	//ivec2 v[MAX_FLUID_PARTICLE_COUNT];
-	ivec4 v[MAX_FLUID_PARTICLE_COUNT];
+	ivec2 v[MAX_FLUID_PARTICLE_COUNT];
 } fluid_velocity;
 
 layout(local_size_x = LOCAL_SIZE) in;
@@ -54,10 +52,10 @@ void main()
 	float inverse_mass_0 = INVERSE_MASS;
 	float inverse_mass_1 = INVERSE_MASS;
 
-	ivec4 velocity_0 = fluid_velocity_snapshot.v[particles.x];
-	ivec4 velocity_1 = fluid_velocity_snapshot.v[particles.y];
+	ivec2 velocity_0 = fluid_velocity_snapshot.v[particles.x];
+	ivec2 velocity_1 = fluid_velocity_snapshot.v[particles.y];
 
-	float velocity = dot(direction, vec2(velocity_0.xy - velocity_1.xy));
+	float velocity = dot(direction, vec2(velocity_0 - velocity_1));
 	float old_impulse = impulse;
 	impulse = clamp(impulse + IMPULSE_SCALE * mass * (target_velocity + velocity), impulse_range.x, impulse_range.y);
 	float delta_impulse = impulse - old_impulse;

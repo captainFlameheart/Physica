@@ -75,7 +75,7 @@
 	static_cast<GLint>(0.2f * game_logic__util__spatial_METER(environment))
 
 #define game_logic_FLUID_PARTICLE_BOUNDING_BOX_PADDING(environment) \
-	game_logic__util__spatial_FROM_METERS(environment, 0.2f)//0.1f)
+	game_logic__util__spatial_FROM_METERS(environment, 0.1f)//0.2f)//0.1f)
 
 #define game_logic_FLUID_PARTICLE_DRAW_RADIUS(environment) \
 	game_logic__util__spatial_FLOAT_FROM_METERS(environment, 1.0)

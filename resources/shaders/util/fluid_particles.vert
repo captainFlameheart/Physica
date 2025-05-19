@@ -13,14 +13,13 @@ const vec2 offsets[6u] = vec2[6u]
 layout(shared, binding = FLUID_POSITION_BINDING) restrict readonly
 buffer Fluid_Position
 {
-	ivec4 p[MAX_FLUID_PARTICLE_COUNT];//ivec2 p[MAX_FLUID_PARTICLE_COUNT];
+	ivec2 p[MAX_FLUID_PARTICLE_COUNT];
 } fluid_position;
 
 layout(shared, binding = FLUID_VELOCITY_BINDING) restrict readonly
 buffer Fluid_Velocity
 {
-	//ivec2 v[MAX_FLUID_PARTICLE_COUNT];
-	ivec4 v[MAX_FLUID_PARTICLE_COUNT];
+	ivec2 v[MAX_FLUID_PARTICLE_COUNT];
 } fluid_velocity;
 
 /*
@@ -52,15 +51,15 @@ noperspective out vec4 base_color;
 void main()
 {
 	uint particle_index = gl_VertexID / 6u;
-	ivec4 position = fluid_position.p[particle_index];
-	ivec4 velocity = fluid_velocity.v[particle_index];	// TODO: Use this to color fast particles differently
+	ivec2 position = fluid_position.p[particle_index];
+	ivec2 velocity = fluid_velocity.v[particle_index];
 
 	uint offset_index = gl_VertexID % 6u;
 	offset = offsets[offset_index];
 
-	base_color = mix(vec4(1.0, 0.0, 0.0, 1.3), vec4(1.0, 1.0, 0.5, 1.2), min(1.0, 0.000003 * length(velocity.xy)));
+	base_color = mix(vec4(1.0, 0.0, 0.0, 1.3), vec4(1.0, 1.0, 0.5, 1.2), min(1.0, 0.000003 * length(velocity)));
 
-	vec2 camera_relative_xy = vec2(position.xy - camera.xy) + offset;
+	vec2 camera_relative_xy = vec2(position - camera.xy) + offset;
 	gl_Position = vec4
 	(
 		camera.view_rotation * camera_relative_xy * PROJECTION_SCALE, 

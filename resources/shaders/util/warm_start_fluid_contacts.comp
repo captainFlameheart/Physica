@@ -24,8 +24,7 @@ buffer Fluid_Contacts
 layout(shared, binding = FLUID_VELOCITY_BINDING) restrict
 buffer Fluid_Velocity
 {
-	//ivec2 v[MAX_FLUID_PARTICLE_COUNT];
-	ivec4 v[MAX_FLUID_PARTICLE_COUNT];
+	ivec2 v[MAX_FLUID_PARTICLE_COUNT];
 } fluid_velocity;
 
 layout(local_size_x = LOCAL_SIZE) in;
