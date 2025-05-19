@@ -93,63 +93,48 @@ void main()
 
 	// TODO: Remove branching
 
-	uint reference_edge = 0u;
-	vec2 normal_0 = local_vertices[0u] - local_vertices[1u];
-	normal_0 = vec2(normal_0.y, -normal_0.x);
-	vec2 particle_to_vertex_0 = local_vertices[0u] - local_particle_position;
-	float max_separation = dot(normal_0, particle_to_vertex_0);
+	vec2 normals[3u] = vec2[3u]
+	(
+		local_vertices[0u] - local_vertices[1u], 
+		local_vertices[1u] - local_vertices[2u], 
+		local_vertices[2u] - local_vertices[0u]
+	);
+	normals[0u] = normalize(vec2(normals[0u].y, -normals[0u].x));
+	normals[1u] = normalize(vec2(normals[1u].y, -normals[1u].x));
+	normals[2u] = normalize(vec2(normals[2u].y, -normals[2u].x));
 
-	vec2 normal_1 = local_vertices[1u] - local_vertices[2u];
-	normal_1 = vec2(normal_1.y, -normal_1.x);
-	vec2 particle_to_vertex_1 = local_vertices[1u] - local_particle_position;
-	float separation = dot(normal_1, particle_to_vertex_1);
-	if (separation > max_separation)
+	// TODO: Remove branching
+
+	uint reference_edge = 0u;
+	vec2 vertex_0_to_particle = local_particle_position - local_vertices[0u];
+	float min_penetration = dot(normals[0u], vertex_0_to_particle);
+
+	vec2 vertex_1_to_particle = local_particle_position - local_vertices[1u];
+	float penetration = dot(normals[1u], vertex_1_to_particle);
+	if (penetration < min_penetration)
 	{
 		reference_edge = 1u;
-		max_separation = separation;
+		min_penetration = penetration;
 	}
 
-	vec2 normal_2 = local_vertices[2u] - local_vertices[0u];
-	normal_2 = vec2(normal_2.y, -normal_2.x);
-	vec2 particle_to_vertex_2 = local_vertices[2u] - local_particle_position;
-	separation = dot(normal_2, particle_to_vertex_2);
-	if (separation > max_separation)
+	vec2 vertex_2_to_particle = local_particle_position - local_vertices[2u];
+	penetration = dot(normals[2u], vertex_2_to_particle);
+	if (penetration < min_penetration)
 	{
 		reference_edge = 2u;
-		max_separation = separation;
+		min_penetration = penetration;
 	}
 
 	// TODO: Fetch from buffer
-	float radius = RADIUS;
 
-	if (max_separation > radius)
+	if (min_penetration < 0.0)
 	{
-		fluid_triangle_contacts.contacts[index].mass = 0.0;
+		fluid_triangle_contacts.contacts[gl_GlobalInvocationID.x].mass = 0.0;
 		return;
 	}
 
-	vec2 local_reference_vertex = local_vertices[reference_edge];
-	vec2 reference_edge_vector = local_reference_vertex - local_vertices[(reference_edge + 1u) % 3u];
-	float reference_edge_length_squared = dot(reference_edge_vector, reference_edge_vector);
-	vec2 particle_to_reference_vertex = local_reference_vertex - local_particle_position;
-	float step_fraction = clamp
-	(
-		dot(reference_edge_vector, particle_to_reference_vertex) / reference_edge_length_squared, 
-		0.0, 1.0
-	);
-	vec2 closest_local_point = local_reference_vertex - reference_edge_vector * step_fraction;
-	vec2 offset = closest_local_point.x * right + closest_local_point.y * up;
-
-	vec2 direction = offset - particle_offset;
-	float penetration = direction.length();
-	if (penetration < radius)
-	{
-		fluid_triangle_contacts.contacts[index].mass = 0.0;
-		return;
-	}
-	offset = vec2(-offset.y, offset.x);
-	direction /= penetration;
-	penetration -= radius;
+	vec2 offset = vec2(-particle_offset.y, particle_offset.x);
+	vec2 direction = normals[reference_edge];
 
 	// TODO: Fetch from buffer
 	float particle_inverse_mass = PARTICLE_INVERSE_MASS;
@@ -165,13 +150,10 @@ void main()
 	);
 	fluid_triangle_contacts.contacts[index].mass = mass;
 
-	float target_velocity = 0.002 * (penetration - (0.05 * (METER)));
-	if (old_mass == 0.0)
-	{
-		// TODO: Bounce
-		// IMPORTANT TODO: COMPUTE (SCALED) INITIAL IMPULSE BASED ON VELOCITY FOR FASTER CONVERGENCE
-		fluid_triangle_contacts.contacts[index].impulse = 0.0;
-	}
+	float target_velocity = 0.002 * (min_penetration - (0.05 * (METER)));
+	// TODO: Bounce
+	// IMPORTANT TODO: COMPUTE (SCALED) INITIAL IMPULSE BASED ON VELOCITY FOR FASTER CONVERGENCE
+	fluid_triangle_contacts.contacts[index].impulse = 0.0;
 	// IMPORTANT TODO: Always change impulse slightly based on velocities for faster convergence
 	fluid_triangle_contacts.contacts[index].target_velocity = target_velocity;
 	fluid_triangle_contacts.contacts[index].offset = offset;

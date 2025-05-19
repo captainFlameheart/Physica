@@ -1603,7 +1603,7 @@ namespace game_logic
 		environment.state.current_triangle_contact_count = 0u;
 		environment.state.current_persistent_contact_count = 0u;
 		environment.state.current_distance_constraint_count = 0u;
-		environment.state.current_fluid_particle_count = /*15u*/15u * INTEGRATE_FLUID_VELOCITY_LOCAL_SIZE(environment);
+		environment.state.current_fluid_particle_count = /*15u*/5u * INTEGRATE_FLUID_VELOCITY_LOCAL_SIZE(environment);
 		environment.state.current_fluid_contact_count = 0u;
 		environment.state.current_fluid_persistent_contact_count = 0u;
 		environment.state.current_fluid_triangle_contact_count = 0u;
@@ -4303,6 +4303,13 @@ namespace game_logic
 			1u, 1u
 		);
 
+		glUseProgram(environment.state.warm_start_fluid_triangle_contacts_shader);
+		glDispatchCompute
+		(
+			ceil_div(environment.state.current_fluid_triangle_contact_count, WARM_START_FLUID_TRIANGLE_CONTACTS_LOCAL_SIZE(environment)),
+			1u, 1u
+		);
+
 		glUseProgram(environment.state.warm_start_contact_impulses_shader);
 		glDispatchCompute
 		(
@@ -4329,6 +4336,10 @@ namespace game_logic
 		GLuint const solve_fluid_contacts_work_group_count
 		{
 			ceil_div(environment.state.current_fluid_contact_count, SOLVE_FLUID_CONTACTS_LOCAL_SIZE(environment))
+		};
+		GLuint const solve_fluid_triangle_contacts_work_group_count
+		{
+			ceil_div(environment.state.current_fluid_triangle_contact_count, SOLVE_FLUID_TRIANGLE_CONTACTS_LOCAL_SIZE(environment))
 		};
 		GLuint const solve_contact_velocities_work_group_count
 		{
@@ -4358,6 +4369,9 @@ namespace game_logic
 				environment.state.rigid_body_velocity_buffer_v_offset, environment.state.rigid_body_velocity_buffer_v_offset,
 				environment.state.current_rigid_body_count * environment.state.rigid_body_velocity_buffer_v_stride
 			);
+
+			glUseProgram(environment.state.solve_fluid_triangle_contacts_shader);
+			glDispatchCompute(solve_fluid_triangle_contacts_work_group_count, 1u, 1u);
 
 			glUseProgram(environment.state.solve_contact_velocities_shader);
 			glDispatchCompute(solve_contact_velocities_work_group_count, 1u, 1u);
@@ -5050,6 +5064,11 @@ namespace game_logic
 				&environment.state.current_fluid_triangle_contact_count
 			);
 			glUseProgram(environment.state.new_fluid_triangle_contacts_shader);
+			glUniform1ui
+			(
+				environment.state.new_fluid_triangle_contacts_shader_persistent_count_uniform_location,
+				environment.state.current_fluid_triangle_persistent_contact_count
+			);
 			glDispatchCompute
 			(
 				ceil_div(added_fluid_triangle_contacts_count, NEW_FLUID_TRIANGLE_CONTACT_LOCAL_SIZE(environment)), 
@@ -6156,13 +6175,13 @@ namespace game_logic
 		if (environment.state.leaf_contacts_visible)
 		{
 			glUseProgram(environment.state.fluid_leaf_contacts_draw_shader);
-			glDrawArrays(GL_LINES, 0, environment.state.current_fluid_contact_count * 2u);
+			//glDrawArrays(GL_LINES, 0, environment.state.current_fluid_contact_count * 2u);
 
 			glUseProgram(environment.state.fluid_triangle_leaf_contacts_draw_shader);
 			glDrawArrays(GL_LINES, 0, environment.state.current_fluid_triangle_contact_count * 2u);
 
 			glUseProgram(environment.state.leaf_triangle_contact_draw_shader);
-			glDrawArrays(GL_LINES, 0, environment.state.current_triangle_contact_count * 2u);
+			//glDrawArrays(GL_LINES, 0, environment.state.current_triangle_contact_count * 2u);
 		}
 
 		if (environment.state.contact_point_positions_visible)
