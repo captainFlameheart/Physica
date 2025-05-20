@@ -328,6 +328,9 @@ namespace game_state
 		bool contact_impulses_visible;
 		GLuint contact_impulses_draw_shader;
 
+		bool gravity_visible;
+		GLuint gravity_grid_points_draw_shader;
+
 		GLuint distance_constraints_draw_shader;
 
 		GLuint distance_constraint_start_draw_shader;

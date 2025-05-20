@@ -45,6 +45,8 @@
 #include <algorithm>
 #include <chrono>
 
+#define GRAVITY_SAMPLE_STEP(environment) 0.05f
+
 #define INTEGRATE_FLUID_VELOCITY_LOCAL_SIZE(environment) \
 	game_logic__util__rigid_body_DEFAULT_COMPUTE_SHADER_LOCAL_SIZE(environment)
 
@@ -264,6 +266,7 @@ namespace game_logic
 		environment.state.contact_point_positions_visible = false;
 		environment.state.contact_basis_visible = false;
 		environment.state.contact_impulses_visible = false;
+		environment.state.gravity_visible = false;
 
 		// TODO: Use glBindBuffersBase (note the s) for binding multiple buffers at once
 		// IMPORTANT TODO: We do not need to do a position snapshot if velocity-based position correction 
@@ -878,6 +881,25 @@ namespace game_logic
 		);
 		environment.state.contact_impulses_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
 		std::cout << "Contact impulses draw shader compiled" << std::endl;
+
+		::util::shader::set_shader_statically
+		(
+			vertex_shader,
+			util_shader_VERSION,
+			util_shader_DEFINE("STEP", STRINGIFY(GRAVITY_SAMPLE_STEP(environment))), 
+			util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
+			game_PROJECTION_SCALE_DEFINITION(environment),
+			::util::shader::file_to_string("util/grid_points.vert")
+		);
+		::util::shader::set_shader_statically
+		(
+			fragment_shader,
+			util_shader_VERSION,
+			util_shader_DEFINE("COLOR", "vec4(0.0, 0.0, 1.0, 1.0)"),
+			::util::shader::file_to_string("util/static_color.frag") // TODO: Should only be done once
+		);
+		environment.state.gravity_grid_points_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+		std::cout << "Gravity draw shader compiled" << std::endl;
 
 		::util::shader::set_shader_statically
 		(
@@ -5258,6 +5280,9 @@ namespace game_logic
 			case GLFW_KEY_I:
 				environment.state.contact_impulses_visible = !environment.state.contact_impulses_visible;
 				break;
+			case GLFW_KEY_G:
+				environment.state.gravity_visible = !environment.state.gravity_visible;
+				break;
 			case GLFW_KEY_BACKSPACE:
 				environment.state.debug_fluid_particles_visible = false;
 				environment.state.triangle_wireframes_visible = false;
@@ -6282,6 +6307,17 @@ namespace game_logic
 		{
 			glUseProgram(environment.state.contact_impulses_draw_shader);
 			glDrawArrays(GL_LINES, 0, environment.state.current_triangle_contact_count * 16u);
+		}
+
+		if (environment.state.gravity_visible)
+		{
+			glUseProgram(environment.state.gravity_grid_points_draw_shader);
+			GLfloat const x_step{ GRAVITY_SAMPLE_STEP(environment) * game_logic__util__projection_SCALE_X(environment) };
+			GLfloat const y_step{ GRAVITY_SAMPLE_STEP(environment) * game_logic__util__projection_SCALE_Y(environment) };
+			GLuint const width{ 1u + 2u * static_cast<GLuint>(1.0f / x_step) };
+			GLuint const height{ 1u + 2u * static_cast<GLuint>(1.0f / y_step) };
+			glPointSize(5.0f);
+			glDrawArrays(GL_POINTS, 0, width * height);
 		}
 
 		glUseProgram(environment.state.distance_constraints_draw_shader);

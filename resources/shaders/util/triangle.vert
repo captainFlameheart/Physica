@@ -26,6 +26,8 @@ layout(shared, binding = CAMERA_BINDING) uniform Camera
 
 void main()
 {
+	// IMPORTANT TODO!!! PROJECTION_SCALE SHOULD BE MERGED INTO THE camera.view_rotation MATRIX
+
 	uint triangle_index = gl_VertexID / 3u;
 	uvec4 triangle = triangles.triangles[triangle_index];
 	
