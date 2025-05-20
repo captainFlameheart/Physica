@@ -342,6 +342,8 @@ namespace game_state
 		GLuint gravity_grid_points_draw_shader;
 		GLuint gravity_directions_draw_shader;
 
+		GLuint gravity_sources_draw_shader;
+
 		GLuint distance_constraints_draw_shader;
 
 		GLuint distance_constraint_start_draw_shader;

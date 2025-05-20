@@ -47,6 +47,7 @@
 
 #define MAX_GRAVITY_SOURCE_COUNT(environment) 100u
 #define GRAVITY_SAMPLE_STEP(environment) 0.1f
+#define GRAVITY_SOURCE_GRAB_RADIUS(environment) 0.5f * game_logic__util__spatial_METER(environment)
 
 #define INTEGRATE_FLUID_VELOCITY_LOCAL_SIZE(environment) \
 	game_logic__util__rigid_body_DEFAULT_COMPUTE_SHADER_LOCAL_SIZE(environment)
@@ -927,7 +928,34 @@ namespace game_logic
 			::util::shader::file_to_string("util/static_color.frag") // TODO: Should only be done once
 		);
 		environment.state.gravity_directions_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
-		std::cout << "Gravity directions shader compiled" << std::endl;
+		std::cout << "Gravity directions draw shader compiled" << std::endl;
+
+		::util::shader::set_shader_statically
+		(
+			vertex_shader,
+			util_shader_VERSION,
+			util_shader_DEFINE("GRAVITY_SOURCES_BINDING", STRINGIFY(game_logic__util_GRAVITY_SOURCES_BINDING)),
+			util_shader_DEFINE("MAX_GRAVITY_SOURCE_COUNT", STRINGIFY(MAX_GRAVITY_SOURCE_COUNT(environment))),
+			util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING))
+			util_shader_DEFINE("RADIAN_INVERSE", STRINGIFY(game_logic__util__spatial_RADIAN_INVERSE(environment))),
+			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))),
+			util_shader_DEFINE("METER_INVERSE", STRINGIFY(game_logic__util__spatial_METER_INVERSE(environment))),
+			util_shader_DEFINE("RADIUS", STRINGIFY(GRAVITY_SOURCE_GRAB_RADIUS(environment))),
+			game_PROJECTION_SCALE_DEFINITION(environment),
+			::util::shader::file_to_string("util/gravity_sources.vert")
+		);
+		::util::shader::set_shader_statically
+		(
+			fragment_shader,
+			util_shader_VERSION,
+			util_shader_DEFINE("RADIUS", STRINGIFY(GRAVITY_SOURCE_GRAB_RADIUS(environment))),
+			util_shader_DEFINE("RADIAN_INVERSE", STRINGIFY(game_logic__util__spatial_RADIAN_INVERSE(environment))),
+			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))),
+			util_shader_DEFINE("METER_INVERSE", STRINGIFY(game_logic__util__spatial_METER_INVERSE(environment))),
+			::util::shader::file_to_string("util/gravity_sources.frag") // TODO: Should only be done once
+		);
+		environment.state.gravity_sources_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+		std::cout << "Gravity sources draw shader compiled" << std::endl;
 
 		::util::shader::set_shader_statically
 		(
