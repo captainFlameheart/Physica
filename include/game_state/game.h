@@ -330,6 +330,7 @@ namespace game_state
 
 		bool gravity_visible;
 		GLuint gravity_grid_points_draw_shader;
+		GLuint gravity_directions_draw_shader;
 
 		GLuint distance_constraints_draw_shader;
 
