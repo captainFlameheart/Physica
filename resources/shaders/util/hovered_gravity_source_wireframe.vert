@@ -1,4 +1,4 @@
-#define RADIUS (GRAB_RADIUS + LIGHT_DISTANCE)
+#define RADIUS (GRAB_RADIUS)
 
 const vec2 offsets[6u] = vec2[6u]
 (
@@ -26,12 +26,13 @@ layout(shared, binding = CAMERA_BINDING) uniform Camera
 	mat2 view_rotation;
 } camera;
 
+uniform uint hovered_gravity_source;
+
 noperspective out vec2 offset;
 
 void main()
 {
-	uint source_index = gl_VertexID.x / 6u;
-	ivec2 source_position = gravity_sources.positions[source_index];
+	ivec2 source_position = gravity_sources.positions[hovered_gravity_source];
 
 	uint local_index = gl_VertexID.x % 6u;
 	offset = offsets[local_index];

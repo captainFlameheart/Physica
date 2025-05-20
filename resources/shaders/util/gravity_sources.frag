@@ -11,7 +11,8 @@ void main()
     }
     if (distance > GRAB_RADIUS)
     {
-        color = vec4(1.0, 0.0, 1.0, 0.4 * (1.0 - (distance - (GRAB_RADIUS)) / (LIGHT_DISTANCE)));
+        float weight = (1.0 - (distance - (GRAB_RADIUS)) / (LIGHT_DISTANCE));
+        color = vec4(1.0, 0.0, 1.0, 0.2 * weight * weight);
     }
     else if (distance > GRAB_RADIUS - 0.1 * METER)
     {

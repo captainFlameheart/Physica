@@ -45,7 +45,6 @@
 #include <algorithm>
 #include <chrono>
 
-#define MAX_GRAVITY_SOURCE_COUNT(environment) 100u
 #define GRAVITY_SAMPLE_STEP(environment) 0.1f
 #define GRAVITY_SOURCE_GRAB_RADIUS(environment) 0.5f * game_logic__util__spatial_METER(environment)
 #define GRAVITY_SOURCE_LIGHT_DISTANCE(environment) 1.0f * game_logic__util__spatial_METER(environment)
@@ -319,6 +318,7 @@ namespace game_logic
 
 		environment.state.grab_cursor = glfwCreateStandardCursor(GLFW_CROSSHAIR_CURSOR);
 		environment.state.point_cursor = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
+		environment.state.move_cursor = glfwCreateStandardCursor(GLFW_CROSSHAIR_CURSOR);
 
 		environment.state.camera.xy.x = 0;
 		environment.state.camera.xy.y = 0;
@@ -330,6 +330,7 @@ namespace game_logic
 		environment.state.camera.view_rotation.column_1[1] = 1.0f;
 		
 		environment.state.point_grabbed = false;
+		environment.state.grabbed_gravity_source = game_logic__util__proximity_NULL_INDEX;
 
 		GLuint const vertex_shader{ ::util::shader::create_shader(GL_VERTEX_SHADER) };
 		GLuint const fragment_shader{ ::util::shader::create_shader(GL_FRAGMENT_SHADER) };
@@ -904,11 +905,11 @@ namespace game_logic
 		(
 			fragment_shader,
 			util_shader_VERSION,
-			util_shader_DEFINE("COLOR", "vec4(1.0, 1.0, 1.0, 1.0)"),
+			util_shader_DEFINE("COLOR", "vec4(1.0, 0.3, 1.0, 1.0)"),
 			::util::shader::file_to_string("util/static_color.frag") // TODO: Should only be done once
 		);
 		environment.state.gravity_grid_points_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
-		std::cout << "Gravity draw shader compiled" << std::endl;
+		std::cout << "Gravity grid points draw shader compiled" << std::endl;
 
 		::util::shader::set_shader_statically
 		(
@@ -916,7 +917,7 @@ namespace game_logic
 			util_shader_VERSION,
 			util_shader_DEFINE("STEP", STRINGIFY(GRAVITY_SAMPLE_STEP(environment))),
 			util_shader_DEFINE("GRAVITY_SOURCES_BINDING", STRINGIFY(game_logic__util_GRAVITY_SOURCES_BINDING)),
-			util_shader_DEFINE("MAX_GRAVITY_SOURCE_COUNT", STRINGIFY(MAX_GRAVITY_SOURCE_COUNT(environment))),
+			util_shader_DEFINE("MAX_GRAVITY_SOURCE_COUNT", STRINGIFY(MAX_GRAVITY_SOURCE_COUNT)),
 			util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING))
 			util_shader_DEFINE("RADIAN_INVERSE", STRINGIFY(game_logic__util__spatial_RADIAN_INVERSE(environment))),
 			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))),
@@ -928,7 +929,7 @@ namespace game_logic
 		(
 			fragment_shader,
 			util_shader_VERSION,
-			util_shader_DEFINE("COLOR", "vec4(1.0, 1.0, 1.0, 1.0)"),
+			util_shader_DEFINE("COLOR", "vec4(1.0, 0.3, 1.0, 1.0)"),
 			::util::shader::file_to_string("util/static_color.frag") // TODO: Should only be done once
 		);
 		environment.state.gravity_directions_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
@@ -939,7 +940,7 @@ namespace game_logic
 			vertex_shader,
 			util_shader_VERSION,
 			util_shader_DEFINE("GRAVITY_SOURCES_BINDING", STRINGIFY(game_logic__util_GRAVITY_SOURCES_BINDING)),
-			util_shader_DEFINE("MAX_GRAVITY_SOURCE_COUNT", STRINGIFY(MAX_GRAVITY_SOURCE_COUNT(environment))),
+			util_shader_DEFINE("MAX_GRAVITY_SOURCE_COUNT", STRINGIFY(MAX_GRAVITY_SOURCE_COUNT)),
 			util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING))
 			util_shader_DEFINE("RADIAN_INVERSE", STRINGIFY(game_logic__util__spatial_RADIAN_INVERSE(environment))),
 			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))),
@@ -962,6 +963,36 @@ namespace game_logic
 		);
 		environment.state.gravity_sources_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
 		std::cout << "Gravity sources draw shader compiled" << std::endl;
+
+		::util::shader::set_shader_statically
+		(
+			vertex_shader,
+			util_shader_VERSION,
+			util_shader_DEFINE("GRAVITY_SOURCES_BINDING", STRINGIFY(game_logic__util_GRAVITY_SOURCES_BINDING)),
+			util_shader_DEFINE("MAX_GRAVITY_SOURCE_COUNT", STRINGIFY(MAX_GRAVITY_SOURCE_COUNT)),
+			util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING))
+			util_shader_DEFINE("RADIAN_INVERSE", STRINGIFY(game_logic__util__spatial_RADIAN_INVERSE(environment))),
+			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))),
+			util_shader_DEFINE("METER_INVERSE", STRINGIFY(game_logic__util__spatial_METER_INVERSE(environment))),
+			util_shader_DEFINE("GRAB_RADIUS", STRINGIFY(GRAVITY_SOURCE_GRAB_RADIUS(environment))),
+			util_shader_DEFINE("LIGHT_DISTANCE", STRINGIFY(GRAVITY_SOURCE_LIGHT_DISTANCE(environment))),
+			game_PROJECTION_SCALE_DEFINITION(environment),
+			::util::shader::file_to_string("util/hovered_gravity_source_wireframe.vert")
+		);
+		::util::shader::set_shader_statically
+		(
+			fragment_shader,
+			util_shader_VERSION,
+			util_shader_DEFINE("GRAB_RADIUS", STRINGIFY(GRAVITY_SOURCE_GRAB_RADIUS(environment))),
+			util_shader_DEFINE("LIGHT_DISTANCE", STRINGIFY(GRAVITY_SOURCE_LIGHT_DISTANCE(environment))),
+			util_shader_DEFINE("RADIAN_INVERSE", STRINGIFY(game_logic__util__spatial_RADIAN_INVERSE(environment))),
+			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))),
+			util_shader_DEFINE("METER_INVERSE", STRINGIFY(game_logic__util__spatial_METER_INVERSE(environment))),
+			::util::shader::file_to_string("util/hovered_gravity_source_wireframe.frag") // TODO: Should only be done once
+		);
+		environment.state.hovered_gravity_source_wireframe_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+		environment.state.hovered_gravity_source_wireframe_draw_shader_hovered_gravity_source_uniform_location = glGetUniformLocation(environment.state.hovered_gravity_source_wireframe_draw_shader, "hovered_gravity_source");
+		std::cout << "Hovered gravity source wireframe draw shader compiled. Hovered gravity source uniform location: " << environment.state.hovered_gravity_source_wireframe_draw_shader_hovered_gravity_source_uniform_location << std::endl;
 
 		::util::shader::set_shader_statically
 		(
@@ -1764,9 +1795,7 @@ namespace game_logic
 		environment.state.current_fluid_persistent_contact_count = 0u;
 		environment.state.current_fluid_triangle_contact_count = 0u;
 		environment.state.current_fluid_triangle_persistent_contact_count = 0u;
-
 		environment.state.current_gravity_source_count = 0u;
-		environment.state.current_gravity_strength = 0.0f;
 
 		{ // Fluid position buffer
 			GLuint const p_index
@@ -5540,14 +5569,25 @@ namespace game_logic
 						environment,
 						&cursor_world_position[0u], &cursor_world_position[1u]
 					);
+					environment.state.gravity_source_positions[environment.state.current_gravity_source_count] = ::util::math::Vector_2D{ cursor_world_position[0u], cursor_world_position[1u] };
+					environment.state.gravity_source_strengths[environment.state.current_gravity_source_count] = 0.0f;
 					glClearNamedBufferSubData
 					(
 						environment.state.gravity_sources_buffer,
-						GL_RG32F,
+						GL_RG32UI,
 						environment.state.gravity_sources_buffer_positions_offset + environment.state.current_gravity_source_count * environment.state.gravity_sources_buffer_positions_stride,
 						sizeof(GLuint[2u]),
 						GL_RG_INTEGER, GL_UNSIGNED_INT,
 						cursor_world_position
+					);
+					glClearNamedBufferSubData
+					(
+						environment.state.gravity_sources_buffer,
+						GL_R32F,
+						environment.state.gravity_sources_buffer_strengths_offset + environment.state.current_gravity_source_count * environment.state.gravity_sources_buffer_strengths_stride,
+						sizeof(GLfloat),
+						GL_RED, GL_FLOAT,
+						nullptr
 					);
 					++environment.state.current_gravity_source_count;
 					glClearNamedBufferSubData
@@ -5564,121 +5604,141 @@ namespace game_logic
 
 				if (!environment.state.point_grabbed)
 				{
-					GLenum fence_status = glClientWaitSync(environment.state.physics_tick_results_fence, 0u, 0u);
-					while (fence_status != GL_ALREADY_SIGNALED && fence_status != GL_CONDITION_SATISFIED)
+					GLint cursor_world_x, cursor_world_y;
+					window_to_world::window_screen_cursor_position_to_world_position
+					(
+						environment,
+						&cursor_world_x, &cursor_world_y
+					);
+
+					GLuint hovered_gravity_source;
+					for (hovered_gravity_source = 0u; hovered_gravity_source < environment.state.current_gravity_source_count; ++hovered_gravity_source)
 					{
-						// TODO: Do something useful but not necessary while we wait. 
-						// Example: Optimize proximity tree.
-						fence_status = glClientWaitSync(environment.state.physics_tick_results_fence, 0u, 0u);
+						::util::math::Vector_2D const& gravity_source_position{ environment.state.gravity_source_positions[hovered_gravity_source] };
+						GLfloat diff_x{ static_cast<GLfloat>(cursor_world_x - gravity_source_position.x) };
+						GLfloat diff_y{ static_cast<GLfloat>(cursor_world_y - gravity_source_position.y) };
+						GLfloat distance_squared{ diff_x * diff_x + diff_y * diff_y };
+						if (distance_squared <= GRAVITY_SOURCE_GRAB_RADIUS(environment) * GRAVITY_SOURCE_GRAB_RADIUS(environment))
+						{
+							break;
+						}
 					}
-
-					if (util::proximity::is_empty(environment.state.proximity_tree))
+					if (hovered_gravity_source != environment.state.current_gravity_source_count)
 					{
-
-					}
-					else if (util::proximity::has_single_node(environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment)))
-					{
-
+						environment.state.grabbed_gravity_source = hovered_gravity_source;
 					}
 					else
 					{
-						GLint cursor_world_x, cursor_world_y;
-						window_to_world::window_screen_cursor_position_to_world_position
-						(
-							environment,
-							&cursor_world_x, &cursor_world_y
-						);
-
-						struct On_Leaf_Found
+						GLenum fence_status = glClientWaitSync(environment.state.physics_tick_results_fence, 0u, 0u);
+						while (fence_status != GL_ALREADY_SIGNALED && fence_status != GL_CONDITION_SATISFIED)
 						{
-							game_environment::Environment& environment;
-							GLint const cursor_world_x;
-							GLint const cursor_world_y;
-							GLuint& hovered_triangle;
-							GLfloat& hovered_local_x;
-							GLfloat& hovered_local_y;
+							// TODO: Do something useful but not necessary while we wait. 
+							// Example: Optimize proximity tree.
+							fence_status = glClientWaitSync(environment.state.physics_tick_results_fence, 0u, 0u);
+						}
 
-							void operator()(GLuint leaf_index, game_state::proximity::Node const& leaf)
+						if (util::proximity::is_empty(environment.state.proximity_tree))
+						{
+
+						}
+						else if (util::proximity::has_single_node(environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment)))
+						{
+
+						}
+						else
+						{
+							struct On_Leaf_Found
 							{
-								if (leaf_index < game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment))
-								{
-									return;
-								}
-								leaf_index -= game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment);
+								game_environment::Environment& environment;
+								GLint const cursor_world_x;
+								GLint const cursor_world_y;
+								GLuint& hovered_triangle;
+								GLfloat& hovered_local_x;
+								GLfloat& hovered_local_y;
 
-								game_state::rigid_body::Triangle const& triangle{ environment.state.triangles[leaf_index] };
-								GLint body_position[4u];
-								std::memcpy
-								(
-									&body_position,
-									environment.state.position_mapping + environment.state.rigid_body_position_buffer_p_offset + triangle.body * environment.state.rigid_body_position_buffer_p_stride,
-									sizeof(body_position)
-								);
-								GLfloat local_x;
-								GLfloat local_y;
-								if (
-									triangle_contains_point(environment, leaf_index, cursor_world_x, cursor_world_y, local_x, local_y) &&
-									leaf_index < hovered_triangle
-								)
+								void operator()(GLuint leaf_index, game_state::proximity::Node const& leaf)
 								{
-									hovered_triangle = leaf_index;
-									hovered_local_x = local_x;
-									hovered_local_y = local_y;
-								}
-							}
-						};
-						GLuint hovered_triangle{ game_logic__util__proximity_NULL_INDEX };
-						GLfloat hovered_local_x;
-						GLfloat hovered_local_y;
-						On_Leaf_Found on_leaf_found{ environment, cursor_world_x, cursor_world_y, hovered_triangle, hovered_local_x, hovered_local_y };
-						util::proximity::query_point_of_multinode_tree
-						(
-							environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment),
-							cursor_world_x, cursor_world_y,
-							on_leaf_found
-						);
-						if (hovered_triangle != game_logic__util__proximity_NULL_INDEX)
-						{
-							glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
+									if (leaf_index < game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment))
+									{
+										return;
+									}
+									leaf_index -= game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment);
 
-							glClearNamedBufferSubData
-							(
-								environment.state.cursor_constrained_point_buffer,
-								GL_R32UI,
-								environment.state.cursor_constrained_point_buffer_body_offset, sizeof(GLuint),
-								GL_RED_INTEGER, GL_UNSIGNED_INT,
-								&environment.state.triangles[hovered_triangle].body
-							);
-							// TODO: Put hovered_local_x, hovered_local_y in array from start
-							GLfloat local_point[2u]
-							{ 
-								game_logic__util__spatial_TO_METERS(environment, hovered_local_x), 
-								game_logic__util__spatial_TO_METERS(environment, hovered_local_y) 
+									game_state::rigid_body::Triangle const& triangle{ environment.state.triangles[leaf_index] };
+									GLint body_position[4u];
+									std::memcpy
+									(
+										&body_position,
+										environment.state.position_mapping + environment.state.rigid_body_position_buffer_p_offset + triangle.body * environment.state.rigid_body_position_buffer_p_stride,
+										sizeof(body_position)
+									);
+									GLfloat local_x;
+									GLfloat local_y;
+									if (
+										triangle_contains_point(environment, leaf_index, cursor_world_x, cursor_world_y, local_x, local_y) &&
+										leaf_index < hovered_triangle
+										)
+									{
+										hovered_triangle = leaf_index;
+										hovered_local_x = local_x;
+										hovered_local_y = local_y;
+									}
+								}
 							};
-							glClearNamedBufferSubData
+							GLuint hovered_triangle{ game_logic__util__proximity_NULL_INDEX };
+							GLfloat hovered_local_x;
+							GLfloat hovered_local_y;
+							On_Leaf_Found on_leaf_found{ environment, cursor_world_x, cursor_world_y, hovered_triangle, hovered_local_x, hovered_local_y };
+							util::proximity::query_point_of_multinode_tree
 							(
-								environment.state.cursor_constrained_point_buffer,
-								GL_RG32F,
-								environment.state.cursor_constrained_point_buffer_local_point_offset, sizeof(local_point),
-								GL_RG, GL_FLOAT,
-								local_point
+								environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment),
+								cursor_world_x, cursor_world_y,
+								on_leaf_found
 							);
+							if (hovered_triangle != game_logic__util__proximity_NULL_INDEX)
+							{
+								glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
 
-							glClearNamedBufferSubData
-							(
-								environment.state.cursor_constraint_buffer,
-								GL_RG32F,
-								environment.state.cursor_constraint_buffer_impulse_offset, sizeof(GLfloat[2u]),
-								GL_RG, GL_FLOAT,
-								nullptr
-							);
+								glClearNamedBufferSubData
+								(
+									environment.state.cursor_constrained_point_buffer,
+									GL_R32UI,
+									environment.state.cursor_constrained_point_buffer_body_offset, sizeof(GLuint),
+									GL_RED_INTEGER, GL_UNSIGNED_INT,
+									&environment.state.triangles[hovered_triangle].body
+								);
+								// TODO: Put hovered_local_x, hovered_local_y in array from start
+								GLfloat local_point[2u]
+								{
+									game_logic__util__spatial_TO_METERS(environment, hovered_local_x),
+									game_logic__util__spatial_TO_METERS(environment, hovered_local_y)
+								};
+								glClearNamedBufferSubData
+								(
+									environment.state.cursor_constrained_point_buffer,
+									GL_RG32F,
+									environment.state.cursor_constrained_point_buffer_local_point_offset, sizeof(local_point),
+									GL_RG, GL_FLOAT,
+									local_point
+								);
 
-							environment.state.grabbed_triangle = hovered_triangle;
+								glClearNamedBufferSubData
+								(
+									environment.state.cursor_constraint_buffer,
+									GL_RG32F,
+									environment.state.cursor_constraint_buffer_impulse_offset, sizeof(GLfloat[2u]),
+									GL_RG, GL_FLOAT,
+									nullptr
+								);
+
+								environment.state.grabbed_triangle = hovered_triangle;
+							}
 						}
 					}
 				}
 				break;
 			case GLFW_RELEASE:
+				environment.state.grabbed_gravity_source = game_logic__util__proximity_NULL_INDEX;
 				environment.state.grabbed_triangle = game_logic__util__proximity_NULL_INDEX;
 				break;
 			}
@@ -5706,120 +5766,178 @@ namespace game_logic
 			case GLFW_PRESS:
 				if (!environment.state.point_grabbed)
 				{
-					GLenum fence_status = glClientWaitSync(environment.state.physics_tick_results_fence, 0u, 0u);
-					while (fence_status != GL_ALREADY_SIGNALED && fence_status != GL_CONDITION_SATISFIED)
+					GLint cursor_world_x, cursor_world_y;
+					window_to_world::window_screen_cursor_position_to_world_position
+					(
+						environment,
+						&cursor_world_x, &cursor_world_y
+					);
+
+					GLuint hovered_gravity_source;
+					for (hovered_gravity_source = 0u; hovered_gravity_source < environment.state.current_gravity_source_count; ++hovered_gravity_source)
 					{
-						// TODO: Do something useful but not necessary while we wait. 
-						// Example: Optimize proximity tree.
-						fence_status = glClientWaitSync(environment.state.physics_tick_results_fence, 0u, 0u);
+						::util::math::Vector_2D const& gravity_source_position{ environment.state.gravity_source_positions[hovered_gravity_source] };
+						GLfloat diff_x{ static_cast<GLfloat>(cursor_world_x - gravity_source_position.x) };
+						GLfloat diff_y{ static_cast<GLfloat>(cursor_world_y - gravity_source_position.y) };
+						GLfloat distance_squared{ diff_x * diff_x + diff_y * diff_y };
+						if (distance_squared <= GRAVITY_SOURCE_GRAB_RADIUS(environment) * GRAVITY_SOURCE_GRAB_RADIUS(environment))
+						{
+							break;
+						}
 					}
-
-					if (util::proximity::is_empty(environment.state.proximity_tree))
+					if (hovered_gravity_source != environment.state.current_gravity_source_count)
 					{
-
-					}
-					else if (util::proximity::has_single_node(environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment)))
-					{
-
+						if (hovered_gravity_source == environment.state.grabbed_gravity_source)
+						{
+							environment.state.grabbed_gravity_source = game_logic__util__proximity_NULL_INDEX;
+						}
+						--environment.state.current_gravity_source_count;
+						glClearNamedBufferSubData
+						(
+							environment.state.gravity_sources_buffer, 
+							GL_R32UI, 
+							environment.state.gravity_sources_buffer_count_offset, 
+							sizeof(GLuint), 
+							GL_RED_INTEGER, GL_UNSIGNED_INT, 
+							&environment.state.current_gravity_source_count
+						);
+						if (hovered_gravity_source != environment.state.current_gravity_source_count)
+						{
+							environment.state.gravity_source_positions[hovered_gravity_source] = environment.state.gravity_source_positions[environment.state.current_gravity_source_count];
+							environment.state.gravity_source_strengths[hovered_gravity_source] = environment.state.gravity_source_strengths[environment.state.current_gravity_source_count];
+							glCopyNamedBufferSubData
+							(
+								environment.state.gravity_sources_buffer, environment.state.gravity_sources_buffer, 
+								environment.state.gravity_sources_buffer_positions_offset + environment.state.current_gravity_source_count * environment.state.gravity_sources_buffer_positions_stride, 
+								environment.state.gravity_sources_buffer_positions_offset + hovered_gravity_source * environment.state.gravity_sources_buffer_positions_stride, 
+								sizeof(GLint[2u])
+							);
+							glCopyNamedBufferSubData
+							(
+								environment.state.gravity_sources_buffer, environment.state.gravity_sources_buffer,
+								environment.state.gravity_sources_buffer_strengths_offset + environment.state.current_gravity_source_count * environment.state.gravity_sources_buffer_strengths_stride,
+								environment.state.gravity_sources_buffer_strengths_offset + hovered_gravity_source * environment.state.gravity_sources_buffer_strengths_stride,
+								sizeof(GLfloat)
+							);
+						}
 					}
 					else
 					{
-						GLint cursor_world_x, cursor_world_y;
-						window_to_world::window_screen_cursor_position_to_world_position
-						(
-							environment,
-							&cursor_world_x, &cursor_world_y
-						);
-
-						struct On_Leaf_Found
+						GLenum fence_status = glClientWaitSync(environment.state.physics_tick_results_fence, 0u, 0u);
+						while (fence_status != GL_ALREADY_SIGNALED && fence_status != GL_CONDITION_SATISFIED)
 						{
-							game_environment::Environment& environment;
-							GLint const cursor_world_x;
-							GLint const cursor_world_y;
-							GLuint& hovered_triangle;
-							GLfloat& hovered_local_x;
-							GLfloat& hovered_local_y;
+							// TODO: Do something useful but not necessary while we wait. 
+							// Example: Optimize proximity tree.
+							fence_status = glClientWaitSync(environment.state.physics_tick_results_fence, 0u, 0u);
+						}
 
-							void operator()(GLuint leaf_index, game_state::proximity::Node const& leaf)
-							{
-								if (leaf_index < game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment))
-								{
-									return;
-								}
-								leaf_index -= game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment);
-
-								game_state::rigid_body::Triangle const& triangle{ environment.state.triangles[leaf_index] };
-								GLint body_position[4u];
-								std::memcpy
-								(
-									&body_position,
-									environment.state.position_mapping + environment.state.rigid_body_position_buffer_p_offset + triangle.body * environment.state.rigid_body_position_buffer_p_stride,
-									sizeof(body_position)
-								);
-								GLfloat local_x;
-								GLfloat local_y;
-								if (
-									triangle_contains_point(environment, leaf_index, cursor_world_x, cursor_world_y, local_x, local_y) &&
-									leaf_index < hovered_triangle
-									)
-								{
-									hovered_triangle = leaf_index;
-									hovered_local_x = local_x;
-									hovered_local_y = local_y;
-								}
-							}
-						};
-						GLuint hovered_triangle{ game_logic__util__proximity_NULL_INDEX };
-						GLfloat hovered_local_x;
-						GLfloat hovered_local_y;
-						On_Leaf_Found on_leaf_found{ environment, cursor_world_x, cursor_world_y, hovered_triangle, hovered_local_x, hovered_local_y };
-						util::proximity::query_point_of_multinode_tree
-						(
-							environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment),
-							cursor_world_x, cursor_world_y,
-							on_leaf_found
-						);
-						if (hovered_triangle != game_logic__util__proximity_NULL_INDEX)
+						if (util::proximity::is_empty(environment.state.proximity_tree))
 						{
-							glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
 
-							GLuint const count_jump{ environment.state.current_distance_constraint_count * environment.state.distance_constraint_buffer_distance_constraints_stride };
-							glClearNamedBufferSubData
+						}
+						else if (util::proximity::has_single_node(environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment)))
+						{
+
+						}
+						else
+						{
+							GLint cursor_world_x, cursor_world_y;
+							window_to_world::window_screen_cursor_position_to_world_position
 							(
-								environment.state.distance_constraint_buffer,
-								GL_R32UI,
-								environment.state.distance_constraint_buffer_distance_constraints_bodies_offset + count_jump, 
-								sizeof(GLuint),
-								GL_RED_INTEGER, GL_UNSIGNED_INT,
-								&environment.state.triangles[hovered_triangle].body
+								environment,
+								&cursor_world_x, &cursor_world_y
 							);
-							// TODO: Put hovered_local_x, hovered_local_y in array from start
-							GLfloat local_point[2u]
+
+							struct On_Leaf_Found
 							{
-								game_logic__util__spatial_TO_METERS(environment, hovered_local_x),
-								game_logic__util__spatial_TO_METERS(environment, hovered_local_y)
+								game_environment::Environment& environment;
+								GLint const cursor_world_x;
+								GLint const cursor_world_y;
+								GLuint& hovered_triangle;
+								GLfloat& hovered_local_x;
+								GLfloat& hovered_local_y;
+
+								void operator()(GLuint leaf_index, game_state::proximity::Node const& leaf)
+								{
+									if (leaf_index < game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment))
+									{
+										return;
+									}
+									leaf_index -= game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment);
+
+									game_state::rigid_body::Triangle const& triangle{ environment.state.triangles[leaf_index] };
+									GLint body_position[4u];
+									std::memcpy
+									(
+										&body_position,
+										environment.state.position_mapping + environment.state.rigid_body_position_buffer_p_offset + triangle.body * environment.state.rigid_body_position_buffer_p_stride,
+										sizeof(body_position)
+									);
+									GLfloat local_x;
+									GLfloat local_y;
+									if (
+										triangle_contains_point(environment, leaf_index, cursor_world_x, cursor_world_y, local_x, local_y) &&
+										leaf_index < hovered_triangle
+										)
+									{
+										hovered_triangle = leaf_index;
+										hovered_local_x = local_x;
+										hovered_local_y = local_y;
+									}
+								}
 							};
-							glClearNamedBufferSubData
+							GLuint hovered_triangle{ game_logic__util__proximity_NULL_INDEX };
+							GLfloat hovered_local_x;
+							GLfloat hovered_local_y;
+							On_Leaf_Found on_leaf_found{ environment, cursor_world_x, cursor_world_y, hovered_triangle, hovered_local_x, hovered_local_y };
+							util::proximity::query_point_of_multinode_tree
 							(
-								environment.state.distance_constraint_buffer,
-								GL_RG32F,
-								environment.state.distance_constraint_buffer_distance_constraints_local_points_offset + count_jump, 
-								sizeof(local_point),
-								GL_RG, GL_FLOAT,
-								local_point
+								environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment),
+								cursor_world_x, cursor_world_y,
+								on_leaf_found
 							);
+							if (hovered_triangle != game_logic__util__proximity_NULL_INDEX)
+							{
+								glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
 
-							/*glClearNamedBufferSubData
-							(
-								environment.state.distance_constraint_buffer,
-								GL_R32F,
-								environment.state.distance_constraint_buffer_distance_constraints_impulse_offset + count_jump,
-								sizeof(GLfloat),
-								GL_R, GL_FLOAT,
-								nullptr
-							);*/
+								GLuint const count_jump{ environment.state.current_distance_constraint_count * environment.state.distance_constraint_buffer_distance_constraints_stride };
+								glClearNamedBufferSubData
+								(
+									environment.state.distance_constraint_buffer,
+									GL_R32UI,
+									environment.state.distance_constraint_buffer_distance_constraints_bodies_offset + count_jump, 
+									sizeof(GLuint),
+									GL_RED_INTEGER, GL_UNSIGNED_INT,
+									&environment.state.triangles[hovered_triangle].body
+								);
+								// TODO: Put hovered_local_x, hovered_local_y in array from start
+								GLfloat local_point[2u]
+								{
+									game_logic__util__spatial_TO_METERS(environment, hovered_local_x),
+									game_logic__util__spatial_TO_METERS(environment, hovered_local_y)
+								};
+								glClearNamedBufferSubData
+								(
+									environment.state.distance_constraint_buffer,
+									GL_RG32F,
+									environment.state.distance_constraint_buffer_distance_constraints_local_points_offset + count_jump, 
+									sizeof(local_point),
+									GL_RG, GL_FLOAT,
+									local_point
+								);
 
-							environment.state.distance_constraint_start_triangle = hovered_triangle;
+								/*glClearNamedBufferSubData
+								(
+									environment.state.distance_constraint_buffer,
+									GL_R32F,
+									environment.state.distance_constraint_buffer_distance_constraints_impulse_offset + count_jump,
+									sizeof(GLfloat),
+									GL_R, GL_FLOAT,
+									nullptr
+								);*/
+
+								environment.state.distance_constraint_start_triangle = hovered_triangle;
+							}
 						}
 					}
 				}
@@ -5827,124 +5945,127 @@ namespace game_logic
 			case GLFW_RELEASE:
 				if (!environment.state.point_grabbed)
 				{
-					GLenum fence_status = glClientWaitSync(environment.state.physics_tick_results_fence, 0u, 0u);
-					while (fence_status != GL_ALREADY_SIGNALED && fence_status != GL_CONDITION_SATISFIED)
+					if (environment.state.distance_constraint_start_triangle != game_logic__util__proximity_NULL_INDEX)
 					{
-						// TODO: Do something useful but not necessary while we wait. 
-						// Example: Optimize proximity tree.
-						fence_status = glClientWaitSync(environment.state.physics_tick_results_fence, 0u, 0u);
-					}
-
-					if (util::proximity::is_empty(environment.state.proximity_tree))
-					{
-
-					}
-					else if (util::proximity::has_single_node(environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment)))
-					{
-
-					}
-					else
-					{
-						GLint cursor_world_x, cursor_world_y;
-						window_to_world::window_screen_cursor_position_to_world_position
-						(
-							environment,
-							&cursor_world_x, &cursor_world_y
-						);
-
-						struct On_Leaf_Found
+						GLenum fence_status = glClientWaitSync(environment.state.physics_tick_results_fence, 0u, 0u);
+						while (fence_status != GL_ALREADY_SIGNALED && fence_status != GL_CONDITION_SATISFIED)
 						{
-							game_environment::Environment& environment;
-							GLint const cursor_world_x;
-							GLint const cursor_world_y;
-							GLuint& hovered_triangle;
-							GLfloat& hovered_local_x;
-							GLfloat& hovered_local_y;
+							// TODO: Do something useful but not necessary while we wait. 
+							// Example: Optimize proximity tree.
+							fence_status = glClientWaitSync(environment.state.physics_tick_results_fence, 0u, 0u);
+						}
 
-							void operator()(GLuint leaf_index, game_state::proximity::Node const& leaf)
-							{
-								if (leaf_index < game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment))
-								{
-									return;
-								}
-								leaf_index -= game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment);
-
-								game_state::rigid_body::Triangle const& triangle{ environment.state.triangles[leaf_index] };
-								GLint body_position[4u];
-								std::memcpy
-								(
-									&body_position,
-									environment.state.position_mapping + environment.state.rigid_body_position_buffer_p_offset + triangle.body * environment.state.rigid_body_position_buffer_p_stride,
-									sizeof(body_position)
-								);
-								GLfloat local_x;
-								GLfloat local_y;
-								if (
-									triangle_contains_point(environment, leaf_index, cursor_world_x, cursor_world_y, local_x, local_y) &&
-									leaf_index < hovered_triangle
-									)
-								{
-									hovered_triangle = leaf_index;
-									hovered_local_x = local_x;
-									hovered_local_y = local_y;
-								}
-							}
-						};
-						GLuint hovered_triangle{ game_logic__util__proximity_NULL_INDEX };
-						GLfloat hovered_local_x;
-						GLfloat hovered_local_y;
-						On_Leaf_Found on_leaf_found{ environment, cursor_world_x, cursor_world_y, hovered_triangle, hovered_local_x, hovered_local_y };
-						util::proximity::query_point_of_multinode_tree
-						(
-							environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment),
-							cursor_world_x, cursor_world_y,
-							on_leaf_found
-						);
-						if (hovered_triangle != game_logic__util__proximity_NULL_INDEX && hovered_triangle != environment.state.distance_constraint_start_triangle)
+						if (util::proximity::is_empty(environment.state.proximity_tree))
 						{
-							glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
 
-							GLuint const count_jump{ environment.state.current_distance_constraint_count * environment.state.distance_constraint_buffer_distance_constraints_stride };
-							glClearNamedBufferSubData
+						}
+						else if (util::proximity::has_single_node(environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment)))
+						{
+
+						}
+						else
+						{
+							GLint cursor_world_x, cursor_world_y;
+							window_to_world::window_screen_cursor_position_to_world_position
 							(
-								environment.state.distance_constraint_buffer, 
-								GL_R32UI, 
-								environment.state.distance_constraint_buffer_distance_constraints_bodies_offset + 4u + count_jump,
-								sizeof(GLuint),
-								GL_RED_INTEGER, GL_UNSIGNED_INT,
-								&environment.state.triangles[hovered_triangle].body
+								environment,
+								&cursor_world_x, &cursor_world_y
 							);
-							// TODO: Put hovered_local_x, hovered_local_y in array from start
-							GLfloat local_point[2u]
+
+							struct On_Leaf_Found
 							{
-								game_logic__util__spatial_TO_METERS(environment, hovered_local_x),
-								game_logic__util__spatial_TO_METERS(environment, hovered_local_y)
+								game_environment::Environment& environment;
+								GLint const cursor_world_x;
+								GLint const cursor_world_y;
+								GLuint& hovered_triangle;
+								GLfloat& hovered_local_x;
+								GLfloat& hovered_local_y;
+
+								void operator()(GLuint leaf_index, game_state::proximity::Node const& leaf)
+								{
+									if (leaf_index < game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment))
+									{
+										return;
+									}
+									leaf_index -= game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment);
+
+									game_state::rigid_body::Triangle const& triangle{ environment.state.triangles[leaf_index] };
+									GLint body_position[4u];
+									std::memcpy
+									(
+										&body_position,
+										environment.state.position_mapping + environment.state.rigid_body_position_buffer_p_offset + triangle.body * environment.state.rigid_body_position_buffer_p_stride,
+										sizeof(body_position)
+									);
+									GLfloat local_x;
+									GLfloat local_y;
+									if (
+										triangle_contains_point(environment, leaf_index, cursor_world_x, cursor_world_y, local_x, local_y) &&
+										leaf_index < hovered_triangle
+										)
+									{
+										hovered_triangle = leaf_index;
+										hovered_local_x = local_x;
+										hovered_local_y = local_y;
+									}
+								}
 							};
-							glClearNamedBufferSubData
+							GLuint hovered_triangle{ game_logic__util__proximity_NULL_INDEX };
+							GLfloat hovered_local_x;
+							GLfloat hovered_local_y;
+							On_Leaf_Found on_leaf_found{ environment, cursor_world_x, cursor_world_y, hovered_triangle, hovered_local_x, hovered_local_y };
+							util::proximity::query_point_of_multinode_tree
 							(
-								environment.state.distance_constraint_buffer,
-								GL_RG32F,
-								environment.state.distance_constraint_buffer_distance_constraints_local_points_offset + environment.state.distance_constraint_buffer_distance_constraints_local_points_stride + count_jump,
-								sizeof(local_point),
-								GL_RG, GL_FLOAT,
-								local_point
+								environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment),
+								cursor_world_x, cursor_world_y,
+								on_leaf_found
 							);
+							if (hovered_triangle != game_logic__util__proximity_NULL_INDEX && hovered_triangle != environment.state.distance_constraint_start_triangle)
+							{
+								glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
 
-							/*GLfloat const max_distance{2.0f};
-							glClearNamedBufferSubData
-							(
-								environment.state.distance_constraint_buffer,
-								GL_R32F,
-								environment.state.distance_constraint_buffer_distance_constraints_max_distance_offset + count_jump,
-								sizeof(GLfloat),
-								GL_R, GL_FLOAT,
-								&max_distance
-							);*/
+								GLuint const count_jump{ environment.state.current_distance_constraint_count * environment.state.distance_constraint_buffer_distance_constraints_stride };
+								glClearNamedBufferSubData
+								(
+									environment.state.distance_constraint_buffer,
+									GL_R32UI,
+									environment.state.distance_constraint_buffer_distance_constraints_bodies_offset + 4u + count_jump,
+									sizeof(GLuint),
+									GL_RED_INTEGER, GL_UNSIGNED_INT,
+									&environment.state.triangles[hovered_triangle].body
+								);
+								// TODO: Put hovered_local_x, hovered_local_y in array from start
+								GLfloat local_point[2u]
+								{
+									game_logic__util__spatial_TO_METERS(environment, hovered_local_x),
+									game_logic__util__spatial_TO_METERS(environment, hovered_local_y)
+								};
+								glClearNamedBufferSubData
+								(
+									environment.state.distance_constraint_buffer,
+									GL_RG32F,
+									environment.state.distance_constraint_buffer_distance_constraints_local_points_offset + environment.state.distance_constraint_buffer_distance_constraints_local_points_stride + count_jump,
+									sizeof(local_point),
+									GL_RG, GL_FLOAT,
+									local_point
+								);
 
-							glUseProgram(environment.state.add_distance_constraint_shader);
-							glDispatchCompute(1u, 1u, 1u);
+								/*GLfloat const max_distance{2.0f};
+								glClearNamedBufferSubData
+								(
+									environment.state.distance_constraint_buffer,
+									GL_R32F,
+									environment.state.distance_constraint_buffer_distance_constraints_max_distance_offset + count_jump,
+									sizeof(GLfloat),
+									GL_R, GL_FLOAT,
+									&max_distance
+								);*/
 
-							++environment.state.current_distance_constraint_count;
+								glUseProgram(environment.state.add_distance_constraint_shader);
+								glDispatchCompute(1u, 1u, 1u);
+
+								++environment.state.current_distance_constraint_count;
+							}
 						}
 					}
 				}
@@ -6050,6 +6171,19 @@ namespace game_logic
 			GL_RG_INTEGER, GL_INT,
 			cursor_world_position
 		);
+		if (environment.state.grabbed_gravity_source != game_logic__util__proximity_NULL_INDEX)
+		{
+			environment.state.gravity_source_positions[environment.state.grabbed_gravity_source] = ::util::math::Vector_2D{ cursor_world_position[0u], cursor_world_position[1u] };
+			glClearNamedBufferSubData
+			(
+				environment.state.gravity_sources_buffer, 
+				GL_RG32I,
+				environment.state.gravity_sources_buffer_positions_offset + environment.state.grabbed_gravity_source * environment.state.gravity_sources_buffer_positions_stride, 
+				sizeof(cursor_world_position), 
+				GL_RG_INTEGER, GL_INT, 
+				cursor_world_position
+			);
+		}
 
 		// TODO: See if we can load and run these opengl commands in GPU buffer (using indirect something)
 		if (environment.state.physics_running)
@@ -6322,97 +6456,6 @@ namespace game_logic
 			glDrawArrays(GL_LINES, 0, environment.state.current_triangle_count * 6u);
 		}
 
-		if (!environment.state.point_grabbed)
-		{
-			if (environment.state.grabbed_triangle != game_logic__util__proximity_NULL_INDEX)
-			{
-				glUseProgram(environment.state.hovered_triangle_wireframe_draw_shader);
-				glUniform1ui(environment.state.hovered_triangle_wireframe_hovered_triangle_uniform_location, environment.state.grabbed_triangle);
-				glDrawArrays(GL_LINES, 0, 6u);
-			}
-			else
-			{
-				GLenum fence_status = glClientWaitSync(environment.state.physics_tick_results_fence, 0u, 0u);
-				while (fence_status != GL_ALREADY_SIGNALED && fence_status != GL_CONDITION_SATISFIED)
-				{
-					// TODO: Do something useful but not necessary while we wait. 
-					// Example: Optimize proximity tree.
-					fence_status = glClientWaitSync(environment.state.physics_tick_results_fence, 0u, 0u);
-				}
-
-				if (util::proximity::is_empty(environment.state.proximity_tree))
-				{
-
-				}
-				else if (util::proximity::has_single_node(environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment)))
-				{
-
-				}
-				else
-				{
-					GLint cursor_world_x, cursor_world_y;
-					window_to_world::window_screen_cursor_position_to_world_position
-					(
-						environment,
-						&cursor_world_x, &cursor_world_y
-					);
-
-					struct On_Leaf_Found
-					{
-						game_environment::Environment& environment;
-						GLint const cursor_world_x;
-						GLint const cursor_world_y;
-						GLuint& hovered_triangle;
-
-						void operator()(GLuint leaf_index, game_state::proximity::Node const& leaf)
-						{
-							if (leaf_index < game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment))
-							{
-								return;
-							}
-							leaf_index -= game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment);
-
-							game_state::rigid_body::Triangle const& triangle{ environment.state.triangles[leaf_index] };
-							GLint body_position[4u];
-							std::memcpy
-							(
-								&body_position,
-								environment.state.position_mapping + environment.state.rigid_body_position_buffer_p_offset + triangle.body * environment.state.rigid_body_position_buffer_p_stride,
-								sizeof(body_position)
-							);
-							if (
-								triangle_contains_point(environment, leaf_index, cursor_world_x, cursor_world_y) &&
-								leaf_index < hovered_triangle
-								)
-							{
-								hovered_triangle = leaf_index;
-							}
-						}
-					};
-					GLuint hovered_triangle{ game_logic__util__proximity_NULL_INDEX };
-					On_Leaf_Found on_leaf_found{ environment, cursor_world_x, cursor_world_y, hovered_triangle };
-					util::proximity::query_point_of_multinode_tree
-					(
-						environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment),
-						cursor_world_x, cursor_world_y,
-						on_leaf_found
-					);
-					if (hovered_triangle != game_logic__util__proximity_NULL_INDEX)
-					{
-						glUseProgram(environment.state.hovered_triangle_wireframe_draw_shader);
-						glUniform1ui(environment.state.hovered_triangle_wireframe_hovered_triangle_uniform_location, hovered_triangle);
-						glDrawArrays(GL_LINES, 0, 6u);
-
-						glfwSetCursor(environment.window, environment.state.point_cursor);
-					}
-					else
-					{
-						glfwSetCursor(environment.window, nullptr);
-					}
-				}
-			}
-		}
-
 		if (environment.state.rigid_bodies_visible)
 		{
 			glUseProgram(environment.state.rigid_body_debug_rendering_shader);
@@ -6503,6 +6546,118 @@ namespace game_logic
 		glDrawArrays(GL_TRIANGLES, 0, environment.state.current_gravity_source_count * 6u);
 		glDisablei(GL_BLEND, 0u);
 
+		if (!environment.state.point_grabbed)
+		{
+			if (environment.state.grabbed_triangle != game_logic__util__proximity_NULL_INDEX)
+			{
+				glUseProgram(environment.state.hovered_triangle_wireframe_draw_shader);
+				glUniform1ui(environment.state.hovered_triangle_wireframe_hovered_triangle_uniform_location, environment.state.grabbed_triangle);
+				glDrawArrays(GL_LINES, 0, 6u);
+			}
+			else
+			{
+				glfwSetCursor(environment.window, nullptr);
+
+				GLint cursor_world_x, cursor_world_y;
+				window_to_world::window_screen_cursor_position_to_world_position
+				(
+					environment,
+					&cursor_world_x, &cursor_world_y
+				);
+
+				GLuint hovered_gravity_source;
+				for (hovered_gravity_source = 0u; hovered_gravity_source < environment.state.current_gravity_source_count; ++hovered_gravity_source)
+				{
+					::util::math::Vector_2D const& gravity_source_position{ environment.state.gravity_source_positions[hovered_gravity_source] };
+					GLfloat diff_x{ static_cast<GLfloat>(cursor_world_x - gravity_source_position.x) };
+					GLfloat diff_y{ static_cast<GLfloat>(cursor_world_y - gravity_source_position.y) };
+					GLfloat distance_squared{ diff_x * diff_x + diff_y * diff_y };
+					if (distance_squared <= GRAVITY_SOURCE_GRAB_RADIUS(environment) * GRAVITY_SOURCE_GRAB_RADIUS(environment))
+					{
+						break;
+					}
+				}
+				if (hovered_gravity_source != environment.state.current_gravity_source_count)
+				{
+					glUseProgram(environment.state.hovered_gravity_source_wireframe_draw_shader);
+					glUniform1ui(environment.state.hovered_gravity_source_wireframe_draw_shader_hovered_gravity_source_uniform_location, hovered_gravity_source);
+					glDrawArrays(GL_TRIANGLES, 0, 6u);
+
+					glfwSetCursor(environment.window, environment.state.move_cursor);
+				}
+				else
+				{
+					GLenum fence_status = glClientWaitSync(environment.state.physics_tick_results_fence, 0u, 0u);
+					while (fence_status != GL_ALREADY_SIGNALED && fence_status != GL_CONDITION_SATISFIED)
+					{
+						// TODO: Do something useful but not necessary while we wait. 
+						// Example: Optimize proximity tree.
+						fence_status = glClientWaitSync(environment.state.physics_tick_results_fence, 0u, 0u);
+					}
+
+					if (util::proximity::is_empty(environment.state.proximity_tree))
+					{
+
+					}
+					else if (util::proximity::has_single_node(environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment)))
+					{
+
+					}
+					else
+					{
+						struct On_Leaf_Found
+						{
+							game_environment::Environment& environment;
+							GLint const cursor_world_x;
+							GLint const cursor_world_y;
+							GLuint& hovered_triangle;
+
+							void operator()(GLuint leaf_index, game_state::proximity::Node const& leaf)
+							{
+								if (leaf_index < game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment))
+								{
+									return;
+								}
+								leaf_index -= game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment);
+
+								game_state::rigid_body::Triangle const& triangle{ environment.state.triangles[leaf_index] };
+								GLint body_position[4u];
+								std::memcpy
+								(
+									&body_position,
+									environment.state.position_mapping + environment.state.rigid_body_position_buffer_p_offset + triangle.body * environment.state.rigid_body_position_buffer_p_stride,
+									sizeof(body_position)
+								);
+								if (
+									triangle_contains_point(environment, leaf_index, cursor_world_x, cursor_world_y) &&
+									leaf_index < hovered_triangle
+									)
+								{
+									hovered_triangle = leaf_index;
+								}
+							}
+						};
+						GLuint hovered_triangle{ game_logic__util__proximity_NULL_INDEX };
+						On_Leaf_Found on_leaf_found{ environment, cursor_world_x, cursor_world_y, hovered_triangle };
+						util::proximity::query_point_of_multinode_tree
+						(
+							environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment),
+							cursor_world_x, cursor_world_y,
+							on_leaf_found
+						);
+						if (hovered_triangle != game_logic__util__proximity_NULL_INDEX)
+						{
+							glUseProgram(environment.state.hovered_triangle_wireframe_draw_shader);
+							glUniform1ui(environment.state.hovered_triangle_wireframe_hovered_triangle_uniform_location, hovered_triangle);
+							glDrawArrays(GL_LINES, 0, 6u);
+
+							glfwSetCursor(environment.window, environment.state.point_cursor);
+						}
+					}
+				}
+			}
+		}
+
 		glUseProgram(environment.state.distance_constraints_draw_shader);
 		glDrawArrays(GL_LINES, 0, environment.state.current_distance_constraint_count * 2u);
 
@@ -6572,6 +6727,7 @@ namespace game_logic
 
 		glfwDestroyCursor(environment.state.grab_cursor);
 		glfwDestroyCursor(environment.state.point_cursor);
+		glfwDestroyCursor(environment.state.move_cursor);
 
 		// TODO: Delete shader programs???
 	}

@@ -5,6 +5,8 @@
 #include "game_state/proximity/Tree.h"
 #include "game_state/rigid_body/Triangle.h"
 
+#define MAX_GRAVITY_SOURCE_COUNT 100u
+
 namespace game_state
 {
 	// TODO: Organize based on access patterns 
@@ -13,6 +15,7 @@ namespace game_state
 	{
 		GLFWcursor* grab_cursor;
 		GLFWcursor* point_cursor;
+		GLFWcursor* move_cursor;
 
 		camera::Camera camera;
 		GLboolean point_grabbed;
@@ -265,7 +268,9 @@ namespace game_state
 		GLint gravity_sources_buffer_strengths_stride;
 
 		GLuint current_gravity_source_count;
-		GLfloat current_gravity_strength;
+		util::math::Vector_2D gravity_source_positions[MAX_GRAVITY_SOURCE_COUNT];
+		GLfloat gravity_source_strengths[MAX_GRAVITY_SOURCE_COUNT];
+		GLuint grabbed_gravity_source;
 
 		GLuint rigid_body_velocity_integration_shader;
 		GLuint integrate_fluid_velocity_shader;
@@ -344,6 +349,8 @@ namespace game_state
 		GLuint gravity_directions_draw_shader;
 
 		GLuint gravity_sources_draw_shader;
+		GLuint hovered_gravity_source_wireframe_draw_shader;
+		GLuint hovered_gravity_source_wireframe_draw_shader_hovered_gravity_source_uniform_location;
 
 		GLuint distance_constraints_draw_shader;
 
