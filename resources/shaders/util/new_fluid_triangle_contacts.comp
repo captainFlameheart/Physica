@@ -131,8 +131,8 @@ void main()
 		min_penetration = penetration;
 	}
 
-	// TODO: Fetch from buffer
-
+	min_penetration *= METER_INVERSE;
+	min_penetration += 0.15;
 	if (min_penetration < 0.0)
 	{
 		fluid_triangle_contacts.contacts[index].mass = 0.0;

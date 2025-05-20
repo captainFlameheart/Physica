@@ -124,6 +124,8 @@ void main()
 		min_penetration = penetration;
 	}
 
+	min_penetration *= METER_INVERSE;
+	min_penetration += 0.15;
 	if (min_penetration < 0.0)
 	{
 		fluid_triangle_contacts.contacts[gl_GlobalInvocationID.x].mass = 0.0;
@@ -148,7 +150,7 @@ void main()
 	);
 	fluid_triangle_contacts.contacts[gl_GlobalInvocationID.x].mass = mass;
 
-	float target_velocity = METER_INVERSE * 0.1 * (min_penetration - (0.05 * (METER)));
+	float target_velocity = 0.002 * (min_penetration - 0.05);//(0.05 * (METER)));
 	if (old_mass == 0.0)
 	{
 		vec2 particle_velocity = vec2(fluid_velocity.v[particle_index]);
