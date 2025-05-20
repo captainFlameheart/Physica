@@ -6082,6 +6082,44 @@ namespace game_logic
 		double const y_offset
 	)
 	{
+		if (!environment.state.point_grabbed)
+		{
+			GLint cursor_world_x, cursor_world_y;
+			window_to_world::window_screen_cursor_position_to_world_position
+			(
+				environment,
+				&cursor_world_x, &cursor_world_y
+			);
+
+			GLuint hovered_gravity_source;
+			for (hovered_gravity_source = 0u; hovered_gravity_source < environment.state.current_gravity_source_count; ++hovered_gravity_source)
+			{
+				::util::math::Vector_2D const& gravity_source_position{ environment.state.gravity_source_positions[hovered_gravity_source] };
+				GLfloat diff_x{ static_cast<GLfloat>(cursor_world_x - gravity_source_position.x) };
+				GLfloat diff_y{ static_cast<GLfloat>(cursor_world_y - gravity_source_position.y) };
+				GLfloat distance_squared{ diff_x * diff_x + diff_y * diff_y };
+				if (distance_squared <= GRAVITY_SOURCE_GRAB_RADIUS(environment) * GRAVITY_SOURCE_GRAB_RADIUS(environment))
+				{
+					break;
+				}
+			}
+			if (hovered_gravity_source != environment.state.current_gravity_source_count)
+			{
+				GLfloat strength = environment.state.gravity_source_strengths[hovered_gravity_source] + y_offset * 1.0f;
+				environment.state.gravity_source_strengths[hovered_gravity_source] = strength;
+				glClearNamedBufferSubData
+				(
+					environment.state.gravity_sources_buffer,
+					GL_R32F,
+					environment.state.gravity_sources_buffer_strengths_offset + hovered_gravity_source * environment.state.gravity_sources_buffer_strengths_stride, 
+					sizeof(GLfloat),
+					GL_RED, GL_FLOAT,
+					&strength
+				);
+				return;
+			}
+		}
+
 		double const horizontal_scroll_enabled
 		{ 
 			static_cast<double>
@@ -6525,26 +6563,7 @@ namespace game_logic
 			glDrawArrays(GL_LINES, 0, environment.state.current_triangle_contact_count * 16u);
 		}
 
-		if (environment.state.gravity_visible)
-		{
-			GLfloat const x_step{ GRAVITY_SAMPLE_STEP(environment) * game_logic__util__projection_SCALE_X(environment) };
-			GLfloat const y_step{ GRAVITY_SAMPLE_STEP(environment) * game_logic__util__projection_SCALE_Y(environment) };
-			GLuint const width{ 1u + 2u * static_cast<GLuint>(1.0f / x_step) };
-			GLuint const height{ 1u + 2u * static_cast<GLuint>(1.0f / y_step) };
-			GLuint const grid_point_count{ width * height };
-
-			glUseProgram(environment.state.gravity_grid_points_draw_shader);
-			glPointSize(5.0f);
-			glDrawArrays(GL_POINTS, 0, grid_point_count);
-
-			glUseProgram(environment.state.gravity_directions_draw_shader);
-			glDrawArrays(GL_LINES, 0, grid_point_count * 2u);
-		}
-
-		glEnablei(GL_BLEND, 0u);
-		glUseProgram(environment.state.gravity_sources_draw_shader);
-		glDrawArrays(GL_TRIANGLES, 0, environment.state.current_gravity_source_count * 6u);
-		glDisablei(GL_BLEND, 0u);
+		GLuint hovered_gravity_source = environment.state.current_gravity_source_count;
 
 		if (!environment.state.point_grabbed)
 		{
@@ -6556,7 +6575,7 @@ namespace game_logic
 			}
 			else
 			{
-				glfwSetCursor(environment.window, nullptr);
+				GLFWcursor* cursor = nullptr;
 
 				GLint cursor_world_x, cursor_world_y;
 				window_to_world::window_screen_cursor_position_to_world_position
@@ -6565,7 +6584,6 @@ namespace game_logic
 					&cursor_world_x, &cursor_world_y
 				);
 
-				GLuint hovered_gravity_source;
 				for (hovered_gravity_source = 0u; hovered_gravity_source < environment.state.current_gravity_source_count; ++hovered_gravity_source)
 				{
 					::util::math::Vector_2D const& gravity_source_position{ environment.state.gravity_source_positions[hovered_gravity_source] };
@@ -6574,18 +6592,11 @@ namespace game_logic
 					GLfloat distance_squared{ diff_x * diff_x + diff_y * diff_y };
 					if (distance_squared <= GRAVITY_SOURCE_GRAB_RADIUS(environment) * GRAVITY_SOURCE_GRAB_RADIUS(environment))
 					{
+						cursor = environment.state.move_cursor;
 						break;
 					}
 				}
-				if (hovered_gravity_source != environment.state.current_gravity_source_count)
-				{
-					glUseProgram(environment.state.hovered_gravity_source_wireframe_draw_shader);
-					glUniform1ui(environment.state.hovered_gravity_source_wireframe_draw_shader_hovered_gravity_source_uniform_location, hovered_gravity_source);
-					glDrawArrays(GL_TRIANGLES, 0, 6u);
-
-					glfwSetCursor(environment.window, environment.state.move_cursor);
-				}
-				else
+				if (hovered_gravity_source == environment.state.current_gravity_source_count)
 				{
 					GLenum fence_status = glClientWaitSync(environment.state.physics_tick_results_fence, 0u, 0u);
 					while (fence_status != GL_ALREADY_SIGNALED && fence_status != GL_CONDITION_SATISFIED)
@@ -6651,11 +6662,40 @@ namespace game_logic
 							glUniform1ui(environment.state.hovered_triangle_wireframe_hovered_triangle_uniform_location, hovered_triangle);
 							glDrawArrays(GL_LINES, 0, 6u);
 
-							glfwSetCursor(environment.window, environment.state.point_cursor);
+							cursor = environment.state.point_cursor;
 						}
 					}
 				}
+				glfwSetCursor(environment.window, cursor);
 			}
+		}
+
+		if (environment.state.gravity_visible || hovered_gravity_source != environment.state.current_gravity_source_count)
+		{
+			GLfloat const x_step{ GRAVITY_SAMPLE_STEP(environment) * game_logic__util__projection_SCALE_X(environment) };
+			GLfloat const y_step{ GRAVITY_SAMPLE_STEP(environment) * game_logic__util__projection_SCALE_Y(environment) };
+			GLuint const width{ 1u + 2u * static_cast<GLuint>(1.0f / x_step) };
+			GLuint const height{ 1u + 2u * static_cast<GLuint>(1.0f / y_step) };
+			GLuint const grid_point_count{ width * height };
+
+			glUseProgram(environment.state.gravity_grid_points_draw_shader);
+			glPointSize(5.0f);
+			glDrawArrays(GL_POINTS, 0, grid_point_count);
+
+			glUseProgram(environment.state.gravity_directions_draw_shader);
+			glDrawArrays(GL_LINES, 0, grid_point_count * 2u);
+		}
+
+		glEnablei(GL_BLEND, 0u);
+		glUseProgram(environment.state.gravity_sources_draw_shader);
+		glDrawArrays(GL_TRIANGLES, 0, environment.state.current_gravity_source_count * 6u);
+		glDisablei(GL_BLEND, 0u);
+
+		if (hovered_gravity_source != environment.state.current_gravity_source_count)
+		{
+			glUseProgram(environment.state.hovered_gravity_source_wireframe_draw_shader);
+			glUniform1ui(environment.state.hovered_gravity_source_wireframe_draw_shader_hovered_gravity_source_uniform_location, hovered_gravity_source);
+			glDrawArrays(GL_TRIANGLES, 0, 6u);
 		}
 
 		glUseProgram(environment.state.distance_constraints_draw_shader);

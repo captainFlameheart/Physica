@@ -39,7 +39,14 @@ void main()
 	float right_y = sin(angle);
 	mat2 camera_local_to_offset = transpose(camera.view_rotation);
 	ivec2 world_position = camera.xy + ivec2(camera_local_to_offset * (camera.z * screen_position / PROJECTION_SCALE));
-	vec2 force = normalize(world_position) * METER;//vec2(1.0, 0.0) * METER;
+	vec2 force = vec2(0.0, 0.0);
+	for (uint i = 0u; i < gravity_sources.count; ++i)
+	{
+		ivec2 source_position = gravity_sources.positions[i];
+		float strength = gravity_sources.strengths[i];
+		vec2 offset = METER_INVERSE * (source_position - world_position);
+		force += normalize(offset) * METER * (strength * exp(-dot(offset, offset) / (strength * strength)));
+	}
 	vec2 force_offset = float(gl_VertexID % 2u) * 0.5 * force;
 
 	vec2 camera_relative_xy = (world_position - camera.xy) + force_offset;
