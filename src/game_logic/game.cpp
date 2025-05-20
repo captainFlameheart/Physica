@@ -48,6 +48,7 @@
 #define MAX_GRAVITY_SOURCE_COUNT(environment) 100u
 #define GRAVITY_SAMPLE_STEP(environment) 0.1f
 #define GRAVITY_SOURCE_GRAB_RADIUS(environment) 0.5f * game_logic__util__spatial_METER(environment)
+#define GRAVITY_SOURCE_LIGHT_DISTANCE(environment) 1.0f * game_logic__util__spatial_METER(environment)
 
 #define INTEGRATE_FLUID_VELOCITY_LOCAL_SIZE(environment) \
 	game_logic__util__rigid_body_DEFAULT_COMPUTE_SHADER_LOCAL_SIZE(environment)
@@ -249,6 +250,9 @@ namespace game_logic
 		std::cout << "Max triangle contact count: " << game_logic_MAX_TRIANGLE_CONTACT_COUNT(environment) << "\n" << std::endl;
 
 		print_capabilities(environment);
+
+		glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
+		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
 
 		int width, height;
 		glfwGetFramebufferSize(environment.window, &width, &height);
@@ -940,7 +944,8 @@ namespace game_logic
 			util_shader_DEFINE("RADIAN_INVERSE", STRINGIFY(game_logic__util__spatial_RADIAN_INVERSE(environment))),
 			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))),
 			util_shader_DEFINE("METER_INVERSE", STRINGIFY(game_logic__util__spatial_METER_INVERSE(environment))),
-			util_shader_DEFINE("RADIUS", STRINGIFY(GRAVITY_SOURCE_GRAB_RADIUS(environment))),
+			util_shader_DEFINE("GRAB_RADIUS", STRINGIFY(GRAVITY_SOURCE_GRAB_RADIUS(environment))),
+			util_shader_DEFINE("LIGHT_DISTANCE", STRINGIFY(GRAVITY_SOURCE_LIGHT_DISTANCE(environment))),
 			game_PROJECTION_SCALE_DEFINITION(environment),
 			::util::shader::file_to_string("util/gravity_sources.vert")
 		);
@@ -948,7 +953,8 @@ namespace game_logic
 		(
 			fragment_shader,
 			util_shader_VERSION,
-			util_shader_DEFINE("RADIUS", STRINGIFY(GRAVITY_SOURCE_GRAB_RADIUS(environment))),
+			util_shader_DEFINE("GRAB_RADIUS", STRINGIFY(GRAVITY_SOURCE_GRAB_RADIUS(environment))),
+			util_shader_DEFINE("LIGHT_DISTANCE", STRINGIFY(GRAVITY_SOURCE_LIGHT_DISTANCE(environment))),
 			util_shader_DEFINE("RADIAN_INVERSE", STRINGIFY(game_logic__util__spatial_RADIAN_INVERSE(environment))),
 			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))),
 			util_shader_DEFINE("METER_INVERSE", STRINGIFY(game_logic__util__spatial_METER_INVERSE(environment))),
@@ -1758,7 +1764,9 @@ namespace game_logic
 		environment.state.current_fluid_persistent_contact_count = 0u;
 		environment.state.current_fluid_triangle_contact_count = 0u;
 		environment.state.current_fluid_triangle_persistent_contact_count = 0u;
+
 		environment.state.current_gravity_source_count = 0u;
+		environment.state.current_gravity_strength = 0.0f;
 
 		{ // Fluid position buffer
 			GLuint const p_index
@@ -5524,6 +5532,36 @@ namespace game_logic
 			switch (action)
 			{
 			case GLFW_PRESS:
+				if (mods & GLFW_MOD_CONTROL)
+				{
+					GLint cursor_world_position[2u];
+					window_to_world::window_screen_cursor_position_to_world_position
+					(
+						environment,
+						&cursor_world_position[0u], &cursor_world_position[1u]
+					);
+					glClearNamedBufferSubData
+					(
+						environment.state.gravity_sources_buffer,
+						GL_RG32F,
+						environment.state.gravity_sources_buffer_positions_offset + environment.state.current_gravity_source_count * environment.state.gravity_sources_buffer_positions_stride,
+						sizeof(GLuint[2u]),
+						GL_RG_INTEGER, GL_UNSIGNED_INT,
+						cursor_world_position
+					);
+					++environment.state.current_gravity_source_count;
+					glClearNamedBufferSubData
+					(
+						environment.state.gravity_sources_buffer, 
+						GL_R32UI, 
+						environment.state.gravity_sources_buffer_count_offset, 
+						sizeof(GLuint), 
+						GL_RED_INTEGER, GL_UNSIGNED_INT, 
+						&environment.state.current_gravity_source_count
+					);
+					return;
+				}
+
 				if (!environment.state.point_grabbed)
 				{
 					GLenum fence_status = glClientWaitSync(environment.state.physics_tick_results_fence, 0u, 0u);
@@ -6459,6 +6497,11 @@ namespace game_logic
 			glUseProgram(environment.state.gravity_directions_draw_shader);
 			glDrawArrays(GL_LINES, 0, grid_point_count * 2u);
 		}
+
+		glEnablei(GL_BLEND, 0u);
+		glUseProgram(environment.state.gravity_sources_draw_shader);
+		glDrawArrays(GL_TRIANGLES, 0, environment.state.current_gravity_source_count * 6u);
+		glDisablei(GL_BLEND, 0u);
 
 		glUseProgram(environment.state.distance_constraints_draw_shader);
 		glDrawArrays(GL_LINES, 0, environment.state.current_distance_constraint_count * 2u);

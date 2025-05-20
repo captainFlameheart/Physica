@@ -265,6 +265,7 @@ namespace game_state
 		GLint gravity_sources_buffer_strengths_stride;
 
 		GLuint current_gravity_source_count;
+		GLfloat current_gravity_strength;
 
 		GLuint rigid_body_velocity_integration_shader;
 		GLuint integrate_fluid_velocity_shader;

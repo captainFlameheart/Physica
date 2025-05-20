@@ -1,3 +1,5 @@
+#define RADIUS (GRAB_RADIUS + LIGHT_DISTANCE)
+
 const vec2 offsets[6u] = vec2[6u]
 (
 	vec2(RADIUS, RADIUS), 

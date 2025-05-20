@@ -54,7 +54,7 @@ void main()
 {
 	uint contact_index = gl_VertexID / 2u;
 	vec2 camera_relative_xy;
-	if (gl_VertexID % 2u == 0u || fluid_triangle_contacts.contacts[contact_index].mass == 0.0)
+	if (gl_VertexID % 2u == 0u)
 	{
 		uint particle = fluid_triangle_contacts.contacts[contact_index].particle;
 		ivec2 position = fluid_position.p[particle];
