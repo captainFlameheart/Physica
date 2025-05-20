@@ -3,6 +3,13 @@
 #define WIDTH (1u + 2u * uint(1.0 / X_STEP))
 #define HEIGHT (1u + 2u * uint(1.0 / Y_STEP))
 
+layout(shared, binding = GRAVITY_SOURCES_BINDING) uniform Gravity_Sources
+{
+	uint count;
+	ivec2 positions[MAX_GRAVITY_SOURCE_COUNT];
+	float strengths[MAX_GRAVITY_SOURCE_COUNT];
+} gravity_sources;
+
 layout(shared, binding = CAMERA_BINDING) uniform Camera
 {
 	ivec2 xy;

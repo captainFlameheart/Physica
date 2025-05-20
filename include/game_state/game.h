@@ -256,6 +256,16 @@ namespace game_state
 		GLint cursor_constraint_buffer_mass_matrix_stride;
 		GLint cursor_constraint_buffer_impulse_offset;
 
+		GLuint gravity_sources_buffer;
+		GLint gravity_sources_buffer_size;
+		GLint gravity_sources_buffer_count_offset;
+		GLint gravity_sources_buffer_positions_offset;
+		GLint gravity_sources_buffer_positions_stride;
+		GLint gravity_sources_buffer_strengths_offset;
+		GLint gravity_sources_buffer_strengths_stride;
+
+		GLuint current_gravity_source_count;
+
 		GLuint rigid_body_velocity_integration_shader;
 		GLuint integrate_fluid_velocity_shader;
 		GLuint triangle_bounding_box_update_shader;

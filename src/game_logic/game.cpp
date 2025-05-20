@@ -45,6 +45,7 @@
 #include <algorithm>
 #include <chrono>
 
+#define MAX_GRAVITY_SOURCE_COUNT(environment) 100u
 #define GRAVITY_SAMPLE_STEP(environment) 0.1f
 
 #define INTEGRATE_FLUID_VELOCITY_LOCAL_SIZE(environment) \
@@ -909,6 +910,8 @@ namespace game_logic
 			vertex_shader,
 			util_shader_VERSION,
 			util_shader_DEFINE("STEP", STRINGIFY(GRAVITY_SAMPLE_STEP(environment))),
+			util_shader_DEFINE("GRAVITY_SOURCES_BINDING", STRINGIFY(game_logic__util_GRAVITY_SOURCES_BINDING)),
+			util_shader_DEFINE("MAX_GRAVITY_SOURCE_COUNT", STRINGIFY(MAX_GRAVITY_SOURCE_COUNT(environment))),
 			util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING))
 			util_shader_DEFINE("RADIAN_INVERSE", STRINGIFY(game_logic__util__spatial_RADIAN_INVERSE(environment))),
 			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))),
@@ -1610,7 +1613,8 @@ namespace game_logic
 			environment.state.cursor_constraint_buffer, 
 			environment.state.distance_constraint_buffer, 
 			environment.state.fluid_triangle_contact_buffer, 
-			environment.state.fluid_triangle_contact_count_buffer
+			environment.state.fluid_triangle_contact_count_buffer, 
+			environment.state.gravity_sources_buffer
 		};
 		glCreateBuffers(std::size(buffers), buffers);
 		environment.state.camera_buffer = buffers[0u];
@@ -1641,6 +1645,7 @@ namespace game_logic
 		environment.state.distance_constraint_buffer = buffers[23u];
 		environment.state.fluid_triangle_contact_buffer = buffers[24u];
 		environment.state.fluid_triangle_contact_count_buffer = buffers[25u];
+		environment.state.gravity_sources_buffer = buffers[26u];
 
 		{ // Camera buffer
 			GLuint const block_index
@@ -1725,6 +1730,7 @@ namespace game_logic
 		environment.state.current_fluid_persistent_contact_count = 0u;
 		environment.state.current_fluid_triangle_contact_count = 0u;
 		environment.state.current_fluid_triangle_persistent_contact_count = 0u;
+		environment.state.current_gravity_source_count = 0u;
 
 		{ // Fluid position buffer
 			GLuint const p_index
@@ -4160,6 +4166,73 @@ namespace game_logic
 //			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_FLUID_VELOCITY_SNAPSHOT_BINDING, environment.state.fluid_velocity_snapshot_buffer);
 //		}
 
+		{ // Gravity sources buffer
+			GLuint const block_index
+			{
+				glGetProgramResourceIndex(environment.state.gravity_directions_draw_shader, GL_UNIFORM_BLOCK, "Gravity_Sources")
+			};
+			GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
+			glGetProgramResourceiv
+			(
+				environment.state.gravity_directions_draw_shader, GL_UNIFORM_BLOCK, block_index,
+				1u, &buffer_size_label, 1u, nullptr, &environment.state.gravity_sources_buffer_size
+			);
+
+			GLenum const offset_label{ GL_OFFSET };
+
+			GLuint const count_index
+			{
+				glGetProgramResourceIndex(environment.state.gravity_directions_draw_shader, GL_UNIFORM, "Gravity_Sources.count")
+			};
+			glGetProgramResourceiv
+			(
+				environment.state.gravity_directions_draw_shader, GL_UNIFORM, count_index,
+				1u, &offset_label, 1u, nullptr, &environment.state.gravity_sources_buffer_count_offset
+			);
+
+			GLenum prop_labels[]{ GL_OFFSET, GL_ARRAY_STRIDE };
+			GLint props[2u];
+
+			GLuint const positions_index
+			{
+				glGetProgramResourceIndex(environment.state.gravity_directions_draw_shader, GL_UNIFORM, "Gravity_Sources.positions")
+			};
+			glGetProgramResourceiv
+			(
+				environment.state.gravity_directions_draw_shader, GL_UNIFORM, positions_index,
+				std::size(prop_labels), prop_labels, 2u, nullptr, props
+			);
+			environment.state.gravity_sources_buffer_positions_offset = props[0u];
+			environment.state.gravity_sources_buffer_positions_stride = props[1u];
+
+			GLuint const strengths_index
+			{
+				glGetProgramResourceIndex(environment.state.gravity_directions_draw_shader, GL_UNIFORM, "Gravity_Sources.strengths")
+			};
+			glGetProgramResourceiv
+			(
+				environment.state.gravity_directions_draw_shader, GL_UNIFORM, strengths_index,
+				std::size(prop_labels), prop_labels, 2u, nullptr, props
+			);
+			environment.state.gravity_sources_buffer_strengths_offset = props[0u];
+			environment.state.gravity_sources_buffer_strengths_stride = props[1u];
+
+			glNamedBufferStorage
+			(
+				environment.state.gravity_sources_buffer, environment.state.gravity_sources_buffer_size, nullptr,
+				0u
+			);
+			glClearNamedBufferSubData
+			(
+				environment.state.gravity_sources_buffer,
+				GL_R32UI,
+				environment.state.gravity_sources_buffer_count_offset, sizeof(GLuint),
+				GL_RED_INTEGER, GL_UNSIGNED_INT,
+				&environment.state.current_gravity_source_count
+			);
+			glBindBufferBase(GL_UNIFORM_BUFFER, game_logic__util_GRAVITY_SOURCES_BINDING, environment.state.gravity_sources_buffer);
+		}
+
 		util::proximity::initialize
 		(
 			environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment), 
@@ -4391,6 +4464,15 @@ namespace game_logic
 		std::cout << "Fluid triangle contact count buffer (" << environment.state.fluid_triangle_contact_count_buffer << "):" << std::endl;
 		std::cout << "size: " << environment.state.fluid_triangle_contact_count_buffer_size << std::endl;
 		std::cout << "count offset: " << environment.state.fluid_triangle_contact_count_buffer_count_offset << std::endl;
+		std::cout << std::endl;
+
+		std::cout << "Gravity sources buffer (" << environment.state.gravity_sources_buffer << "):" << std::endl;
+		std::cout << "size: " << environment.state.gravity_sources_buffer_size << std::endl;
+		std::cout << "count offset: " << environment.state.gravity_sources_buffer_count_offset << std::endl;
+		std::cout << "positions offset: " << environment.state.gravity_sources_buffer_positions_offset << std::endl;
+		std::cout << "positions stride: " << environment.state.gravity_sources_buffer_positions_stride << std::endl;
+		std::cout << "strengths offset: " << environment.state.gravity_sources_buffer_strengths_offset << std::endl;
+		std::cout << "strengths stride: " << environment.state.gravity_sources_buffer_strengths_stride << std::endl;
 		std::cout << std::endl;
 
 		glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
@@ -6409,7 +6491,8 @@ namespace game_logic
 			environment.state.fluid_contact_count_buffer, 
 			environment.state.fluid_velocity_snapshot_buffer,
 			environment.state.fluid_triangle_contact_buffer, 
-			environment.state.fluid_triangle_contact_count_buffer
+			environment.state.fluid_triangle_contact_count_buffer, 
+			environment.state.gravity_sources_buffer
 		};
 		glDeleteBuffers(std::size(buffers), buffers);
 
