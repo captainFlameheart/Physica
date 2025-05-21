@@ -67,7 +67,7 @@ namespace game_state
 		GLint vertex_buffer_vertices_offset;
 		GLint vertex_buffer_vertices_stride;
 
-		GLfloat	(*vertices)[2];
+		GLfloat	(*vertices)[2u];
 
 		GLuint bounding_box_buffer;
 		GLint bounding_box_buffer_size;

@@ -179,6 +179,113 @@
 
 namespace game_logic
 {
+	template <unsigned int Vertex_Count, unsigned int Vertex_Index_Count>
+	void create_model
+	(
+		game_environment::Environment& environment, 
+		GLuint const vertex_base_index,
+		GLuint const (&vertex_indices)[Vertex_Index_Count],
+		GLfloat& inverse_mass, 
+		GLfloat& inerse_inertia
+	)
+	{
+		GLfloat (*vertices)[2u] = environment.state.vertices + vertex_base_index;
+
+		inverse_mass = 0.0f;
+		GLfloat center_x{ 0.0f };
+		GLfloat center_y{ 0.0f };
+		GLuint i{ 0u };
+		while (i < Vertex_Index_Count)
+		{
+			GLuint const v0{ vertex_indices[i++] };
+			GLuint const v1{ vertex_indices[i++] };
+			GLuint const v2{ vertex_indices[i++] };
+
+			GLfloat const x0{ vertices[v0][0u] };
+			GLfloat const y0{ vertices[v0][1u] };
+
+			GLfloat const x1{ vertices[v1][0u] };
+			GLfloat const y1{ vertices[v1][1u] };
+
+			GLfloat const x2{ vertices[v2][0u] };
+			GLfloat const y2{ vertices[v2][1u] };
+
+			// A - B: (x0 - x1, y0 - y1)
+			// A - C: (x0 - x2, y0 - y2)
+			GLfloat const weight{ std::abs((x0 - x1) * (y0 - y2) - (x0 - x2) * (y0 - y1)) };
+			inverse_mass += weight;
+			center_x += weight * (x0 + x1 + x2);
+			center_y += weight * (y0 + y1 + y2);
+		}
+		inverse_mass = 1.0f / inverse_mass;
+		center_x *= (2.0f / 3.0f) * inverse_mass;
+		center_y *= (2.0f / 3.0f) * inverse_mass;
+		inverse_mass *= 2.0f;
+
+		for (i = 0u; i < Vertex_Count; ++i)
+		{
+			vertices[i][0u] -= center_x;
+			vertices[i][1u] -= center_y;
+
+			glClearNamedBufferSubData
+			(
+				environment.state.vertex_buffer, 
+				GL_RG32F, 
+				environment.state.vertex_buffer_vertices_offset + (vertex_base_index + i) * environment.state.vertex_buffer_vertices_stride, 
+				sizeof(GLfloat[2u]), 
+				GL_RG, GL_FLOAT, 
+				&(vertices[i])
+			);
+		}
+
+		inerse_inertia = 0.0f;
+		i = 0u;
+		while (i < Vertex_Index_Count)
+		{
+			GLuint const v0{ vertex_indices[i++] };
+			GLuint const v1{ vertex_indices[i++] };
+			GLuint const v2{ vertex_indices[i++] };
+
+			GLfloat const x0{ vertices[v0][0u] };
+			GLfloat const y0{ vertices[v0][1u] };
+
+			GLfloat const x1{ vertices[v1][0u] };
+			GLfloat const y1{ vertices[v1][1u] };
+
+			GLfloat const x2{ vertices[v2][0u] };
+			GLfloat const y2{ vertices[v2][1u] };
+
+			GLfloat const triangle_center_x{ (1.0f / 3.0f) * (x0 + x1 + x2) };
+			GLfloat const triangle_center_y{ (1.0f / 3.0f) * (y0 + y1 + y2) };
+
+			x0 -= triangle_center_x;
+			y0 -= triangle_center_y;
+
+			x1 -= triangle_center_x;
+			y1 -= triangle_center_y;
+
+			x2 -= triangle_center_x;
+			y2 -= triangle_center_y;
+
+			GLfloat const triangle_mass{ 0.5f * std::abs((x0 - x1) * (y0 - y2) - (x0 - x2) * (y0 - y1)) };
+			
+			GLfloat const triangle_inertia
+			{
+				(
+					(x0 * x0 + y0 * y0) +
+					(x1 * x1 + y1 * y1) +
+					(x2 * x2 + y2 * y2) +
+					(x0 * x1 + y0 * y1) +
+					(x1 * x2 + y1 * y2) +
+					(x2 * x0 + y2 * y0)
+				) * triangle_mass * (1.0f / 6.0f)
+			};
+
+			inverse_inertia += triangle_inertia + triangle_mass * (triangle_center_x * triangle_center_x + triangle_center_y * triangle_center_y);
+		}
+		inerse_inertia = 1.0f / inverse_inertia;
+	}
+
 	void print_capabilities(game_environment::Environment& environment)
 	{
 		std::cout << "OpenGL Capabilities:\n";
