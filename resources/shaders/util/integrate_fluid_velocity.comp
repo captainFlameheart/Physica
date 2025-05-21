@@ -7,6 +7,13 @@
 // TODO: It MIGHT be faster to store a particle's position AND velocity in a single vec4, so the buffers 
 // could be merged
 
+layout(shared, binding = COUNT_BINDING) uniform Count
+{
+	uint bodies;
+	uint triangles;
+	uint fluid_particles;
+} count;
+
 layout(shared, binding = FLUID_POSITION_BINDING) restrict
 buffer Fluid_Position
 {
@@ -51,6 +58,10 @@ buffer Changed_Fluid_Bounding_Boxes
 layout(local_size_x = LOCAL_SIZE) in;
 void main()
 {
+	if (gl_GlobalInvocationID.x >= count.fluid_particles)
+	{
+		return;
+	}
 	ivec2 position = fluid_position.p[gl_GlobalInvocationID.x];
 	ivec2 velocity = fluid_velocity.v[gl_GlobalInvocationID.x];
 	

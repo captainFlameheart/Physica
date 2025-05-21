@@ -2,6 +2,13 @@
 #define TRANSLATIONAL_TRAJECTORY_PADDING 0//120
 #define ANGULAR_TRAJECTORY_PADDING 0.0//60.0
 
+layout(shared, binding = COUNT_BINDING) uniform Count
+{
+	uint bodies;
+	uint triangles;
+	uint fluid_particles;
+} count;
+
 layout(shared, binding = TRIANGLE_BINDING) restrict readonly
 buffer Triangles
 {
@@ -52,6 +59,11 @@ layout(local_size_x = LOCAL_SIZE) in;
 void main()
 {
 	// TODO: Think about how to handle x, y going out of bounds
+
+	if (gl_GlobalInvocationID.x >= count.triangles)
+	{
+		return;
+	}
 
 	uvec4 triangle = triangles.triangles[gl_GlobalInvocationID.x];
 	ivec4 body_position = positions.p[triangle.w];

@@ -281,6 +281,12 @@ namespace game_state
 		GLfloat gravity_source_strengths[MAX_GRAVITY_SOURCE_COUNT];
 		GLuint grabbed_gravity_source;
 
+		GLuint count_buffer;
+		GLint count_buffer_size;
+		GLint count_buffer_bodies_offset;
+		GLint count_buffer_triangles_offset;
+		GLint count_buffer_fluid_particles_offset;
+
 		GLuint rigid_body_velocity_integration_shader;
 		GLuint integrate_fluid_velocity_shader;
 		GLuint triangle_bounding_box_update_shader;

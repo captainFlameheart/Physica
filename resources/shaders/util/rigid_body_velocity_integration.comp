@@ -2,6 +2,13 @@
 #define DAMPING_NUMERATOR 999//990
 #define DAMPING_DENOMINATOR 1000
 
+layout(shared, binding = COUNT_BINDING) uniform Count
+{
+	uint bodies;
+	uint triangles;
+	uint fluid_particles;
+} count;
+
 layout(shared, binding = POSITION_BINDING) restrict
 buffer Positions
 {
@@ -24,6 +31,11 @@ layout(shared, binding = GRAVITY_SOURCES_BINDING) uniform Gravity_Sources
 layout(local_size_x = LOCAL_SIZE) in;
 void main()
 {
+	if (gl_GlobalInvocationID.x >= count.bodies)
+	{
+		return;
+	}
+
 	ivec4 position = positions.p[gl_GlobalInvocationID.x];
 	ivec4 velocity = velocities.v[gl_GlobalInvocationID.x];
 	position += velocity;

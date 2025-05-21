@@ -227,10 +227,10 @@ namespace game_logic
 			vertices[i][0u] -= center_x;
 			vertices[i][1u] -= center_y;
 
-			environment.state.vertices[vertex_base_index + i][0u] = vertices[i][0u];
-			environment.state.vertices[vertex_base_index + i][1u] = vertices[i][1u];
+			//environment.state.vertices[vertex_base_index + i][0u] = vertices[i][0u];
+			//environment.state.vertices[vertex_base_index + i][1u] = vertices[i][1u];
 
-			glClearNamedBufferSubData
+			/*glClearNamedBufferSubData
 			(
 				environment.state.vertex_buffer, 
 				GL_RG32F, 
@@ -238,7 +238,7 @@ namespace game_logic
 				sizeof(GLfloat[2u]), 
 				GL_RG, GL_FLOAT, 
 				&(vertices[i])
-			);
+			);*/
 		}
 
 		model.inverse_inertia = 0.0f;
@@ -1224,6 +1224,7 @@ namespace game_logic
 			compute_shader,
 			util_shader_VERSION, 
 			max_rigid_body_count_definition,
+			util_shader_DEFINE("COUNT_BINDING", STRINGIFY(game_logic__util_COUNT_BINDING)),
 			util_shader_DEFINE("POSITION_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_POSITION_BINDING)),
 			util_shader_DEFINE("VELOCITY_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_VELOCITY_BINDING)),
 			util_shader_DEFINE("LOCAL_SIZE", STRINGIFY(game_logic__util__rigid_body_VELOCITY_INTEGRATION_LOCAL_SIZE(environment))),
@@ -1248,6 +1249,7 @@ namespace game_logic
 			compute_shader,
 			util_shader_VERSION,
 			max_fluid_particle_count_definition,
+			util_shader_DEFINE("COUNT_BINDING", STRINGIFY(game_logic__util_COUNT_BINDING)),
 			util_shader_DEFINE("FLUID_POSITION_BINDING", STRINGIFY(game_logic__util_FLUID_POSITION_BINDING)),
 			util_shader_DEFINE("FLUID_VELOCITY_BINDING", STRINGIFY(game_logic__util_FLUID_VELOCITY_BINDING)),
 			util_shader_DEFINE("FLUID_BOUNDING_BOX_BINDING", STRINGIFY(game_logic__util_FLUID_BOUNDING_BOX_BINDING)),
@@ -1275,6 +1277,7 @@ namespace game_logic
 			max_triangle_count_definition,
 			max_vertex_count_definition,
 			max_rigid_body_count_definition,
+			util_shader_DEFINE("COUNT_BINDING", STRINGIFY(game_logic__util_COUNT_BINDING)),
 			util_shader_DEFINE("POSITION_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_POSITION_BINDING)),
 			util_shader_DEFINE("TRIANGLE_BINDING", STRINGIFY(game_logic__util_TRIANGLE_BINDING)),
 			util_shader_DEFINE("VERTEX_BINDING", STRINGIFY(game_logic__util_VERTEX_BINDING)),
@@ -1810,7 +1813,8 @@ namespace game_logic
 			environment.state.distance_constraint_buffer, 
 			environment.state.fluid_triangle_contact_buffer, 
 			environment.state.fluid_triangle_contact_count_buffer, 
-			environment.state.gravity_sources_buffer
+			environment.state.gravity_sources_buffer, 
+			environment.state.count_buffer
 		};
 		glCreateBuffers(std::size(buffers), buffers);
 		environment.state.camera_buffer = buffers[0u];
@@ -1842,6 +1846,7 @@ namespace game_logic
 		environment.state.fluid_triangle_contact_buffer = buffers[24u];
 		environment.state.fluid_triangle_contact_count_buffer = buffers[25u];
 		environment.state.gravity_sources_buffer = buffers[26u];
+		environment.state.count_buffer = buffers[27u];
 
 		{ // Camera buffer
 			GLuint const block_index
@@ -1916,7 +1921,7 @@ namespace game_logic
 			);
 		}
 
-		environment.state.current_rigid_body_count = 40u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment);//500000u;
+		environment.state.current_rigid_body_count = 80u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment);//500000u;
 		environment.state.current_triangle_count = 1u * environment.state.current_rigid_body_count;
 		environment.state.current_triangle_contact_count = 0u;
 		environment.state.current_persistent_contact_count = 0u;
@@ -2972,6 +2977,9 @@ namespace game_logic
 			);
 			environment.state.vertices[3u][0u] = vertex[0u];
 			environment.state.vertices[3u][1u] = vertex[1u];
+
+			
+
 			/*for (GLuint i = 0; i < environment.state.current_triangle_count; ++i)
 			{
 				util::rigid_body::Triangle triangle
@@ -4428,6 +4436,79 @@ namespace game_logic
 			glBindBufferBase(GL_UNIFORM_BUFFER, game_logic__util_GRAVITY_SOURCES_BINDING, environment.state.gravity_sources_buffer);
 		}
 
+		{ // Count buffer
+			GLuint const block_index
+			{
+				glGetProgramResourceIndex(environment.state.rigid_body_velocity_integration_shader, GL_UNIFORM_BLOCK, "Count")
+			};
+			GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
+			glGetProgramResourceiv
+			(
+				environment.state.rigid_body_velocity_integration_shader, GL_UNIFORM_BLOCK, block_index,
+				1u, &buffer_size_label, 1u, nullptr, &environment.state.count_buffer_size
+			);
+
+			GLenum const offset_label{ GL_OFFSET };
+
+			GLuint const bodies_index
+			{
+				glGetProgramResourceIndex(environment.state.rigid_body_velocity_integration_shader, GL_UNIFORM, "Count.bodies")
+			};
+			glGetProgramResourceiv
+			(
+				environment.state.rigid_body_velocity_integration_shader, GL_UNIFORM, bodies_index,
+				1u, &offset_label, 1u, nullptr, &environment.state.count_buffer_bodies_offset
+			);
+
+			GLuint const triangles_index
+			{
+				glGetProgramResourceIndex(environment.state.rigid_body_velocity_integration_shader, GL_UNIFORM, "Count.triangles")
+			};
+			glGetProgramResourceiv
+			(
+				environment.state.rigid_body_velocity_integration_shader, GL_UNIFORM, triangles_index,
+				1u, &offset_label, 1u, nullptr, &environment.state.count_buffer_triangles_offset
+			);
+
+			GLuint const fluid_particles_index
+			{
+				glGetProgramResourceIndex(environment.state.rigid_body_velocity_integration_shader, GL_UNIFORM, "Count.fluid_particles")
+			};
+			glGetProgramResourceiv
+			(
+				environment.state.rigid_body_velocity_integration_shader, GL_UNIFORM, fluid_particles_index,
+				1u, &offset_label, 1u, nullptr, &environment.state.count_buffer_fluid_particles_offset
+			);
+
+			unsigned char* initial_count = new unsigned char[environment.state.count_buffer_size];
+			std::memcpy
+			(
+				initial_count + environment.state.count_buffer_bodies_offset, 
+				&environment.state.current_rigid_body_count, 
+				sizeof(GLuint)
+			);
+			std::memcpy
+			(
+				initial_count + environment.state.count_buffer_triangles_offset,
+				&environment.state.current_triangle_count,
+				sizeof(GLuint)
+			);
+			std::memcpy
+			(
+				initial_count + environment.state.count_buffer_fluid_particles_offset, 
+				&environment.state.current_fluid_particle_count,
+				sizeof(GLuint)
+			);
+			glNamedBufferStorage
+			(
+				environment.state.count_buffer, environment.state.count_buffer_size, initial_count,
+				0u
+			);
+			delete[] initial_count;
+
+			glBindBufferBase(GL_UNIFORM_BUFFER, game_logic__util_COUNT_BINDING, environment.state.count_buffer);
+		}
+
 		util::proximity::initialize
 		(
 			environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment), 
@@ -4668,6 +4749,13 @@ namespace game_logic
 		std::cout << "positions stride: " << environment.state.gravity_sources_buffer_positions_stride << std::endl;
 		std::cout << "strengths offset: " << environment.state.gravity_sources_buffer_strengths_offset << std::endl;
 		std::cout << "strengths stride: " << environment.state.gravity_sources_buffer_strengths_stride << std::endl;
+		std::cout << std::endl;
+
+		std::cout << "Count buffer (" << environment.state.count_buffer << "):" << std::endl;
+		std::cout << "size: " << environment.state.count_buffer_size << std::endl;
+		std::cout << "bodies offset: " << environment.state.count_buffer_bodies_offset << std::endl;
+		std::cout << "triangles offset: " << environment.state.count_buffer_triangles_offset << std::endl;
+		std::cout << "fluid particles offset: " << environment.state.count_buffer_fluid_particles_offset << std::endl;
 		std::cout << std::endl;
 
 		glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
@@ -6893,7 +6981,8 @@ namespace game_logic
 			environment.state.fluid_velocity_snapshot_buffer,
 			environment.state.fluid_triangle_contact_buffer, 
 			environment.state.fluid_triangle_contact_count_buffer, 
-			environment.state.gravity_sources_buffer
+			environment.state.gravity_sources_buffer, 
+			environment.state.count_buffer
 		};
 		glDeleteBuffers(std::size(buffers), buffers);
 
