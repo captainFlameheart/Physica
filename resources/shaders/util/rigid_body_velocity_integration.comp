@@ -1,5 +1,5 @@
 // TODO: Move to CPU
-#define DAMPING_NUMERATOR 990
+#define DAMPING_NUMERATOR 999//990
 #define DAMPING_DENOMINATOR 1000
 
 layout(shared, binding = POSITION_BINDING) restrict
@@ -14,6 +14,13 @@ buffer Velocities
 	ivec4 v[MAX_RIGID_BODY_COUNT];
 } velocities;
 
+layout(shared, binding = GRAVITY_SOURCES_BINDING) uniform Gravity_Sources
+{
+	uint count;
+	ivec2 positions[MAX_GRAVITY_SOURCE_COUNT];
+	float strengths[MAX_GRAVITY_SOURCE_COUNT];
+} gravity_sources;
+
 layout(local_size_x = LOCAL_SIZE) in;
 void main()
 {
@@ -22,7 +29,16 @@ void main()
 	position += velocity;
 	positions.p[gl_GlobalInvocationID.x] = position;
 	velocity = (velocity * DAMPING_NUMERATOR) / DAMPING_DENOMINATOR;
-	velocity.xy -= ivec2(0.002 * 1000000.0 * normalize(vec2(position.xy))); // / 400000;
+	vec2 force = vec2(0.0);
+	for (uint i = 0u; i < gravity_sources.count; ++i)
+	{
+		ivec2 source_position = gravity_sources.positions[i];
+		float strength = gravity_sources.strengths[i];
+		ivec2 offset = source_position - position.xy;
+		force += normalize(offset) * (0.0001f * strength * exp(-dot(offset, offset) / (50.0 * strength * strength)));
+	}
+	velocity.xy += ivec2(force);
+	//velocity.xy -= ivec2(0.002 * 1000000.0 * normalize(vec2(position.xy))); // / 400000;
 	velocities.v[gl_GlobalInvocationID.x] = velocity;
 	// TODO: Potentially compute and store new basis for collision detection (and drawing???)
 	// But probably not (I think cos and sin are only one clock cycle each on nvidia)

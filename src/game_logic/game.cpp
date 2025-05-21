@@ -1100,6 +1100,8 @@ namespace game_logic
 			util_shader_DEFINE("POSITION_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_POSITION_BINDING)),
 			util_shader_DEFINE("VELOCITY_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_VELOCITY_BINDING)),
 			util_shader_DEFINE("LOCAL_SIZE", STRINGIFY(game_logic__util__rigid_body_VELOCITY_INTEGRATION_LOCAL_SIZE(environment))),
+			util_shader_DEFINE("GRAVITY_SOURCES_BINDING", STRINGIFY(game_logic__util_GRAVITY_SOURCES_BINDING)),
+			util_shader_DEFINE("MAX_GRAVITY_SOURCE_COUNT", STRINGIFY(MAX_GRAVITY_SOURCE_COUNT)),
 			::util::shader::file_to_string("util/rigid_body_velocity_integration.comp")
 		);
 		environment.state.rigid_body_velocity_integration_shader = ::util::shader::create_program(compute_shader);
@@ -1124,6 +1126,8 @@ namespace game_logic
 			util_shader_DEFINE("FLUID_BOUNDING_BOX_BINDING", STRINGIFY(game_logic__util_FLUID_BOUNDING_BOX_BINDING)),
 			util_shader_DEFINE("CHANGED_FLUID_BOUNDING_BOX_BINDING", STRINGIFY(game_logic__util_CHANGED_FLUID_BOUNDING_BOX_BINDING)),
 			util_shader_DEFINE("LOCAL_SIZE", STRINGIFY(INTEGRATE_FLUID_VELOCITY_LOCAL_SIZE(environment))),
+			util_shader_DEFINE("GRAVITY_SOURCES_BINDING", STRINGIFY(game_logic__util_GRAVITY_SOURCES_BINDING)), 
+			util_shader_DEFINE("MAX_GRAVITY_SOURCE_COUNT", STRINGIFY(MAX_GRAVITY_SOURCE_COUNT)),
 			fluid_padding_definition,
 			fluid_paritcle_physical_radius_definition,
 			::util::shader::file_to_string("util/integrate_fluid_velocity.comp")
@@ -1785,12 +1789,12 @@ namespace game_logic
 			);
 		}
 
-		environment.state.current_rigid_body_count = 10u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment);//500000u;
+		environment.state.current_rigid_body_count = 40u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment);//500000u;
 		environment.state.current_triangle_count = 1u * environment.state.current_rigid_body_count;
 		environment.state.current_triangle_contact_count = 0u;
 		environment.state.current_persistent_contact_count = 0u;
 		environment.state.current_distance_constraint_count = 0u;
-		environment.state.current_fluid_particle_count = 10u * INTEGRATE_FLUID_VELOCITY_LOCAL_SIZE(environment);
+		environment.state.current_fluid_particle_count = 20u * INTEGRATE_FLUID_VELOCITY_LOCAL_SIZE(environment);
 		environment.state.current_fluid_contact_count = 0u;
 		environment.state.current_fluid_persistent_contact_count = 0u;
 		environment.state.current_fluid_triangle_contact_count = 0u;
@@ -1836,12 +1840,12 @@ namespace game_logic
 
 			for (GLuint i = 0; i < environment.state.current_fluid_particle_count; ++i)
 			{
-				GLuint const width{ 10u };
+				GLuint const width{ 100u };
 
 				::util::math::Vector_2D position
 				{
-					-game_logic__util__spatial_FROM_METERS(environment, (i % width) * 5.0f),
-					-game_logic__util__spatial_FROM_METERS(environment, (i / width) * 1.2f)
+					-game_logic__util__spatial_FROM_METERS(environment, (10.0f + 0.5f * (i % width) * cos(i * 0.1f))),
+					-game_logic__util__spatial_FROM_METERS(environment, (10.0f + 0.5f * (i / width) * sin(i * 0.2f)))
 				};
 
 				std::memcpy
@@ -1920,7 +1924,7 @@ namespace game_logic
 				};
 				if (i % 2u == 0u)
 				{
-					velocity.x = game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, -10.0f);
+					//velocity.x = game_METERS_PER_SECOND_TO_LENGTH_PER_TICK(environment, -10.0f);
 				}
 
 				std::memcpy
@@ -2531,12 +2535,12 @@ namespace game_logic
 			
 			for (GLuint i = 0; i < environment.state.current_rigid_body_count; ++i)
 			{
-				GLuint const width{ 316u };
+				GLuint const width{ 100u };
 				util::rigid_body::Position position
 				{
 					{
-						game_logic__util__spatial_FROM_METERS(environment, (i % width) * 0.5f),
-						game_logic__util__spatial_FROM_METERS(environment, (i / width) * 0.5f)
+						game_logic__util__spatial_FROM_METERS(environment, (i % width) * 0.2f),
+						game_logic__util__spatial_FROM_METERS(environment, (i / width) * 0.2f)
 					}, 
 					game_logic__util__spatial_FROM_RADIANS(environment, i * 0.1f), 
 					0
@@ -3701,7 +3705,7 @@ namespace game_logic
 			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_DISTANCE_CONSTRAINT_BINDING, environment.state.distance_constraint_buffer);
 		}
 
-//		{ // Fluid position buffer
+//		{
 //			GLuint const p_index
 //			{
 //				glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, "Fluid_Position.p")
@@ -6105,7 +6109,7 @@ namespace game_logic
 			}
 			if (hovered_gravity_source != environment.state.current_gravity_source_count)
 			{
-				GLfloat strength = environment.state.gravity_source_strengths[hovered_gravity_source] + y_offset * 1.0f;
+				GLfloat strength = environment.state.gravity_source_strengths[hovered_gravity_source] + y_offset * 1.0f * game_logic__util__spatial_METER(environment);
 				environment.state.gravity_source_strengths[hovered_gravity_source] = strength;
 				glClearNamedBufferSubData
 				(
@@ -6670,7 +6674,12 @@ namespace game_logic
 			}
 		}
 
-		if (environment.state.gravity_visible || hovered_gravity_source != environment.state.current_gravity_source_count)
+		if 
+		(
+			environment.state.gravity_visible || 
+			hovered_gravity_source != environment.state.current_gravity_source_count || 
+			environment.state.grabbed_gravity_source != game_logic__util__proximity_NULL_INDEX
+		)
 		{
 			GLfloat const x_step{ GRAVITY_SAMPLE_STEP(environment) * game_logic__util__projection_SCALE_X(environment) };
 			GLfloat const y_step{ GRAVITY_SAMPLE_STEP(environment) * game_logic__util__projection_SCALE_Y(environment) };

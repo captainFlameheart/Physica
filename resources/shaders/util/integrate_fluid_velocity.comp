@@ -1,5 +1,5 @@
 // TODO: Move to CPU
-#define DAMPING_NUMERATOR 998//999//995//990
+#define DAMPING_NUMERATOR 999//999//995//990
 #define DAMPING_DENOMINATOR 1000
 
 #define TRAJECTORY_PADDING 0//120
@@ -18,6 +18,13 @@ buffer Fluid_Velocity
 {
 	ivec2 v[MAX_FLUID_PARTICLE_COUNT];
 } fluid_velocity;
+
+layout(shared, binding = GRAVITY_SOURCES_BINDING) uniform Gravity_Sources
+{
+	uint count;
+	ivec2 positions[MAX_GRAVITY_SOURCE_COUNT];
+	float strengths[MAX_GRAVITY_SOURCE_COUNT];
+} gravity_sources;
 
 layout(shared, binding = FLUID_BOUNDING_BOX_BINDING) restrict
 buffer Fluid_Bounding_Boxes
@@ -49,7 +56,17 @@ void main()
 	
 	position += velocity;
 	velocity = (velocity * DAMPING_NUMERATOR) / DAMPING_DENOMINATOR;
-	velocity -= ivec2(0.001 * 1000000.0 * normalize(vec2(position - ivec2(-50 * 1000000, 0)))); // / 400000;
+	// IMPORTANT TODO: Forces should be applied AFTER updating the constraints
+	vec2 force = vec2(0.0);
+	for (uint i = 0u; i < gravity_sources.count; ++i)
+	{
+		ivec2 source_position = gravity_sources.positions[i];
+		float strength = gravity_sources.strengths[i];
+		ivec2 offset = source_position - position;
+		force += normalize(offset) * (0.0001f * strength * exp(-dot(offset, offset) / (50.0 * strength * strength)));
+	}
+	velocity += ivec2(force);
+	//velocity -= ivec2(0.001 * 1000000.0 * normalize(vec2(position - ivec2(-50 * 1000000, 0)))); // / 400000;
 	
 	fluid_position.p[gl_GlobalInvocationID.x] = position;
 	fluid_velocity.v[gl_GlobalInvocationID.x] = velocity;
