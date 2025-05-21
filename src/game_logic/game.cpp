@@ -45,6 +45,8 @@
 #include <algorithm>
 #include <chrono>
 
+#define M_PI 3.14159265358979323846f
+
 #define GRAVITY_SAMPLE_STEP(environment) 0.1f
 #define GRAVITY_SOURCE_GRAB_RADIUS(environment) 0.5f * game_logic__util__spatial_METER(environment)
 #define GRAVITY_SOURCE_LIGHT_DISTANCE(environment) 1.0f * game_logic__util__spatial_METER(environment)
@@ -4978,6 +4980,97 @@ namespace game_logic
 			4u, 5u, 6u
 		};
 		create_model<7u, 9u>(environment, 11u, house_vertices, house_vertex_indices, house_model);
+		
+		GLuint const planet_outline_vertex_count{ 16u };
+		Model<planet_outline_vertex_count * 3u> planet_model;
+		{
+			GLfloat planet_vertices[planet_outline_vertex_count + 1u][2u];
+			planet_vertices[0u][0u] = 0.0f;
+			planet_vertices[0u][1u] = 0.0f;
+			GLfloat planet_outline_distances[planet_outline_vertex_count]
+			{
+				2.0f, 3.0f, 3.5f, 2.5f, 1.5f, 2.0f, 2.5f, 3.3f,
+				5.0f, 4.0f, 2.7f, 3.2f, 2.9f, 2.6f, 2.3f, 1.8f
+			};
+			GLfloat const angle_step{ 2.0f * M_PI / planet_outline_vertex_count };
+			for (GLuint i{ 0u }; i < planet_outline_vertex_count; ++i)
+			{
+				GLfloat const angle{ static_cast<GLfloat>(i) * angle_step };
+				GLfloat const distance{ planet_outline_distances[i] };
+				GLfloat const x{ std::cos(angle) * distance };
+				GLfloat const y{ std::sin(angle) * distance };
+				planet_vertices[i + 1u][0u] = x;
+				planet_vertices[i + 1u][1u] = y;
+			}
+			GLuint planet_vertex_indices[planet_outline_vertex_count * 3u];
+			for (GLuint i{ 0u }; i < planet_outline_vertex_count; ++i)
+			{
+				GLuint j{ i * 3u };
+				planet_vertex_indices[j] = 0u;
+				planet_vertex_indices[j + 1u] = i + 1u;
+				planet_vertex_indices[j + 2u] = ((i + 1u) % planet_outline_vertex_count) + 1u;
+			}
+			create_model<planet_outline_vertex_count + 1u, planet_outline_vertex_count * 3u>
+			(
+				environment, 18u, planet_vertices, planet_vertex_indices, planet_model
+			);
+		}
+
+		GLuint const big_planet_outline_vertex_count{ 16u };
+		Model<big_planet_outline_vertex_count * 3u> big_planet_model;
+		{
+			GLfloat big_planet_vertices[big_planet_outline_vertex_count + 1u][2u];
+			big_planet_vertices[0u][0u] = 0.0f;
+			big_planet_vertices[0u][1u] = 0.0f;
+			GLfloat big_planet_outline_distances[planet_outline_vertex_count]
+			{
+				9.0f, 8.5f, 9.5f, 8.5f, 6.5f, 7.0f, 6.5f, 7.3f,
+				8.0f, 6.0f, 6.7f, 8.2f, 9.9f, 6.6f, 5.3f, 9.8f
+			};
+			GLfloat const angle_step{ 2.0f * M_PI / big_planet_outline_vertex_count };
+			for (GLuint i{ 0u }; i < big_planet_outline_vertex_count; ++i)
+			{
+				GLfloat const angle{ static_cast<GLfloat>(i) * angle_step };
+				GLfloat const distance{ big_planet_outline_distances[i] };
+				GLfloat const x{ std::cos(angle) * distance };
+				GLfloat const y{ std::sin(angle) * distance };
+				big_planet_vertices[i + 1u][0u] = x;
+				big_planet_vertices[i + 1u][1u] = y;
+			}
+			GLuint big_planet_vertex_indices[planet_outline_vertex_count * 3u];
+			for (GLuint i{ 0u }; i < big_planet_outline_vertex_count; ++i)
+			{
+				GLuint j{ i * 3u };
+				big_planet_vertex_indices[j] = 0u;
+				big_planet_vertex_indices[j + 1u] = i + 1u;
+				big_planet_vertex_indices[j + 2u] = ((i + 1u) % big_planet_outline_vertex_count) + 1u;
+			}
+			create_model<big_planet_outline_vertex_count + 1u, big_planet_outline_vertex_count * 3u>
+			(
+				environment, 19u + planet_outline_vertex_count, big_planet_vertices, big_planet_vertex_indices, big_planet_model
+			);
+		}
+
+		instantiate_model
+		(
+			environment, planet_model,
+			0, 0, 0,
+			0, 0, 0
+		);
+
+		instantiate_model
+		(
+			environment, planet_model,
+			-20 * 1000000, 0, 1 * 1000000,
+			0, 0, 0
+		);
+
+		instantiate_model
+		(
+			environment, big_planet_model,
+			-50 * 1000000, 50 * 1000000, 1 * 1000000,
+			0, 0, 0
+		);
 
 		//instantiate_model(environment, box_model, 0, 0, 0, 0, 0, 0);
 		//instantiate_model(environment, triangle_model, 10000000, 0, 0, 0, 0, 0);
