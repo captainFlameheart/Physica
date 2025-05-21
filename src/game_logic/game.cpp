@@ -179,27 +179,34 @@
 
 namespace game_logic
 {
+	template <unsigned int Vertex_Index_Count>
+	struct Model
+	{
+		GLuint vertex_indices[Vertex_Index_Count];
+		GLfloat inverse_mass;
+		GLfloat inverse_inertia;
+	};
+
 	template <unsigned int Vertex_Count, unsigned int Vertex_Index_Count>
 	void create_model
 	(
-		game_environment::Environment& environment, 
+		game_environment::Environment& environment,
 		GLuint const vertex_base_index,
-		GLuint const (&vertex_indices)[Vertex_Index_Count],
-		GLfloat& inverse_mass, 
-		GLfloat& inerse_inertia
+		GLfloat (*vertices)[2u], 
+		Model<Vertex_Index_Count>& model
 	)
 	{
 		GLfloat (*vertices)[2u] = environment.state.vertices + vertex_base_index;
 
-		inverse_mass = 0.0f;
+		model.inverse_mass = 0.0f;
 		GLfloat center_x{ 0.0f };
 		GLfloat center_y{ 0.0f };
 		GLuint i{ 0u };
 		while (i < Vertex_Index_Count)
 		{
-			GLuint const v0{ vertex_indices[i++] };
-			GLuint const v1{ vertex_indices[i++] };
-			GLuint const v2{ vertex_indices[i++] };
+			GLuint const v0{ model.vertex_indices[i++] };
+			GLuint const v1{ model.vertex_indices[i++] };
+			GLuint const v2{ model.vertex_indices[i++] };
 
 			GLfloat const x0{ vertices[v0][0u] };
 			GLfloat const y0{ vertices[v0][1u] };
@@ -213,14 +220,14 @@ namespace game_logic
 			// A - B: (x0 - x1, y0 - y1)
 			// A - C: (x0 - x2, y0 - y2)
 			GLfloat const weight{ std::abs((x0 - x1) * (y0 - y2) - (x0 - x2) * (y0 - y1)) };
-			inverse_mass += weight;
+			model.inverse_mass += weight;
 			center_x += weight * (x0 + x1 + x2);
 			center_y += weight * (y0 + y1 + y2);
 		}
-		inverse_mass = 1.0f / inverse_mass;
-		center_x *= (2.0f / 3.0f) * inverse_mass;
-		center_y *= (2.0f / 3.0f) * inverse_mass;
-		inverse_mass *= 2.0f;
+		model.inverse_mass = 1.0f / model.inverse_mass;
+		center_x *= (2.0f / 3.0f) * model.inverse_mass;
+		center_y *= (2.0f / 3.0f) * model.inverse_mass;
+		model.inverse_mass *= 2.0f;
 
 		for (i = 0u; i < Vertex_Count; ++i)
 		{
@@ -238,13 +245,13 @@ namespace game_logic
 			);
 		}
 
-		inerse_inertia = 0.0f;
+		model.inverse_inertia = 0.0f;
 		i = 0u;
 		while (i < Vertex_Index_Count)
 		{
-			GLuint const v0{ vertex_indices[i++] };
-			GLuint const v1{ vertex_indices[i++] };
-			GLuint const v2{ vertex_indices[i++] };
+			GLuint const v0{ model.vertex_indices[i++] };
+			GLuint const v1{ model.vertex_indices[i++] };
+			GLuint const v2{ model.vertex_indices[i++] };
 
 			GLfloat const x0{ vertices[v0][0u] };
 			GLfloat const y0{ vertices[v0][1u] };
@@ -281,9 +288,9 @@ namespace game_logic
 				) * triangle_mass * (1.0f / 6.0f)
 			};
 
-			inverse_inertia += triangle_inertia + triangle_mass * (triangle_center_x * triangle_center_x + triangle_center_y * triangle_center_y);
+			model.inverse_inertia += triangle_inertia + triangle_mass * (triangle_center_x * triangle_center_x + triangle_center_y * triangle_center_y);
 		}
-		inerse_inertia = 1.0f / inverse_inertia;
+		model.inverse_inertia = 1.0f / model.inverse_inertia;
 	}
 
 	void print_capabilities(game_environment::Environment& environment)
