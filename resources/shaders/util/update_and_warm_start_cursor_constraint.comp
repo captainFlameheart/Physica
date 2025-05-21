@@ -30,6 +30,12 @@ buffer Velocities
 	ivec4 v[MAX_RIGID_BODY_COUNT];
 } velocities;
 
+layout(shared, binding = BODY_MASSES_BINDING) restrict readonly
+buffer Body_Masses
+{
+	vec2 masses[MAX_RIGID_BODY_COUNT];	// mass: (inverse_mass, inverse_inertia)
+} body_masses;
+
 layout(local_size_x = 1u) in;
 void main()
 {
@@ -43,8 +49,11 @@ void main()
 	float right_y = sin(angle);
 	
 	// TODO: Fetch masses from buffer
-	float inverse_mass = INVERSE_MASS;
-	float inverse_inertia = INVERSE_INERTIA;
+	vec2 body_mass = body_masses.masses[body];
+	float inverse_mass = body_mass.x;
+	float inverse_inertia = body_mass.y;
+	//float inverse_mass = INVERSE_MASS;
+	//float inverse_inertia = INVERSE_INERTIA;
 
 	// TODO: See if it's faster to construct and multiply with a matrix
 	vec2 offset = local_point.x * vec2(right_x, right_y) + local_point.y * vec2(-right_y, right_x);

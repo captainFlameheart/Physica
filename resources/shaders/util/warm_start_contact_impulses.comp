@@ -44,6 +44,12 @@ layout(shared, binding = PERSISTENT_CONTACT_COUNT_BINDING) uniform Persistent_Co
 	uint persistent_contact_count;
 } persistent_contact_count;
 
+layout(shared, binding = BODY_MASSES_BINDING) restrict readonly
+buffer Body_Masses
+{
+	vec2 masses[MAX_RIGID_BODY_COUNT];	// mass: (inverse_mass, inverse_inertia)
+} body_masses;
+
 layout(shared, binding = VELOCITY_BINDING) restrict writeonly
 buffer Velocities
 {
@@ -82,11 +88,13 @@ void main()
 	vec2 impulse_sum = impulse_0 + impulse_1;
 
 	// TODO: Fetch masses from buffer
-	float inverse_mass_0 = INVERSE_MASS;
-	float inverse_inertia_0 = INVERSE_INERTIA;
+	vec2 mass_0 = body_masses.masses[body_0];
+	float inverse_mass_0 = mass_0.x;//INVERSE_MASS;
+	float inverse_inertia_0 = mass_0.y;//INVERSE_INERTIA;
 
-	float inverse_mass_1 = INVERSE_MASS;
-	float inverse_inertia_1 = INVERSE_INERTIA;
+	vec2 mass_1 = body_masses.masses[body_1];
+	float inverse_mass_1 = mass_1.x;//INVERSE_MASS;
+	float inverse_inertia_1 = mass_1.y;//INVERSE_INERTIA;
 
 	ivec3 delta_velocity_0 = ivec3
 	(

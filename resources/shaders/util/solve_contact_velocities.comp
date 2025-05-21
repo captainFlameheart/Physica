@@ -149,8 +149,9 @@ void main()
 	vec2 delta_impulse_sum = delta_impulse_0 + delta_impulse_1;
 
 	// TODO: Fetch masses from buffer
-	float inverse_mass_0 = INVERSE_MASS;
-	float inverse_inertia_0 = INVERSE_INERTIA;
+	vec2 mass_0 = body_masses.masses[body_0];
+	float inverse_mass_0 = mass_0.x;//INVERSE_MASS;
+	float inverse_inertia_0 = mass_0.y;//INVERSE_INERTIA;
 
 	ivec3 delta_velocity_0 = ivec3
 	(
@@ -158,8 +159,9 @@ void main()
 		-RADIAN * inverse_inertia_0 * (dot(delta_impulse_0, offset_0_0) + dot(delta_impulse_1, offset_1_0))
 	);
 
-	float inverse_mass_1 = INVERSE_MASS;
-	float inverse_inertia_1 = INVERSE_INERTIA;
+	vec2 mass_1 = body_masses.masses[body_1];
+	float inverse_mass_1 = mass_1.x;//INVERSE_MASS;
+	float inverse_inertia_1 = mass_1.y;//INVERSE_INERTIA;
 
 	ivec3 delta_velocity_1 = ivec3
 	(

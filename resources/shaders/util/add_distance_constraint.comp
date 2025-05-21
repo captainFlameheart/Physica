@@ -29,6 +29,12 @@ buffer Velocities
 	ivec4 v[MAX_RIGID_BODY_COUNT];
 } velocities;
 
+layout(shared, binding = BODY_MASSES_BINDING) restrict readonly
+buffer Body_Masses
+{
+	vec2 masses[MAX_RIGID_BODY_COUNT];	// mass: (inverse_mass, inverse_inertia)
+} body_masses;
+
 layout(local_size_x = 1u) in;
 void main()
 {
@@ -41,11 +47,19 @@ void main()
 	ivec4 body_position_1 = positions.p[bodies.y];
 
 	// TODO: Fetch masses from buffer
-	float inverse_mass_0 = INVERSE_MASS;
+	vec2 mass_0 = body_masses.masses[bodies.x];
+	float inverse_mass_0 = mass_0.x;
+	float inverse_inertia_0 = mass_0.y;
+
+	vec2 mass_1 = body_masses.masses[bodies.y];
+	float inverse_mass_1 = mass_1.x;
+	float inverse_inertia_1 = mass_1.y;
+
+	/*float inverse_mass_0 = INVERSE_MASS;
 	float inverse_inertia_0 = INVERSE_INERTIA;
 
 	float inverse_mass_1 = INVERSE_MASS;
-	float inverse_inertia_1 = INVERSE_INERTIA;
+	float inverse_inertia_1 = INVERSE_INERTIA;*/
 
 	float angle_0 = float(body_position_0.z) * RADIAN_INVERSE;
 	float right_x_0 = cos(angle_0);

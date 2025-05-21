@@ -62,6 +62,12 @@ buffer Velocities
 	ivec4 v[MAX_RIGID_BODY_COUNT];
 } velocities;
 
+layout(shared, binding = BODY_MASSES_BINDING) restrict readonly
+buffer Body_Masses
+{
+	vec2 masses[MAX_RIGID_BODY_COUNT];	// mass: (inverse_mass, inverse_inertia)
+} body_masses;
+
 uniform uint persistent_count;
 
 layout(local_size_x = LOCAL_SIZE) in;
@@ -145,8 +151,9 @@ void main()
 
 	// TODO: Fetch from buffer
 	float particle_inverse_mass = PARTICLE_INVERSE_MASS;
-	float body_inverse_mass = BODY_INVERSE_MASS;
-	float body_inverse_inertia = BODY_INVERSE_INERTIA;
+	vec2 body_mass = body_masses.masses[triangle.w];
+	float body_inverse_mass = body_mass.x;//BODY_INVERSE_MASS;
+	float body_inverse_inertia = body_mass.y;//BODY_INVERSE_INERTIA;
 
 	float old_mass = fluid_triangle_contacts.contacts[index].mass;
 
