@@ -7,8 +7,17 @@
 
 #define MAX_GRAVITY_SOURCE_COUNT 100u
 
+template <unsigned int Vertex_Index_Count>
+struct Model
+{
+	GLuint vertex_indices[Vertex_Index_Count];
+	GLfloat inverse_mass;
+	GLfloat inverse_inertia;
+};
+
 namespace game_state
 {
+
 	// TODO: Organize based on access patterns 
 	// (initialize -> render -> events -> tick * n -> render -> events -> tick * n -> render -> ...)
 	struct Game

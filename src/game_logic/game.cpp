@@ -179,34 +179,27 @@
 
 namespace game_logic
 {
-	template <unsigned int Vertex_Index_Count>
-	struct Model
-	{
-		GLuint vertex_indices[Vertex_Index_Count];
-		GLfloat inverse_mass;
-		GLfloat inverse_inertia;
-	};
-
 	template <unsigned int Vertex_Count, unsigned int Vertex_Index_Count>
 	void create_model
 	(
 		game_environment::Environment& environment,
 		GLuint const vertex_base_index,
-		GLfloat (*vertices)[2u], 
+		GLfloat (&vertices)[Vertex_Count][2u], 
+		GLuint (&vertex_indices)[Vertex_Index_Count],
 		Model<Vertex_Index_Count>& model
 	)
 	{
-		GLfloat (*vertices)[2u] = environment.state.vertices + vertex_base_index;
-
 		model.inverse_mass = 0.0f;
 		GLfloat center_x{ 0.0f };
 		GLfloat center_y{ 0.0f };
 		GLuint i{ 0u };
 		while (i < Vertex_Index_Count)
 		{
-			GLuint const v0{ model.vertex_indices[i++] };
-			GLuint const v1{ model.vertex_indices[i++] };
-			GLuint const v2{ model.vertex_indices[i++] };
+			model.vertex_indices[i] = vertex_base_index + i;
+
+			GLuint const v0{ vertex_indices[i++] };
+			GLuint const v1{ vertex_indices[i++] };
+			GLuint const v2{ vertex_indices[i++] };
 
 			GLfloat const x0{ vertices[v0][0u] };
 			GLfloat const y0{ vertices[v0][1u] };
@@ -234,6 +227,9 @@ namespace game_logic
 			vertices[i][0u] -= center_x;
 			vertices[i][1u] -= center_y;
 
+			environment.state.vertices[vertex_base_index + i][0u] = vertices[i][0u];
+			environment.state.vertices[vertex_base_index + i][1u] = vertices[i][1u];
+
 			glClearNamedBufferSubData
 			(
 				environment.state.vertex_buffer, 
@@ -249,18 +245,18 @@ namespace game_logic
 		i = 0u;
 		while (i < Vertex_Index_Count)
 		{
-			GLuint const v0{ model.vertex_indices[i++] };
-			GLuint const v1{ model.vertex_indices[i++] };
-			GLuint const v2{ model.vertex_indices[i++] };
+			GLuint const v0{ vertex_indices[i++] };
+			GLuint const v1{ vertex_indices[i++] };
+			GLuint const v2{ vertex_indices[i++] };
 
-			GLfloat const x0{ vertices[v0][0u] };
-			GLfloat const y0{ vertices[v0][1u] };
+			GLfloat x0{ vertices[v0][0u] };
+			GLfloat y0{ vertices[v0][1u] };
 
-			GLfloat const x1{ vertices[v1][0u] };
-			GLfloat const y1{ vertices[v1][1u] };
+			GLfloat x1{ vertices[v1][0u] };
+			GLfloat y1{ vertices[v1][1u] };
 
-			GLfloat const x2{ vertices[v2][0u] };
-			GLfloat const y2{ vertices[v2][1u] };
+			GLfloat x2{ vertices[v2][0u] };
+			GLfloat y2{ vertices[v2][1u] };
 
 			GLfloat const triangle_center_x{ (1.0f / 3.0f) * (x0 + x1 + x2) };
 			GLfloat const triangle_center_y{ (1.0f / 3.0f) * (y0 + y1 + y2) };
@@ -364,6 +360,8 @@ namespace game_logic
 
 		print_capabilities(environment);
 
+		environment.state.vertices = new GLfloat[game_logic_MAX_VERTEX_COUNT(environment)][2u];
+
 		glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
 		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
 
@@ -386,6 +384,21 @@ namespace game_logic
 		environment.state.contact_basis_visible = false;
 		environment.state.contact_impulses_visible = false;
 		environment.state.gravity_visible = false;
+
+		Model<6u> box_model;
+		GLfloat box_vertices[][2u]
+		{
+			{ 1.0f, 1.0f }, 
+			{ -1.0f, 1.0f },
+			{ -1.0f, -1.0f },
+			{ 1.0f, -1.0f },
+		};
+		GLuint box_vertex_indices[]
+		{
+			0u, 1u, 2u, 
+			2u, 3u, 0u
+		};
+		create_model<4u, 6u>(environment, 4u, box_vertices, box_vertex_indices, box_model);
 
 		// TODO: Use glBindBuffersBase (note the s) for binding multiple buffers at once
 		// IMPORTANT TODO: We do not need to do a position snapshot if velocity-based position correction 
@@ -2917,7 +2930,6 @@ namespace game_logic
 			// content from CPU to GPU like this. Instead, use persistent mapping 
 			// for both initialization and updating.
 			unsigned char* const initial_vertices = new unsigned char[environment.state.vertex_buffer_size];
-			environment.state.vertices = new GLfloat[game_logic_MAX_VERTEX_COUNT(environment)][2u];
 			
 			GLfloat vertex[2];
 			GLfloat const r{ 0.5f };
