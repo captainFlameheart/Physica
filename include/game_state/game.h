@@ -206,6 +206,11 @@ namespace game_state
 		GLint fluid_triangle_contact_count_buffer_size;
 		GLint fluid_triangle_contact_count_buffer_count_offset;
 
+		GLuint body_masses_buffer;
+		GLint body_masses_buffer_size;
+		GLint body_masses_buffer_masses_offset;
+		GLint body_masses_buffer_masses_stride;
+
 		GLuint current_fluid_triangle_persistent_contact_count;
 		GLuint current_fluid_triangle_contact_count;
 

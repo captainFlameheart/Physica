@@ -50,6 +50,12 @@ buffer Velocities_Snapshot
 	ivec4 v[MAX_RIGID_BODY_COUNT];
 } velocities_snapshot;
 
+layout(shared, binding = BODY_MASSES_BINDING) restrict readonly
+buffer Body_Masses
+{
+	vec2 masses[MAX_RIGID_BODY_COUNT];	// mass: (inverse_mass, inverse_inertia)
+} body_masses;
+
 layout(shared, binding = VELOCITY_BINDING) restrict writeonly
 buffer Velocities
 {

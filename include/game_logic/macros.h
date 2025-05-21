@@ -70,8 +70,8 @@
 #define game_logic__util_POSITION_SNAPSHOT_BINDING 15
 #define game_logic__util_CURSOR_CONSTRAINT_BINDING 16
 #define game_logic__util_DISTANCE_CONSTRAINT_BINDING 17
-
 #define game_logic__util_FLUID_TRIANGLE_CONTACT_BINDING 18
+#define game_logic__util_BODY_MASSES_BINDING 19
 
 #define game_CAMERA_DEFAULT_DISTANCE_PER_TICK(environment) \
 	game_METERS_PER_SECOND_TO_FLOAT_LENGTH_PER_TICK(environment, 5.0f)

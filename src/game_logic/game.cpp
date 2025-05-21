@@ -326,6 +326,17 @@ namespace game_logic
 			velocity
 		);
 
+		GLfloat mass[2u]{ model.inverse_mass, model.inverse_inertia };
+		glClearNamedBufferSubData
+		(
+			environment.state.body_masses_buffer,
+			GL_RG32F,
+			environment.state.body_masses_buffer_masses_offset + environment.state.current_rigid_body_count * environment.state.body_masses_buffer_masses_stride,
+			sizeof(mass),
+			GL_RG, GL_FLOAT,
+			mass
+		);
+
 		GLuint i{ 0u };
 		while (i < Vertex_Index_Count)
 		{
@@ -1800,6 +1811,7 @@ namespace game_logic
 			util_shader_DEFINE("CONTACT_SURFACE_BINDING", STRINGIFY(game_logic__util_CONTACT_SURFACE_BINDING)),
 			util_shader_DEFINE("CONTACT_COUNT_BINDING", STRINGIFY(game_logic__util_CONTACT_COUNT_BINDING)),
 			util_shader_DEFINE("VELOCITY_SNAPSHOT_BINDING", STRINGIFY(game_logic__util_VELOCITY_SNAPSHOT_BINDING)),
+			util_shader_DEFINE("BODY_MASSES_BINDING", STRINGIFY(game_logic__util_BODY_MASSES_BINDING)),
 			util_shader_DEFINE("VELOCITY_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_VELOCITY_BINDING)),
 			util_shader_DEFINE("LOCAL_SIZE", STRINGIFY(game_logic__util__rigid_body_SOLVE_CONTACT_VELOCITIES_LOCAL_SIZE(environment))),
 			util_shader_DEFINE("METER_INVERSE", STRINGIFY(game_logic__util__spatial_METER_INVERSE(environment))),
@@ -1905,7 +1917,8 @@ namespace game_logic
 			environment.state.fluid_triangle_contact_buffer, 
 			environment.state.fluid_triangle_contact_count_buffer, 
 			environment.state.gravity_sources_buffer, 
-			environment.state.count_buffer
+			environment.state.count_buffer, 
+			environment.state.body_masses_buffer
 		};
 		glCreateBuffers(std::size(buffers), buffers);
 		environment.state.camera_buffer = buffers[0u];
@@ -1938,6 +1951,7 @@ namespace game_logic
 		environment.state.fluid_triangle_contact_count_buffer = buffers[25u];
 		environment.state.gravity_sources_buffer = buffers[26u];
 		environment.state.count_buffer = buffers[27u];
+		environment.state.body_masses_buffer = buffers[28u];
 
 		{ // Camera buffer
 			GLuint const block_index
@@ -4600,6 +4614,47 @@ namespace game_logic
 			glBindBufferBase(GL_UNIFORM_BUFFER, game_logic__util_COUNT_BINDING, environment.state.count_buffer);
 		}
 
+		{ // Body masses buffer
+			GLuint const masses_index
+			{
+				glGetProgramResourceIndex(environment.state.solve_contact_velocities_shader, GL_BUFFER_VARIABLE, "Body_Masses.masses")
+			};
+
+			GLenum const prop_labels[]{ GL_OFFSET, GL_ARRAY_STRIDE };
+			GLint props[std::size(prop_labels)];
+			glGetProgramResourceiv
+			(
+				environment.state.solve_contact_velocities_shader, GL_BUFFER_VARIABLE, masses_index,
+				std::size(prop_labels), prop_labels, 2u, nullptr, props
+			);
+			// TODO: Consider putting offset and stride contigously in game state
+			environment.state.body_masses_buffer_masses_offset = props[0u];
+			environment.state.body_masses_buffer_masses_stride = props[1u];
+
+#if USE_DYNAMIC_SIZES == true
+			environment.state.body_masses_buffer_size = environment.state.body_masses_buffer_masses_offset + game_logic_MAX_RIGID_BODY_COUNT(environment) * environment.state.body_masses_buffer_masses_stride;
+#else
+			GLuint const block_index
+			{
+				glGetProgramResourceIndex(environment.state.solve_contact_velocities_shader, GL_SHADER_STORAGE_BLOCK, "Body_Masses")
+			};
+			GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
+			glGetProgramResourceiv
+			(
+				environment.state.solve_contact_velocities_shader, GL_SHADER_STORAGE_BLOCK, block_index,
+				1u, &buffer_size_label, 1u, nullptr, &environment.state.body_masses_buffer_size
+			);
+#endif
+
+			glNamedBufferStorage
+			(
+				environment.state.body_masses_buffer, environment.state.body_masses_buffer_size, nullptr,
+				0u
+			);
+
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_BODY_MASSES_BINDING, environment.state.body_masses_buffer);
+		}
+
 		util::proximity::initialize
 		(
 			environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment), 
@@ -4847,6 +4902,12 @@ namespace game_logic
 		std::cout << "bodies offset: " << environment.state.count_buffer_bodies_offset << std::endl;
 		std::cout << "triangles offset: " << environment.state.count_buffer_triangles_offset << std::endl;
 		std::cout << "fluid particles offset: " << environment.state.count_buffer_fluid_particles_offset << std::endl;
+		std::cout << std::endl;
+
+		std::cout << "Body masses buffer (" << environment.state.body_masses_buffer << "):" << std::endl;
+		std::cout << "size: " << environment.state.body_masses_buffer_size << std::endl;
+		std::cout << "masses offset: " << environment.state.body_masses_buffer_masses_offset << std::endl;
+		std::cout << "masses stride: " << environment.state.body_masses_buffer_masses_stride << std::endl;
 		std::cout << std::endl;
 
 		Model<3u> triangle_model;
@@ -7150,7 +7211,8 @@ namespace game_logic
 			environment.state.fluid_triangle_contact_buffer, 
 			environment.state.fluid_triangle_contact_count_buffer, 
 			environment.state.gravity_sources_buffer, 
-			environment.state.count_buffer
+			environment.state.count_buffer, 
+			environment.state.body_masses_buffer
 		};
 		glDeleteBuffers(std::size(buffers), buffers);
 
