@@ -189,14 +189,17 @@ namespace game_logic
 		Model<Vertex_Index_Count>& model
 	)
 	{
+		for (GLuint i{ 0u }; i < Vertex_Index_Count; ++i)
+		{
+			model.vertex_indices[i] = vertex_base_index + vertex_indices[i];
+		}
+
 		model.inverse_mass = 0.0f;
 		GLfloat center_x{ 0.0f };
 		GLfloat center_y{ 0.0f };
 		GLuint i{ 0u };
 		while (i < Vertex_Index_Count)
 		{
-			model.vertex_indices[i] = vertex_base_index + i;
-
 			GLuint const v0{ vertex_indices[i++] };
 			GLuint const v1{ vertex_indices[i++] };
 			GLuint const v2{ vertex_indices[i++] };
@@ -218,19 +221,22 @@ namespace game_logic
 			center_y += weight * (y0 + y1 + y2);
 		}
 		model.inverse_mass = 1.0f / model.inverse_mass;
-		center_x *= (2.0f / 3.0f) * model.inverse_mass;
-		center_y *= (2.0f / 3.0f) * model.inverse_mass;
+		center_x *= (1.0f / 3.0f) * model.inverse_mass;//(2.0f / 3.0f) * model.inverse_mass;
+		center_y *= (1.0f / 3.0f) * model.inverse_mass;//(2.0f / 3.0f) * model.inverse_mass;
 		model.inverse_mass *= 2.0f;
 
 		for (i = 0u; i < Vertex_Count; ++i)
 		{
 			vertices[i][0u] -= center_x;
 			vertices[i][1u] -= center_y;
+			
+			vertices[i][0u] *= game_logic__util__spatial_METER(environment);
+			vertices[i][1u] *= game_logic__util__spatial_METER(environment);
 
-			//environment.state.vertices[vertex_base_index + i][0u] = vertices[i][0u];
-			//environment.state.vertices[vertex_base_index + i][1u] = vertices[i][1u];
+			environment.state.vertices[vertex_base_index + i][0u] = vertices[i][0u];
+			environment.state.vertices[vertex_base_index + i][1u] = vertices[i][1u];
 
-			/*glClearNamedBufferSubData
+			glClearNamedBufferSubData
 			(
 				environment.state.vertex_buffer, 
 				GL_RG32F, 
@@ -238,7 +244,7 @@ namespace game_logic
 				sizeof(GLfloat[2u]), 
 				GL_RG, GL_FLOAT, 
 				&(vertices[i])
-			);*/
+			);
 		}
 
 		model.inverse_inertia = 0.0f;
@@ -287,6 +293,106 @@ namespace game_logic
 			model.inverse_inertia += triangle_inertia + triangle_mass * (triangle_center_x * triangle_center_x + triangle_center_y * triangle_center_y);
 		}
 		model.inverse_inertia = 1.0f / model.inverse_inertia;
+	}
+
+	template <unsigned int Vertex_Index_Count>
+	void instantiate_model
+	(
+		game_environment::Environment& environment,
+		Model<Vertex_Index_Count>const& model,
+		GLint const x, GLint const y, GLint const angle,
+		GLint const x_velocity, GLint const y_velocity, GLint const angular_velocity
+	)
+	{
+		GLint position[4u]{ x, y, angle, 0u };
+		glClearNamedBufferSubData
+		(
+			environment.state.rigid_body_position_buffer, 
+			GL_RGBA32I, 
+			environment.state.rigid_body_position_buffer_p_offset + environment.state.current_rigid_body_count * environment.state.rigid_body_position_buffer_p_stride, 
+			sizeof(GLint[4u]), 
+			GL_RGBA_INTEGER, GL_INT, 
+			position
+		);
+
+		GLint velocity[4u]{ x_velocity, y_velocity, angular_velocity, 0u };
+		glClearNamedBufferSubData
+		(
+			environment.state.rigid_body_velocity_buffer,
+			GL_RGBA32I,
+			environment.state.rigid_body_velocity_buffer_v_offset + environment.state.current_rigid_body_count * environment.state.rigid_body_velocity_buffer_v_stride,
+			sizeof(GLint[4u]),
+			GL_RGBA_INTEGER, GL_INT,
+			velocity
+		);
+
+		GLuint i{ 0u };
+		while (i < Vertex_Index_Count)
+		{
+			game_state::rigid_body::Triangle& triangle{ environment.state.triangles[environment.state.current_triangle_count] };
+			triangle.vertices[0u] = model.vertex_indices[i++];
+			triangle.vertices[1u] = model.vertex_indices[i++];
+			triangle.vertices[2u] = model.vertex_indices[i++];
+			triangle.body = environment.state.current_rigid_body_count;
+			
+			glClearNamedBufferSubData
+			(
+				environment.state.triangle_buffer, 
+				GL_RGBA32UI, 
+				environment.state.triangle_buffer_triangles_offset + environment.state.current_triangle_count * environment.state.triangle_buffer_triangles_stride, 
+				sizeof(triangle), 
+				GL_RGBA, GL_UNSIGNED_INT, 
+				&triangle
+			);
+
+			GLuint const leaf_index{ game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment) + environment.state.current_triangle_count };
+			game_state::proximity::Bounding_Box& bounding_box
+			{
+				environment.state.proximity_tree.nodes[leaf_index].bounding_box
+			};
+			bounding_box.min.x = 0;
+			bounding_box.min.y = 0;
+			bounding_box.max.x = -1;
+			bounding_box.max.y = -1;
+
+			glClearNamedBufferSubData
+			(
+				environment.state.bounding_box_buffer,
+				GL_RGBA32I,
+				environment.state.bounding_box_buffer_boxes_offset + environment.state.current_triangle_count * environment.state.bounding_box_buffer_boxes_stride,
+				sizeof(bounding_box),
+				GL_RGBA, GL_INT,
+				&bounding_box
+			);
+
+			util::proximity::insert_leaf_to_nonempty_tree(
+				environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment),
+				leaf_index,
+				0, 0, -1, -1	// TODO: The bounding box is set twice!
+			);
+
+			++environment.state.current_triangle_count;
+		}
+		glClearNamedBufferSubData
+		(
+			environment.state.count_buffer, 
+			GL_R32UI, 
+			environment.state.count_buffer_triangles_offset, 
+			sizeof(GLuint), 
+			GL_RED_INTEGER, GL_UNSIGNED_INT, 
+			&environment.state.current_triangle_count
+		);
+
+		++environment.state.current_rigid_body_count;
+		glClearNamedBufferSubData
+		(
+			environment.state.count_buffer,
+			GL_R32UI,
+			environment.state.count_buffer_bodies_offset,
+			sizeof(GLuint),
+			GL_RED_INTEGER, GL_UNSIGNED_INT,
+			&environment.state.current_rigid_body_count
+		);
 	}
 
 	void print_capabilities(game_environment::Environment& environment)
@@ -384,21 +490,6 @@ namespace game_logic
 		environment.state.contact_basis_visible = false;
 		environment.state.contact_impulses_visible = false;
 		environment.state.gravity_visible = false;
-
-		Model<6u> box_model;
-		GLfloat box_vertices[][2u]
-		{
-			{ 1.0f, 1.0f }, 
-			{ -1.0f, 1.0f },
-			{ -1.0f, -1.0f },
-			{ 1.0f, -1.0f },
-		};
-		GLuint box_vertex_indices[]
-		{
-			0u, 1u, 2u, 
-			2u, 3u, 0u
-		};
-		create_model<4u, 6u>(environment, 4u, box_vertices, box_vertex_indices, box_model);
 
 		// TODO: Use glBindBuffersBase (note the s) for binding multiple buffers at once
 		// IMPORTANT TODO: We do not need to do a position snapshot if velocity-based position correction 
@@ -1921,7 +2012,7 @@ namespace game_logic
 			);
 		}
 
-		environment.state.current_rigid_body_count = 80u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment);//500000u;
+		environment.state.current_rigid_body_count = 0u * 80u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment);//500000u;
 		environment.state.current_triangle_count = 1u * environment.state.current_rigid_body_count;
 		environment.state.current_triangle_contact_count = 0u;
 		environment.state.current_persistent_contact_count = 0u;
@@ -4757,6 +4848,37 @@ namespace game_logic
 		std::cout << "triangles offset: " << environment.state.count_buffer_triangles_offset << std::endl;
 		std::cout << "fluid particles offset: " << environment.state.count_buffer_fluid_particles_offset << std::endl;
 		std::cout << std::endl;
+
+		Model<6u> box_model;
+		GLfloat box_vertices[][2u]
+		{
+			{ 1.0f, 1.0f },
+			{ -1.0f, 1.0f },
+			{ -1.0f, -1.0f },
+			{ 1.0f, -1.0f },
+		};
+		GLuint box_vertex_indices[]
+		{
+			0u, 1u, 2u,
+			2u, 3u, 0u
+		};
+		create_model<4u, 6u>(environment, 4u, box_vertices, box_vertex_indices, box_model);
+
+		Model<3u> triangle_model;
+		GLfloat triangle_vertices[][2u]
+		{
+			{ 0.5f, 0.5f },
+			{ -0.5f, 0.5f },
+			{ -0.5f, -0.5f },
+		};
+		GLuint triangle_vertex_indices[]
+		{
+			0u, 1u, 2u,
+		};
+		create_model<3u, 3u>(environment, 8u, triangle_vertices, triangle_vertex_indices, triangle_model);
+
+		instantiate_model(environment, box_model, 0, 0, 0, 0, 0, 0);
+		instantiate_model(environment, triangle_model, 10000000, 0, 0, 0, 0, 0);
 
 		glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
 		environment.state.physics_tick_results_fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0u);
