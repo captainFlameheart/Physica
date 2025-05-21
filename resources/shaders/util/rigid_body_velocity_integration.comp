@@ -1,5 +1,5 @@
 // TODO: Move to CPU
-#define DAMPING_NUMERATOR 999//990
+#define DAMPING_NUMERATOR 998//990
 #define DAMPING_DENOMINATOR 1000
 
 layout(shared, binding = COUNT_BINDING) uniform Count

@@ -4849,21 +4849,6 @@ namespace game_logic
 		std::cout << "fluid particles offset: " << environment.state.count_buffer_fluid_particles_offset << std::endl;
 		std::cout << std::endl;
 
-		Model<6u> box_model;
-		GLfloat box_vertices[][2u]
-		{
-			{ 1.0f, 1.0f },
-			{ -1.0f, 1.0f },
-			{ -1.0f, -1.0f },
-			{ 1.0f, -1.0f },
-		};
-		GLuint box_vertex_indices[]
-		{
-			0u, 1u, 2u,
-			2u, 3u, 0u
-		};
-		create_model<4u, 6u>(environment, 4u, box_vertices, box_vertex_indices, box_model);
-
 		Model<3u> triangle_model;
 		GLfloat triangle_vertices[][2u]
 		{
@@ -4875,10 +4860,71 @@ namespace game_logic
 		{
 			0u, 1u, 2u,
 		};
-		create_model<3u, 3u>(environment, 8u, triangle_vertices, triangle_vertex_indices, triangle_model);
+		create_model<3u, 3u>(environment, 4u, triangle_vertices, triangle_vertex_indices, triangle_model);
 
-		instantiate_model(environment, box_model, 0, 0, 0, 0, 0, 0);
-		instantiate_model(environment, triangle_model, 10000000, 0, 0, 0, 0, 0);
+		Model<6u> box_model;
+		GLfloat box_vertices[][2u]
+		{
+			{ 0.5f, 0.5f },
+			{ -0.5f, 0.5f },
+			{ -0.5f, -0.5f },
+			{ 0.5f, -0.5f },
+		};
+		GLuint box_vertex_indices[]
+		{
+			0u, 1u, 2u,
+			2u, 3u, 0u
+		};
+		create_model<4u, 6u>(environment, 7u, box_vertices, box_vertex_indices, box_model);
+
+		Model<9u> house_model;
+		GLfloat house_vertices[][2u]
+		{
+			{ 0.5f, 0.5f },
+			{ -0.5f, 0.5f },
+			{ -0.5f, -1.0f },
+			{ 0.5f, -1.0f },
+			{ 0.0f, 1.5f },
+			{ -1.0f, 0.5f },
+			{ 1.0f, 0.5f },
+		};
+		GLuint house_vertex_indices[]
+		{
+			0u, 1u, 2u,
+			2u, 3u, 0u, 
+			4u, 5u, 6u
+		};
+		create_model<7u, 9u>(environment, 11u, house_vertices, house_vertex_indices, house_model);
+
+		//instantiate_model(environment, box_model, 0, 0, 0, 0, 0, 0);
+		//instantiate_model(environment, triangle_model, 10000000, 0, 0, 0, 0, 0);
+
+		GLuint i;
+		for (i = 0u; i < 30u * game_logic__util__rigid_body_DEFAULT_COMPUTE_SHADER_LOCAL_SIZE(environment); ++i)
+		{
+			GLuint const width{ 100u };
+			instantiate_model
+			(
+				environment, triangle_model, 
+				game_logic__util__spatial_FROM_METERS(environment, (i % width) * 2.0f), 
+				game_logic__util__spatial_FROM_METERS(environment, (i / width) * 2.0f),
+				game_logic__util__spatial_FROM_RADIANS(environment, i * 0.1f), 
+				0, 0, 0
+			);
+		}
+
+		for (; i < 40u * game_logic__util__rigid_body_DEFAULT_COMPUTE_SHADER_LOCAL_SIZE(environment); ++i)
+		{
+			GLuint const width{ 100u };
+			instantiate_model
+			(
+				environment, house_model,
+				game_logic__util__spatial_FROM_METERS(environment, (i % width) * 2.0f),
+				game_logic__util__spatial_FROM_METERS(environment, (i / width) * 2.0f),
+				game_logic__util__spatial_FROM_RADIANS(environment, i * 0.1f),
+				0, 0, 0
+			);
+		}
 
 		glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
 		environment.state.physics_tick_results_fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0u);
