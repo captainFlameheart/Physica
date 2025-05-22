@@ -164,7 +164,7 @@
 
 #define game_logic_CURSOR_CONSTRAINT_VELOCITY_SCALE(environment) 0.03f
 #define game_logic_CURSOR_CONSTRAINT_IMPULSE_SCALE(environment) 0.05f
-#define game_logic_CURSOR_CONSTRAINT_MAX_IMPULSE(environment) 0.1f//0.5f
+#define game_logic_CURSOR_CONSTRAINT_MAX_IMPULSE(environment) 0.2f//0.5f
 
 // TODO: Store separate masses for each body in buffer
 //#define INVERSE_MASS 1.0f
@@ -5120,7 +5120,7 @@ namespace game_logic
 		instantiate_model
 		(
 			environment, bucket_model, 
-			20 * 1000000, 0, 0, 
+			20 * 1000000, -5000000, 0, 
 			0, 0, 0
 		);
 
