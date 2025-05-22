@@ -158,13 +158,13 @@
 	0.05f//game_logic__util__spatial_FLOAT_FROM_METERS(environment, 0.05f)
 
 #define game_logic_DISTANCE_CONSTRAINT_PENETRATION_VELOCITY_SCALE(environment) \
-	0.05f//game_logic__util__spatial_FLOAT_FROM_METERS(environment, 0.05f)
+	/*0.05f*/0.01f//game_logic__util__spatial_FLOAT_FROM_METERS(environment, 0.05f)
 
 #define game_logic_DISTANCE_CONSTRAINT_IMPULSE_SCALE(environment) 0.05f
 
-#define game_logic_CURSOR_CONSTRAINT_VELOCITY_SCALE(environment) 0.1f
+#define game_logic_CURSOR_CONSTRAINT_VELOCITY_SCALE(environment) 0.03f
 #define game_logic_CURSOR_CONSTRAINT_IMPULSE_SCALE(environment) 0.05f
-#define game_logic_CURSOR_CONSTRAINT_MAX_IMPULSE(environment) 0.5f
+#define game_logic_CURSOR_CONSTRAINT_MAX_IMPULSE(environment) 0.1f//0.5f
 
 // TODO: Store separate masses for each body in buffer
 //#define INVERSE_MASS 1.0f
@@ -5051,6 +5051,38 @@ namespace game_logic
 			);
 		}
 
+		Model<18u> bucket_model;
+		GLfloat const w{ 2.0f };
+		GLfloat const t{ 0.5f };
+		GLfloat const h{ t + 4.0f };
+		GLfloat bucket_vertices[][2u]
+		{
+			{ w, t },
+			{ -w, t },
+			{ -w, -t },
+			{ w, -t },
+
+			{ -w, h },
+			{ -w - 2.0f * t, h },
+			{ -w - 2.0f * t, -t },
+
+			{ w + 2.0f * t, -t },
+			{ w + 2.0f * t, h },
+			{ w, h },
+		};
+		GLuint bucket_vertex_indices[]
+		{
+			0u, 1u, 2u,
+			2u, 3u, 0u, 
+
+			4u, 5u, 6u, 
+			6u, 2u, 4u, 
+
+			3u, 7u, 8u, 
+			8u, 9u, 3u
+		};
+		create_model<10u, 18u>(environment, 20u + planet_outline_vertex_count + big_planet_outline_vertex_count, bucket_vertices, bucket_vertex_indices, bucket_model);
+
 		instantiate_model
 		(
 			environment, planet_model,
@@ -5069,6 +5101,13 @@ namespace game_logic
 		(
 			environment, big_planet_model,
 			-50 * 1000000, 50 * 1000000, 1 * 1000000,
+			0, 0, 0
+		);
+
+		instantiate_model
+		(
+			environment, bucket_model, 
+			20 * 1000000, 0, 0, 
 			0, 0, 0
 		);
 
