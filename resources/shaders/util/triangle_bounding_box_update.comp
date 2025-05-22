@@ -1,5 +1,5 @@
 // TODO: Move these constants to CPU
-#define TRANSLATIONAL_TRAJECTORY_PADDING 0//120
+#define TRANSLATIONAL_TRAJECTORY_PADDING 120//0//120
 #define ANGULAR_TRAJECTORY_PADDING 0.0//60.0
 
 layout(shared, binding = COUNT_BINDING) uniform Count
@@ -88,8 +88,8 @@ void main()
 		new_max += PADDING;
 		
 		ivec4 body_velocity = velocities.v[triangle.w];
-		ivec2 translational_padding = TRANSLATIONAL_TRAJECTORY_PADDING * body_velocity.xy;
-		float angular_padding = ANGULAR_TRAJECTORY_PADDING * (body_velocity.z * RADIAN_INVERSE);
+		ivec2 translational_padding = clamp(TRANSLATIONAL_TRAJECTORY_PADDING * body_velocity.xy, -2000000, 2000000);
+		float angular_padding = ANGULAR_TRAJECTORY_PADDING * body_velocity.z * RADIAN_INVERSE;
 		ivec2 predicted_vertex_0_position = 
 			body_position.xy + translational_padding + 
 			ivec2(offset_0 + angular_padding * vec2(-offset_0.y, offset_0.x));
