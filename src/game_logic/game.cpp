@@ -5401,7 +5401,7 @@ namespace game_logic
 		// TODO: Potential one-time CPU operations we must do before 
 		// waiting for the GPU to be done.
 
-		auto t_0 = std::chrono::high_resolution_clock::now();
+		//auto t_0 = std::chrono::high_resolution_clock::now();
 		GLenum fluid_bounding_box_fence_status = glClientWaitSync(fluid_bounding_box_fence, 0u, 0u);
 		while (fluid_bounding_box_fence_status != GL_ALREADY_SIGNALED && fluid_bounding_box_fence_status != GL_CONDITION_SATISFIED)
 		{
@@ -5409,9 +5409,9 @@ namespace game_logic
 			// Example: Optimize proximity tree.
 			fluid_bounding_box_fence_status = glClientWaitSync(fluid_bounding_box_fence, 0u, 0u);
 		}
-		auto t_1 = std::chrono::high_resolution_clock::now();
-		std::chrono::duration<double, std::milli> ms = t_1 - t_0;
-		std::cout << ms.count() * 120.0 / 1000.0 << std::endl;
+		//auto t_1 = std::chrono::high_resolution_clock::now();
+		//std::chrono::duration<double, std::milli> ms = t_1 - t_0;
+		//std::cout << ms.count() * 120.0 / 1000.0 << std::endl;
 
 		GLuint changed_fluid_leaf_count;
 		std::memcpy
@@ -6025,7 +6025,7 @@ namespace game_logic
 				1u, 1u
 			);
 
-			if (environment.state.tick % 120u == 0u)
+			/*if (environment.state.tick % 120u == 0u)
 			{
 				//GLuint count;
 				//glGetNamedBufferSubData(environment.state.fluid_contact_count_buffer, environment.state.fluid_contact_count_buffer_persistent_count_offset, sizeof(GLuint), &count);
@@ -6039,7 +6039,7 @@ namespace game_logic
 				std::cout << "Fluid contact count: " << old_fluid_contact_count << " - " << old_fluid_contact_count - environment.state.current_fluid_persistent_contact_count << " + " << environment.state.current_fluid_contact_count - environment.state.current_fluid_persistent_contact_count << " = " << environment.state.current_fluid_contact_count << '\n';
 				std::cout << "Triangle contact count: " << old_triangle_contact_count << " - " << old_triangle_contact_count - environment.state.current_persistent_contact_count << " + " << environment.state.current_triangle_contact_count - environment.state.current_persistent_contact_count << " = " << environment.state.current_triangle_contact_count << '\n';
 				std::cout << std::endl;
-			}
+			}*/
 		}
 	}
 
