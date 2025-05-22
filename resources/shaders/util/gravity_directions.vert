@@ -47,7 +47,7 @@ void main()
 		ivec2 offset = source_position - world_position;
 		force += normalize(offset) * (0.0001f * strength * exp(-dot(offset, offset) / (50.0 * strength * strength)));
 	}
-	vec2 force_offset = float(gl_VertexID % 2u) * 1000.0 * force;
+	vec2 force_offset = float(gl_VertexID % 2u) * 2000.0 * force;
 
 	vec2 camera_relative_xy = (world_position - camera.xy) + force_offset;
 	gl_Position = vec4
