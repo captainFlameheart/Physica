@@ -2,7 +2,7 @@
 #define DAMPING_NUMERATOR 999//999//995//990
 #define DAMPING_DENOMINATOR 1000
 
-#define TRAJECTORY_PADDING 0//120
+#define TRAJECTORY_PADDING 120//0//120
 
 // TODO: It MIGHT be faster to store a particle's position AND velocity in a single vec4, so the buffers 
 // could be merged
@@ -92,7 +92,7 @@ void main()
 		new_min -= PADDING;
 		new_max += PADDING;
 		
-		ivec2 trajectory_padding = TRAJECTORY_PADDING * velocity;
+		ivec2 trajectory_padding = clamp(TRAJECTORY_PADDING * velocity, -1000000, 1000000);
 		ivec2 predicted_position = position.xy + trajectory_padding;
 		new_min = min(new_min, predicted_position);
 		new_max = max(new_max, predicted_position);
