@@ -557,9 +557,9 @@ namespace game_logic
 		environment.state.point_cursor = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
 		environment.state.move_cursor = glfwCreateStandardCursor(GLFW_CROSSHAIR_CURSOR);
 
-		environment.state.camera.xy.x = 0;
-		environment.state.camera.xy.y = 0;
-		environment.state.camera.angle = 0;
+		environment.state.camera.xy.x = 100 * 1000000;
+		environment.state.camera.xy.y = 100 * 1000000;
+		environment.state.camera.angle = 10600000;
 		environment.state.camera.z = game_logic__util__spatial_FLOAT_FROM_METERS(environment, 2.0f);
 		environment.state.camera.view_rotation.column_0[0] = 1.0f;
 		environment.state.camera.view_rotation.column_0[1] = 0.0f;
@@ -2105,8 +2105,8 @@ namespace game_logic
 
 				::util::math::Vector_2D position
 				{
-					-game_logic__util__spatial_FROM_METERS(environment, (10.0f + 0.5f * (i % width) * cos(i * 0.1f))),
-					-game_logic__util__spatial_FROM_METERS(environment, (10.0f + 0.5f * (i / width) * sin(i * 0.2f)))
+					-game_logic__util__spatial_FROM_METERS(environment, (30.0f + 0.5f * (i % width) * cos(i * 0.1f))),
+					-game_logic__util__spatial_FROM_METERS(environment, (30.0f + 0.5f * (i / width) * sin(i * 0.2f)))
 				};
 
 				std::memcpy
@@ -5083,10 +5083,23 @@ namespace game_logic
 		};
 		create_model<10u, 18u>(environment, 20u + planet_outline_vertex_count + big_planet_outline_vertex_count, bucket_vertices, bucket_vertex_indices, bucket_model);
 
+		Model<3u> long_triangle_model;
+		GLfloat long_triangle_vertices[][2u]
+		{
+			{ 1.0f, 0.5f },
+			{ -0.5f, 0.5f },
+			{ -1.0f, -0.7f },
+		};
+		GLuint long_triangle_vertex_indices[]
+		{
+			0u, 1u, 2u,
+		};
+		create_model<3u, 3u>(environment, 20u + planet_outline_vertex_count + big_planet_outline_vertex_count + 10, long_triangle_vertices, long_triangle_vertex_indices, long_triangle_model);
+
 		instantiate_model
 		(
 			environment, planet_model,
-			0, 0, 0,
+			-10 * 1000000, 10 * 1000000, 0,
 			0, 0, 0
 		);
 
@@ -5114,7 +5127,57 @@ namespace game_logic
 		//instantiate_model(environment, box_model, 0, 0, 0, 0, 0, 0);
 		//instantiate_model(environment, triangle_model, 10000000, 0, 0, 0, 0, 0);
 
-		GLuint i;
+		for (GLuint i{ 0u }; i < 60u * game_logic__util__rigid_body_DEFAULT_COMPUTE_SHADER_LOCAL_SIZE(environment); ++i)
+		{
+			GLuint const width{ 100u };
+			
+			GLint x{ game_logic__util__spatial_FROM_METERS(environment, ((i % width) * 2.0f))};
+			GLint y{ game_logic__util__spatial_FROM_METERS(environment, ((i / width) * 2.0f)) };
+			GLint angle{ game_logic__util__spatial_FROM_RADIANS(environment, i * 0.1f) };
+			
+			GLint vx{ 0 };
+			GLint vy{ 0 };
+			GLint va{ 0 };
+			
+			if (i % 8u == 0u)
+			{
+				instantiate_model
+				(
+					environment, box_model,
+					x, y, angle,
+					vx, vy, va
+				);
+			}
+			else if (i % 37u == 0)
+			{
+				instantiate_model
+				(
+					environment, house_model, 
+					x, y, angle, 
+					vx, vy, va
+				);
+			}
+			else if (i % 29u == 0)
+			{
+				instantiate_model
+				(
+					environment, long_triangle_model,
+					x, y, angle,
+					vx, vy, va
+				);
+			}
+			else
+			{
+				instantiate_model
+				(
+					environment, triangle_model,
+					x, y, angle,
+					vx, vy, va
+				);
+			}
+		}
+
+		/*GLuint i;
 		for (i = 0u; i < 30u * game_logic__util__rigid_body_DEFAULT_COMPUTE_SHADER_LOCAL_SIZE(environment); ++i)
 		{
 			GLuint const width{ 100u };
@@ -5139,7 +5202,7 @@ namespace game_logic
 				game_logic__util__spatial_FROM_RADIANS(environment, i * 0.1f),
 				0, 0, 0
 			);
-		}
+		}*/
 
 		glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
 		environment.state.physics_tick_results_fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0u);
