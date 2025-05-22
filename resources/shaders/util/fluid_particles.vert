@@ -57,7 +57,32 @@ void main()
 	uint offset_index = gl_VertexID % 6u;
 	offset = offsets[offset_index];
 
-	base_color = mix(vec4(1.0, 0.0, 0.0, 1.3), vec4(1.0, 1.0, 0.5, 1.2), min(1.0, 0.000004 * length(velocity)));
+	// Lava
+	//base_color = mix(vec4(1.0, 0.0, 0.0, 1.3), vec4(1.0, 1.0, 0.5, 1.2), min(1.0, 0.000004 * length(velocity)));
+
+	// Water
+	//base_color = mix(vec4(0.0, 0.0, 1.0, 1.3), vec4(0.0, 1.0, 1.0, 1.2), min(1.0, 0.000004 * length(velocity)));
+
+	// Plasma
+	//base_color = mix(vec4(0.8, 0.0, 0.8, 1.3), vec4(1.0, 0.5, 1.0, 1.2), min(1.0, 0.000004 * length(velocity)));
+
+	if (particle_index < 3560u)
+	{
+		base_color = mix(vec4(1.0, 0.0, 0.0, 1.3), vec4(1.0, 1.0, 0.5, 1.2), min(1.0, 0.000004 * length(velocity)));
+	}
+	else
+	{
+		base_color = mix(vec4(1.0, 0.2, 0.0, 1.3), vec4(1.0, 1.0, 0.5, 1.2), min(1.0, 0.000004 * length(velocity)));
+	}
+
+	/*if (particle_index < 3560u)
+	{
+		base_color = mix(vec4(1.0, 0.0, 0.0, 1.3), vec4(1.0, 1.0, 0.5, 1.2), min(1.0, 0.000004 * length(velocity)));
+	}
+	else
+	{
+		base_color = mix(vec4(0.0, 0.0, 1.0, 1.3), vec4(0.0, 1.0, 1.0, 1.2), min(1.0, 0.000004 * length(velocity)));
+	}*/
 
 	vec2 camera_relative_xy = vec2(position - camera.xy) + offset;
 	gl_Position = vec4
