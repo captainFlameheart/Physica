@@ -22,6 +22,8 @@ namespace game_state
 	// (initialize -> render -> events -> tick * n -> render -> events -> tick * n -> render -> ...)
 	struct Game
 	{
+		GLuint time_elapsed_query;
+
 		GLFWcursor* grab_cursor;
 		GLFWcursor* point_cursor;
 		GLFWcursor* move_cursor;

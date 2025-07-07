@@ -485,6 +485,8 @@ namespace game_logic
 
 		print_capabilities(environment);
 
+		glCreateQueries(GL_TIME_ELAPSED, 1, &environment.state.time_elapsed_query);
+
 		environment.state.vertices = new GLfloat[game_logic_MAX_VERTEX_COUNT(environment)][2u];
 
 		glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
@@ -2834,6 +2836,9 @@ namespace game_logic
 				&position, sizeof(position)
 			);*/
 
+			// VERY IMPORTANT TODO: REMOVE BIT-FLAGS!!! I think this is the reason the rigid body velocity integration
+			// is slower than the fluid one, and also a main reason why the triangle-triangle/triangle-fluid contact
+			// detection shaders are slow.
 			glNamedBufferStorage
 			(
 				environment.state.rigid_body_position_buffer, environment.state.rigid_body_position_buffer_size, initial_positions,
@@ -3372,25 +3377,29 @@ namespace game_logic
 				 );
 			 }
 
+			 // IMPORTANT TODO: Remove the bit flags, since we noticed a significant performance penalty 
+			 // when using flags for fluid buffers. This might be one of the primary reasons the 
+			 // triangle-triangle contact detection is slow.
 			 glNamedBufferStorage
 			 (
 				 environment.state.contact_buffer, environment.state.contact_buffer_size, initial_contacts,
-				 GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT
+				 0u
+				 //GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT
 			 );
 
 			 delete[] initial_contacts;
 
 			 glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_CONTACT_BINDING, environment.state.contact_buffer);
 
-			 environment.state.contact_mapping = static_cast<unsigned char*>
+			 /*environment.state.contact_mapping = static_cast<unsigned char*>
 			(
 				glMapNamedBufferRange
 				(
 					environment.state.contact_buffer, 
 					0u, environment.state.contact_buffer_size, 
-					GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_FLUSH_EXPLICIT_BIT
+					0u//GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_FLUSH_EXPLICIT_BIT
 				)
-			);
+			);*/
 		}
 
 		{ // Contact surface buffer
@@ -3949,7 +3958,7 @@ namespace game_logic
 				1u, &buffer_size_label, 1u, nullptr, &environment.state.distance_constraint_buffer_size
 			);
 #endif
-
+			// IMPORTANT TODO: REMOVE FLAGS!!!
 			glNamedBufferStorage
 			(
 				environment.state.distance_constraint_buffer, environment.state.distance_constraint_buffer_size, nullptr,
@@ -5336,6 +5345,7 @@ namespace game_logic
 		glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT | GL_BUFFER_UPDATE_BARRIER_BIT);	// Changed fluid bounding boxes
 		GLsync const fluid_bounding_box_fence{ glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0u) };
 		glFlush();
+		// IMPORTANT TODO: I think the CPU is stalled on flush until all buffered commands have been submitted by the driver
 
 		glUseProgram(environment.state.rigid_body_velocity_integration_shader);
 		glDispatchCompute
@@ -5343,7 +5353,6 @@ namespace game_logic
 			ceil_div(environment.state.current_rigid_body_count, game_logic__util__rigid_body_VELOCITY_INTEGRATION_LOCAL_SIZE(environment)),
 			1u, 1u
 		);
-
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);	// Positions and velocities from velocity integration
 
 		glUseProgram(environment.state.triangle_bounding_box_update_shader);
@@ -5384,6 +5393,7 @@ namespace game_logic
 			1u, 1u
 		);
 
+		// TODO: Optimize this shader! It's expensive! Also make sure we do not use any flags for the buffers
 		glUseProgram(environment.state.old_triangle_contact_update_shader);
 		glDispatchCompute
 		(
@@ -5960,12 +5970,22 @@ namespace game_logic
 							leaf_1_index - game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment)
 						};
 						// TODO: Do addition between mapping pointer and offset once during initialization
-						std::memcpy
+						/*std::memcpy
 						(
 							environment.state.contact_mapping + environment.state.contact_buffer_contacts_offset
 							+ environment.state.current_triangle_contact_count * environment.state.contact_buffer_contacts_stride,
 							&leaf_indices,
 							sizeof(leaf_indices)
+						);*/
+						glClearNamedBufferSubData
+						(
+							environment.state.contact_buffer, 
+							GL_RG32UI, 
+							environment.state.contact_buffer_contacts_offset 
+							+ environment.state.current_triangle_contact_count * environment.state.contact_buffer_contacts_stride, 
+							sizeof(leaf_indices), 
+							GL_RG_INTEGER, GL_UNSIGNED_INT, 
+							leaf_indices
 						);
 						return TRIANGLE_CONTACT_BASE_INDEX(environment) + environment.state.current_triangle_contact_count++;
 					}
@@ -6004,12 +6024,12 @@ namespace game_logic
 			);
 
 			GLuint const new_contact_count{ environment.state.current_triangle_contact_count - environment.state.current_persistent_contact_count };
-			glFlushMappedNamedBufferRange
+			/*glFlushMappedNamedBufferRange
 			(
 				environment.state.contact_buffer,
 				environment.state.contact_buffer_contacts_offset + environment.state.current_persistent_contact_count * environment.state.contact_buffer_contacts_stride,
 				new_contact_count * environment.state.contact_buffer_contacts_stride
-			);
+			);*/
 			glClearNamedBufferSubData
 			(
 				environment.state.contact_count_buffer,
@@ -6050,7 +6070,7 @@ namespace game_logic
 	}*/
 
 	void tick_physics(game_environment::Environment& environment)
-	{		
+	{
 		tick_velocities(environment);
 		tick_positions(environment);
 
@@ -6130,6 +6150,7 @@ namespace game_logic
 				environment.state.contact_point_positions_visible = false;
 				environment.state.contact_basis_visible = false;
 				environment.state.contact_impulses_visible = false;
+				environment.state.gravity_visible = false;
 				break;
 			case GLFW_KEY_ESCAPE:
 				glfwSetWindowShouldClose(environment.window, GLFW_TRUE);
@@ -7122,6 +7143,12 @@ namespace game_logic
 	// which includes compute shaders
 	void render(game_environment::Environment& environment)
 	{
+		GLint time_elapsed_query_done;
+		glGetQueryObjectiv(environment.state.time_elapsed_query, GL_QUERY_RESULT_AVAILABLE, &time_elapsed_query_done);
+		if (time_elapsed_query_done == GL_TRUE)
+		{
+			glBeginQuery(GL_TIME_ELAPSED, environment.state.time_elapsed_query);
+		}
 		// TODO: Indirect drawing for increased performance
 
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
@@ -7385,6 +7412,11 @@ namespace game_logic
 		glUseProgram(environment.state.cursor_position_draw_shader);
 		glPointSize(5.0f);
 		glDrawArrays(GL_POINTS, 0, 1u);
+
+		if (time_elapsed_query_done == GL_TRUE)
+		{
+			glEndQuery(GL_TIME_ELAPSED);
+		}
 	}
 
 	void free(game_environment::Environment& environment)

@@ -76,6 +76,8 @@ namespace game_runner
 		glfwSwapBuffers(window);
 
 		glfwPollEvents();
+
+		GLuint draw_count{ 0 };
 		while (!glfwWindowShouldClose(window))
 		{
 			game_environment.ticks_this_frame = 0u;
@@ -99,6 +101,20 @@ namespace game_runner
 
 			game_logic::render(game_environment);
 			glfwSwapBuffers(window);
+
+			if (draw_count % 120u == 0u)
+			{
+				GLint time_elapsed_query_done;
+				glGetQueryObjectiv(game_environment.state.time_elapsed_query, GL_QUERY_RESULT_AVAILABLE, &time_elapsed_query_done);
+				if (time_elapsed_query_done == GL_TRUE)
+				{
+					GLuint64 time_elapsed;
+					glGetQueryObjectui64v(game_environment.state.time_elapsed_query, GL_QUERY_RESULT, &time_elapsed);
+					GLdouble time_elapsed_double = static_cast<GLdouble>(time_elapsed);
+					std::cout << "Time elapsed: " << time_elapsed << " ns = " << time_elapsed_double * 1e-6 << " ms = " << time_elapsed_double * 6e-6 << " % of draw frame = " << time_elapsed_double * 1.2e-5 << " % of physics step" << std::endl;
+				}
+			}
+			++draw_count;
 
 			glfwPollEvents();
 		}

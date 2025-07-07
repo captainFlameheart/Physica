@@ -58,7 +58,7 @@ void main()
 	offset = offsets[offset_index];
 
 	// Lava
-	//base_color = mix(vec4(1.0, 0.0, 0.0, 1.3), vec4(1.0, 1.0, 0.5, 1.2), min(1.0, 0.000004 * length(velocity)));
+	base_color = mix(vec4(1.0, 0.0, 0.0, 1.3), vec4(1.0, 1.0, 0.5, 1.2), min(1.0, 0.000004 * length(velocity)));
 
 	// Water
 	//base_color = mix(vec4(0.0, 0.0, 1.0, 1.3), vec4(0.0, 1.0, 1.0, 1.2), min(1.0, 0.000004 * length(velocity)));
@@ -66,14 +66,14 @@ void main()
 	// Plasma
 	//base_color = mix(vec4(0.8, 0.0, 0.8, 1.3), vec4(1.0, 0.5, 1.0, 1.2), min(1.0, 0.000004 * length(velocity)));
 
-	if (particle_index < 3560u)
+	/*if (particle_index < 3560u)
 	{
 		base_color = mix(vec4(1.0, 0.0, 0.0, 1.3), vec4(1.0, 1.0, 0.5, 1.2), min(1.0, 0.000004 * length(velocity)));
 	}
 	else
 	{
 		base_color = mix(vec4(1.0, 0.2, 0.0, 1.3), vec4(1.0, 1.0, 0.5, 1.2), min(1.0, 0.000004 * length(velocity)));
-	}
+	}*/
 
 	/*if (particle_index < 3560u)
 	{
