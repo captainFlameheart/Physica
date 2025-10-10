@@ -434,6 +434,34 @@ namespace game_logic
 		glGetIntegerv(GL_MAX_SHADER_STORAGE_BLOCK_SIZE, &max_shader_storage_block_size);
 		std::cout << "Max shader storage block size: " << max_shader_storage_block_size << '\n';
 
+		GLint max_combined_shader_storage_blocks;
+		glGetIntegerv(GL_MAX_COMBINED_SHADER_STORAGE_BLOCKS, &max_combined_shader_storage_blocks);
+		std::cout << "Max combined shader storage blocks: " << max_combined_shader_storage_blocks << '\n';
+
+		GLint max_compute_shader_storage_blocks;
+		glGetIntegerv(GL_MAX_COMPUTE_SHADER_STORAGE_BLOCKS, &max_compute_shader_storage_blocks);
+		std::cout << "Max compute shader storage blocks: " << max_compute_shader_storage_blocks << '\n';
+
+		GLint max_fragment_shader_storage_blocks;
+		glGetIntegerv(GL_MAX_FRAGMENT_SHADER_STORAGE_BLOCKS, &max_fragment_shader_storage_blocks);
+		std::cout << "Max fragment shader storage blocks: " << max_fragment_shader_storage_blocks << '\n';
+
+		GLint max_geometry_shader_storage_blocks;
+		glGetIntegerv(GL_MAX_GEOMETRY_SHADER_STORAGE_BLOCKS, &max_geometry_shader_storage_blocks);
+		std::cout << "Max geometry shader storage blocks: " << max_geometry_shader_storage_blocks << '\n';
+
+		GLint max_tess_control_shader_storage_blocks;
+		glGetIntegerv(GL_MAX_TESS_CONTROL_SHADER_STORAGE_BLOCKS, &max_tess_control_shader_storage_blocks);
+		std::cout << "Max tess control shader storage blocks: " << max_tess_control_shader_storage_blocks << '\n';
+
+		GLint max_tess_evaluation_shader_storage_blocks;
+		glGetIntegerv(GL_MAX_TESS_EVALUATION_SHADER_STORAGE_BLOCKS, &max_tess_evaluation_shader_storage_blocks);
+		std::cout << "Max tess evaluation shader storage blocks: " << max_tess_evaluation_shader_storage_blocks << '\n';
+
+		GLint max_vertex_shader_storage_blocks;
+		glGetIntegerv(GL_MAX_VERTEX_SHADER_STORAGE_BLOCKS, &max_vertex_shader_storage_blocks);
+		std::cout << "Max vertex shader storage blocks: " << max_vertex_shader_storage_blocks << '\n';
+
 		std::cout << std::endl;
 	}
 
@@ -1333,6 +1361,22 @@ namespace game_logic
 		::util::shader::delete_shader(fragment_shader);
 
 		GLuint const compute_shader{ ::util::shader::create_shader(GL_COMPUTE_SHADER) };
+		{
+			std::cout << '\n';
+
+			std::chrono::time_point start_time = std::chrono::high_resolution_clock::now();
+			::util::shader::set_shader_statically
+			(
+				compute_shader,
+				util_shader_VERSION,
+				::util::shader::file_to_string("util/test.comp")
+			);
+			environment.state.test_compute_shader = ::util::shader::create_program(compute_shader);
+			std::chrono::time_point end_time = std::chrono::high_resolution_clock::now();
+			std::cout << "Test compute shader compiled in " << 
+				std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time) << 
+				'\n' << std::endl;
+		}
 
 		::util::shader::set_shader_statically
 		(
@@ -5186,6 +5230,10 @@ namespace game_logic
 			}
 		}
 
+		std::cout << "Rigid body count: " << environment.state.current_rigid_body_count << std::endl;
+		std::cout << "Triangle count: " << environment.state.current_triangle_count << std::endl;
+		std::cout << "Fluid particle count: " << environment.state.current_fluid_particle_count << std::endl;
+
 		/*GLuint i;
 		for (i = 0u; i < 30u * game_logic__util__rigid_body_DEFAULT_COMPUTE_SHADER_LOCAL_SIZE(environment); ++i)
 		{
@@ -6071,7 +6119,19 @@ namespace game_logic
 
 	void tick_physics(game_environment::Environment& environment)
 	{
+		GLint time_elapsed_query_done;
+		glGetQueryObjectiv(environment.state.time_elapsed_query, GL_QUERY_RESULT_AVAILABLE, &time_elapsed_query_done);
+		if (time_elapsed_query_done == GL_TRUE)
+		{
+			glBeginQuery(GL_TIME_ELAPSED, environment.state.time_elapsed_query);
+		}
 		tick_velocities(environment);
+
+		if (time_elapsed_query_done == GL_TRUE)
+		{
+			glEndQuery(GL_TIME_ELAPSED);
+		}
+
 		tick_positions(environment);
 
 		glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
@@ -7143,12 +7203,6 @@ namespace game_logic
 	// which includes compute shaders
 	void render(game_environment::Environment& environment)
 	{
-		GLint time_elapsed_query_done;
-		glGetQueryObjectiv(environment.state.time_elapsed_query, GL_QUERY_RESULT_AVAILABLE, &time_elapsed_query_done);
-		if (time_elapsed_query_done == GL_TRUE)
-		{
-			glBeginQuery(GL_TIME_ELAPSED, environment.state.time_elapsed_query);
-		}
 		// TODO: Indirect drawing for increased performance
 
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
@@ -7412,11 +7466,6 @@ namespace game_logic
 		glUseProgram(environment.state.cursor_position_draw_shader);
 		glPointSize(5.0f);
 		glDrawArrays(GL_POINTS, 0, 1u);
-
-		if (time_elapsed_query_done == GL_TRUE)
-		{
-			glEndQuery(GL_TIME_ELAPSED);
-		}
 	}
 
 	void free(game_environment::Environment& environment)

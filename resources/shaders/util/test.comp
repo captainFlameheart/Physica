@@ -1,0 +1,14 @@
+layout(shared, binding = 0u) restrict
+buffer Data
+{
+	ivec4 a[100000000u];
+} data;
+
+layout(local_size_x = 256u) in;
+void main()
+{
+	if (gl_GlobalInvocationID.x < data.a.length())
+	{
+		data.a[gl_GlobalInvocationID.x] *= ivec4(4);
+	}
+}

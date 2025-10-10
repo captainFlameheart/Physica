@@ -6,12 +6,12 @@ namespace game_state::proximity
 {
 	struct Node
 	{
-		Bounding_Box bounding_box;
+		Bounding_Box bounding_box;	// 16 bytes
 		union
 		{
 			GLuint parent;
 			GLuint next_free;
-		};
+		};	// 4 bytes
 		union
 		{
 			union
@@ -28,6 +28,6 @@ namespace game_state::proximity
 				GLuint contact;
 				GLuint change;
 			};
-		};
-	};
+		};	// 8 bytes
+	};	// 28 bytes
 }

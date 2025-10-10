@@ -294,6 +294,8 @@ namespace game_state
 		GLint count_buffer_triangles_offset;
 		GLint count_buffer_fluid_particles_offset;
 
+		GLuint test_compute_shader;
+
 		GLuint rigid_body_velocity_integration_shader;
 		GLuint integrate_fluid_velocity_shader;
 		GLuint triangle_bounding_box_update_shader;
