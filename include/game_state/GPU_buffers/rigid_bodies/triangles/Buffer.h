@@ -1,6 +1,7 @@
 #pragma once
 #include <GLFW/glfw3.h>
 #include "game_state/rigid_body/Triangle.h"
+#include "vertices/include.h"
 
 namespace game_state::GPU_buffers::rigid_bodies::triangles
 {
@@ -13,5 +14,7 @@ namespace game_state::GPU_buffers::rigid_bodies::triangles
 
 		GLuint current_count;
 		rigid_body::Triangle* values;
+
+		vertices::Buffer vertices;
 	};
 }

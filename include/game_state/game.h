@@ -51,13 +51,6 @@ namespace game_state
 
 		GPU_buffers::GPU_Buffer_Set GPU_buffers;
 
-		GLuint vertex_buffer;
-		GLint vertex_buffer_size;
-		GLint vertex_buffer_vertices_offset;
-		GLint vertex_buffer_vertices_stride;
-
-		GLfloat	(*vertices)[2u];
-
 		GLuint bounding_box_buffer;
 		GLint bounding_box_buffer_size;
 		GLint bounding_box_buffer_boxes_offset;

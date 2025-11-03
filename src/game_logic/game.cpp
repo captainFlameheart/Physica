@@ -236,14 +236,14 @@ namespace game_logic
 			vertices[i][0u] *= game_logic__util__spatial_METER(environment);
 			vertices[i][1u] *= game_logic__util__spatial_METER(environment);
 
-			environment.state.vertices[vertex_base_index + i][0u] = vertices[i][0u];
-			environment.state.vertices[vertex_base_index + i][1u] = vertices[i][1u];
+			environment.state.GPU_buffers.rigid_bodies.triangles.vertices.values[vertex_base_index + i][0u] = vertices[i][0u];
+			environment.state.GPU_buffers.rigid_bodies.triangles.vertices.values[vertex_base_index + i][1u] = vertices[i][1u];
 
 			glClearNamedBufferSubData
 			(
-				environment.state.vertex_buffer, 
+				environment.state.GPU_buffers.rigid_bodies.triangles.vertices.buffer,
 				GL_RG32F, 
-				environment.state.vertex_buffer_vertices_offset + (vertex_base_index + i) * environment.state.vertex_buffer_vertices_stride, 
+				environment.state.GPU_buffers.rigid_bodies.triangles.vertices.vertices_offset + (vertex_base_index + i) * environment.state.GPU_buffers.rigid_bodies.triangles.vertices.vertices_stride,
 				sizeof(GLfloat[2u]), 
 				GL_RG, GL_FLOAT, 
 				&(vertices[i])
@@ -516,7 +516,7 @@ namespace game_logic
 
 		glCreateQueries(GL_TIME_ELAPSED, 1, &environment.state.time_elapsed_query);
 
-		environment.state.vertices = new GLfloat[game_logic_MAX_VERTEX_COUNT(environment)][2u];
+		environment.state.GPU_buffers.rigid_bodies.triangles.vertices.values = new GLfloat[game_logic_MAX_VERTEX_COUNT(environment)][2u];
 
 		glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
 		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
@@ -1970,7 +1970,7 @@ namespace game_logic
 			environment.state.GPU_buffers.rigid_bodies.positions.buffer, 
 			environment.state.GPU_buffers.rigid_bodies.velocities.buffer,
 			environment.state.GPU_buffers.rigid_bodies.triangles.buffer,
-			environment.state.vertex_buffer, 
+			environment.state.GPU_buffers.rigid_bodies.triangles.vertices.buffer,
 			environment.state.bounding_box_buffer, 
 			environment.state.changed_bounding_box_buffer, 
 			environment.state.contact_buffer,
@@ -2003,7 +2003,7 @@ namespace game_logic
 		environment.state.GPU_buffers.rigid_bodies.positions.buffer = buffers[8u];
 		environment.state.GPU_buffers.rigid_bodies.velocities.buffer = buffers[9u];
 		environment.state.GPU_buffers.rigid_bodies.triangles.buffer = buffers[10u];
-		environment.state.vertex_buffer = buffers[11u];
+		environment.state.GPU_buffers.rigid_bodies.triangles.vertices.buffer = buffers[11u];
 		environment.state.bounding_box_buffer = buffers[12u];
 		environment.state.changed_bounding_box_buffer = buffers[13u];
 		environment.state.contact_buffer = buffers[14u];
@@ -3091,11 +3091,11 @@ namespace game_logic
 				std::size(prop_labels), prop_labels, 2, nullptr, props
 			);
 			// TODO: Consider putting offset and stride contigously in game state
-			environment.state.vertex_buffer_vertices_offset = props[0];
-			environment.state.vertex_buffer_vertices_stride = props[1];
+			environment.state.GPU_buffers.rigid_bodies.triangles.vertices.vertices_offset = props[0];
+			environment.state.GPU_buffers.rigid_bodies.triangles.vertices.vertices_stride = props[1];
 
 #if USE_DYNAMIC_SIZES == true
-			environment.state.vertex_buffer_size = environment.state.vertex_buffer_vertices_offset + game_logic_MAX_VERTEX_COUNT(environment) * environment.state.vertex_buffer_vertices_stride;
+			environment.state.GPU_buffers.rigid_bodies.triangles.vertices.size = environment.state.GPU_buffers.rigid_bodies.triangles.vertices.vertices_offset + game_logic_MAX_VERTEX_COUNT(environment) * environment.state.GPU_buffers.rigid_bodies.triangles.vertices.vertices_stride;
 #else
 			GLuint const block_index
 			{
@@ -3111,7 +3111,7 @@ namespace game_logic
 			// TODO: Don't initialize a few vertices by copying over the ENTIRE buffer 
 			// content from CPU to GPU like this. Instead, use persistent mapping 
 			// for both initialization and updating.
-			unsigned char* const initial_vertices = new unsigned char[environment.state.vertex_buffer_size];
+			unsigned char* const initial_vertices = new unsigned char[environment.state.GPU_buffers.rigid_bodies.triangles.vertices.size];
 			
 			GLfloat vertex[2];
 			GLfloat const r{ 0.5f };
@@ -3119,41 +3119,41 @@ namespace game_logic
 			vertex[1] = game_logic__util__spatial_FLOAT_FROM_METERS(environment, r);
 			std::memcpy
 			(
-				initial_vertices + environment.state.vertex_buffer_vertices_offset + 0 * environment.state.vertex_buffer_vertices_stride,
+				initial_vertices + environment.state.GPU_buffers.rigid_bodies.triangles.vertices.vertices_offset + 0 * environment.state.GPU_buffers.rigid_bodies.triangles.vertices.vertices_stride,
 				&vertex, sizeof(vertex)
 			);
-			environment.state.vertices[0u][0u] = vertex[0u];
-			environment.state.vertices[0u][1u] = vertex[1u];
+			environment.state.GPU_buffers.rigid_bodies.triangles.vertices.values[0u][0u] = vertex[0u];
+			environment.state.GPU_buffers.rigid_bodies.triangles.vertices.values[0u][1u] = vertex[1u];
 
 			vertex[0] = game_logic__util__spatial_FLOAT_FROM_METERS(environment, -r);
 			vertex[1] = game_logic__util__spatial_FLOAT_FROM_METERS(environment, r);
 			std::memcpy
 			(
-				initial_vertices + environment.state.vertex_buffer_vertices_offset + 1 * environment.state.vertex_buffer_vertices_stride,
+				initial_vertices + environment.state.GPU_buffers.rigid_bodies.triangles.vertices.vertices_offset + 1 * environment.state.GPU_buffers.rigid_bodies.triangles.vertices.vertices_stride,
 				&vertex, sizeof(vertex)
 			);
-			environment.state.vertices[1u][0u] = vertex[0u];
-			environment.state.vertices[1u][1u] = vertex[1u];
+			environment.state.GPU_buffers.rigid_bodies.triangles.vertices.values[1u][0u] = vertex[0u];
+			environment.state.GPU_buffers.rigid_bodies.triangles.vertices.values[1u][1u] = vertex[1u];
 
 			vertex[0] = game_logic__util__spatial_FLOAT_FROM_METERS(environment, -r);
 			vertex[1] = game_logic__util__spatial_FLOAT_FROM_METERS(environment, -r);
 			std::memcpy
 			(
-				initial_vertices + environment.state.vertex_buffer_vertices_offset + 2 * environment.state.vertex_buffer_vertices_stride,
+				initial_vertices + environment.state.GPU_buffers.rigid_bodies.triangles.vertices.vertices_offset + 2 * environment.state.GPU_buffers.rigid_bodies.triangles.vertices.vertices_stride,
 				&vertex, sizeof(vertex)
 			);
-			environment.state.vertices[2u][0u] = vertex[0u];
-			environment.state.vertices[2u][1u] = vertex[1u];
+			environment.state.GPU_buffers.rigid_bodies.triangles.vertices.values[2u][0u] = vertex[0u];
+			environment.state.GPU_buffers.rigid_bodies.triangles.vertices.values[2u][1u] = vertex[1u];
 
 			vertex[0] = game_logic__util__spatial_FLOAT_FROM_METERS(environment, r);
 			vertex[1] = game_logic__util__spatial_FLOAT_FROM_METERS(environment, -r);
 			std::memcpy
 			(
-				initial_vertices + environment.state.vertex_buffer_vertices_offset + 3 * environment.state.vertex_buffer_vertices_stride,
+				initial_vertices + environment.state.GPU_buffers.rigid_bodies.triangles.vertices.vertices_offset + 3 * environment.state.GPU_buffers.rigid_bodies.triangles.vertices.vertices_stride,
 				&vertex, sizeof(vertex)
 			);
-			environment.state.vertices[3u][0u] = vertex[0u];
-			environment.state.vertices[3u][1u] = vertex[1u];
+			environment.state.GPU_buffers.rigid_bodies.triangles.vertices.values[3u][0u] = vertex[0u];
+			environment.state.GPU_buffers.rigid_bodies.triangles.vertices.values[3u][1u] = vertex[1u];
 
 			
 
@@ -3172,13 +3172,13 @@ namespace game_logic
 
 			glNamedBufferStorage
 			(
-				environment.state.vertex_buffer, environment.state.vertex_buffer_size, initial_vertices, 
+				environment.state.GPU_buffers.rigid_bodies.triangles.vertices.buffer, environment.state.GPU_buffers.rigid_bodies.triangles.vertices.size, initial_vertices,
 				0u
 			);
 
 			delete[] initial_vertices;
 
-			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_VERTEX_BINDING, environment.state.vertex_buffer);
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_VERTEX_BINDING, environment.state.GPU_buffers.rigid_bodies.triangles.vertices.buffer);
 		}
 
 		 { // Bounding box buffer
@@ -4798,10 +4798,10 @@ namespace game_logic
 		std::cout << "triangles stride: " << environment.state.GPU_buffers.rigid_bodies.triangles.triangles_stride << std::endl;
 		std::cout << std::endl;
 
-		std::cout << "Vertex buffer (" << environment.state.vertex_buffer << "):" << std::endl;
-		std::cout << "size: " << environment.state.vertex_buffer_size << std::endl;
-		std::cout << "vertices offset: " << environment.state.vertex_buffer_vertices_offset << std::endl;
-		std::cout << "vertices stride: " << environment.state.vertex_buffer_vertices_stride << std::endl;
+		std::cout << "Vertex buffer (" << environment.state.GPU_buffers.rigid_bodies.triangles.vertices.buffer << "):" << std::endl;
+		std::cout << "size: " << environment.state.GPU_buffers.rigid_bodies.triangles.vertices.size << std::endl;
+		std::cout << "vertices offset: " << environment.state.GPU_buffers.rigid_bodies.triangles.vertices.vertices_offset << std::endl;
+		std::cout << "vertices stride: " << environment.state.GPU_buffers.rigid_bodies.triangles.vertices.vertices_stride << std::endl;
 		std::cout << std::endl;
 
 		std::cout << "Bounding box buffer (" << environment.state.bounding_box_buffer << "):" << std::endl;
@@ -6266,14 +6266,14 @@ namespace game_logic
 		local_x = local_x * right_x + local_y * right_y;
 		local_y = local_y * right_x - old_local_x * right_y;
 
-		GLfloat vertex_0_x{ environment.state.vertices[triangle.vertices[0u]][0u] };
-		GLfloat vertex_0_y{ environment.state.vertices[triangle.vertices[0u]][1u] };
+		GLfloat vertex_0_x{ environment.state.GPU_buffers.rigid_bodies.triangles.vertices.values[triangle.vertices[0u]][0u] };
+		GLfloat vertex_0_y{ environment.state.GPU_buffers.rigid_bodies.triangles.vertices.values[triangle.vertices[0u]][1u] };
 
-		GLfloat vertex_1_x{ environment.state.vertices[triangle.vertices[1u]][0u] };
-		GLfloat vertex_1_y{ environment.state.vertices[triangle.vertices[1u]][1u] };
+		GLfloat vertex_1_x{ environment.state.GPU_buffers.rigid_bodies.triangles.vertices.values[triangle.vertices[1u]][0u] };
+		GLfloat vertex_1_y{ environment.state.GPU_buffers.rigid_bodies.triangles.vertices.values[triangle.vertices[1u]][1u] };
 
-		GLfloat vertex_2_x{ environment.state.vertices[triangle.vertices[2u]][0u] };
-		GLfloat vertex_2_y{ environment.state.vertices[triangle.vertices[2u]][1u] };
+		GLfloat vertex_2_x{ environment.state.GPU_buffers.rigid_bodies.triangles.vertices.values[triangle.vertices[2u]][0u] };
+		GLfloat vertex_2_y{ environment.state.GPU_buffers.rigid_bodies.triangles.vertices.values[triangle.vertices[2u]][1u] };
 
 		GLfloat normal_0_x = vertex_1_y - vertex_0_y;
 		GLfloat normal_0_y = vertex_0_x - vertex_1_x;
@@ -7172,14 +7172,14 @@ namespace game_logic
 		local_x = local_x * right_x + local_y * right_y;
 		local_y = local_y * right_x - old_local_x * right_y;
 
-		GLfloat vertex_0_x{ environment.state.vertices[triangle.vertices[0u]][0u] };
-		GLfloat vertex_0_y{ environment.state.vertices[triangle.vertices[0u]][1u] };
+		GLfloat vertex_0_x{ environment.state.GPU_buffers.rigid_bodies.triangles.vertices.values[triangle.vertices[0u]][0u] };
+		GLfloat vertex_0_y{ environment.state.GPU_buffers.rigid_bodies.triangles.vertices.values[triangle.vertices[0u]][1u] };
 
-		GLfloat vertex_1_x{ environment.state.vertices[triangle.vertices[1u]][0u] };
-		GLfloat vertex_1_y{ environment.state.vertices[triangle.vertices[1u]][1u] };
+		GLfloat vertex_1_x{ environment.state.GPU_buffers.rigid_bodies.triangles.vertices.values[triangle.vertices[1u]][0u] };
+		GLfloat vertex_1_y{ environment.state.GPU_buffers.rigid_bodies.triangles.vertices.values[triangle.vertices[1u]][1u] };
 
-		GLfloat vertex_2_x{ environment.state.vertices[triangle.vertices[2u]][0u] };
-		GLfloat vertex_2_y{ environment.state.vertices[triangle.vertices[2u]][1u] };
+		GLfloat vertex_2_x{ environment.state.GPU_buffers.rigid_bodies.triangles.vertices.values[triangle.vertices[2u]][0u] };
+		GLfloat vertex_2_y{ environment.state.GPU_buffers.rigid_bodies.triangles.vertices.values[triangle.vertices[2u]][1u] };
 
 		GLfloat normal_0_x = vertex_1_y - vertex_0_y;
 		GLfloat normal_0_y = vertex_0_x - vertex_1_x;
@@ -7485,7 +7485,7 @@ namespace game_logic
 			environment.state.GPU_buffers.rigid_bodies.positions.buffer,
 			environment.state.GPU_buffers.rigid_bodies.velocities.buffer,
 			environment.state.GPU_buffers.rigid_bodies.triangles.buffer,
-			environment.state.vertex_buffer, 
+			environment.state.GPU_buffers.rigid_bodies.triangles.vertices.buffer,
 			environment.state.bounding_box_buffer, 
 			environment.state.changed_bounding_box_buffer, 
 			environment.state.contact_buffer, 
