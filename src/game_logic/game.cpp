@@ -327,9 +327,9 @@ namespace game_logic
 		GLint velocity[4u]{ x_velocity, y_velocity, angular_velocity, 0u };
 		glClearNamedBufferSubData
 		(
-			environment.state.rigid_body_velocity_buffer,
+			environment.state.gpu_buffers.rigid_bodies.velocities.buffer,
 			GL_RGBA32I,
-			environment.state.rigid_body_velocity_buffer_v_offset + environment.state.current_rigid_body_count * environment.state.rigid_body_velocity_buffer_v_stride,
+			environment.state.gpu_buffers.rigid_bodies.velocities.v_offset + environment.state.current_rigid_body_count * environment.state.gpu_buffers.rigid_bodies.velocities.v_stride,
 			sizeof(GLint[4u]),
 			GL_RGBA_INTEGER, GL_INT,
 			velocity
@@ -1968,7 +1968,7 @@ namespace game_logic
 			environment.state.fluid_velocity_snapshot_buffer, 
 
 			environment.state.gpu_buffers.rigid_bodies.positions.buffer, 
-			environment.state.rigid_body_velocity_buffer, 
+			environment.state.gpu_buffers.rigid_bodies.velocities.buffer,
 			environment.state.triangle_buffer, 
 			environment.state.vertex_buffer, 
 			environment.state.bounding_box_buffer, 
@@ -2001,7 +2001,7 @@ namespace game_logic
 		environment.state.fluid_velocity_snapshot_buffer = buffers[7u];
 
 		environment.state.gpu_buffers.rigid_bodies.positions.buffer = buffers[8u];
-		environment.state.rigid_body_velocity_buffer = buffers[9u];
+		environment.state.gpu_buffers.rigid_bodies.velocities.buffer = buffers[9u];
 		environment.state.triangle_buffer = buffers[10u];
 		environment.state.vertex_buffer = buffers[11u];
 		environment.state.bounding_box_buffer = buffers[12u];
@@ -2926,11 +2926,11 @@ namespace game_logic
 				std::size(prop_labels), prop_labels, 2, nullptr, props
 			);
 			// TODO: Consider putting v_offset and v_stride contigously in game state
-			environment.state.rigid_body_velocity_buffer_v_offset = props[0];
-			environment.state.rigid_body_velocity_buffer_v_stride = props[1];
+			environment.state.gpu_buffers.rigid_bodies.velocities.v_offset = props[0];
+			environment.state.gpu_buffers.rigid_bodies.velocities.v_stride = props[1];
 
 #if USE_DYNAMIC_SIZES == true
-			environment.state.rigid_body_velocity_buffer_size = environment.state.rigid_body_velocity_buffer_v_offset + game_logic_MAX_RIGID_BODY_COUNT(environment) * environment.state.rigid_body_velocity_buffer_v_stride;
+			environment.state.gpu_buffers.rigid_bodies.velocities.size = environment.state.gpu_buffers.rigid_bodies.velocities.v_offset + game_logic_MAX_RIGID_BODY_COUNT(environment) * environment.state.gpu_buffers.rigid_bodies.velocities.v_stride;
 #else
 			GLuint const block_index
 			{
@@ -2946,7 +2946,7 @@ namespace game_logic
 			// TODO: Don't initialize a few positions by copying over the ENTIRE buffer 
 			// content from CPU to GPU like this. Instead, use persistent mapping 
 			// for both initialization and updating.
-			unsigned char* const initial_velocities = new unsigned char[environment.state.rigid_body_velocity_buffer_size];
+			unsigned char* const initial_velocities = new unsigned char[environment.state.gpu_buffers.rigid_bodies.velocities.size];
 
 			for (GLuint i = 0; i < environment.state.current_rigid_body_count; ++i)
 			{
@@ -2985,17 +2985,17 @@ namespace game_logic
 				}*/
 				std::memcpy
 				(
-					initial_velocities + environment.state.rigid_body_velocity_buffer_v_offset + i * environment.state.rigid_body_velocity_buffer_v_stride, 
+					initial_velocities + environment.state.gpu_buffers.rigid_bodies.velocities.v_offset + i * environment.state.gpu_buffers.rigid_bodies.velocities.v_stride,
 					&velocity, sizeof(velocity)
 				);
 			}
 
 			glNamedBufferStorage
 			(
-				environment.state.rigid_body_velocity_buffer, environment.state.rigid_body_velocity_buffer_size, initial_velocities,
+				environment.state.gpu_buffers.rigid_bodies.velocities.buffer, environment.state.gpu_buffers.rigid_bodies.velocities.size, initial_velocities,
 				0u
 			);
-			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_RIGID_BODY_VELOCITY_BINDING, environment.state.rigid_body_velocity_buffer);
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_RIGID_BODY_VELOCITY_BINDING, environment.state.gpu_buffers.rigid_bodies.velocities.buffer);
 
 			delete[] initial_velocities;
 		}
@@ -3003,7 +3003,7 @@ namespace game_logic
 		{ // Velocity snapshot buffer
 			glNamedBufferStorage
 			(
-				environment.state.rigid_body_velocity_snapshot_buffer, environment.state.rigid_body_velocity_buffer_size, nullptr, 
+				environment.state.rigid_body_velocity_snapshot_buffer, environment.state.gpu_buffers.rigid_bodies.velocities.size, nullptr,
 				0u
 			);
 			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_VELOCITY_SNAPSHOT_BINDING, environment.state.rigid_body_velocity_snapshot_buffer);
@@ -4786,10 +4786,10 @@ namespace game_logic
 		std::cout << "p stride: " << environment.state.gpu_buffers.rigid_bodies.positions.p_stride << std::endl;
 		std::cout << std::endl;
 
-		std::cout << "Velocity buffer (" << environment.state.rigid_body_velocity_buffer << "):" << std::endl;
-		std::cout << "size: " << environment.state.rigid_body_velocity_buffer_size << std::endl;
-		std::cout << "v offset: " << environment.state.rigid_body_velocity_buffer_v_offset << std::endl;
-		std::cout << "v stride: " << environment.state.rigid_body_velocity_buffer_v_stride << std::endl;
+		std::cout << "Velocity buffer (" << environment.state.gpu_buffers.rigid_bodies.velocities.buffer << "):" << std::endl;
+		std::cout << "size: " << environment.state.gpu_buffers.rigid_bodies.velocities.size << std::endl;
+		std::cout << "v offset: " << environment.state.gpu_buffers.rigid_bodies.velocities.v_offset << std::endl;
+		std::cout << "v stride: " << environment.state.gpu_buffers.rigid_bodies.velocities.v_stride << std::endl;
 		std::cout << std::endl;
 
 		std::cout << "Triangle buffer (" << environment.state.triangle_buffer << "):" << std::endl;
@@ -5349,9 +5349,9 @@ namespace game_logic
 
 			glCopyNamedBufferSubData
 			(
-				environment.state.rigid_body_velocity_buffer, environment.state.rigid_body_velocity_snapshot_buffer,
-				environment.state.rigid_body_velocity_buffer_v_offset, environment.state.rigid_body_velocity_buffer_v_offset,
-				environment.state.current_rigid_body_count * environment.state.rigid_body_velocity_buffer_v_stride
+				environment.state.gpu_buffers.rigid_bodies.velocities.buffer, environment.state.rigid_body_velocity_snapshot_buffer,
+				environment.state.gpu_buffers.rigid_bodies.velocities.v_offset, environment.state.gpu_buffers.rigid_bodies.velocities.v_offset,
+				environment.state.current_rigid_body_count * environment.state.gpu_buffers.rigid_bodies.velocities.v_stride
 			);
 
 			glUseProgram(environment.state.solve_fluid_triangle_contacts_shader);
@@ -7483,7 +7483,7 @@ namespace game_logic
 		{ 
 			environment.state.camera_buffer, 
 			environment.state.gpu_buffers.rigid_bodies.positions.buffer,
-			environment.state.rigid_body_velocity_buffer, 
+			environment.state.gpu_buffers.rigid_bodies.velocities.buffer,
 			environment.state.triangle_buffer, 
 			environment.state.vertex_buffer, 
 			environment.state.bounding_box_buffer, 

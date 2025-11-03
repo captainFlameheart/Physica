@@ -49,21 +49,9 @@ namespace game_state
 
 		// TODO: Position buffer should likely come after velocity buffer
 
-		/*GLuint rigid_body_position_buffer;
-		GLint rigid_body_position_buffer_size;
-		GLint rigid_body_position_buffer_p_offset;
-		GLint rigid_body_position_buffer_p_stride;
-		unsigned char* position_mapping;*/
-		//GPU_buffers::rigid_bodies::positions::Position_Buffer rigid_body_position_buffer;
-
 		GPU_buffers::GPU_Buffer_Set gpu_buffers;
 
 		GLuint rigid_body_position_snapshot_buffer;
-
-		GLuint rigid_body_velocity_buffer;
-		GLint rigid_body_velocity_buffer_size;
-		GLint rigid_body_velocity_buffer_v_offset;
-		GLint rigid_body_velocity_buffer_v_stride;
 
 		GLuint rigid_body_velocity_snapshot_buffer;
 
