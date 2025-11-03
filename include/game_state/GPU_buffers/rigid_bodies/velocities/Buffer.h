@@ -9,5 +9,7 @@ namespace game_state::GPU_buffers::rigid_bodies::velocities
 		GLint size;
 		GLint v_offset;
 		GLint v_stride;
+
+		GLuint snapshot_buffer;
 	};
 }

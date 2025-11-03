@@ -10,5 +10,7 @@ namespace game_state::GPU_buffers::rigid_bodies::positions
 		GLint p_offset;
 		GLint p_stride;
 		unsigned char* mapping;
+
+		GLuint snapshot_buffer;
 	};
 }

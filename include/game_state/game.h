@@ -49,11 +49,7 @@ namespace game_state
 
 		// TODO: Position buffer should likely come after velocity buffer
 
-		GPU_buffers::GPU_Buffer_Set gpu_buffers;
-
-		GLuint rigid_body_position_snapshot_buffer;
-
-		GLuint rigid_body_velocity_snapshot_buffer;
+		GPU_buffers::GPU_Buffer_Set GPU_buffers;
 
 		GLuint current_triangle_count;
 
