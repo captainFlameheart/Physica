@@ -51,11 +51,6 @@ namespace game_state
 
 		GPU_buffers::GPU_Buffer_Set GPU_buffers;
 
-		GLuint bounding_box_buffer;
-		GLint bounding_box_buffer_size;
-		GLint bounding_box_buffer_boxes_offset;
-		GLint bounding_box_buffer_boxes_stride;
-
 		GLint contact_surface_buffer_size;
 
 		GLint contact_surface_buffer_contact_surfaces_bodies_offset;
