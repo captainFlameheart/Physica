@@ -51,9 +51,9 @@ namespace game_state
 
 		GPU_buffers::GPU_Buffer_Set GPU_buffers;
 
-		GLint contact_surface_buffer_size;
+		//GLint contact_surface_buffer_size;
 
-		GLint contact_surface_buffer_contact_surfaces_bodies_offset;
+		/*GLint contact_surface_buffer_contact_surfaces_bodies_offset;
 		GLint contact_surface_buffer_contact_surfaces_bodies_stride;
 
 		GLint contact_surface_buffer_contact_surfaces_contact_point_position_0_offsets_offset;
@@ -72,7 +72,7 @@ namespace game_state
 		GLint contact_surface_buffer_contact_surfaces_contact_point_normal_0_impulse_offset;
 		GLint contact_surface_buffer_contact_surfaces_contact_point_normal_1_target_velocity_offset;
 		GLint contact_surface_buffer_contact_surfaces_contact_point_normal_1_mass_offset;
-		GLint contact_surface_buffer_contact_surfaces_contact_point_normal_1_impulse_offset;
+		GLint contact_surface_buffer_contact_surfaces_contact_point_normal_1_impulse_offset;*/
 		
 		GLint contact_count_buffer;
 		GLint contact_count_buffer_size;

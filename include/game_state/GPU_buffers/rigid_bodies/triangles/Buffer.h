@@ -3,6 +3,7 @@
 #include "game_state/rigid_body/Triangle.h"
 #include "bounding_boxes/include.h"
 #include "vertices/include.h"
+#include "contact_surfaces/include.h"
 
 namespace game_state::GPU_buffers::rigid_bodies::triangles
 {
@@ -18,5 +19,6 @@ namespace game_state::GPU_buffers::rigid_bodies::triangles
 
 		vertices::Buffer vertices;
 		bounding_boxes::Buffer bounding_boxes;
+		contact_surfaces::Buffer contact_surfaces;
 	};
 }

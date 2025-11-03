@@ -3459,9 +3459,9 @@ namespace game_logic
 					std::size(prop_labels), prop_labels, 3u, nullptr, props
 				);
 				// TODO: Consider putting offset and strides contigously in game state
-				environment.state.contact_surface_buffer_contact_surfaces_bodies_offset = props[0];
+				environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_bodies_offset = props[0];
 				environment.state.contact_surface_buffer_contact_surfaces_stride = props[1];
-				environment.state.contact_surface_buffer_contact_surfaces_bodies_stride = props[2];
+				environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_bodies_stride = props[2];
 
 				GLenum const array_prop_labels[]{ GL_OFFSET, GL_ARRAY_STRIDE };
 				GLint array_props[std::size(array_prop_labels)];
@@ -3475,8 +3475,8 @@ namespace game_logic
 					environment.state.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, contact_surfaces_contact_point_position_0_offsets_index,
 					std::size(array_prop_labels), array_prop_labels, 2u, nullptr, array_props
 				);
-				environment.state.contact_surface_buffer_contact_surfaces_contact_point_position_0_offsets_offset = array_props[0];
-				environment.state.contact_surface_buffer_contact_surfaces_contact_point_position_0_offsets_stride = array_props[1];
+				environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_position_0_offsets_offset = array_props[0];
+				environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_position_0_offsets_stride = array_props[1];
 
 				GLuint const contact_surfaces_contact_point_position_1_offsets_index
 				{
@@ -3487,8 +3487,8 @@ namespace game_logic
 					environment.state.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, contact_surfaces_contact_point_position_1_offsets_index,
 					std::size(array_prop_labels), array_prop_labels, 2u, nullptr, array_props
 				);
-				environment.state.contact_surface_buffer_contact_surfaces_contact_point_position_1_offsets_offset = array_props[0];
-				environment.state.contact_surface_buffer_contact_surfaces_contact_point_position_1_offsets_stride = array_props[1];
+				environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_position_1_offsets_offset = array_props[0];
+				environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_position_1_offsets_stride = array_props[1];
 
 				GLenum const offset_label{ GL_OFFSET };
 
@@ -3499,7 +3499,7 @@ namespace game_logic
 				glGetProgramResourceiv
 				(
 					environment.state.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, contact_surfaces_tangent_index,
-					1u, &offset_label, 1u, nullptr, &environment.state.contact_surface_buffer_contact_surfaces_tangent_offset
+					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_tangent_offset
 				);
 
 				GLuint const contact_surfaces_contact_point_tangent_0_mass_index
@@ -3509,7 +3509,7 @@ namespace game_logic
 				glGetProgramResourceiv
 				(
 					environment.state.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, contact_surfaces_contact_point_tangent_0_mass_index,
-					1u, &offset_label, 1u, nullptr, &environment.state.contact_surface_buffer_contact_surfaces_contact_point_tangent_0_mass_offset
+					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_tangent_0_mass_offset
 				);
 
 				GLuint const contact_surfaces_contact_point_tangent_0_impulse_index
@@ -3519,7 +3519,7 @@ namespace game_logic
 				glGetProgramResourceiv
 				(
 					environment.state.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, contact_surfaces_contact_point_tangent_0_impulse_index,
-					1u, &offset_label, 1u, nullptr, &environment.state.contact_surface_buffer_contact_surfaces_contact_point_tangent_0_impulse_offset
+					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_tangent_0_impulse_offset
 				);
 
 				GLuint const contact_surfaces_contact_point_tangent_1_mass_index
@@ -3529,7 +3529,7 @@ namespace game_logic
 				glGetProgramResourceiv
 				(
 					environment.state.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, contact_surfaces_contact_point_tangent_1_mass_index,
-					1u, &offset_label, 1u, nullptr, &environment.state.contact_surface_buffer_contact_surfaces_contact_point_tangent_1_mass_offset
+					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_tangent_1_mass_offset
 				);
 
 				GLuint const contact_surfaces_contact_point_tangent_1_impulse_index
@@ -3539,7 +3539,7 @@ namespace game_logic
 				glGetProgramResourceiv
 				(
 					environment.state.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, contact_surfaces_contact_point_tangent_1_impulse_index,
-					1u, &offset_label, 1u, nullptr, &environment.state.contact_surface_buffer_contact_surfaces_contact_point_tangent_1_impulse_offset
+					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_tangent_1_impulse_offset
 				);
 
 				GLuint const contact_surfaces_contact_point_normal_0_target_velocity_index
@@ -3549,7 +3549,7 @@ namespace game_logic
 				glGetProgramResourceiv
 				(
 					environment.state.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, contact_surfaces_contact_point_normal_0_target_velocity_index,
-					1u, &offset_label, 1u, nullptr, &environment.state.contact_surface_buffer_contact_surfaces_contact_point_normal_0_target_velocity_offset
+					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_normal_0_target_velocity_offset
 				);
 
 				GLuint const contact_surfaces_contact_point_normal_0_mass_index
@@ -3559,7 +3559,7 @@ namespace game_logic
 				glGetProgramResourceiv
 				(
 					environment.state.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, contact_surfaces_contact_point_normal_0_mass_index,
-					1u, &offset_label, 1u, nullptr, &environment.state.contact_surface_buffer_contact_surfaces_contact_point_normal_0_mass_offset
+					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_normal_0_mass_offset
 				);
 
 				GLuint const contact_surfaces_contact_point_normal_0_impulse_index
@@ -3569,7 +3569,7 @@ namespace game_logic
 				glGetProgramResourceiv
 				(
 					environment.state.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, contact_surfaces_contact_point_normal_0_impulse_index,
-					1u, &offset_label, 1u, nullptr, &environment.state.contact_surface_buffer_contact_surfaces_contact_point_normal_0_impulse_offset
+					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_normal_0_impulse_offset
 				);
 
 				GLuint const contact_surfaces_contact_point_normal_1_target_velocity_index
@@ -3579,7 +3579,7 @@ namespace game_logic
 				glGetProgramResourceiv
 				(
 					environment.state.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, contact_surfaces_contact_point_normal_1_target_velocity_index,
-					1u, &offset_label, 1u, nullptr, &environment.state.contact_surface_buffer_contact_surfaces_contact_point_normal_1_target_velocity_offset
+					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_normal_1_target_velocity_offset
 				);
 
 				GLuint const contact_surfaces_contact_point_normal_1_mass_index
@@ -3589,7 +3589,7 @@ namespace game_logic
 				glGetProgramResourceiv
 				(
 					environment.state.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, contact_surfaces_contact_point_normal_1_mass_index,
-					1u, &offset_label, 1u, nullptr, &environment.state.contact_surface_buffer_contact_surfaces_contact_point_normal_1_mass_offset
+					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_normal_1_mass_offset
 				);
 
 				GLuint const contact_surfaces_contact_point_normal_1_impulse_index
@@ -3599,30 +3599,30 @@ namespace game_logic
 				glGetProgramResourceiv
 				(
 					environment.state.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, contact_surfaces_contact_point_normal_1_impulse_index,
-					1u, &offset_label, 1u, nullptr, &environment.state.contact_surface_buffer_contact_surfaces_contact_point_normal_1_impulse_offset
+					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_normal_1_impulse_offset
 				);
 
 				GLint offsets[]
 				{
-					environment.state.contact_surface_buffer_contact_surfaces_bodies_offset,
-					environment.state.contact_surface_buffer_contact_surfaces_contact_point_position_0_offsets_offset,
-					environment.state.contact_surface_buffer_contact_surfaces_contact_point_position_1_offsets_offset,
-					environment.state.contact_surface_buffer_contact_surfaces_contact_point_tangent_0_mass_offset,
-					environment.state.contact_surface_buffer_contact_surfaces_contact_point_tangent_0_impulse_offset,
-					environment.state.contact_surface_buffer_contact_surfaces_contact_point_tangent_1_mass_offset,
-					environment.state.contact_surface_buffer_contact_surfaces_contact_point_tangent_1_impulse_offset,
-					environment.state.contact_surface_buffer_contact_surfaces_contact_point_normal_0_target_velocity_offset,
-					environment.state.contact_surface_buffer_contact_surfaces_contact_point_normal_0_mass_offset,
-					environment.state.contact_surface_buffer_contact_surfaces_contact_point_normal_0_impulse_offset,
-					environment.state.contact_surface_buffer_contact_surfaces_contact_point_normal_1_target_velocity_offset,
-					environment.state.contact_surface_buffer_contact_surfaces_contact_point_normal_1_mass_offset,
-					environment.state.contact_surface_buffer_contact_surfaces_contact_point_normal_1_impulse_offset
+					environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_bodies_offset,
+					environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_position_0_offsets_offset,
+					environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_position_1_offsets_offset,
+					environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_tangent_0_mass_offset,
+					environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_tangent_0_impulse_offset,
+					environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_tangent_1_mass_offset,
+					environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_tangent_1_impulse_offset,
+					environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_normal_0_target_velocity_offset,
+					environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_normal_0_mass_offset,
+					environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_normal_0_impulse_offset,
+					environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_normal_1_target_velocity_offset,
+					environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_normal_1_mass_offset,
+					environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_normal_1_impulse_offset
 				};
 				environment.state.contact_surface_buffer_contact_surfaces_offset = *std::min_element(std::begin(offsets), std::end(offsets));
 			}
 
 #if USE_DYNAMIC_SIZES == true
-			environment.state.contact_surface_buffer_size = environment.state.contact_surface_buffer_contact_surfaces_offset + game_logic_MAX_TRIANGLE_CONTACT_COUNT(environment) * environment.state.contact_surface_buffer_contact_surfaces_stride;
+			environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.size = environment.state.contact_surface_buffer_contact_surfaces_offset + game_logic_MAX_TRIANGLE_CONTACT_COUNT(environment) * environment.state.contact_surface_buffer_contact_surfaces_stride;
 #else
 			GLuint const block_index
 			{
@@ -3632,13 +3632,13 @@ namespace game_logic
 			glGetProgramResourceiv
 			(
 				environment.state.old_triangle_contact_update_shader, GL_SHADER_STORAGE_BLOCK, block_index,
-				1, &buffer_size_label, 1, nullptr, &environment.state.contact_surface_buffer_size
+				1, &buffer_size_label, 1, nullptr, &environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.size
 			);
 #endif
 
 			glNamedBufferStorage
 			(
-				environment.state.contact_surface_buffer, environment.state.contact_surface_buffer_size, nullptr, 
+				environment.state.contact_surface_buffer, environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.size, nullptr, 
 				0u
 			);
 
@@ -4828,25 +4828,25 @@ namespace game_logic
 		std::cout << std::endl;
 
 		std::cout << "Contact surfaces buffer (" << environment.state.contact_surface_buffer << "):" << std::endl;
-		std::cout << "size: " << environment.state.contact_surface_buffer_size << std::endl;
+		std::cout << "size: " << environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.size << std::endl;
 		std::cout << "contact surfaces stride: " << environment.state.contact_surface_buffer_contact_surfaces_stride << std::endl;
-		std::cout << "contact surfaces bodies offset: " << environment.state.contact_surface_buffer_contact_surfaces_bodies_offset << std::endl;
-		std::cout << "contact surfaces bodies stride: " << environment.state.contact_surface_buffer_contact_surfaces_bodies_stride << std::endl;
-		std::cout << "contact surfaces contact point position 0 offsets offset: " << environment.state.contact_surface_buffer_contact_surfaces_contact_point_position_0_offsets_offset << std::endl;
-		std::cout << "contact surfaces contact point position 0 offsets stride: " << environment.state.contact_surface_buffer_contact_surfaces_contact_point_position_0_offsets_stride << std::endl;
-		std::cout << "contact surfaces contact point position 1 offsets offset: " << environment.state.contact_surface_buffer_contact_surfaces_contact_point_position_1_offsets_offset << std::endl;
-		std::cout << "contact surfaces contact point position 1 offsets stride: " << environment.state.contact_surface_buffer_contact_surfaces_contact_point_position_1_offsets_stride << std::endl;
-		std::cout << "contact surfaces tangent offset: " << environment.state.contact_surface_buffer_contact_surfaces_tangent_offset << std::endl;
-		std::cout << "contact surfaces contact point tangent 0 mass offset: " << environment.state.contact_surface_buffer_contact_surfaces_contact_point_tangent_0_mass_offset << std::endl;
-		std::cout << "contact surfaces contact point tangent 0 impulse offset: " << environment.state.contact_surface_buffer_contact_surfaces_contact_point_tangent_0_impulse_offset << std::endl;
-		std::cout << "contact surfaces contact point tangent 1 mass offset: " << environment.state.contact_surface_buffer_contact_surfaces_contact_point_tangent_1_mass_offset << std::endl;
-		std::cout << "contact surfaces contact point tangent 1 impulse offset: " << environment.state.contact_surface_buffer_contact_surfaces_contact_point_tangent_1_impulse_offset << std::endl;
-		std::cout << "contact surfaces contact point normal 0 target velocity offset: " << environment.state.contact_surface_buffer_contact_surfaces_contact_point_normal_0_target_velocity_offset << std::endl;
-		std::cout << "contact surfaces contact point normal 0 mass offset: " << environment.state.contact_surface_buffer_contact_surfaces_contact_point_normal_0_mass_offset << std::endl;
-		std::cout << "contact surfaces contact point normal 0 impulse offset: " << environment.state.contact_surface_buffer_contact_surfaces_contact_point_normal_0_impulse_offset << std::endl;
-		std::cout << "contact surfaces contact point normal 1 target velocity offset: " << environment.state.contact_surface_buffer_contact_surfaces_contact_point_normal_1_target_velocity_offset << std::endl;
-		std::cout << "contact surfaces contact point normal 1 mass offset: " << environment.state.contact_surface_buffer_contact_surfaces_contact_point_normal_1_mass_offset << std::endl;
-		std::cout << "contact surfaces contact point normal 1 impulse offset: " << environment.state.contact_surface_buffer_contact_surfaces_contact_point_normal_1_impulse_offset << std::endl;
+		std::cout << "contact surfaces bodies offset: " << environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_bodies_offset << std::endl;
+		std::cout << "contact surfaces bodies stride: " << environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_bodies_stride << std::endl;
+		std::cout << "contact surfaces contact point position 0 offsets offset: " << environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_position_0_offsets_offset << std::endl;
+		std::cout << "contact surfaces contact point position 0 offsets stride: " << environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_position_0_offsets_stride << std::endl;
+		std::cout << "contact surfaces contact point position 1 offsets offset: " << environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_position_1_offsets_offset << std::endl;
+		std::cout << "contact surfaces contact point position 1 offsets stride: " << environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_position_1_offsets_stride << std::endl;
+		std::cout << "contact surfaces tangent offset: " << environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_tangent_offset << std::endl;
+		std::cout << "contact surfaces contact point tangent 0 mass offset: " << environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_tangent_0_mass_offset << std::endl;
+		std::cout << "contact surfaces contact point tangent 0 impulse offset: " << environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_tangent_0_impulse_offset << std::endl;
+		std::cout << "contact surfaces contact point tangent 1 mass offset: " << environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_tangent_1_mass_offset << std::endl;
+		std::cout << "contact surfaces contact point tangent 1 impulse offset: " << environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_tangent_1_impulse_offset << std::endl;
+		std::cout << "contact surfaces contact point normal 0 target velocity offset: " << environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_normal_0_target_velocity_offset << std::endl;
+		std::cout << "contact surfaces contact point normal 0 mass offset: " << environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_normal_0_mass_offset << std::endl;
+		std::cout << "contact surfaces contact point normal 0 impulse offset: " << environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_normal_0_impulse_offset << std::endl;
+		std::cout << "contact surfaces contact point normal 1 target velocity offset: " << environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_normal_1_target_velocity_offset << std::endl;
+		std::cout << "contact surfaces contact point normal 1 mass offset: " << environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_normal_1_mass_offset << std::endl;
+		std::cout << "contact surfaces contact point normal 1 impulse offset: " << environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_normal_1_impulse_offset << std::endl;
 		std::cout << "contact surfaces offset: " << environment.state.contact_surface_buffer_contact_surfaces_offset << std::endl;
 		std::cout << std::endl;
 
