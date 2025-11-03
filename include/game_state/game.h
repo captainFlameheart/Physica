@@ -5,6 +5,7 @@
 #include "game_state/proximity/Tree.h"
 #include "game_state/rigid_body/Triangle.h"
 #include "game_state/cursor_types/cursor_type_set.h"
+#include "GPU_buffers/include.h"
 
 #define MAX_GRAVITY_SOURCE_COUNT 100u
 
@@ -48,11 +49,14 @@ namespace game_state
 
 		// TODO: Position buffer should likely come after velocity buffer
 
-		GLuint rigid_body_position_buffer;
+		/*GLuint rigid_body_position_buffer;
 		GLint rigid_body_position_buffer_size;
 		GLint rigid_body_position_buffer_p_offset;
 		GLint rigid_body_position_buffer_p_stride;
-		unsigned char* position_mapping;
+		unsigned char* position_mapping;*/
+		//GPU_buffers::rigid_bodies::positions::Position_Buffer rigid_body_position_buffer;
+
+		GPU_buffers::GPU_Buffer_Set gpu_buffers;
 
 		GLuint rigid_body_position_snapshot_buffer;
 
