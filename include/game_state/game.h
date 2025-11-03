@@ -4,6 +4,7 @@
 #include "util/math/vector_2D.h"
 #include "game_state/proximity/Tree.h"
 #include "game_state/rigid_body/Triangle.h"
+#include "game_state/cursor_types/cursor_type_set.h"
 
 #define MAX_GRAVITY_SOURCE_COUNT 100u
 
@@ -24,9 +25,7 @@ namespace game_state
 	{
 		GLuint time_elapsed_query;
 
-		GLFWcursor* grab_cursor;
-		GLFWcursor* point_cursor;
-		GLFWcursor* move_cursor;
+		cursor_types::Cursor_Type_Set cursor_types;
 
 		camera::Camera camera;
 		GLboolean point_grabbed;

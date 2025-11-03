@@ -44,6 +44,7 @@
 #include "game_logic/util/proximity/query_point_of_multinode_tree.h"
 #include <algorithm>
 #include <chrono>
+#include "game_logic/cursor_types/include.h"
 
 #define M_PI 3.14159265358979323846f
 
@@ -583,9 +584,7 @@ namespace game_logic
 		environment.state.grabbed_triangle = game_logic__util__proximity_NULL_INDEX;
 		environment.state.distance_constraint_start_triangle = game_logic__util__proximity_NULL_INDEX;
 
-		environment.state.grab_cursor = glfwCreateStandardCursor(GLFW_CROSSHAIR_CURSOR);
-		environment.state.point_cursor = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
-		environment.state.move_cursor = glfwCreateStandardCursor(GLFW_CROSSHAIR_CURSOR);
+		cursor_types::initialize(environment);
 
 		environment.state.camera.xy.x = 100 * 1000000;
 		environment.state.camera.xy.y = 100 * 1000000;
@@ -6497,7 +6496,7 @@ namespace game_logic
 					environment,
 					&environment.state.grabbed_point.x, &environment.state.grabbed_point.y
 				);
-				glfwSetCursor(environment.window, environment.state.grab_cursor);
+				glfwSetCursor(environment.window, environment.state.cursor_types.grab_cursor);
 				break; 
 			case GLFW_RELEASE:
 				environment.state.point_grabbed = false;
@@ -7337,7 +7336,7 @@ namespace game_logic
 					GLfloat distance_squared{ diff_x * diff_x + diff_y * diff_y };
 					if (distance_squared <= GRAVITY_SOURCE_GRAB_RADIUS(environment) * GRAVITY_SOURCE_GRAB_RADIUS(environment))
 					{
-						cursor = environment.state.move_cursor;
+						cursor = environment.state.cursor_types.move_cursor;
 						break;
 					}
 				}
@@ -7407,7 +7406,7 @@ namespace game_logic
 							glUniform1ui(environment.state.hovered_triangle_wireframe_hovered_triangle_uniform_location, hovered_triangle);
 							glDrawArrays(GL_LINES, 0, 6u);
 
-							cursor = environment.state.point_cursor;
+							cursor = environment.state.cursor_types.point_cursor;
 						}
 					}
 				}
@@ -7517,9 +7516,7 @@ namespace game_logic
 		glDeleteVertexArrays(1, &environment.state.vao);
 		glDeleteBuffers(1, &environment.state.vbo);
 
-		glfwDestroyCursor(environment.state.grab_cursor);
-		glfwDestroyCursor(environment.state.point_cursor);
-		glfwDestroyCursor(environment.state.move_cursor);
+		cursor_types::free(environment);
 
 		// TODO: Delete shader programs???
 	}
