@@ -51,15 +51,6 @@ namespace game_state
 
 		GPU_buffers::GPU_Buffer_Set GPU_buffers;
 
-		GLuint current_triangle_count;
-
-		GLuint triangle_buffer;
-		GLint triangle_buffer_size;
-		GLint triangle_buffer_triangles_offset;
-		GLint triangle_buffer_triangles_stride;
-
-		rigid_body::Triangle* triangles;
-
 		GLuint vertex_buffer;
 		GLint vertex_buffer_size;
 		GLint vertex_buffer_vertices_offset;

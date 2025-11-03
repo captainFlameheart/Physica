@@ -349,7 +349,7 @@ namespace game_logic
 		GLuint i{ 0u };
 		while (i < Vertex_Index_Count)
 		{
-			game_state::rigid_body::Triangle& triangle{ environment.state.triangles[environment.state.current_triangle_count] };
+			game_state::rigid_body::Triangle& triangle{ environment.state.GPU_buffers.rigid_bodies.triangles.values[environment.state.GPU_buffers.rigid_bodies.triangles.current_count] };
 			triangle.vertices[0u] = model.vertex_indices[i++];
 			triangle.vertices[1u] = model.vertex_indices[i++];
 			triangle.vertices[2u] = model.vertex_indices[i++];
@@ -357,15 +357,15 @@ namespace game_logic
 			
 			glClearNamedBufferSubData
 			(
-				environment.state.triangle_buffer, 
+				environment.state.GPU_buffers.rigid_bodies.triangles.buffer,
 				GL_RGBA32UI, 
-				environment.state.triangle_buffer_triangles_offset + environment.state.current_triangle_count * environment.state.triangle_buffer_triangles_stride, 
+				environment.state.GPU_buffers.rigid_bodies.triangles.triangles_offset + environment.state.GPU_buffers.rigid_bodies.triangles.current_count * environment.state.GPU_buffers.rigid_bodies.triangles.triangles_stride,
 				sizeof(triangle), 
 				GL_RGBA, GL_UNSIGNED_INT, 
 				&triangle
 			);
 
-			GLuint const leaf_index{ game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment) + environment.state.current_triangle_count };
+			GLuint const leaf_index{ game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment) + environment.state.GPU_buffers.rigid_bodies.triangles.current_count };
 			game_state::proximity::Bounding_Box& bounding_box
 			{
 				environment.state.proximity_tree.nodes[leaf_index].bounding_box
@@ -379,7 +379,7 @@ namespace game_logic
 			(
 				environment.state.bounding_box_buffer,
 				GL_RGBA32I,
-				environment.state.bounding_box_buffer_boxes_offset + environment.state.current_triangle_count * environment.state.bounding_box_buffer_boxes_stride,
+				environment.state.bounding_box_buffer_boxes_offset + environment.state.GPU_buffers.rigid_bodies.triangles.current_count * environment.state.bounding_box_buffer_boxes_stride,
 				sizeof(bounding_box),
 				GL_RGBA, GL_INT,
 				&bounding_box
@@ -391,7 +391,7 @@ namespace game_logic
 				0, 0, -1, -1	// TODO: The bounding box is set twice!
 			);
 
-			++environment.state.current_triangle_count;
+			++environment.state.GPU_buffers.rigid_bodies.triangles.current_count;
 		}
 		glClearNamedBufferSubData
 		(
@@ -400,7 +400,7 @@ namespace game_logic
 			environment.state.count_buffer_triangles_offset, 
 			sizeof(GLuint), 
 			GL_RED_INTEGER, GL_UNSIGNED_INT, 
-			&environment.state.current_triangle_count
+			&environment.state.GPU_buffers.rigid_bodies.triangles.current_count
 		);
 
 		++environment.state.current_rigid_body_count;
@@ -1969,7 +1969,7 @@ namespace game_logic
 
 			environment.state.GPU_buffers.rigid_bodies.positions.buffer, 
 			environment.state.GPU_buffers.rigid_bodies.velocities.buffer,
-			environment.state.triangle_buffer, 
+			environment.state.GPU_buffers.rigid_bodies.triangles.buffer,
 			environment.state.vertex_buffer, 
 			environment.state.bounding_box_buffer, 
 			environment.state.changed_bounding_box_buffer, 
@@ -2002,7 +2002,7 @@ namespace game_logic
 
 		environment.state.GPU_buffers.rigid_bodies.positions.buffer = buffers[8u];
 		environment.state.GPU_buffers.rigid_bodies.velocities.buffer = buffers[9u];
-		environment.state.triangle_buffer = buffers[10u];
+		environment.state.GPU_buffers.rigid_bodies.triangles.buffer = buffers[10u];
 		environment.state.vertex_buffer = buffers[11u];
 		environment.state.bounding_box_buffer = buffers[12u];
 		environment.state.changed_bounding_box_buffer = buffers[13u];
@@ -2096,7 +2096,7 @@ namespace game_logic
 		}
 
 		environment.state.current_rigid_body_count = 0u * 80u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment);//500000u;
-		environment.state.current_triangle_count = 1u * environment.state.current_rigid_body_count;
+		environment.state.GPU_buffers.rigid_bodies.triangles.current_count = 1u * environment.state.current_rigid_body_count;
 		environment.state.current_triangle_contact_count = 0u;
 		environment.state.current_persistent_contact_count = 0u;
 		environment.state.current_distance_constraint_count = 0u;
@@ -3023,11 +3023,11 @@ namespace game_logic
 				std::size(prop_labels), prop_labels, 2, nullptr, props
 			);
 			// TODO: Consider putting offset and stride contigously in game state
-			environment.state.triangle_buffer_triangles_offset = props[0];
-			environment.state.triangle_buffer_triangles_stride = props[1];
+			environment.state.GPU_buffers.rigid_bodies.triangles.triangles_offset = props[0];
+			environment.state.GPU_buffers.rigid_bodies.triangles.triangles_stride = props[1];
 
 #if USE_DYNAMIC_SIZES == true
-			environment.state.triangle_buffer_size = environment.state.triangle_buffer_triangles_offset + game_logic_MAX_TRIANGLE_COUNT(environment) * environment.state.triangle_buffer_triangles_stride;
+			environment.state.GPU_buffers.rigid_bodies.triangles.size = environment.state.GPU_buffers.rigid_bodies.triangles.triangles_offset + game_logic_MAX_TRIANGLE_COUNT(environment) * environment.state.GPU_buffers.rigid_bodies.triangles.triangles_stride;
 #else
 			GLuint const block_index
 			{
@@ -3044,10 +3044,10 @@ namespace game_logic
 			// TODO: Don't initialize a few triangles by copying over the ENTIRE buffer 
 			// content from CPU to GPU like this. Instead, use persistent mapping 
 			// for both initialization and updating.
-			unsigned char* const initial_triangles = new unsigned char[environment.state.triangle_buffer_size];
-			environment.state.triangles = new game_state::rigid_body::Triangle[game_logic_MAX_TRIANGLE_COUNT(environment)];
+			unsigned char* const initial_triangles = new unsigned char[environment.state.GPU_buffers.rigid_bodies.triangles.size];
+			environment.state.GPU_buffers.rigid_bodies.triangles.values = new game_state::rigid_body::Triangle[game_logic_MAX_TRIANGLE_COUNT(environment)];
 
-			for (GLuint i = 0; i < environment.state.current_triangle_count; ++i)
+			for (GLuint i = 0; i < environment.state.GPU_buffers.rigid_bodies.triangles.current_count; ++i)
 			{
 				/*util::rigid_body::Triangle triangle
 				{
@@ -3059,22 +3059,22 @@ namespace game_logic
 				};
 				std::memcpy
 				(
-					initial_triangles + environment.state.triangle_buffer_triangles_offset + i * environment.state.triangle_buffer_triangles_stride,
+					initial_triangles + environment.state.GPU_buffers.rigid_bodies.triangles.triangles_offset + i * environment.state.GPU_buffers.rigid_bodies.triangles.triangles_stride,
 					&triangle, sizeof(triangle)
 				);
 
-				environment.state.triangles[i] = triangle;
+				environment.state.GPU_buffers.rigid_bodies.triangles.values[i] = triangle;
 			}
 
 			glNamedBufferStorage
 			(
-				environment.state.triangle_buffer, environment.state.triangle_buffer_size, initial_triangles,
+				environment.state.GPU_buffers.rigid_bodies.triangles.buffer, environment.state.GPU_buffers.rigid_bodies.triangles.size, initial_triangles,
 				0u
 			);
 
 			delete[] initial_triangles;
 
-			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_TRIANGLE_BINDING, environment.state.triangle_buffer);
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_TRIANGLE_BINDING, environment.state.GPU_buffers.rigid_bodies.triangles.buffer);
 		}
 
 		{ // Vertex buffer
@@ -3157,7 +3157,7 @@ namespace game_logic
 
 			
 
-			/*for (GLuint i = 0; i < environment.state.current_triangle_count; ++i)
+			/*for (GLuint i = 0; i < environment.state.GPU_buffers.rigid_bodies.triangles.current_count; ++i)
 			{
 				util::rigid_body::Triangle triangle
 				{
@@ -3229,7 +3229,7 @@ namespace game_logic
 					-1
 				} 
 			};
-			for (GLuint i = 0; i < environment.state.current_triangle_count; ++i)
+			for (GLuint i = 0; i < environment.state.GPU_buffers.rigid_bodies.triangles.current_count; ++i)
 			{
 				std::memcpy
 				(
@@ -4671,7 +4671,7 @@ namespace game_logic
 			std::memcpy
 			(
 				initial_count + environment.state.count_buffer_triangles_offset,
-				&environment.state.current_triangle_count,
+				&environment.state.GPU_buffers.rigid_bodies.triangles.current_count,
 				sizeof(GLuint)
 			);
 			std::memcpy
@@ -4750,7 +4750,7 @@ namespace game_logic
 			);
 		}
 
-		GLuint const current_triangle_leaf_index_end{ game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment) + environment.state.current_triangle_count };
+		GLuint const current_triangle_leaf_index_end{ game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment) + environment.state.GPU_buffers.rigid_bodies.triangles.current_count };
 		for (GLuint i{ game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment) }; i < current_triangle_leaf_index_end; ++i)
 		{
 			util::proximity::insert_leaf_to_nonempty_tree(
@@ -4792,10 +4792,10 @@ namespace game_logic
 		std::cout << "v stride: " << environment.state.GPU_buffers.rigid_bodies.velocities.v_stride << std::endl;
 		std::cout << std::endl;
 
-		std::cout << "Triangle buffer (" << environment.state.triangle_buffer << "):" << std::endl;
-		std::cout << "size: " << environment.state.triangle_buffer_size << std::endl;
-		std::cout << "triangles offset: " << environment.state.triangle_buffer_triangles_offset << std::endl;
-		std::cout << "triangles stride: " << environment.state.triangle_buffer_triangles_stride << std::endl;
+		std::cout << "Triangle buffer (" << environment.state.GPU_buffers.rigid_bodies.triangles.buffer << "):" << std::endl;
+		std::cout << "size: " << environment.state.GPU_buffers.rigid_bodies.triangles.size << std::endl;
+		std::cout << "triangles offset: " << environment.state.GPU_buffers.rigid_bodies.triangles.triangles_offset << std::endl;
+		std::cout << "triangles stride: " << environment.state.GPU_buffers.rigid_bodies.triangles.triangles_stride << std::endl;
 		std::cout << std::endl;
 
 		std::cout << "Vertex buffer (" << environment.state.vertex_buffer << "):" << std::endl;
@@ -5230,7 +5230,7 @@ namespace game_logic
 		}
 
 		std::cout << "Rigid body count: " << environment.state.current_rigid_body_count << std::endl;
-		std::cout << "Triangle count: " << environment.state.current_triangle_count << std::endl;
+		std::cout << "Triangle count: " << environment.state.GPU_buffers.rigid_bodies.triangles.current_count << std::endl;
 		std::cout << "Fluid particle count: " << environment.state.current_fluid_particle_count << std::endl;
 
 		/*GLuint i;
@@ -5405,7 +5405,7 @@ namespace game_logic
 		glUseProgram(environment.state.triangle_bounding_box_update_shader);
 		glDispatchCompute
 		(
-			ceil_div(environment.state.current_triangle_count, game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment)),
+			ceil_div(environment.state.GPU_buffers.rigid_bodies.triangles.current_count, game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment)),
 			1u, 1u
 		);
 		// TODO: Make sure GL_BUFFER_UPDATE_BARRIER is the correct flag for clearing the changed leaf count
@@ -6246,7 +6246,7 @@ namespace game_logic
 		GLint x, GLint y, GLfloat& local_x, GLfloat& local_y
 	)
 	{
-		game_state::rigid_body::Triangle const& triangle{ environment.state.triangles[triangle_index] };
+		game_state::rigid_body::Triangle const& triangle{ environment.state.GPU_buffers.rigid_bodies.triangles.values[triangle_index] };
 		util::rigid_body::Position body_position;
 		std::memcpy
 		(
@@ -6408,7 +6408,7 @@ namespace game_logic
 									}
 									leaf_index -= game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment);
 
-									game_state::rigid_body::Triangle const& triangle{ environment.state.triangles[leaf_index] };
+									game_state::rigid_body::Triangle const& triangle{ environment.state.GPU_buffers.rigid_bodies.triangles.values[leaf_index] };
 									GLint body_position[4u];
 									std::memcpy
 									(
@@ -6449,7 +6449,7 @@ namespace game_logic
 									GL_R32UI,
 									environment.state.cursor_constrained_point_buffer_body_offset, sizeof(GLuint),
 									GL_RED_INTEGER, GL_UNSIGNED_INT,
-									&environment.state.triangles[hovered_triangle].body
+									&environment.state.GPU_buffers.rigid_bodies.triangles.values[hovered_triangle].body
 								);
 								// TODO: Put hovered_local_x, hovered_local_y in array from start
 								GLfloat local_point[2u]
@@ -6609,7 +6609,7 @@ namespace game_logic
 									}
 									leaf_index -= game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment);
 
-									game_state::rigid_body::Triangle const& triangle{ environment.state.triangles[leaf_index] };
+									game_state::rigid_body::Triangle const& triangle{ environment.state.GPU_buffers.rigid_bodies.triangles.values[leaf_index] };
 									GLint body_position[4u];
 									std::memcpy
 									(
@@ -6652,7 +6652,7 @@ namespace game_logic
 									environment.state.distance_constraint_buffer_distance_constraints_bodies_offset + count_jump, 
 									sizeof(GLuint),
 									GL_RED_INTEGER, GL_UNSIGNED_INT,
-									&environment.state.triangles[hovered_triangle].body
+									&environment.state.GPU_buffers.rigid_bodies.triangles.values[hovered_triangle].body
 								);
 								// TODO: Put hovered_local_x, hovered_local_y in array from start
 								GLfloat local_point[2u]
@@ -6733,7 +6733,7 @@ namespace game_logic
 									}
 									leaf_index -= game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment);
 
-									game_state::rigid_body::Triangle const& triangle{ environment.state.triangles[leaf_index] };
+									game_state::rigid_body::Triangle const& triangle{ environment.state.GPU_buffers.rigid_bodies.triangles.values[leaf_index] };
 									GLint body_position[4u];
 									std::memcpy
 									(
@@ -6776,7 +6776,7 @@ namespace game_logic
 									environment.state.distance_constraint_buffer_distance_constraints_bodies_offset + 4u + count_jump,
 									sizeof(GLuint),
 									GL_RED_INTEGER, GL_UNSIGNED_INT,
-									&environment.state.triangles[hovered_triangle].body
+									&environment.state.GPU_buffers.rigid_bodies.triangles.values[hovered_triangle].body
 								);
 								// TODO: Put hovered_local_x, hovered_local_y in array from start
 								GLfloat local_point[2u]
@@ -7152,7 +7152,7 @@ namespace game_logic
 		GLint x, GLint y
 	)
 	{
-		game_state::rigid_body::Triangle const& triangle{ environment.state.triangles[triangle_index] };
+		game_state::rigid_body::Triangle const& triangle{ environment.state.GPU_buffers.rigid_bodies.triangles.values[triangle_index] };
 		util::rigid_body::Position body_position;
 		std::memcpy
 		(
@@ -7230,12 +7230,12 @@ namespace game_logic
 		}
 
 		glUseProgram(environment.state.triangle_draw_shader);
-		glDrawArrays(GL_TRIANGLES, 0, environment.state.current_triangle_count * 3u);
+		glDrawArrays(GL_TRIANGLES, 0, environment.state.GPU_buffers.rigid_bodies.triangles.current_count * 3u);
 
 		if (environment.state.triangle_wireframes_visible)
 		{
 			glUseProgram(environment.state.triangle_wireframes_draw_shader);
-			glDrawArrays(GL_LINES, 0, environment.state.current_triangle_count * 6u);
+			glDrawArrays(GL_LINES, 0, environment.state.GPU_buffers.rigid_bodies.triangles.current_count * 6u);
 		}
 
 		if (environment.state.rigid_bodies_visible)
@@ -7247,13 +7247,13 @@ namespace game_logic
 		if (environment.state.triangle_normals_visible)
 		{
 			glUseProgram(environment.state.triangle_normal_draw_shader);
-			glDrawArrays(GL_LINES, 0, environment.state.current_triangle_count * 6u);
+			glDrawArrays(GL_LINES, 0, environment.state.GPU_buffers.rigid_bodies.triangles.current_count * 6u);
 		}
 
 		if (environment.state.leaf_bounding_boxes_visible)
 		{
 			glUseProgram(environment.state.triangle_bounding_box_draw_shader);
-			glDrawArrays(GL_LINES, 0, environment.state.current_triangle_count * 8u);
+			glDrawArrays(GL_LINES, 0, environment.state.GPU_buffers.rigid_bodies.triangles.current_count * 8u);
 			
 			glUseProgram(environment.state.fluid_bounding_boxes_draw_shader);
 			glDrawArrays(GL_LINES, 0, environment.state.current_fluid_particle_count * 8u);
@@ -7375,7 +7375,7 @@ namespace game_logic
 								}
 								leaf_index -= game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment);
 
-								game_state::rigid_body::Triangle const& triangle{ environment.state.triangles[leaf_index] };
+								game_state::rigid_body::Triangle const& triangle{ environment.state.GPU_buffers.rigid_bodies.triangles.values[leaf_index] };
 								GLint body_position[4u];
 								std::memcpy
 								(
@@ -7484,7 +7484,7 @@ namespace game_logic
 			environment.state.camera_buffer, 
 			environment.state.GPU_buffers.rigid_bodies.positions.buffer,
 			environment.state.GPU_buffers.rigid_bodies.velocities.buffer,
-			environment.state.triangle_buffer, 
+			environment.state.GPU_buffers.rigid_bodies.triangles.buffer,
 			environment.state.vertex_buffer, 
 			environment.state.bounding_box_buffer, 
 			environment.state.changed_bounding_box_buffer, 
