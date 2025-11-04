@@ -8,13 +8,13 @@ namespace game_state::GPU_buffers::rigid_bodies
 {
 	struct Buffer
 	{
-		GLuint current_count;
-
 		// TODO: Position buffer should likely come after velocity buffer
 		positions::Buffer positions;
 		velocities::Buffer velocities;
 		triangles::Buffer triangles;
 		distance_constraints::Buffer distance_constraints;
 		masses::Buffer masses;
+
+		GLuint current_count;
 	};
 }

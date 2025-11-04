@@ -2099,7 +2099,7 @@ namespace game_logic
 		environment.state.GPU_buffers.rigid_bodies.triangles.current_count = 1u * environment.state.GPU_buffers.rigid_bodies.current_count;
 		environment.state.current_triangle_contact_count = 0u;
 		environment.state.current_persistent_contact_count = 0u;
-		environment.state.current_distance_constraint_count = 0u;
+		environment.state.GPU_buffers.rigid_bodies.distance_constraints.current_count = 0u;
 		environment.state.GPU_buffers.fluid.current_particle_count = 20u * INTEGRATE_FLUID_VELOCITY_LOCAL_SIZE(environment);
 		environment.state.GPU_buffers.fluid.contact_count.current_contact_count = 0u;
 		environment.state.GPU_buffers.fluid.contact_count.current_persistent_contact_count = 0u;
@@ -4014,7 +4014,7 @@ namespace game_logic
 				GL_R32UI, 
 				environment.state.GPU_buffers.rigid_bodies.distance_constraints.count_offset, sizeof(GLuint),
 				GL_RED, GL_UNSIGNED_INT, 
-				&environment.state.current_distance_constraint_count
+				&environment.state.GPU_buffers.rigid_bodies.distance_constraints.current_count
 			);
 
 			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_DISTANCE_CONSTRAINT_BINDING, environment.state.GPU_buffers.rigid_bodies.distance_constraints.buffer);
@@ -5304,7 +5304,7 @@ namespace game_logic
 		glUseProgram(environment.state.warm_start_distance_constraints_shader);
 		glDispatchCompute
 		(
-			ceil_div(environment.state.current_distance_constraint_count, game_logic_WARM_START_DISTANCE_CONSTRAINTS_LOCAL_SIZE(environment)), 
+			ceil_div(environment.state.GPU_buffers.rigid_bodies.distance_constraints.current_count, game_logic_WARM_START_DISTANCE_CONSTRAINTS_LOCAL_SIZE(environment)), 
 			1u, 1u
 		);
 
@@ -5331,7 +5331,7 @@ namespace game_logic
 		};
 		GLuint const solve_distance_constraint_work_group_count
 		{
-			ceil_div(environment.state.current_distance_constraint_count, game_logic_SOLVE_DISTANCE_CONSTRAINTS_LOCAL_SIZE(environment))
+			ceil_div(environment.state.GPU_buffers.rigid_bodies.distance_constraints.current_count, game_logic_SOLVE_DISTANCE_CONSTRAINTS_LOCAL_SIZE(environment))
 		};
 		for (GLuint i{ 0u }; i < 4u; ++i)
 		{
@@ -5451,7 +5451,7 @@ namespace game_logic
 		glUseProgram(environment.state.update_distance_constraints_shader);
 		glDispatchCompute
 		(
-			ceil_div(environment.state.current_distance_constraint_count, game_logic_UPDATE_DISTANCE_CONSTRAINTS_LOCAL_SIZE(environment)),
+			ceil_div(environment.state.GPU_buffers.rigid_bodies.distance_constraints.current_count, game_logic_UPDATE_DISTANCE_CONSTRAINTS_LOCAL_SIZE(environment)),
 			1u, 1u
 		);
 
@@ -6644,7 +6644,7 @@ namespace game_logic
 							{
 								glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
 
-								GLuint const count_jump{ environment.state.current_distance_constraint_count * environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_stride };
+								GLuint const count_jump{ environment.state.GPU_buffers.rigid_bodies.distance_constraints.current_count * environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_stride };
 								glClearNamedBufferSubData
 								(
 									environment.state.GPU_buffers.rigid_bodies.distance_constraints.buffer,
@@ -6768,7 +6768,7 @@ namespace game_logic
 							{
 								glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
 
-								GLuint const count_jump{ environment.state.current_distance_constraint_count * environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_stride };
+								GLuint const count_jump{ environment.state.GPU_buffers.rigid_bodies.distance_constraints.current_count * environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_stride };
 								glClearNamedBufferSubData
 								(
 									environment.state.GPU_buffers.rigid_bodies.distance_constraints.buffer,
@@ -6808,7 +6808,7 @@ namespace game_logic
 								glUseProgram(environment.state.add_distance_constraint_shader);
 								glDispatchCompute(1u, 1u, 1u);
 
-								++environment.state.current_distance_constraint_count;
+								++environment.state.GPU_buffers.rigid_bodies.distance_constraints.current_count;
 							}
 						}
 					}
@@ -7448,7 +7448,7 @@ namespace game_logic
 		}
 
 		glUseProgram(environment.state.distance_constraints_draw_shader);
-		glDrawArrays(GL_LINES, 0, environment.state.current_distance_constraint_count * 2u);
+		glDrawArrays(GL_LINES, 0, environment.state.GPU_buffers.rigid_bodies.distance_constraints.current_count * 2u);
 
 		if (environment.state.distance_constraint_start_triangle != game_logic__util__proximity_NULL_INDEX)
 		{

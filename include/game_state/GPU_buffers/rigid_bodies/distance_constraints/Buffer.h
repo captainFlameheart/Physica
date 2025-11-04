@@ -20,5 +20,7 @@ namespace game_state::GPU_buffers::rigid_bodies::distance_constraints
 		GLint distance_constraints_target_velocity_offset;
 		GLint distance_constraints_mass_offset;
 		GLint distance_constraints_impulse_offset;
+
+		GLuint current_count;
 	};
 }
