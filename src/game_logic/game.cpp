@@ -1972,7 +1972,7 @@ namespace game_logic
 			environment.state.GPU_buffers.rigid_bodies.triangles.buffer,
 			environment.state.GPU_buffers.rigid_bodies.triangles.vertices.buffer,
 			environment.state.GPU_buffers.rigid_bodies.triangles.bounding_boxes.buffer, 
-			environment.state.changed_bounding_box_buffer, 
+			environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.buffer, 
 			environment.state.contact_buffer,
 			environment.state.contact_surface_buffer, 
 			environment.state.GPU_buffers.rigid_bodies.triangles.contact_count.buffer, 
@@ -2005,7 +2005,7 @@ namespace game_logic
 		environment.state.GPU_buffers.rigid_bodies.triangles.buffer = buffers[10u];
 		environment.state.GPU_buffers.rigid_bodies.triangles.vertices.buffer = buffers[11u];
 		environment.state.GPU_buffers.rigid_bodies.triangles.bounding_boxes.buffer = buffers[12u];
-		environment.state.changed_bounding_box_buffer = buffers[13u];
+		environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.buffer = buffers[13u];
 		environment.state.contact_buffer = buffers[14u];
 		environment.state.contact_surface_buffer = buffers[15u];
 		environment.state.GPU_buffers.rigid_bodies.triangles.contact_count.buffer = buffers[16u];
@@ -3259,7 +3259,7 @@ namespace game_logic
 				 glGetProgramResourceiv
 				 (
 					 environment.state.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, size_index,
-					 1, &offset_label, 1, nullptr, &environment.state.changed_bounding_box_buffer_size_offset
+					 1, &offset_label, 1, nullptr, &environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.size_offset
 				 );
 			 }
 
@@ -3276,8 +3276,8 @@ namespace game_logic
 					 std::size(prop_labels), prop_labels, 2, nullptr, props
 				 );
 				 // TODO: Consider putting offset and stride contigously in game state
-				 environment.state.changed_bounding_box_buffer_boxes_index_offset = props[0];
-				 environment.state.changed_bounding_box_buffer_boxes_stride = props[1];
+				 environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.boxes_index_offset = props[0];
+				 environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.boxes_stride = props[1];
 
 				 GLenum const offset_label{ GL_OFFSET };
 
@@ -3288,7 +3288,7 @@ namespace game_logic
 				 glGetProgramResourceiv
 				 (
 					 environment.state.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, boxes_min_x_index,
-					 1, &offset_label, 1, nullptr, &environment.state.changed_bounding_box_buffer_boxes_min_x_offset
+					 1, &offset_label, 1, nullptr, &environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.boxes_min_x_offset
 				 );
 
 				 GLuint const boxes_min_y_index
@@ -3298,7 +3298,7 @@ namespace game_logic
 				 glGetProgramResourceiv
 				 (
 					 environment.state.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, boxes_min_y_index,
-					 1, &offset_label, 1, nullptr, &environment.state.changed_bounding_box_buffer_boxes_min_y_offset
+					 1, &offset_label, 1, nullptr, &environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.boxes_min_y_offset
 				 );
 
 				 GLuint const boxes_max_x_index
@@ -3308,7 +3308,7 @@ namespace game_logic
 				 glGetProgramResourceiv
 				 (
 					 environment.state.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, boxes_max_x_index,
-					 1, &offset_label, 1, nullptr, &environment.state.changed_bounding_box_buffer_boxes_max_x_offset
+					 1, &offset_label, 1, nullptr, &environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.boxes_max_x_offset
 				 );
 
 				 GLuint const boxes_max_y_index
@@ -3318,21 +3318,21 @@ namespace game_logic
 				 glGetProgramResourceiv
 				 (
 					 environment.state.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, boxes_max_y_index,
-					 1, &offset_label, 1, nullptr, &environment.state.changed_bounding_box_buffer_boxes_max_y_offset
+					 1, &offset_label, 1, nullptr, &environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.boxes_max_y_offset
 				 );
 			}
 
 #if USE_DYNAMIC_SIZES == true
 			 GLint const offsets[]
 			 {
-				environment.state.changed_bounding_box_buffer_boxes_index_offset,
-				environment.state.changed_bounding_box_buffer_boxes_min_x_offset,
-				environment.state.changed_bounding_box_buffer_boxes_min_y_offset,
-				environment.state.changed_bounding_box_buffer_boxes_max_x_offset,
-				environment.state.changed_bounding_box_buffer_boxes_max_y_offset
+				environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.boxes_index_offset,
+				environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.boxes_min_x_offset,
+				environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.boxes_min_y_offset,
+				environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.boxes_max_x_offset,
+				environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.boxes_max_y_offset
 			 };
 			 GLint const offset{ *std::min_element(std::begin(offsets), std::end(offsets)) };
-			 environment.state.changed_bounding_box_buffer_size = offset + game_logic_MAX_TRIANGLE_COUNT(environment) * environment.state.changed_bounding_box_buffer_boxes_stride;
+			 environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.size = offset + game_logic_MAX_TRIANGLE_COUNT(environment) * environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.boxes_stride;
 #else
 			 GLuint const block_index
 			 {
@@ -3342,32 +3342,32 @@ namespace game_logic
 			 glGetProgramResourceiv
 			 (
 				 environment.state.triangle_bounding_box_update_shader, GL_SHADER_STORAGE_BLOCK, block_index,
-				 1, &buffer_size_label, 1, nullptr, &environment.state.changed_bounding_box_buffer_size
+				 1, &buffer_size_label, 1, nullptr, &environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.buffer_size
 			 );
 #endif
 
 			 glNamedBufferStorage
 			 (
-				 environment.state.changed_bounding_box_buffer, environment.state.changed_bounding_box_buffer_size, nullptr,
+				 environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.buffer, environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.size, nullptr,
 				 GL_MAP_READ_BIT | GL_MAP_PERSISTENT_BIT
 			 );
 			 glClearNamedBufferSubData
 			 (
-				 environment.state.changed_bounding_box_buffer, 
+				 environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.buffer, 
 				 GL_R32UI, 
-				 environment.state.changed_bounding_box_buffer_size_offset, sizeof(GLuint), 
+				 environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.size_offset, sizeof(GLuint), 
 				 GL_RED_INTEGER, GL_UNSIGNED_INT, 
 				 nullptr
 			 );
 
-			 glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_TRIANGLE_CHANGED_BOUNDING_BOX_BINDING, environment.state.changed_bounding_box_buffer);
+			 glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_TRIANGLE_CHANGED_BOUNDING_BOX_BINDING, environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.buffer);
 
 			 environment.state.changed_bounding_boxes_mapping = static_cast<unsigned char*>
 			 (
 				glMapNamedBufferRange
 				(
-					environment.state.changed_bounding_box_buffer, 
-					0u, environment.state.changed_bounding_box_buffer_size, 
+					environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.buffer, 
+					0u, environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.size, 
 					GL_MAP_READ_BIT | GL_MAP_PERSISTENT_BIT
 				)
 			 );
@@ -4810,15 +4810,15 @@ namespace game_logic
 		std::cout << "boxes stride: " << environment.state.GPU_buffers.rigid_bodies.triangles.bounding_boxes.boxes_stride << std::endl;
 		std::cout << std::endl;
 
-		std::cout << "Changed bounding box buffer (" << environment.state.changed_bounding_box_buffer << "):" << std::endl;
-		std::cout << "size: " << environment.state.changed_bounding_box_buffer_size << std::endl;
-		std::cout << "push index offset: " << environment.state.changed_bounding_box_buffer_size_offset << std::endl;
-		std::cout << "boxes stride: " << environment.state.changed_bounding_box_buffer_boxes_stride << std::endl;
-		std::cout << "boxes index offset: " << environment.state.changed_bounding_box_buffer_boxes_index_offset << std::endl;
-		std::cout << "boxes min_x offset: " << environment.state.changed_bounding_box_buffer_boxes_min_x_offset << std::endl;
-		std::cout << "boxes min_y offset: " << environment.state.changed_bounding_box_buffer_boxes_min_y_offset << std::endl;
-		std::cout << "boxes max_x offset: " << environment.state.changed_bounding_box_buffer_boxes_max_x_offset << std::endl;
-		std::cout << "boxes max_y offset: " << environment.state.changed_bounding_box_buffer_boxes_max_y_offset << std::endl;
+		std::cout << "Changed bounding box buffer (" << environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.buffer << "):" << std::endl;
+		std::cout << "size: " << environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.size << std::endl;
+		std::cout << "push index offset: " << environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.size_offset << std::endl;
+		std::cout << "boxes stride: " << environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.boxes_stride << std::endl;
+		std::cout << "boxes index offset: " << environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.boxes_index_offset << std::endl;
+		std::cout << "boxes min_x offset: " << environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.boxes_min_x_offset << std::endl;
+		std::cout << "boxes min_y offset: " << environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.boxes_min_y_offset << std::endl;
+		std::cout << "boxes max_x offset: " << environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.boxes_max_x_offset << std::endl;
+		std::cout << "boxes max_y offset: " << environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.boxes_max_y_offset << std::endl;
 		std::cout << std::endl;
 
 		std::cout << "Contact buffer (" << environment.state.contact_buffer << "):" << std::endl;
@@ -5519,11 +5519,11 @@ namespace game_logic
 					index, i, min_x, min_y, max_x, max_y
 				);
 
-				index_start += environment.state.changed_bounding_box_buffer_boxes_stride;
-				min_x_start += environment.state.changed_bounding_box_buffer_boxes_stride;
-				min_y_start += environment.state.changed_bounding_box_buffer_boxes_stride;
-				max_x_start += environment.state.changed_bounding_box_buffer_boxes_stride;
-				max_y_start += environment.state.changed_bounding_box_buffer_boxes_stride;
+				index_start += environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.boxes_stride;
+				min_x_start += environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.boxes_stride;
+				min_y_start += environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.boxes_stride;
+				max_x_start += environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.boxes_stride;
+				max_y_start += environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.boxes_stride;
 
 				//std::cout << i << ": " << index << std::endl;
 			}
@@ -5541,15 +5541,15 @@ namespace game_logic
 		std::memcpy
 		(
 			&changed_triangle_leaf_count,
-			environment.state.changed_bounding_boxes_mapping + environment.state.changed_bounding_box_buffer_size_offset,
+			environment.state.changed_bounding_boxes_mapping + environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.size_offset,
 			sizeof(GLuint)
 		);
 
 		glClearNamedBufferSubData
 		(
-			environment.state.changed_bounding_box_buffer,
+			environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.buffer,
 			GL_R32UI,
-			environment.state.changed_bounding_box_buffer_size_offset, sizeof(GLuint),
+			environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.size_offset, sizeof(GLuint),
 			GL_RED_INTEGER, GL_UNSIGNED_INT,
 			nullptr
 		);
@@ -5566,11 +5566,11 @@ namespace game_logic
 		}
 		else
 		{
-			unsigned char const* index_start{ environment.state.changed_bounding_boxes_mapping + environment.state.changed_bounding_box_buffer_boxes_index_offset };
-			unsigned char const* min_x_start{ environment.state.changed_bounding_boxes_mapping + environment.state.changed_bounding_box_buffer_boxes_min_x_offset };
-			unsigned char const* min_y_start{ environment.state.changed_bounding_boxes_mapping + environment.state.changed_bounding_box_buffer_boxes_min_y_offset };
-			unsigned char const* max_x_start{ environment.state.changed_bounding_boxes_mapping + environment.state.changed_bounding_box_buffer_boxes_max_x_offset };
-			unsigned char const* max_y_start{ environment.state.changed_bounding_boxes_mapping + environment.state.changed_bounding_box_buffer_boxes_max_y_offset };
+			unsigned char const* index_start{ environment.state.changed_bounding_boxes_mapping + environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.boxes_index_offset };
+			unsigned char const* min_x_start{ environment.state.changed_bounding_boxes_mapping + environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.boxes_min_x_offset };
+			unsigned char const* min_y_start{ environment.state.changed_bounding_boxes_mapping + environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.boxes_min_y_offset };
+			unsigned char const* max_x_start{ environment.state.changed_bounding_boxes_mapping + environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.boxes_max_x_offset };
+			unsigned char const* max_y_start{ environment.state.changed_bounding_boxes_mapping + environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.boxes_max_y_offset };
 
 			for (GLuint i{ changed_fluid_leaf_count }; i < environment.state.proximity_tree.changed_leaf_count; ++i)
 			{
@@ -5591,11 +5591,11 @@ namespace game_logic
 					index, i, min_x, min_y, max_x, max_y
 				);
 
-				index_start += environment.state.changed_bounding_box_buffer_boxes_stride;
-				min_x_start += environment.state.changed_bounding_box_buffer_boxes_stride;
-				min_y_start += environment.state.changed_bounding_box_buffer_boxes_stride;
-				max_x_start += environment.state.changed_bounding_box_buffer_boxes_stride;
-				max_y_start += environment.state.changed_bounding_box_buffer_boxes_stride;
+				index_start += environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.boxes_stride;
+				min_x_start += environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.boxes_stride;
+				min_y_start += environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.boxes_stride;
+				max_x_start += environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.boxes_stride;
+				max_y_start += environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.boxes_stride;
 
 				//std::cout << i << ": " << index << std::endl;
 			}
@@ -7472,7 +7472,7 @@ namespace game_logic
 		delete_fluid_texture_and_framebuffer(environment);
 
 		glUnmapNamedBuffer(environment.state.GPU_buffers.rigid_bodies.positions.buffer);
-		glUnmapNamedBuffer(environment.state.changed_bounding_box_buffer);
+		glUnmapNamedBuffer(environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.buffer);
 		glUnmapNamedBuffer(environment.state.contact_buffer);
 
 		::util::shader::delete_program(environment.state.shader);
@@ -7487,7 +7487,7 @@ namespace game_logic
 			environment.state.GPU_buffers.rigid_bodies.triangles.buffer,
 			environment.state.GPU_buffers.rigid_bodies.triangles.vertices.buffer,
 			environment.state.GPU_buffers.rigid_bodies.triangles.bounding_boxes.buffer, 
-			environment.state.changed_bounding_box_buffer, 
+			environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.buffer, 
 			environment.state.contact_buffer, 
 			environment.state.contact_surface_buffer, 
 			environment.state.GPU_buffers.rigid_bodies.triangles.contact_count.buffer, 
