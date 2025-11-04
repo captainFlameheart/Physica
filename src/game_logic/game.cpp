@@ -1976,7 +1976,7 @@ namespace game_logic
 			environment.state.contact_buffer,
 			environment.state.contact_surface_buffer, 
 			environment.state.GPU_buffers.rigid_bodies.triangles.contact_count.buffer, 
-			environment.state.persistent_contact_count_buffer, 
+			environment.state.GPU_buffers.rigid_bodies.triangles.persistent_contact_count.buffer, 
 			environment.state.GPU_buffers.rigid_bodies.velocities.snapshot_buffer, 
 			environment.state.GPU_buffers.rigid_bodies.positions.snapshot_buffer, 
 			environment.state.cursor_position_buffer, 
@@ -2009,7 +2009,7 @@ namespace game_logic
 		environment.state.contact_buffer = buffers[14u];
 		environment.state.contact_surface_buffer = buffers[15u];
 		environment.state.GPU_buffers.rigid_bodies.triangles.contact_count.buffer = buffers[16u];
-		environment.state.persistent_contact_count_buffer = buffers[17u];
+		environment.state.GPU_buffers.rigid_bodies.triangles.persistent_contact_count.buffer = buffers[17u];
 		environment.state.GPU_buffers.rigid_bodies.velocities.snapshot_buffer = buffers[18u];
 		environment.state.GPU_buffers.rigid_bodies.positions.snapshot_buffer = buffers[19u];
 		environment.state.cursor_position_buffer = buffers[20u];
@@ -3693,7 +3693,7 @@ namespace game_logic
 			glGetProgramResourceiv
 			(
 				environment.state.new_triangle_contact_shader, GL_UNIFORM, persistent_contact_count_index,
-				1u, &offset_label, 1u, nullptr, &environment.state.persistent_contact_count_buffer_persistent_contact_count_offset
+				1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.rigid_bodies.triangles.persistent_contact_count.persistent_contact_count_offset
 			);
 
 			GLuint const block_index
@@ -3704,21 +3704,21 @@ namespace game_logic
 			glGetProgramResourceiv
 			(
 				environment.state.new_triangle_contact_shader, GL_UNIFORM_BLOCK, block_index,
-				1u, &buffer_size_label, 1u, nullptr, &environment.state.persistent_contact_count_buffer_size
+				1u, &buffer_size_label, 1u, nullptr, &environment.state.GPU_buffers.rigid_bodies.triangles.persistent_contact_count.size
 			);
 
-			unsigned char* const initial_persistent_contact_count = new unsigned char[environment.state.persistent_contact_count_buffer_size];
-			std::memcpy(initial_persistent_contact_count + environment.state.persistent_contact_count_buffer_persistent_contact_count_offset, &environment.state.current_triangle_contact_count, sizeof(GLuint));
+			unsigned char* const initial_persistent_contact_count = new unsigned char[environment.state.GPU_buffers.rigid_bodies.triangles.persistent_contact_count.size];
+			std::memcpy(initial_persistent_contact_count + environment.state.GPU_buffers.rigid_bodies.triangles.persistent_contact_count.persistent_contact_count_offset, &environment.state.current_triangle_contact_count, sizeof(GLuint));
 
 			glNamedBufferStorage
 			(
-				environment.state.persistent_contact_count_buffer, environment.state.persistent_contact_count_buffer_size, initial_persistent_contact_count,
+				environment.state.GPU_buffers.rigid_bodies.triangles.persistent_contact_count.buffer, environment.state.GPU_buffers.rigid_bodies.triangles.persistent_contact_count.size, initial_persistent_contact_count,
 				0u
 			);
 
 			delete[] initial_persistent_contact_count;
 
-			glBindBufferBase(GL_UNIFORM_BUFFER, game_logic__util_PERSISTENT_CONTACT_COUNT_BINDING, environment.state.persistent_contact_count_buffer);
+			glBindBufferBase(GL_UNIFORM_BUFFER, game_logic__util_PERSISTENT_CONTACT_COUNT_BINDING, environment.state.GPU_buffers.rigid_bodies.triangles.persistent_contact_count.buffer);
 		}
 
 		{ // Cursor position buffer
@@ -4855,9 +4855,9 @@ namespace game_logic
 		std::cout << "contact count offset: " << environment.state.GPU_buffers.rigid_bodies.triangles.contact_count.contact_count_offset << std::endl;
 		std::cout << std::endl;
 
-		std::cout << "Persistent contact count buffer (" << environment.state.persistent_contact_count_buffer << "):" << std::endl;
-		std::cout << "size: " << environment.state.persistent_contact_count_buffer_size << std::endl;
-		std::cout << "persistent contact count offset: " << environment.state.persistent_contact_count_buffer_persistent_contact_count_offset << std::endl;
+		std::cout << "Persistent contact count buffer (" << environment.state.GPU_buffers.rigid_bodies.triangles.persistent_contact_count.buffer << "):" << std::endl;
+		std::cout << "size: " << environment.state.GPU_buffers.rigid_bodies.triangles.persistent_contact_count.size << std::endl;
+		std::cout << "persistent contact count offset: " << environment.state.GPU_buffers.rigid_bodies.triangles.persistent_contact_count.persistent_contact_count_offset << std::endl;
 		std::cout << std::endl;
 
 		std::cout << "Cursor position buffer (" << environment.state.cursor_position_buffer << "):" << std::endl;
@@ -5773,9 +5773,9 @@ namespace game_logic
 
 			glClearNamedBufferSubData
 			(
-				environment.state.persistent_contact_count_buffer,
+				environment.state.GPU_buffers.rigid_bodies.triangles.persistent_contact_count.buffer,
 				GL_R32UI,
-				environment.state.persistent_contact_count_buffer_persistent_contact_count_offset, sizeof(GLuint),
+				environment.state.GPU_buffers.rigid_bodies.triangles.persistent_contact_count.persistent_contact_count_offset, sizeof(GLuint),
 				GL_RED_INTEGER, GL_UNSIGNED_INT,
 				&environment.state.current_triangle_contact_count
 			);
@@ -7491,7 +7491,7 @@ namespace game_logic
 			environment.state.contact_buffer, 
 			environment.state.contact_surface_buffer, 
 			environment.state.GPU_buffers.rigid_bodies.triangles.contact_count.buffer, 
-			environment.state.persistent_contact_count_buffer, 
+			environment.state.GPU_buffers.rigid_bodies.triangles.persistent_contact_count.buffer, 
 			environment.state.GPU_buffers.rigid_bodies.velocities.snapshot_buffer, 
 			environment.state.GPU_buffers.rigid_bodies.positions.snapshot_buffer,
 			environment.state.cursor_position_buffer, 

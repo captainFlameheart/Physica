@@ -51,10 +51,6 @@ namespace game_state
 
 		GPU_buffers::GPU_Buffer_Set GPU_buffers;
 		
-		GLint persistent_contact_count_buffer;
-		GLint persistent_contact_count_buffer_size;
-		GLint persistent_contact_count_buffer_persistent_contact_count_offset;
-
 		// TODO: Consider using std::430 layout to improve runtime performance
 		GLuint changed_bounding_box_buffer;
 		GLint changed_bounding_box_buffer_size;
