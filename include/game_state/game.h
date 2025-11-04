@@ -45,12 +45,8 @@ namespace game_state
 		GLuint vao;
 		GLuint vbo;
 
-		GLuint current_rigid_body_count;
-
 		GPU_buffers::GPU_Buffer_Set GPU_buffers;
 
-		GLint current_fluid_particle_count;
-		
 		GLuint current_distance_constraint_count;
 		GLuint add_distance_constraint_shader;
 

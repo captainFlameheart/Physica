@@ -10,6 +10,8 @@ namespace game_state::GPU_buffers::fluid
 {
 	struct Buffer
 	{
+		GLint current_particle_count;
+
 		positions::Buffer positions;
 		velocities::Buffer velocities;
 		bounding_boxes::Buffer bounding_boxes;
