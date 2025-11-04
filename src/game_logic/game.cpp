@@ -1832,7 +1832,7 @@ namespace game_logic
 			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))),
 			::util::shader::file_to_string("util/solve_fluid_contacts.comp")
 		);
-		environment.state.solve_fluid_contacts_shader = ::util::shader::create_program(compute_shader);
+		environment.state.shaders.solve.solve_fluid_contacts_shader = ::util::shader::create_program(compute_shader);
 		std::cout << "Solve fluid contacts shader compiled" << std::endl;
 
 		::util::shader::set_shader_statically
@@ -1866,7 +1866,7 @@ namespace game_logic
 			util_shader_DEFINE("IMPULSE_SCALE", STRINGIFY(SOLVE_FLUID_TRIANGLE_CONTACTS_IMPULSE_SCALE(environment))),
 			::util::shader::file_to_string("util/solve_fluid_triangle_contacts.comp")
 		);
-		environment.state.solve_fluid_triangle_contacts_shader = ::util::shader::create_program(compute_shader);
+		environment.state.shaders.solve.solve_fluid_triangle_contacts_shader = ::util::shader::create_program(compute_shader);
 		std::cout << "Solve fluid triangle contacts shader compiled" << std::endl;
 
 		::util::shader::set_shader_statically
@@ -1892,7 +1892,7 @@ namespace game_logic
 			util_shader_DEFINE("FRICTION_COEFFICIENT", STRINGIFY(FRICTION_COEFFICIENT)),
 			::util::shader::file_to_string("util/solve_contact_velocities.comp")
 		);
-		environment.state.solve_contact_velocities_shader = ::util::shader::create_program(compute_shader);
+		environment.state.shaders.solve.solve_contact_velocities_shader = ::util::shader::create_program(compute_shader);
 		std::cout << "Solve contact velocities shader compiled" << std::endl;
 
 		::util::shader::set_shader_statically
@@ -1920,7 +1920,7 @@ namespace game_logic
 			util_shader_DEFINE("VELOCITY_SNAPSHOT_BINDING", STRINGIFY(game_logic__util_VELOCITY_SNAPSHOT_BINDING)),
 			::util::shader::file_to_string("util/solve_distance_constraints.comp")
 		);
-		environment.state.solve_distance_constraints_shader = ::util::shader::create_program(compute_shader);
+		environment.state.shaders.solve.solve_distance_constraints_shader = ::util::shader::create_program(compute_shader);
 		std::cout << "Solve distance constraints shader compiled" << std::endl;
 
 		::util::shader::set_shader_statically
@@ -1946,7 +1946,7 @@ namespace game_logic
 			util_shader_DEFINE("MAX_IMPULSE", STRINGIFY(game_logic_CURSOR_CONSTRAINT_MAX_IMPULSE(environment))),
 			::util::shader::file_to_string("util/solve_cursor_constraint.comp")
 		);
-		environment.state.solve_cursor_constraint_shader = ::util::shader::create_program(compute_shader);
+		environment.state.shaders.solve.solve_cursor_constraint_shader = ::util::shader::create_program(compute_shader);
 		std::cout << "Solve cursor constraint shader compiled" << std::endl;
 
 		::util::shader::delete_shader(compute_shader);
@@ -4693,14 +4693,14 @@ namespace game_logic
 		{ // Body masses buffer
 			GLuint const masses_index
 			{
-				glGetProgramResourceIndex(environment.state.solve_contact_velocities_shader, GL_BUFFER_VARIABLE, "Body_Masses.masses")
+				glGetProgramResourceIndex(environment.state.shaders.solve.solve_contact_velocities_shader, GL_BUFFER_VARIABLE, "Body_Masses.masses")
 			};
 
 			GLenum const prop_labels[]{ GL_OFFSET, GL_ARRAY_STRIDE };
 			GLint props[std::size(prop_labels)];
 			glGetProgramResourceiv
 			(
-				environment.state.solve_contact_velocities_shader, GL_BUFFER_VARIABLE, masses_index,
+				environment.state.shaders.solve.solve_contact_velocities_shader, GL_BUFFER_VARIABLE, masses_index,
 				std::size(prop_labels), prop_labels, 2u, nullptr, props
 			);
 			// TODO: Consider putting offset and stride contigously in game state
@@ -5344,7 +5344,7 @@ namespace game_logic
 				environment.state.GPU_buffers.fluid.current_particle_count * environment.state.GPU_buffers.fluid.velocities.v_stride
 			);
 
-			glUseProgram(environment.state.solve_fluid_contacts_shader);
+			glUseProgram(environment.state.shaders.solve.solve_fluid_contacts_shader);
 			glDispatchCompute(solve_fluid_contacts_work_group_count, 1u, 1u);
 
 			glCopyNamedBufferSubData
@@ -5354,18 +5354,18 @@ namespace game_logic
 				environment.state.GPU_buffers.rigid_bodies.current_count * environment.state.GPU_buffers.rigid_bodies.velocities.v_stride
 			);
 
-			glUseProgram(environment.state.solve_fluid_triangle_contacts_shader);
+			glUseProgram(environment.state.shaders.solve.solve_fluid_triangle_contacts_shader);
 			glDispatchCompute(solve_fluid_triangle_contacts_work_group_count, 1u, 1u);
 
-			glUseProgram(environment.state.solve_contact_velocities_shader);
+			glUseProgram(environment.state.shaders.solve.solve_contact_velocities_shader);
 			glDispatchCompute(solve_contact_velocities_work_group_count, 1u, 1u);
 
-			glUseProgram(environment.state.solve_distance_constraints_shader);
+			glUseProgram(environment.state.shaders.solve.solve_distance_constraints_shader);
 			glDispatchCompute(solve_distance_constraint_work_group_count, 1u, 1u);
 
 			if (environment.state.grabbed_triangle != game_logic__util__proximity_NULL_INDEX)
 			{
-				glUseProgram(environment.state.solve_cursor_constraint_shader);
+				glUseProgram(environment.state.shaders.solve.solve_cursor_constraint_shader);
 				glDispatchCompute(1u, 1u, 1u);
 			}
 		}

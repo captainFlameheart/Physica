@@ -65,12 +65,6 @@ namespace game_state
 
 		GLuint update_distance_constraints_shader;
 
-		GLuint solve_fluid_contacts_shader;
-		GLuint solve_fluid_triangle_contacts_shader;
-		GLuint solve_contact_velocities_shader;
-		GLuint solve_distance_constraints_shader;
-		GLuint solve_cursor_constraint_shader;
-
 		proximity::Tree proximity_tree;
 
 		// TODO: Consider using std::430 layout to improve runtime performance
