@@ -338,9 +338,9 @@ namespace game_logic
 		GLfloat mass[2u]{ model.inverse_mass, model.inverse_inertia };
 		glClearNamedBufferSubData
 		(
-			environment.state.body_masses_buffer,
+			environment.state.GPU_buffers.rigid_bodies.masses.buffer,
 			GL_RG32F,
-			environment.state.body_masses_buffer_masses_offset + environment.state.current_rigid_body_count * environment.state.body_masses_buffer_masses_stride,
+			environment.state.GPU_buffers.rigid_bodies.masses.masses_offset + environment.state.current_rigid_body_count * environment.state.GPU_buffers.rigid_bodies.masses.masses_stride,
 			sizeof(mass),
 			GL_RG, GL_FLOAT,
 			mass
@@ -1987,7 +1987,7 @@ namespace game_logic
 			environment.state.GPU_buffers.fluid_triangle.contact_count.buffer,
 			environment.state.gravity_sources_buffer, 
 			environment.state.count_buffer, 
-			environment.state.body_masses_buffer
+			environment.state.GPU_buffers.rigid_bodies.masses.buffer
 		};
 		glCreateBuffers(std::size(buffers), buffers);
 		environment.state.camera_buffer = buffers[0u];
@@ -2020,7 +2020,7 @@ namespace game_logic
 		environment.state.GPU_buffers.fluid_triangle.contact_count.buffer = buffers[25u];
 		environment.state.gravity_sources_buffer = buffers[26u];
 		environment.state.count_buffer = buffers[27u];
-		environment.state.body_masses_buffer = buffers[28u];
+		environment.state.GPU_buffers.rigid_bodies.masses.buffer = buffers[28u];
 
 		{ // Camera buffer
 			GLuint const block_index
@@ -4704,11 +4704,11 @@ namespace game_logic
 				std::size(prop_labels), prop_labels, 2u, nullptr, props
 			);
 			// TODO: Consider putting offset and stride contigously in game state
-			environment.state.body_masses_buffer_masses_offset = props[0u];
-			environment.state.body_masses_buffer_masses_stride = props[1u];
+			environment.state.GPU_buffers.rigid_bodies.masses.masses_offset = props[0u];
+			environment.state.GPU_buffers.rigid_bodies.masses.masses_stride = props[1u];
 
 #if USE_DYNAMIC_SIZES == true
-			environment.state.body_masses_buffer_size = environment.state.body_masses_buffer_masses_offset + game_logic_MAX_RIGID_BODY_COUNT(environment) * environment.state.body_masses_buffer_masses_stride;
+			environment.state.GPU_buffers.rigid_bodies.masses.size = environment.state.GPU_buffers.rigid_bodies.masses.masses_offset + game_logic_MAX_RIGID_BODY_COUNT(environment) * environment.state.GPU_buffers.rigid_bodies.masses.masses_stride;
 #else
 			GLuint const block_index
 			{
@@ -4724,11 +4724,11 @@ namespace game_logic
 
 			glNamedBufferStorage
 			(
-				environment.state.body_masses_buffer, environment.state.body_masses_buffer_size, nullptr,
+				environment.state.GPU_buffers.rigid_bodies.masses.buffer, environment.state.GPU_buffers.rigid_bodies.masses.size, nullptr,
 				0u
 			);
 
-			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_BODY_MASSES_BINDING, environment.state.body_masses_buffer);
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_BODY_MASSES_BINDING, environment.state.GPU_buffers.rigid_bodies.masses.buffer);
 		}
 
 		util::proximity::initialize
@@ -4980,10 +4980,10 @@ namespace game_logic
 		std::cout << "fluid particles offset: " << environment.state.count_buffer_fluid_particles_offset << std::endl;
 		std::cout << std::endl;
 
-		std::cout << "Body masses buffer (" << environment.state.body_masses_buffer << "):" << std::endl;
-		std::cout << "size: " << environment.state.body_masses_buffer_size << std::endl;
-		std::cout << "masses offset: " << environment.state.body_masses_buffer_masses_offset << std::endl;
-		std::cout << "masses stride: " << environment.state.body_masses_buffer_masses_stride << std::endl;
+		std::cout << "Body masses buffer (" << environment.state.GPU_buffers.rigid_bodies.masses.buffer << "):" << std::endl;
+		std::cout << "size: " << environment.state.GPU_buffers.rigid_bodies.masses.size << std::endl;
+		std::cout << "masses offset: " << environment.state.GPU_buffers.rigid_bodies.masses.masses_offset << std::endl;
+		std::cout << "masses stride: " << environment.state.GPU_buffers.rigid_bodies.masses.masses_stride << std::endl;
 		std::cout << std::endl;
 
 		Model<3u> triangle_model;
@@ -7509,7 +7509,7 @@ namespace game_logic
 			environment.state.GPU_buffers.fluid_triangle.contact_count.buffer,
 			environment.state.gravity_sources_buffer, 
 			environment.state.count_buffer, 
-			environment.state.body_masses_buffer
+			environment.state.GPU_buffers.rigid_bodies.masses.buffer
 		};
 		glDeleteBuffers(std::size(buffers), buffers);
 

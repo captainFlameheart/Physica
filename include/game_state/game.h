@@ -49,11 +49,6 @@ namespace game_state
 
 		GPU_buffers::GPU_Buffer_Set GPU_buffers;
 
-		GLuint body_masses_buffer;
-		GLint body_masses_buffer_size;
-		GLint body_masses_buffer_masses_offset;
-		GLint body_masses_buffer_masses_stride;
-
 		GLint current_fluid_particle_count;
 		
 		GLuint current_distance_constraint_count;
