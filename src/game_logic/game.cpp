@@ -1470,7 +1470,7 @@ namespace game_logic
 			util_shader_DEFINE("PENETRATION_VELOCITY_SCALE", STRINGIFY(game_logic_DISTANCE_CONSTRAINT_PENETRATION_VELOCITY_SCALE(environment))),
 			::util::shader::file_to_string("util/add_distance_constraint.comp")
 		);
-		environment.state.add_distance_constraint_shader = ::util::shader::create_program(compute_shader);
+		environment.state.shaders.add_distance_constraint_shader = ::util::shader::create_program(compute_shader);
 		std::cout << "Add distance constraint shader compiled" << std::endl;
 
 		std::string fluid_physical_radius_definition{ "#define RADIUS " + std::to_string(game_logic_FLUID_PARTICLE_PHYSICAL_RADIUS(environment)) + '\n'};
@@ -6805,7 +6805,7 @@ namespace game_logic
 									&max_distance
 								);*/
 
-								glUseProgram(environment.state.add_distance_constraint_shader);
+								glUseProgram(environment.state.shaders.add_distance_constraint_shader);
 								glDispatchCompute(1u, 1u, 1u);
 
 								++environment.state.GPU_buffers.rigid_bodies.distance_constraints.current_count;

@@ -14,5 +14,7 @@ namespace game_state::shaders
 		integrate_velocities::Shader_Set integrate_velocities;
 		persist::Shader_Set persist;
 		new_constraints::Shader_Set new_constraints;
+
+		GLuint add_distance_constraint_shader;
 	};
 }

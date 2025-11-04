@@ -49,8 +49,6 @@ namespace game_state
 		GPU_buffers::GPU_Buffer_Set GPU_buffers;
 		shaders::Shader_Set shaders;
 
-		GLuint add_distance_constraint_shader;
-
 		GLuint current_triangle_contact_count;
 
 		proximity::Tree proximity_tree;
