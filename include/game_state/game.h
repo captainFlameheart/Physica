@@ -49,10 +49,6 @@ namespace game_state
 
 		GPU_buffers::GPU_Buffer_Set GPU_buffers;
 
-		GLuint fluid_triangle_contact_count_buffer;
-		GLint fluid_triangle_contact_count_buffer_size;
-		GLint fluid_triangle_contact_count_buffer_count_offset;
-
 		GLuint body_masses_buffer;
 		GLint body_masses_buffer_size;
 		GLint body_masses_buffer_masses_offset;
