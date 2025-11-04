@@ -1982,7 +1982,7 @@ namespace game_logic
 			environment.state.cursor_position_buffer, 
 			environment.state.cursor_constrained_point_buffer, 
 			environment.state.cursor_constraint_buffer, 
-			environment.state.distance_constraint_buffer, 
+			environment.state.GPU_buffers.rigid_bodies.distance_constraints.buffer, 
 			environment.state.fluid_triangle_contact_buffer, 
 			environment.state.fluid_triangle_contact_count_buffer, 
 			environment.state.gravity_sources_buffer, 
@@ -2015,7 +2015,7 @@ namespace game_logic
 		environment.state.cursor_position_buffer = buffers[20u];
 		environment.state.cursor_constrained_point_buffer = buffers[21u];
 		environment.state.cursor_constraint_buffer = buffers[22u];
-		environment.state.distance_constraint_buffer = buffers[23u];
+		environment.state.GPU_buffers.rigid_bodies.distance_constraints.buffer = buffers[23u];
 		environment.state.fluid_triangle_contact_buffer = buffers[24u];
 		environment.state.fluid_triangle_contact_count_buffer = buffers[25u];
 		environment.state.gravity_sources_buffer = buffers[26u];
@@ -3878,7 +3878,7 @@ namespace game_logic
 				glGetProgramResourceiv
 				(
 					environment.state.update_distance_constraints_shader, GL_BUFFER_VARIABLE, count_index,
-					1u, &offset_label, 1u, nullptr, &environment.state.distance_constraint_buffer_count_offset
+					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.rigid_bodies.distance_constraints.count_offset
 				);
 
 				GLuint const distance_constraints_bodies_index
@@ -3893,8 +3893,8 @@ namespace game_logic
 					std::size(prop_labels), prop_labels, 2u, nullptr, props
 				);
 				// TODO: Consider putting offset and stride contigously in game state (but probably not)
-				environment.state.distance_constraint_buffer_distance_constraints_bodies_offset = props[0u];
-				environment.state.distance_constraint_buffer_distance_constraints_stride = props[1u];
+				environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_bodies_offset = props[0u];
+				environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_stride = props[1u];
 
 				GLenum const array_prop_labels[]{ GL_OFFSET, GL_ARRAY_STRIDE };
 				GLint array_props[std::size(array_prop_labels)];
@@ -3908,8 +3908,8 @@ namespace game_logic
 					environment.state.update_distance_constraints_shader, GL_BUFFER_VARIABLE, distance_constraints_local_points_index,
 					std::size(array_prop_labels), array_prop_labels, 2u, nullptr, array_props
 				);
-				environment.state.distance_constraint_buffer_distance_constraints_local_points_offset = array_props[0u];
-				environment.state.distance_constraint_buffer_distance_constraints_local_points_stride = array_props[1u];
+				environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_local_points_offset = array_props[0u];
+				environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_local_points_stride = array_props[1u];
 
 				GLuint const distance_constraints_offsets_index
 				{
@@ -3920,8 +3920,8 @@ namespace game_logic
 					environment.state.update_distance_constraints_shader, GL_BUFFER_VARIABLE, distance_constraints_offsets_index,
 					std::size(array_prop_labels), array_prop_labels, 2u, nullptr, array_props
 				);
-				environment.state.distance_constraint_buffer_distance_constraints_offsets_offset = array_props[0u];
-				environment.state.distance_constraint_buffer_distance_constraints_offsets_stride = array_props[1u];
+				environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_offsets_offset = array_props[0u];
+				environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_offsets_stride = array_props[1u];
 
 				GLuint const distance_constraints_direction_index
 				{
@@ -3930,7 +3930,7 @@ namespace game_logic
 				glGetProgramResourceiv
 				(
 					environment.state.update_distance_constraints_shader, GL_BUFFER_VARIABLE, distance_constraints_direction_index,
-					1u, &offset_label, 1u, nullptr, &environment.state.distance_constraint_buffer_distance_constraints_direction_offset
+					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_direction_offset
 				);
 
 				GLuint const distance_constraints_max_distance_index
@@ -3940,7 +3940,7 @@ namespace game_logic
 				glGetProgramResourceiv
 				(
 					environment.state.update_distance_constraints_shader, GL_BUFFER_VARIABLE, distance_constraints_max_distance_index,
-					1u, &offset_label, 1u, nullptr, &environment.state.distance_constraint_buffer_distance_constraints_max_distance_offset
+					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_max_distance_offset
 				);
 
 				GLuint const distance_constraints_target_velocity_index
@@ -3950,7 +3950,7 @@ namespace game_logic
 				glGetProgramResourceiv
 				(
 					environment.state.update_distance_constraints_shader, GL_BUFFER_VARIABLE, distance_constraints_target_velocity_index,
-					1u, &offset_label, 1u, nullptr, &environment.state.distance_constraint_buffer_distance_constraints_target_velocity_offset
+					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_target_velocity_offset
 				);
 
 				GLuint const distance_constraints_mass_index
@@ -3960,7 +3960,7 @@ namespace game_logic
 				glGetProgramResourceiv
 				(
 					environment.state.update_distance_constraints_shader, GL_BUFFER_VARIABLE, distance_constraints_mass_index,
-					1u, &offset_label, 1u, nullptr, &environment.state.distance_constraint_buffer_distance_constraints_mass_offset
+					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_mass_offset
 				);
 
 				GLuint const distance_constraints_impulse_index
@@ -3970,25 +3970,25 @@ namespace game_logic
 				glGetProgramResourceiv
 				(
 					environment.state.update_distance_constraints_shader, GL_BUFFER_VARIABLE, distance_constraints_impulse_index,
-					1u, &offset_label, 1u, nullptr, &environment.state.distance_constraint_buffer_distance_constraints_impulse_offset
+					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_impulse_offset
 				);
 
 				GLint offsets[]
 				{
-					environment.state.distance_constraint_buffer_distance_constraints_bodies_offset,
-					environment.state.distance_constraint_buffer_distance_constraints_local_points_offset, 
-					environment.state.distance_constraint_buffer_distance_constraints_offsets_offset, 
-					environment.state.distance_constraint_buffer_distance_constraints_direction_offset, 
-					environment.state.distance_constraint_buffer_distance_constraints_max_distance_offset,
-					environment.state.distance_constraint_buffer_distance_constraints_target_velocity_offset,
-					environment.state.distance_constraint_buffer_distance_constraints_mass_offset,
-					environment.state.distance_constraint_buffer_distance_constraints_impulse_offset,
+					environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_bodies_offset,
+					environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_local_points_offset,
+					environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_offsets_offset,
+					environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_direction_offset,
+					environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_max_distance_offset,
+					environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_target_velocity_offset,
+					environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_mass_offset,
+					environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_impulse_offset,
 				};
-				environment.state.distance_constraint_buffer_distance_constraints_offset = *std::min_element(std::begin(offsets), std::end(offsets));
+				environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_offset = *std::min_element(std::begin(offsets), std::end(offsets));
 			}
 
 #if USE_DYNAMIC_SIZES == true
-			environment.state.distance_constraint_buffer_size = environment.state.distance_constraint_buffer_distance_constraints_offset + game_logic_MAX_DISTANCE_CONSTRAINT_COUNT(environment) * environment.state.distance_constraint_buffer_distance_constraints_stride;
+			environment.state.GPU_buffers.rigid_bodies.distance_constraints.size = environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_offset + game_logic_MAX_DISTANCE_CONSTRAINT_COUNT(environment) * environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_stride;
 #else
 			GLuint const block_index
 			{
@@ -4004,20 +4004,20 @@ namespace game_logic
 			// IMPORTANT TODO: REMOVE FLAGS!!!
 			glNamedBufferStorage
 			(
-				environment.state.distance_constraint_buffer, environment.state.distance_constraint_buffer_size, nullptr,
+				environment.state.GPU_buffers.rigid_bodies.distance_constraints.buffer, environment.state.GPU_buffers.rigid_bodies.distance_constraints.size, nullptr,
 				GL_MAP_PERSISTENT_BIT | GL_MAP_READ_BIT | GL_MAP_WRITE_BIT
 			);
 			
 			glClearNamedBufferSubData
 			(
-				environment.state.distance_constraint_buffer, 
+				environment.state.GPU_buffers.rigid_bodies.distance_constraints.buffer,
 				GL_R32UI, 
-				environment.state.distance_constraint_buffer_count_offset, sizeof(GLuint), 
+				environment.state.GPU_buffers.rigid_bodies.distance_constraints.count_offset, sizeof(GLuint),
 				GL_RED, GL_UNSIGNED_INT, 
 				&environment.state.current_distance_constraint_count
 			);
 
-			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_DISTANCE_CONSTRAINT_BINDING, environment.state.distance_constraint_buffer);
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_DISTANCE_CONSTRAINT_BINDING, environment.state.GPU_buffers.rigid_bodies.distance_constraints.buffer);
 		}
 
 //		{
@@ -4880,21 +4880,21 @@ namespace game_logic
 		std::cout << "impulse offset: " << environment.state.cursor_constraint_buffer_impulse_offset << std::endl;
 		std::cout << std::endl;
 
-		std::cout << "Distance constraint buffer (" << environment.state.distance_constraint_buffer << "):" << std::endl;
-		std::cout << "size: " << environment.state.distance_constraint_buffer_size << std::endl;
-		std::cout << "count offset: " << environment.state.distance_constraint_buffer_count_offset << std::endl;
-		std::cout << "distance constraints offset: " << environment.state.distance_constraint_buffer_distance_constraints_offset << std::endl;
-		std::cout << "distance constraints stride: " << environment.state.distance_constraint_buffer_distance_constraints_stride << std::endl;
-		std::cout << "distance constraints bodies offset: " << environment.state.distance_constraint_buffer_distance_constraints_bodies_offset << std::endl;
-		std::cout << "distance constraints local points offset: " << environment.state.distance_constraint_buffer_distance_constraints_local_points_offset << std::endl;
-		std::cout << "distance constraints local points stride: " << environment.state.distance_constraint_buffer_distance_constraints_local_points_stride << std::endl;
-		std::cout << "distance constraints offsets offset: " << environment.state.distance_constraint_buffer_distance_constraints_offsets_offset << std::endl;
-		std::cout << "distance constraints offsets stride: " << environment.state.distance_constraint_buffer_distance_constraints_offsets_stride << std::endl;
-		std::cout << "distance constraints direction offset: " << environment.state.distance_constraint_buffer_distance_constraints_direction_offset << std::endl;
-		std::cout << "distance constraints max distance offset: " << environment.state.distance_constraint_buffer_distance_constraints_max_distance_offset << std::endl;
-		std::cout << "distance constraints target velocity offset: " << environment.state.distance_constraint_buffer_distance_constraints_target_velocity_offset << std::endl;
-		std::cout << "distance constraints mass offset: " << environment.state.distance_constraint_buffer_distance_constraints_mass_offset << std::endl;
-		std::cout << "distance constraints impulse offset: " << environment.state.distance_constraint_buffer_distance_constraints_impulse_offset << std::endl;
+		std::cout << "Distance constraint buffer (" << environment.state.GPU_buffers.rigid_bodies.distance_constraints.buffer << "):" << std::endl;
+		std::cout << "size: " << environment.state.GPU_buffers.rigid_bodies.distance_constraints.size << std::endl;
+		std::cout << "count offset: " << environment.state.GPU_buffers.rigid_bodies.distance_constraints.count_offset << std::endl;
+		std::cout << "distance constraints offset: " << environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_offset << std::endl;
+		std::cout << "distance constraints stride: " << environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_stride << std::endl;
+		std::cout << "distance constraints bodies offset: " << environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_bodies_offset << std::endl;
+		std::cout << "distance constraints local points offset: " << environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_local_points_offset << std::endl;
+		std::cout << "distance constraints local points stride: " << environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_local_points_stride << std::endl;
+		std::cout << "distance constraints offsets offset: " << environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_offsets_offset << std::endl;
+		std::cout << "distance constraints offsets stride: " << environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_offsets_stride << std::endl;
+		std::cout << "distance constraints direction offset: " << environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_direction_offset << std::endl;
+		std::cout << "distance constraints max distance offset: " << environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_max_distance_offset << std::endl;
+		std::cout << "distance constraints target velocity offset: " << environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_target_velocity_offset << std::endl;
+		std::cout << "distance constraints mass offset: " << environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_mass_offset << std::endl;
+		std::cout << "distance constraints impulse offset: " << environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_impulse_offset << std::endl;
 		std::cout << std::endl;
 
 		std::cout << "Fluid position buffer (" << environment.state.fluid_position_buffer << "):" << std::endl;
@@ -6644,12 +6644,12 @@ namespace game_logic
 							{
 								glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
 
-								GLuint const count_jump{ environment.state.current_distance_constraint_count * environment.state.distance_constraint_buffer_distance_constraints_stride };
+								GLuint const count_jump{ environment.state.current_distance_constraint_count * environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_stride };
 								glClearNamedBufferSubData
 								(
-									environment.state.distance_constraint_buffer,
+									environment.state.GPU_buffers.rigid_bodies.distance_constraints.buffer,
 									GL_R32UI,
-									environment.state.distance_constraint_buffer_distance_constraints_bodies_offset + count_jump, 
+									environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_bodies_offset + count_jump,
 									sizeof(GLuint),
 									GL_RED_INTEGER, GL_UNSIGNED_INT,
 									&environment.state.GPU_buffers.rigid_bodies.triangles.values[hovered_triangle].body
@@ -6662,9 +6662,9 @@ namespace game_logic
 								};
 								glClearNamedBufferSubData
 								(
-									environment.state.distance_constraint_buffer,
+									environment.state.GPU_buffers.rigid_bodies.distance_constraints.buffer,
 									GL_RG32F,
-									environment.state.distance_constraint_buffer_distance_constraints_local_points_offset + count_jump, 
+									environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_local_points_offset + count_jump,
 									sizeof(local_point),
 									GL_RG, GL_FLOAT,
 									local_point
@@ -6768,12 +6768,12 @@ namespace game_logic
 							{
 								glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
 
-								GLuint const count_jump{ environment.state.current_distance_constraint_count * environment.state.distance_constraint_buffer_distance_constraints_stride };
+								GLuint const count_jump{ environment.state.current_distance_constraint_count * environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_stride };
 								glClearNamedBufferSubData
 								(
-									environment.state.distance_constraint_buffer,
+									environment.state.GPU_buffers.rigid_bodies.distance_constraints.buffer,
 									GL_R32UI,
-									environment.state.distance_constraint_buffer_distance_constraints_bodies_offset + 4u + count_jump,
+									environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_bodies_offset + 4u + count_jump,
 									sizeof(GLuint),
 									GL_RED_INTEGER, GL_UNSIGNED_INT,
 									&environment.state.GPU_buffers.rigid_bodies.triangles.values[hovered_triangle].body
@@ -6786,9 +6786,9 @@ namespace game_logic
 								};
 								glClearNamedBufferSubData
 								(
-									environment.state.distance_constraint_buffer,
+									environment.state.GPU_buffers.rigid_bodies.distance_constraints.buffer,
 									GL_RG32F,
-									environment.state.distance_constraint_buffer_distance_constraints_local_points_offset + environment.state.distance_constraint_buffer_distance_constraints_local_points_stride + count_jump,
+									environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_local_points_offset + environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_local_points_stride + count_jump,
 									sizeof(local_point),
 									GL_RG, GL_FLOAT,
 									local_point
@@ -7497,7 +7497,7 @@ namespace game_logic
 			environment.state.cursor_position_buffer, 
 			environment.state.cursor_constrained_point_buffer, 
 			environment.state.cursor_constraint_buffer, 
-			environment.state.distance_constraint_buffer, 
+			environment.state.GPU_buffers.rigid_bodies.distance_constraints.buffer,
 			environment.state.fluid_position_buffer,
 			environment.state.fluid_velocity_buffer, 
 			environment.state.fluid_bounding_box_buffer, 

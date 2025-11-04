@@ -1,6 +1,7 @@
 #include "positions/include.h"
 #include "velocities/include.h"
 #include "triangles/include.h"
+#include "distance_constraints/include.h"
 
 namespace game_state::GPU_buffers::rigid_bodies
 {
@@ -10,5 +11,6 @@ namespace game_state::GPU_buffers::rigid_bodies
 		positions::Buffer positions;
 		velocities::Buffer velocities;
 		triangles::Buffer triangles;
+		distance_constraints::Buffer distance_constraints;
 	};
 }

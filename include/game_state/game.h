@@ -49,22 +49,6 @@ namespace game_state
 
 		GPU_buffers::GPU_Buffer_Set GPU_buffers;
 
-		GLuint distance_constraint_buffer;
-		GLint distance_constraint_buffer_size;
-		GLint distance_constraint_buffer_count_offset;
-		GLint distance_constraint_buffer_distance_constraints_offset;
-		GLint distance_constraint_buffer_distance_constraints_stride;
-		GLint distance_constraint_buffer_distance_constraints_bodies_offset;
-		GLint distance_constraint_buffer_distance_constraints_local_points_offset;
-		GLint distance_constraint_buffer_distance_constraints_local_points_stride;
-		GLint distance_constraint_buffer_distance_constraints_offsets_offset;
-		GLint distance_constraint_buffer_distance_constraints_offsets_stride;
-		GLint distance_constraint_buffer_distance_constraints_direction_offset;
-		GLint distance_constraint_buffer_distance_constraints_max_distance_offset;
-		GLint distance_constraint_buffer_distance_constraints_target_velocity_offset;
-		GLint distance_constraint_buffer_distance_constraints_mass_offset;
-		GLint distance_constraint_buffer_distance_constraints_impulse_offset;
-
 		GLuint fluid_position_buffer;
 		GLint fluid_position_buffer_size;
 		GLint fluid_position_buffer_p_offset;
