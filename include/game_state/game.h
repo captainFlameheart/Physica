@@ -50,11 +50,7 @@ namespace game_state
 		// TODO: Position buffer should likely come after velocity buffer
 
 		GPU_buffers::GPU_Buffer_Set GPU_buffers;
-
-		GLint contact_count_buffer;
-		GLint contact_count_buffer_size;
-		GLint contact_count_buffer_contact_count_offset;
-
+		
 		GLint persistent_contact_count_buffer;
 		GLint persistent_contact_count_buffer_size;
 		GLint persistent_contact_count_buffer_persistent_contact_count_offset;
