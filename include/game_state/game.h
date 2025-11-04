@@ -54,9 +54,6 @@ namespace game_state
 		GLint body_masses_buffer_masses_offset;
 		GLint body_masses_buffer_masses_stride;
 
-		GLuint current_fluid_triangle_persistent_contact_count;
-		GLuint current_fluid_triangle_contact_count;
-
 		GLint current_fluid_particle_count;
 		
 		GLuint current_distance_constraint_count;
