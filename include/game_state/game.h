@@ -52,11 +52,6 @@ namespace game_state
 
 		unsigned char* changed_bounding_boxes_mapping;
 		
-		// TODO: Consider using std::430 layout to improve runtime performance
-		GLuint contact_surface_buffer;
-		GLint contact_surface_buffer_contact_surfaces_offset;
-		GLint contact_surface_buffer_contact_surfaces_stride;
-
 		unsigned char* contact_mapping;
 
 		GLsync physics_tick_results_fence;

@@ -6,6 +6,8 @@ namespace game_state::GPU_buffers::rigid_bodies::triangles::contact_surfaces
 {
 	struct Buffer
 	{
+		// TODO: Consider using std::430 layout to improve runtime performance
+		GLuint buffer;
 		GLint size;
 
 		GLint contact_surfaces_bodies_offset;
@@ -28,5 +30,8 @@ namespace game_state::GPU_buffers::rigid_bodies::triangles::contact_surfaces
 		GLint contact_surfaces_contact_point_normal_1_target_velocity_offset;
 		GLint contact_surfaces_contact_point_normal_1_mass_offset;
 		GLint contact_surfaces_contact_point_normal_1_impulse_offset;
+
+		GLint contact_surfaces_offset;
+		GLint contact_surfaces_stride;
 	};
 }
