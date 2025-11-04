@@ -49,16 +49,6 @@ namespace game_state
 
 		GPU_buffers::GPU_Buffer_Set GPU_buffers;
 
-		GLuint fluid_position_buffer;
-		GLint fluid_position_buffer_size;
-		GLint fluid_position_buffer_p_offset;
-		GLint fluid_position_buffer_p_stride;
-
-		GLuint fluid_velocity_buffer;
-		GLint fluid_velocity_buffer_size;
-		GLint fluid_velocity_buffer_v_offset;
-		GLint fluid_velocity_buffer_v_stride;
-
 		GLuint fluid_bounding_box_buffer;
 		GLint fluid_bounding_box_buffer_size;
 		GLint fluid_bounding_box_buffer_boxes_offset;
@@ -122,7 +112,7 @@ namespace game_state
 		GLuint current_fluid_triangle_persistent_contact_count;
 		GLuint current_fluid_triangle_contact_count;
 
-		GLuint fluid_velocity_snapshot_buffer;
+		//GLuint fluid_velocity_snapshot_buffer;
 
 		GLint current_fluid_particle_count;
 		
