@@ -1983,7 +1983,7 @@ namespace game_logic
 			environment.state.cursor_constrained_point_buffer, 
 			environment.state.cursor_constraint_buffer, 
 			environment.state.GPU_buffers.rigid_bodies.distance_constraints.buffer, 
-			environment.state.fluid_triangle_contact_buffer, 
+			environment.state.GPU_buffers.fluid_triangle.contacts.buffer,
 			environment.state.fluid_triangle_contact_count_buffer, 
 			environment.state.gravity_sources_buffer, 
 			environment.state.count_buffer, 
@@ -2016,7 +2016,7 @@ namespace game_logic
 		environment.state.cursor_constrained_point_buffer = buffers[21u];
 		environment.state.cursor_constraint_buffer = buffers[22u];
 		environment.state.GPU_buffers.rigid_bodies.distance_constraints.buffer = buffers[23u];
-		environment.state.fluid_triangle_contact_buffer = buffers[24u];
+		environment.state.GPU_buffers.fluid_triangle.contacts.buffer = buffers[24u];
 		environment.state.fluid_triangle_contact_count_buffer = buffers[25u];
 		environment.state.gravity_sources_buffer = buffers[26u];
 		environment.state.count_buffer = buffers[27u];
@@ -2640,8 +2640,8 @@ namespace game_logic
 					std::size(prop_labels), prop_labels, 2u, nullptr, props
 				);
 				// TODO: Consider putting offset and stride contigously in game state
-				environment.state.fluid_triangle_contact_buffer_contacts_triangle_offset = props[0u];
-				environment.state.fluid_triangle_contact_buffer_contacts_stride = props[1u];
+				environment.state.GPU_buffers.fluid_triangle.contacts.contacts_triangle_offset = props[0u];
+				environment.state.GPU_buffers.fluid_triangle.contacts.contacts_stride = props[1u];
 
 				GLenum const offset_label{ GL_OFFSET };
 
@@ -2652,7 +2652,7 @@ namespace game_logic
 				glGetProgramResourceiv
 				(
 					environment.state.persist_fluid_triangle_contacts_shader, GL_BUFFER_VARIABLE, mass_index,
-					1u, &offset_label, 1u, nullptr, &environment.state.fluid_triangle_contact_buffer_contacts_mass_offset
+					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.fluid_triangle.contacts.contacts_mass_offset
 				);
 
 				GLuint const impulse_index
@@ -2662,7 +2662,7 @@ namespace game_logic
 				glGetProgramResourceiv
 				(
 					environment.state.persist_fluid_triangle_contacts_shader, GL_BUFFER_VARIABLE, impulse_index,
-					1u, &offset_label, 1u, nullptr, &environment.state.fluid_triangle_contact_buffer_contacts_impulse_offset
+					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.fluid_triangle.contacts.contacts_impulse_offset
 				);
 
 				GLuint const particle_index
@@ -2672,7 +2672,7 @@ namespace game_logic
 				glGetProgramResourceiv
 				(
 					environment.state.persist_fluid_triangle_contacts_shader, GL_BUFFER_VARIABLE, particle_index,
-					1u, &offset_label, 1u, nullptr, &environment.state.fluid_triangle_contact_buffer_contacts_particle_offset
+					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.fluid_triangle.contacts.contacts_particle_offset
 				);
 
 				GLuint const body_index
@@ -2682,7 +2682,7 @@ namespace game_logic
 				glGetProgramResourceiv
 				(
 					environment.state.persist_fluid_triangle_contacts_shader, GL_BUFFER_VARIABLE, body_index,
-					1u, &offset_label, 1u, nullptr, &environment.state.fluid_triangle_contact_buffer_contacts_body_offset
+					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.fluid_triangle.contacts.contacts_body_offset
 				);
 
 				GLuint const target_velocity_index
@@ -2692,7 +2692,7 @@ namespace game_logic
 				glGetProgramResourceiv
 				(
 					environment.state.persist_fluid_triangle_contacts_shader, GL_BUFFER_VARIABLE, target_velocity_index,
-					1u, &offset_label, 1u, nullptr, &environment.state.fluid_triangle_contact_buffer_contacts_target_velocity_offset
+					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.fluid_triangle.contacts.contacts_target_velocity_offset
 				);
 
 				GLuint const offset_index
@@ -2702,7 +2702,7 @@ namespace game_logic
 				glGetProgramResourceiv
 				(
 					environment.state.persist_fluid_triangle_contacts_shader, GL_BUFFER_VARIABLE, offset_index,
-					1u, &offset_label, 1u, nullptr, &environment.state.fluid_triangle_contact_buffer_contacts_offset_offset
+					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.fluid_triangle.contacts.contacts_offset_offset
 				);
 
 				GLuint const direction_index
@@ -2712,7 +2712,7 @@ namespace game_logic
 				glGetProgramResourceiv
 				(
 					environment.state.persist_fluid_triangle_contacts_shader, GL_BUFFER_VARIABLE, direction_index,
-					1u, &offset_label, 1u, nullptr, &environment.state.fluid_triangle_contact_buffer_contacts_direction_offset
+					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.fluid_triangle.contacts.contacts_direction_offset
 				);
 
 				GLuint const impulse_range_index
@@ -2722,25 +2722,25 @@ namespace game_logic
 				glGetProgramResourceiv
 				(
 					environment.state.persist_fluid_triangle_contacts_shader, GL_BUFFER_VARIABLE, impulse_range_index,
-					1u, &offset_label, 1u, nullptr, &environment.state.fluid_triangle_contact_buffer_contacts_impulse_range_offset
+					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.fluid_triangle.contacts.contacts_impulse_range_offset
 				);
 			}
 
 			GLint const offsets[]
 			{
-			   environment.state.fluid_triangle_contact_buffer_contacts_triangle_offset, 
-			   environment.state.fluid_triangle_contact_buffer_contacts_mass_offset,
-			   environment.state.fluid_triangle_contact_buffer_contacts_impulse_offset,
-			   environment.state.fluid_triangle_contact_buffer_contacts_particle_offset,
-			   environment.state.fluid_triangle_contact_buffer_contacts_body_offset,
-			   environment.state.fluid_triangle_contact_buffer_contacts_target_velocity_offset,
-			   environment.state.fluid_triangle_contact_buffer_contacts_offset_offset,
-			   environment.state.fluid_triangle_contact_buffer_contacts_direction_offset,
-			   environment.state.fluid_triangle_contact_buffer_contacts_impulse_range_offset
+			   environment.state.GPU_buffers.fluid_triangle.contacts.contacts_triangle_offset,
+			   environment.state.GPU_buffers.fluid_triangle.contacts.contacts_mass_offset,
+			   environment.state.GPU_buffers.fluid_triangle.contacts.contacts_impulse_offset,
+			   environment.state.GPU_buffers.fluid_triangle.contacts.contacts_particle_offset,
+			   environment.state.GPU_buffers.fluid_triangle.contacts.contacts_body_offset,
+			   environment.state.GPU_buffers.fluid_triangle.contacts.contacts_target_velocity_offset,
+			   environment.state.GPU_buffers.fluid_triangle.contacts.contacts_offset_offset,
+			   environment.state.GPU_buffers.fluid_triangle.contacts.contacts_direction_offset,
+			   environment.state.GPU_buffers.fluid_triangle.contacts.contacts_impulse_range_offset
 			};
-			environment.state.fluid_triangle_contact_buffer_contacts_offset = *std::min_element(std::begin(offsets), std::end(offsets));
+			environment.state.GPU_buffers.fluid_triangle.contacts.contacts_offset = *std::min_element(std::begin(offsets), std::end(offsets));
 #if USE_DYNAMIC_SIZES == true
-			environment.state.fluid_triangle_contact_buffer_size = environment.state.fluid_triangle_contact_buffer_contacts_offset + MAX_FLUID_TRIANGLE_CONTACT_COUNT(environment) * environment.state.fluid_triangle_contact_buffer_contacts_stride;
+			environment.state.GPU_buffers.fluid_triangle.contacts.size = environment.state.GPU_buffers.fluid_triangle.contacts.contacts_offset + MAX_FLUID_TRIANGLE_CONTACT_COUNT(environment) * environment.state.GPU_buffers.fluid_triangle.contacts.contacts_stride;
 #else
 			GLuint const block_index
 			{
@@ -2756,11 +2756,11 @@ namespace game_logic
 
 			glNamedBufferStorage
 			(
-				environment.state.fluid_triangle_contact_buffer, environment.state.fluid_triangle_contact_buffer_size, nullptr,
+				environment.state.GPU_buffers.fluid_triangle.contacts.buffer, environment.state.GPU_buffers.fluid_triangle.contacts.size, nullptr,
 				0u
 			);
 
-			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_FLUID_TRIANGLE_CONTACT_BINDING, environment.state.fluid_triangle_contact_buffer);
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_FLUID_TRIANGLE_CONTACT_BINDING, environment.state.GPU_buffers.fluid_triangle.contacts.buffer);
 		}
 
 		{ // Fluid triangle contact count buffer
@@ -4944,19 +4944,19 @@ namespace game_logic
 		std::cout << "count offset: " << environment.state.GPU_buffers.fluid.contact_count.count_offset << std::endl;
 		std::cout << std::endl;
 
-		std::cout << "Fluid triangle contact buffer (" << environment.state.fluid_triangle_contact_buffer << "):" << std::endl;
-		std::cout << "size: " << environment.state.fluid_triangle_contact_buffer_size << std::endl;
-		std::cout << "contacts offset: " << environment.state.fluid_triangle_contact_buffer_contacts_offset << std::endl;
-		std::cout << "contacts stride: " << environment.state.fluid_triangle_contact_buffer_contacts_stride << std::endl;
-		std::cout << "contacts triangle offset: " << environment.state.fluid_triangle_contact_buffer_contacts_triangle_offset << std::endl;
-		std::cout << "contacts mass offset: " << environment.state.fluid_triangle_contact_buffer_contacts_mass_offset << std::endl;
-		std::cout << "contacts impulse offset: " << environment.state.fluid_triangle_contact_buffer_contacts_impulse_offset << std::endl;
-		std::cout << "contacts particle offset: " << environment.state.fluid_triangle_contact_buffer_contacts_particle_offset << std::endl;
-		std::cout << "contacts body offset: " << environment.state.fluid_triangle_contact_buffer_contacts_body_offset << std::endl;
-		std::cout << "contacts target velocity offset: " << environment.state.fluid_triangle_contact_buffer_contacts_target_velocity_offset << std::endl;
-		std::cout << "contacts offset offset: " << environment.state.fluid_triangle_contact_buffer_contacts_offset_offset << std::endl;
-		std::cout << "contacts direction offset: " << environment.state.fluid_triangle_contact_buffer_contacts_direction_offset << std::endl;
-		std::cout << "contacts impulse range offset: " << environment.state.fluid_triangle_contact_buffer_contacts_impulse_range_offset << std::endl;
+		std::cout << "Fluid triangle contact buffer (" << environment.state.GPU_buffers.fluid_triangle.contacts.buffer << "):" << std::endl;
+		std::cout << "size: " << environment.state.GPU_buffers.fluid_triangle.contacts.size << std::endl;
+		std::cout << "contacts offset: " << environment.state.GPU_buffers.fluid_triangle.contacts.contacts_offset << std::endl;
+		std::cout << "contacts stride: " << environment.state.GPU_buffers.fluid_triangle.contacts.contacts_stride << std::endl;
+		std::cout << "contacts triangle offset: " << environment.state.GPU_buffers.fluid_triangle.contacts.contacts_triangle_offset << std::endl;
+		std::cout << "contacts mass offset: " << environment.state.GPU_buffers.fluid_triangle.contacts.contacts_mass_offset << std::endl;
+		std::cout << "contacts impulse offset: " << environment.state.GPU_buffers.fluid_triangle.contacts.contacts_impulse_offset << std::endl;
+		std::cout << "contacts particle offset: " << environment.state.GPU_buffers.fluid_triangle.contacts.contacts_particle_offset << std::endl;
+		std::cout << "contacts body offset: " << environment.state.GPU_buffers.fluid_triangle.contacts.contacts_body_offset << std::endl;
+		std::cout << "contacts target velocity offset: " << environment.state.GPU_buffers.fluid_triangle.contacts.contacts_target_velocity_offset << std::endl;
+		std::cout << "contacts offset offset: " << environment.state.GPU_buffers.fluid_triangle.contacts.contacts_offset_offset << std::endl;
+		std::cout << "contacts direction offset: " << environment.state.GPU_buffers.fluid_triangle.contacts.contacts_direction_offset << std::endl;
+		std::cout << "contacts impulse range offset: " << environment.state.GPU_buffers.fluid_triangle.contacts.contacts_impulse_range_offset << std::endl;
 		std::cout << std::endl;
 
 		std::cout << "Fluid triangle contact count buffer (" << environment.state.fluid_triangle_contact_count_buffer << "):" << std::endl;
@@ -5648,10 +5648,10 @@ namespace game_logic
 							{
 								glCopyNamedBufferSubData
 								(
-									environment.state.fluid_triangle_contact_buffer, environment.state.fluid_triangle_contact_buffer,
-									environment.state.fluid_triangle_contact_buffer_contacts_offset + environment.state.current_fluid_triangle_contact_count * environment.state.fluid_triangle_contact_buffer_contacts_stride,
-									environment.state.fluid_triangle_contact_buffer_contacts_offset + fluid_triangle_contact_index * environment.state.fluid_triangle_contact_buffer_contacts_stride,
-									environment.state.fluid_triangle_contact_buffer_contacts_stride
+									environment.state.GPU_buffers.fluid_triangle.contacts.buffer, environment.state.GPU_buffers.fluid_triangle.contacts.buffer,
+									environment.state.GPU_buffers.fluid_triangle.contacts.contacts_offset + environment.state.current_fluid_triangle_contact_count * environment.state.GPU_buffers.fluid_triangle.contacts.contacts_stride,
+									environment.state.GPU_buffers.fluid_triangle.contacts.contacts_offset + fluid_triangle_contact_index * environment.state.GPU_buffers.fluid_triangle.contacts.contacts_stride,
+									environment.state.GPU_buffers.fluid_triangle.contacts.contacts_stride
 								);
 
 								util::proximity::move_contact
@@ -5695,10 +5695,10 @@ namespace game_logic
 							{
 								glCopyNamedBufferSubData
 								(
-									environment.state.fluid_triangle_contact_buffer, environment.state.fluid_triangle_contact_buffer,
-									environment.state.fluid_triangle_contact_buffer_contacts_offset + environment.state.current_fluid_triangle_contact_count * environment.state.fluid_triangle_contact_buffer_contacts_stride,
-									environment.state.fluid_triangle_contact_buffer_contacts_offset + fluid_triangle_contact_index * environment.state.fluid_triangle_contact_buffer_contacts_stride,
-									environment.state.fluid_triangle_contact_buffer_contacts_stride
+									environment.state.GPU_buffers.fluid_triangle.contacts.buffer, environment.state.GPU_buffers.fluid_triangle.contacts.buffer,
+									environment.state.GPU_buffers.fluid_triangle.contacts.contacts_offset + environment.state.current_fluid_triangle_contact_count * environment.state.GPU_buffers.fluid_triangle.contacts.contacts_stride,
+									environment.state.GPU_buffers.fluid_triangle.contacts.contacts_offset + fluid_triangle_contact_index * environment.state.GPU_buffers.fluid_triangle.contacts.contacts_stride,
+									environment.state.GPU_buffers.fluid_triangle.contacts.contacts_stride
 								);
 
 								util::proximity::move_contact
@@ -5870,20 +5870,20 @@ namespace game_logic
 						// IMPORTANT TODO: Combine to single clear call
 						glClearNamedBufferSubData
 						(
-							environment.state.fluid_triangle_contact_buffer,
+							environment.state.GPU_buffers.fluid_triangle.contacts.buffer,
 							GL_R32UI,
-							environment.state.fluid_triangle_contact_buffer_contacts_triangle_offset
-							+ environment.state.current_fluid_triangle_contact_count * environment.state.fluid_triangle_contact_buffer_contacts_stride,
+							environment.state.GPU_buffers.fluid_triangle.contacts.contacts_triangle_offset
+							+ environment.state.current_fluid_triangle_contact_count * environment.state.GPU_buffers.fluid_triangle.contacts.contacts_stride,
 							sizeof(GLuint),
 							GL_RED_INTEGER, GL_UNSIGNED_INT,
 							&contact_key[1u]
 						);
 						glClearNamedBufferSubData
 						(
-							environment.state.fluid_triangle_contact_buffer,
+							environment.state.GPU_buffers.fluid_triangle.contacts.buffer,
 							GL_R32UI,
-							environment.state.fluid_triangle_contact_buffer_contacts_particle_offset
-							+ environment.state.current_fluid_triangle_contact_count * environment.state.fluid_triangle_contact_buffer_contacts_stride,
+							environment.state.GPU_buffers.fluid_triangle.contacts.contacts_particle_offset
+							+ environment.state.current_fluid_triangle_contact_count * environment.state.GPU_buffers.fluid_triangle.contacts.contacts_stride,
 							sizeof(GLuint),
 							GL_RED_INTEGER, GL_UNSIGNED_INT,
 							&contact_key[0u]
@@ -5989,20 +5989,20 @@ namespace game_logic
 							// IMPORTANT TODO: Combine to single clear call
 							glClearNamedBufferSubData
 							(
-								environment.state.fluid_triangle_contact_buffer,
+								environment.state.GPU_buffers.fluid_triangle.contacts.buffer,
 								GL_R32UI,
-								environment.state.fluid_triangle_contact_buffer_contacts_triangle_offset
-								+ environment.state.current_fluid_triangle_contact_count * environment.state.fluid_triangle_contact_buffer_contacts_stride,
+								environment.state.GPU_buffers.fluid_triangle.contacts.contacts_triangle_offset
+								+ environment.state.current_fluid_triangle_contact_count * environment.state.GPU_buffers.fluid_triangle.contacts.contacts_stride,
 								sizeof(GLuint),
 								GL_RED_INTEGER, GL_UNSIGNED_INT,
 								&contact_key[1u]
 							);
 							glClearNamedBufferSubData
 							(
-								environment.state.fluid_triangle_contact_buffer,
+								environment.state.GPU_buffers.fluid_triangle.contacts.buffer,
 								GL_R32UI,
-								environment.state.fluid_triangle_contact_buffer_contacts_particle_offset
-								+ environment.state.current_fluid_triangle_contact_count * environment.state.fluid_triangle_contact_buffer_contacts_stride,
+								environment.state.GPU_buffers.fluid_triangle.contacts.contacts_particle_offset
+								+ environment.state.current_fluid_triangle_contact_count * environment.state.GPU_buffers.fluid_triangle.contacts.contacts_stride,
 								sizeof(GLuint),
 								GL_RED_INTEGER, GL_UNSIGNED_INT,
 								&contact_key[0u]
@@ -7505,7 +7505,7 @@ namespace game_logic
 			environment.state.GPU_buffers.fluid.contacts.buffer, 
 			environment.state.GPU_buffers.fluid.contact_count.buffer,
 			environment.state.GPU_buffers.fluid.velocities.snapshot_buffer,
-			environment.state.fluid_triangle_contact_buffer, 
+			environment.state.GPU_buffers.fluid_triangle.contacts.buffer,
 			environment.state.fluid_triangle_contact_count_buffer, 
 			environment.state.gravity_sources_buffer, 
 			environment.state.count_buffer, 
