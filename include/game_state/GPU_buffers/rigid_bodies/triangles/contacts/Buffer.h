@@ -12,6 +12,7 @@ namespace game_state::GPU_buffers::rigid_bodies::triangles::contacts
 		GLint contacts_offset;
 		GLint contacts_stride;
 
+		GLuint current_contact_count;
 		GLuint current_persistent_contact_count;
 	};
 }
