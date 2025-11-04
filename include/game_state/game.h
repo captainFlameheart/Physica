@@ -49,11 +49,6 @@ namespace game_state
 
 		GPU_buffers::GPU_Buffer_Set GPU_buffers;
 
-		GLuint fluid_bounding_box_buffer;
-		GLint fluid_bounding_box_buffer_size;
-		GLint fluid_bounding_box_buffer_boxes_offset;
-		GLint fluid_bounding_box_buffer_boxes_stride;
-
 		GLuint changed_fluid_bounding_box_buffer;
 		GLint changed_fluid_bounding_box_buffer_size;
 		GLint changed_fluid_bounding_box_buffer_size_offset;

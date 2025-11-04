@@ -1961,7 +1961,7 @@ namespace game_logic
 
 			environment.state.GPU_buffers.fluid.positions.buffer,
 			environment.state.GPU_buffers.fluid.velocities.buffer,
-			environment.state.fluid_bounding_box_buffer,
+			environment.state.GPU_buffers.fluid.bounding_boxes.buffer,
 			environment.state.changed_fluid_bounding_box_buffer,
 			environment.state.fluid_contact_buffer,
 			environment.state.fluid_contact_count_buffer,
@@ -1994,7 +1994,7 @@ namespace game_logic
 
 		environment.state.GPU_buffers.fluid.positions.buffer = buffers[1u];
 		environment.state.GPU_buffers.fluid.velocities.buffer = buffers[2u];
-		environment.state.fluid_bounding_box_buffer = buffers[3u];
+		environment.state.GPU_buffers.fluid.bounding_boxes.buffer = buffers[3u];
 		environment.state.changed_fluid_bounding_box_buffer = buffers[4u];
 		environment.state.fluid_contact_buffer = buffers[5u];
 		environment.state.fluid_contact_count_buffer = buffers[6u];
@@ -2275,11 +2275,11 @@ namespace game_logic
 				std::size(prop_labels), prop_labels, 2u, nullptr, props
 			);
 			// TODO: Consider putting offset and stride contigously in game state
-			environment.state.fluid_bounding_box_buffer_boxes_offset = props[0u];
-			environment.state.fluid_bounding_box_buffer_boxes_stride = props[1u];
+			environment.state.GPU_buffers.fluid.bounding_boxes.boxes_offset = props[0u];
+			environment.state.GPU_buffers.fluid.bounding_boxes.boxes_stride = props[1u];
 
 #if USE_DYNAMIC_SIZES == true
-			environment.state.fluid_bounding_box_buffer_size = environment.state.fluid_bounding_box_buffer_boxes_offset + game_logic_MAX_FLUID_PARTICLE_COUNT(environment) * environment.state.fluid_bounding_box_buffer_boxes_stride;
+			environment.state.GPU_buffers.fluid.bounding_boxes.size = environment.state.GPU_buffers.fluid.bounding_boxes.boxes_offset + game_logic_MAX_FLUID_PARTICLE_COUNT(environment) * environment.state.GPU_buffers.fluid.bounding_boxes.boxes_stride;
 #else
 			GLuint const block_index
 			{
@@ -2296,7 +2296,7 @@ namespace game_logic
 			// TODO: Don't initialize a few boxes by copying over the ENTIRE buffer 
 			// content from CPU to GPU like this. Instead, use persistent mapping 
 			// for both initialization and updating.
-			unsigned char* const initial_boxes = new unsigned char[environment.state.fluid_bounding_box_buffer_size];
+			unsigned char* const initial_boxes = new unsigned char[environment.state.GPU_buffers.fluid.bounding_boxes.size];
 
 			util::rigid_body::Triangle_Bounding_Box box
 			{
@@ -2313,20 +2313,20 @@ namespace game_logic
 			{
 				std::memcpy
 				(
-					initial_boxes + environment.state.fluid_bounding_box_buffer_boxes_offset + i * environment.state.fluid_bounding_box_buffer_boxes_stride,
+					initial_boxes + environment.state.GPU_buffers.fluid.bounding_boxes.boxes_offset + i * environment.state.GPU_buffers.fluid.bounding_boxes.boxes_stride,
 					&box, sizeof(box)
 				);
 			}
 
 			glNamedBufferStorage
 			(
-				environment.state.fluid_bounding_box_buffer, environment.state.fluid_bounding_box_buffer_size, initial_boxes,
+				environment.state.GPU_buffers.fluid.bounding_boxes.buffer, environment.state.GPU_buffers.fluid.bounding_boxes.size, initial_boxes,
 				0u
 			);
 
 			delete[] initial_boxes;
 
-			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_FLUID_BOUNDING_BOX_BINDING, environment.state.fluid_bounding_box_buffer);
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_FLUID_BOUNDING_BOX_BINDING, environment.state.GPU_buffers.fluid.bounding_boxes.buffer);
 		}
 
 		{ // Changed fluid bounding box buffer
@@ -4909,10 +4909,10 @@ namespace game_logic
 		std::cout << "v stride: " << environment.state.GPU_buffers.fluid.velocities.v_stride << std::endl;
 		std::cout << std::endl;
 
-		std::cout << "Fluid bounding box buffer (" << environment.state.fluid_bounding_box_buffer << "):" << std::endl;
-		std::cout << "size: " << environment.state.fluid_bounding_box_buffer_size << std::endl;
-		std::cout << "boxes offset: " << environment.state.fluid_bounding_box_buffer_boxes_offset << std::endl;
-		std::cout << "boxes stride: " << environment.state.fluid_bounding_box_buffer_boxes_stride << std::endl;
+		std::cout << "Fluid bounding box buffer (" << environment.state.GPU_buffers.fluid.bounding_boxes.buffer << "):" << std::endl;
+		std::cout << "size: " << environment.state.GPU_buffers.fluid.bounding_boxes.size << std::endl;
+		std::cout << "boxes offset: " << environment.state.GPU_buffers.fluid.bounding_boxes.boxes_offset << std::endl;
+		std::cout << "boxes stride: " << environment.state.GPU_buffers.fluid.bounding_boxes.boxes_stride << std::endl;
 		std::cout << std::endl;
 
 		std::cout << "Changed fluid bounding box buffer (" << environment.state.changed_fluid_bounding_box_buffer << "):" << std::endl;
@@ -7500,7 +7500,7 @@ namespace game_logic
 			environment.state.GPU_buffers.rigid_bodies.distance_constraints.buffer,
 			environment.state.GPU_buffers.fluid.positions.buffer,
 			environment.state.GPU_buffers.fluid.velocities.buffer,
-			environment.state.fluid_bounding_box_buffer, 
+			environment.state.GPU_buffers.fluid.bounding_boxes.buffer,
 			environment.state.changed_fluid_bounding_box_buffer, 
 			environment.state.fluid_contact_buffer, 
 			environment.state.fluid_contact_count_buffer, 
