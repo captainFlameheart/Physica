@@ -1980,7 +1980,7 @@ namespace game_logic
 			environment.state.GPU_buffers.rigid_bodies.velocities.snapshot_buffer, 
 			environment.state.GPU_buffers.rigid_bodies.positions.snapshot_buffer, 
 			environment.state.GPU_buffers.cursor.position.buffer, 
-			environment.state.cursor_constrained_point_buffer, 
+			environment.state.GPU_buffers.cursor.constrained_point.buffer,
 			environment.state.cursor_constraint_buffer, 
 			environment.state.GPU_buffers.rigid_bodies.distance_constraints.buffer, 
 			environment.state.GPU_buffers.fluid_triangle.contacts.buffer,
@@ -2013,7 +2013,7 @@ namespace game_logic
 		environment.state.GPU_buffers.rigid_bodies.velocities.snapshot_buffer = buffers[18u];
 		environment.state.GPU_buffers.rigid_bodies.positions.snapshot_buffer = buffers[19u];
 		environment.state.GPU_buffers.cursor.position.buffer = buffers[20u];
-		environment.state.cursor_constrained_point_buffer = buffers[21u];
+		environment.state.GPU_buffers.cursor.constrained_point.buffer = buffers[21u];
 		environment.state.cursor_constraint_buffer = buffers[22u];
 		environment.state.GPU_buffers.rigid_bodies.distance_constraints.buffer = buffers[23u];
 		environment.state.GPU_buffers.fluid_triangle.contacts.buffer = buffers[24u];
@@ -3765,7 +3765,7 @@ namespace game_logic
 			glGetProgramResourceiv
 			(
 				environment.state.shaders.warm_start.update_and_warm_start_cursor_constraint_shader, GL_UNIFORM, body_index,
-				1u, &offset_label, 1u, nullptr, &environment.state.cursor_constrained_point_buffer_body_offset
+				1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.cursor.constrained_point.body_offset
 			);
 
 			GLuint const local_point_index
@@ -3775,7 +3775,7 @@ namespace game_logic
 			glGetProgramResourceiv
 			(
 				environment.state.shaders.warm_start.update_and_warm_start_cursor_constraint_shader, GL_UNIFORM, local_point_index,
-				1u, &offset_label, 1u, nullptr, &environment.state.cursor_constrained_point_buffer_local_point_offset
+				1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.cursor.constrained_point.local_point_offset
 			);
 
 			GLuint const block_index
@@ -3786,17 +3786,17 @@ namespace game_logic
 			glGetProgramResourceiv
 			(
 				environment.state.shaders.warm_start.update_and_warm_start_cursor_constraint_shader, GL_UNIFORM_BLOCK, block_index,
-				1u, &buffer_size_label, 1u, nullptr, &environment.state.cursor_constrained_point_buffer_size
+				1u, &buffer_size_label, 1u, nullptr, &environment.state.GPU_buffers.cursor.constrained_point.size
 			);
 
 
 			glNamedBufferStorage
 			(
-				environment.state.cursor_constrained_point_buffer, environment.state.cursor_constrained_point_buffer_size, nullptr,
+				environment.state.GPU_buffers.cursor.constrained_point.buffer, environment.state.GPU_buffers.cursor.constrained_point.size, nullptr,
 				0u
 			);
 
-			glBindBufferBase(GL_UNIFORM_BUFFER, game_logic__util_CURSOR_CONSTRAINED_POINT_BINDING, environment.state.cursor_constrained_point_buffer);
+			glBindBufferBase(GL_UNIFORM_BUFFER, game_logic__util_CURSOR_CONSTRAINED_POINT_BINDING, environment.state.GPU_buffers.cursor.constrained_point.buffer);
 		}
 
 		{ // Cursor constraint buffer
@@ -4865,10 +4865,10 @@ namespace game_logic
 		std::cout << "position offset: " << environment.state.GPU_buffers.cursor.position.position_offset << std::endl;
 		std::cout << std::endl;
 
-		std::cout << "Cursor constrained point buffer (" << environment.state.cursor_constrained_point_buffer << "):" << std::endl;
-		std::cout << "size: " << environment.state.cursor_constrained_point_buffer_size << std::endl;
-		std::cout << "body offset: " << environment.state.cursor_constrained_point_buffer_body_offset << std::endl;
-		std::cout << "local point offset: " << environment.state.cursor_constrained_point_buffer_local_point_offset << std::endl;
+		std::cout << "Cursor constrained point buffer (" << environment.state.GPU_buffers.cursor.constrained_point.buffer << "):" << std::endl;
+		std::cout << "size: " << environment.state.GPU_buffers.cursor.constrained_point.size << std::endl;
+		std::cout << "body offset: " << environment.state.GPU_buffers.cursor.constrained_point.body_offset << std::endl;
+		std::cout << "local point offset: " << environment.state.GPU_buffers.cursor.constrained_point.local_point_offset << std::endl;
 		std::cout << std::endl;
 
 		std::cout << "Cursor constraint buffer (" << environment.state.cursor_constraint_buffer << "):" << std::endl;
@@ -6445,9 +6445,9 @@ namespace game_logic
 
 								glClearNamedBufferSubData
 								(
-									environment.state.cursor_constrained_point_buffer,
+									environment.state.GPU_buffers.cursor.constrained_point.buffer,
 									GL_R32UI,
-									environment.state.cursor_constrained_point_buffer_body_offset, sizeof(GLuint),
+									environment.state.GPU_buffers.cursor.constrained_point.body_offset, sizeof(GLuint),
 									GL_RED_INTEGER, GL_UNSIGNED_INT,
 									&environment.state.GPU_buffers.rigid_bodies.triangles.values[hovered_triangle].body
 								);
@@ -6459,9 +6459,9 @@ namespace game_logic
 								};
 								glClearNamedBufferSubData
 								(
-									environment.state.cursor_constrained_point_buffer,
+									environment.state.GPU_buffers.cursor.constrained_point.buffer,
 									GL_RG32F,
-									environment.state.cursor_constrained_point_buffer_local_point_offset, sizeof(local_point),
+									environment.state.GPU_buffers.cursor.constrained_point.local_point_offset, sizeof(local_point),
 									GL_RG, GL_FLOAT,
 									local_point
 								);
@@ -7495,7 +7495,7 @@ namespace game_logic
 			environment.state.GPU_buffers.rigid_bodies.velocities.snapshot_buffer, 
 			environment.state.GPU_buffers.rigid_bodies.positions.snapshot_buffer,
 			environment.state.GPU_buffers.cursor.position.buffer,
-			environment.state.cursor_constrained_point_buffer, 
+			environment.state.GPU_buffers.cursor.constrained_point.buffer,
 			environment.state.cursor_constraint_buffer, 
 			environment.state.GPU_buffers.rigid_bodies.distance_constraints.buffer,
 			environment.state.GPU_buffers.fluid.positions.buffer,

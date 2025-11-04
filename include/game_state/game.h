@@ -50,11 +50,6 @@ namespace game_state
 		shaders::Shader_Set shaders;
 		proximity::Tree proximity_tree;
 
-		GLuint cursor_constrained_point_buffer;
-		GLint cursor_constrained_point_buffer_size;
-		GLint cursor_constrained_point_buffer_body_offset;
-		GLint cursor_constrained_point_buffer_local_point_offset;
-
 		GLuint cursor_constraint_buffer;
 		GLint cursor_constraint_buffer_size;
 		GLint cursor_constraint_buffer_offset_offset;
