@@ -49,18 +49,6 @@ namespace game_state
 
 		GPU_buffers::GPU_Buffer_Set GPU_buffers;
 
-		GLuint fluid_contact_buffer;
-		GLint fluid_contact_buffer_size;
-		GLint fluid_contact_buffer_contacts_offset;
-		GLint fluid_contact_buffer_contacts_stride;
-		GLint fluid_contact_buffer_contacts_inactive_offset;
-		GLint fluid_contact_buffer_contacts_impulse_offset;
-		GLint fluid_contact_buffer_contacts_particles_offset;
-		GLint fluid_contact_buffer_contacts_direction_offset;
-		GLint fluid_contact_buffer_contacts_target_velocity_offset;
-		GLint fluid_contact_buffer_contacts_mass_offset;
-		GLint fluid_contact_buffer_contacts_impulse_range_offset;
-
 		GLuint fluid_contact_count_buffer;
 		GLint fluid_contact_count_buffer_size;
 		//GLint fluid_contact_count_buffer_persistent_count_offset;
@@ -94,8 +82,6 @@ namespace game_state
 
 		GLuint current_fluid_triangle_persistent_contact_count;
 		GLuint current_fluid_triangle_contact_count;
-
-		//GLuint fluid_velocity_snapshot_buffer;
 
 		GLint current_fluid_particle_count;
 		

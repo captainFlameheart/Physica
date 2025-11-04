@@ -3,6 +3,7 @@
 #include "velocities/include.h"
 #include "bounding_boxes/include.h"
 #include "changed_bounding_boxes/include.h"
+#include "contacts/include.h"
 
 namespace game_state::GPU_buffers::fluid
 {
@@ -12,5 +13,6 @@ namespace game_state::GPU_buffers::fluid
 		velocities::Buffer velocities;
 		bounding_boxes::Buffer bounding_boxes;
 		changed_bounding_boxes::Buffer changed_bounding_boxes;
+		contacts::Buffer contacts;
 	};
 }
