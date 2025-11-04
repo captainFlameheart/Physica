@@ -7,6 +7,7 @@
 #include "contact_count/include.h"
 #include "persistent_contact_count/include.h"
 #include "changed_bounding_boxes/include.h"
+#include "contacts/include.h"
 
 namespace game_state::GPU_buffers::rigid_bodies::triangles
 {
@@ -26,5 +27,6 @@ namespace game_state::GPU_buffers::rigid_bodies::triangles
 		contact_count::Buffer contact_count;
 		persistent_contact_count::Buffer persistent_contact_count;
 		changed_bounding_boxes::Buffer changed_bounding_boxes;
+		contacts::Buffer contacts;
 	};
 }

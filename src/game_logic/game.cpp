@@ -1973,7 +1973,7 @@ namespace game_logic
 			environment.state.GPU_buffers.rigid_bodies.triangles.vertices.buffer,
 			environment.state.GPU_buffers.rigid_bodies.triangles.bounding_boxes.buffer, 
 			environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.buffer, 
-			environment.state.contact_buffer,
+			environment.state.GPU_buffers.rigid_bodies.triangles.contacts.buffer,
 			environment.state.contact_surface_buffer, 
 			environment.state.GPU_buffers.rigid_bodies.triangles.contact_count.buffer, 
 			environment.state.GPU_buffers.rigid_bodies.triangles.persistent_contact_count.buffer, 
@@ -2006,7 +2006,7 @@ namespace game_logic
 		environment.state.GPU_buffers.rigid_bodies.triangles.vertices.buffer = buffers[11u];
 		environment.state.GPU_buffers.rigid_bodies.triangles.bounding_boxes.buffer = buffers[12u];
 		environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.buffer = buffers[13u];
-		environment.state.contact_buffer = buffers[14u];
+		environment.state.GPU_buffers.rigid_bodies.triangles.contacts.buffer = buffers[14u];
 		environment.state.contact_surface_buffer = buffers[15u];
 		environment.state.GPU_buffers.rigid_bodies.triangles.contact_count.buffer = buffers[16u];
 		environment.state.GPU_buffers.rigid_bodies.triangles.persistent_contact_count.buffer = buffers[17u];
@@ -2098,7 +2098,7 @@ namespace game_logic
 		environment.state.GPU_buffers.rigid_bodies.current_count = 0u * 80u * game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment);//500000u;
 		environment.state.GPU_buffers.rigid_bodies.triangles.current_count = 1u * environment.state.GPU_buffers.rigid_bodies.current_count;
 		environment.state.current_triangle_contact_count = 0u;
-		environment.state.current_persistent_contact_count = 0u;
+		environment.state.GPU_buffers.rigid_bodies.triangles.contacts.current_persistent_contact_count = 0u;
 		environment.state.GPU_buffers.rigid_bodies.distance_constraints.current_count = 0u;
 		environment.state.GPU_buffers.fluid.current_particle_count = 20u * INTEGRATE_FLUID_VELOCITY_LOCAL_SIZE(environment);
 		environment.state.GPU_buffers.fluid.contact_count.current_contact_count = 0u;
@@ -3387,11 +3387,11 @@ namespace game_logic
 				 std::size(prop_labels), prop_labels, 2, nullptr, props
 			 );
 			 // TODO: Consider putting offset and stride contigously in game state
-			 environment.state.contact_buffer_contacts_offset = props[0];
-			 environment.state.contact_buffer_contacts_stride = props[1];
+			 environment.state.GPU_buffers.rigid_bodies.triangles.contacts.contacts_offset = props[0];
+			 environment.state.GPU_buffers.rigid_bodies.triangles.contacts.contacts_stride = props[1];
 
 #if USE_DYNAMIC_SIZES == true
-			 environment.state.contact_buffer_size = environment.state.contact_buffer_contacts_offset + game_logic_MAX_TRIANGLE_CONTACT_COUNT(environment) * environment.state.contact_buffer_contacts_stride;
+			 environment.state.GPU_buffers.rigid_bodies.triangles.contacts.size = environment.state.GPU_buffers.rigid_bodies.triangles.contacts.contacts_offset + game_logic_MAX_TRIANGLE_CONTACT_COUNT(environment) * environment.state.GPU_buffers.rigid_bodies.triangles.contacts.contacts_stride;
 #else
 			 GLuint const block_index
 			 {
@@ -3408,14 +3408,14 @@ namespace game_logic
 			 // TODO: Don't initialize a few contacts by copying over the ENTIRE buffer 
 			 // content from CPU to GPU like this. Instead, use persistent mapping 
 			 // for both initialization and updating.
-			 unsigned char* const initial_contacts = new unsigned char[environment.state.contact_buffer_size];
+			 unsigned char* const initial_contacts = new unsigned char[environment.state.GPU_buffers.rigid_bodies.triangles.contacts.size];
 
 			 for (GLuint i{ 0u }; i < environment.state.current_triangle_contact_count; ++i)
 			 {
 				 GLuint contact[2]{ i, i + 1u };
 				 std::memcpy
 				 (
-					 initial_contacts + environment.state.contact_buffer_contacts_offset + i * environment.state.contact_buffer_contacts_stride,
+					 initial_contacts + environment.state.GPU_buffers.rigid_bodies.triangles.contacts.contacts_offset + i * environment.state.GPU_buffers.rigid_bodies.triangles.contacts.contacts_stride,
 					 contact, sizeof(contact)
 				 );
 			 }
@@ -3425,14 +3425,14 @@ namespace game_logic
 			 // triangle-triangle contact detection is slow.
 			 glNamedBufferStorage
 			 (
-				 environment.state.contact_buffer, environment.state.contact_buffer_size, initial_contacts,
+				 environment.state.GPU_buffers.rigid_bodies.triangles.contacts.buffer, environment.state.GPU_buffers.rigid_bodies.triangles.contacts.size, initial_contacts,
 				 0u
 				 //GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT
 			 );
 
 			 delete[] initial_contacts;
 
-			 glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_CONTACT_BINDING, environment.state.contact_buffer);
+			 glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_CONTACT_BINDING, environment.state.GPU_buffers.rigid_bodies.triangles.contacts.buffer);
 
 			 /*environment.state.contact_mapping = static_cast<unsigned char*>
 			(
@@ -4821,10 +4821,10 @@ namespace game_logic
 		std::cout << "boxes max_y offset: " << environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.boxes_max_y_offset << std::endl;
 		std::cout << std::endl;
 
-		std::cout << "Contact buffer (" << environment.state.contact_buffer << "):" << std::endl;
-		std::cout << "size: " << environment.state.contact_buffer_size << std::endl;
-		std::cout << "contacts offset: " << environment.state.contact_buffer_contacts_offset << std::endl;
-		std::cout << "contacts stride: " << environment.state.contact_buffer_contacts_stride << std::endl;
+		std::cout << "Contact buffer (" << environment.state.GPU_buffers.rigid_bodies.triangles.contacts.buffer << "):" << std::endl;
+		std::cout << "size: " << environment.state.GPU_buffers.rigid_bodies.triangles.contacts.size << std::endl;
+		std::cout << "contacts offset: " << environment.state.GPU_buffers.rigid_bodies.triangles.contacts.contacts_offset << std::endl;
+		std::cout << "contacts stride: " << environment.state.GPU_buffers.rigid_bodies.triangles.contacts.contacts_stride << std::endl;
 		std::cout << std::endl;
 
 		std::cout << "Contact surfaces buffer (" << environment.state.contact_surface_buffer << "):" << std::endl;
@@ -5297,7 +5297,7 @@ namespace game_logic
 		glUseProgram(environment.state.shaders.warm_start.warm_start_contact_impulses_shader);
 		glDispatchCompute
 		(
-			ceil_div(environment.state.current_persistent_contact_count, game_logic__util__rigid_body_WARM_START_CONTACT_IMPULSES_LOCAL_SIZE(environment)), 
+			ceil_div(environment.state.GPU_buffers.rigid_bodies.triangles.contacts.current_persistent_contact_count, game_logic__util__rigid_body_WARM_START_CONTACT_IMPULSES_LOCAL_SIZE(environment)),
 			1u, 1u
 		);
 		
@@ -5718,9 +5718,9 @@ namespace game_logic
 								// MAYBE TODO: Avoid multiplications by using members that are added/subtracted along with contact count
 								glCopyNamedBufferSubData
 								(
-									environment.state.contact_buffer, environment.state.contact_buffer,
-									environment.state.contact_buffer_contacts_offset + environment.state.current_triangle_contact_count * environment.state.contact_buffer_contacts_stride,
-									environment.state.contact_buffer_contacts_offset + triangle_contact_index * environment.state.contact_buffer_contacts_stride,
+									environment.state.GPU_buffers.rigid_bodies.triangles.contacts.buffer, environment.state.GPU_buffers.rigid_bodies.triangles.contacts.buffer,
+									environment.state.GPU_buffers.rigid_bodies.triangles.contacts.contacts_offset + environment.state.current_triangle_contact_count * environment.state.GPU_buffers.rigid_bodies.triangles.contacts.contacts_stride,
+									environment.state.GPU_buffers.rigid_bodies.triangles.contacts.contacts_offset + triangle_contact_index * environment.state.GPU_buffers.rigid_bodies.triangles.contacts.contacts_stride,
 									sizeof(GLuint[2])
 								);
 								glCopyNamedBufferSubData
@@ -5782,7 +5782,7 @@ namespace game_logic
 
 			// TODO: Give GPU something heavy to do while we write the new contacts
 
-			environment.state.current_persistent_contact_count = environment.state.current_triangle_contact_count;
+			environment.state.GPU_buffers.rigid_bodies.triangles.contacts.current_persistent_contact_count = environment.state.current_triangle_contact_count;
 
 			// TODO: Other operations that we let the GPU perform while it is copying contact 
 			// to old contact positions.
@@ -6026,10 +6026,10 @@ namespace game_logic
 						);*/
 						glClearNamedBufferSubData
 						(
-							environment.state.contact_buffer, 
+							environment.state.GPU_buffers.rigid_bodies.triangles.contacts.buffer,
 							GL_RG32UI, 
-							environment.state.contact_buffer_contacts_offset 
-							+ environment.state.current_triangle_contact_count * environment.state.contact_buffer_contacts_stride, 
+							environment.state.GPU_buffers.rigid_bodies.triangles.contacts.contacts_offset
+							+ environment.state.current_triangle_contact_count * environment.state.GPU_buffers.rigid_bodies.triangles.contacts.contacts_stride,
 							sizeof(leaf_indices), 
 							GL_RG_INTEGER, GL_UNSIGNED_INT, 
 							leaf_indices
@@ -6070,7 +6070,7 @@ namespace game_logic
 				1u, 1u
 			);
 
-			GLuint const new_contact_count{ environment.state.current_triangle_contact_count - environment.state.current_persistent_contact_count };
+			GLuint const new_contact_count{ environment.state.current_triangle_contact_count - environment.state.GPU_buffers.rigid_bodies.triangles.contacts.current_persistent_contact_count };
 			/*glFlushMappedNamedBufferRange
 			(
 				environment.state.contact_buffer,
@@ -7473,7 +7473,7 @@ namespace game_logic
 
 		glUnmapNamedBuffer(environment.state.GPU_buffers.rigid_bodies.positions.buffer);
 		glUnmapNamedBuffer(environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.buffer);
-		glUnmapNamedBuffer(environment.state.contact_buffer);
+		glUnmapNamedBuffer(environment.state.GPU_buffers.rigid_bodies.triangles.contacts.buffer);
 
 		::util::shader::delete_program(environment.state.shader);
 
@@ -7488,7 +7488,7 @@ namespace game_logic
 			environment.state.GPU_buffers.rigid_bodies.triangles.vertices.buffer,
 			environment.state.GPU_buffers.rigid_bodies.triangles.bounding_boxes.buffer, 
 			environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.buffer, 
-			environment.state.contact_buffer, 
+			environment.state.GPU_buffers.rigid_bodies.triangles.contacts.buffer,
 			environment.state.contact_surface_buffer, 
 			environment.state.GPU_buffers.rigid_bodies.triangles.contact_count.buffer, 
 			environment.state.GPU_buffers.rigid_bodies.triangles.persistent_contact_count.buffer, 

@@ -67,13 +67,6 @@ namespace game_state
 
 		proximity::Tree proximity_tree;
 
-		// TODO: Consider using std::430 layout to improve runtime performance
-		GLuint current_persistent_contact_count;
-		GLuint contact_buffer;
-		GLint contact_buffer_size;
-		GLint contact_buffer_contacts_offset;
-		GLint contact_buffer_contacts_stride;
-
 		GLuint cursor_position_buffer;
 		GLint cursor_position_buffer_size;
 		GLint cursor_position_buffer_position_offset;
