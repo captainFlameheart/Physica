@@ -596,7 +596,7 @@ namespace game_logic
 		environment.state.camera.view_rotation.column_1[1] = 1.0f;
 		
 		environment.state.point_grabbed = false;
-		environment.state.grabbed_gravity_source = game_logic__util__proximity_NULL_INDEX;
+		environment.state.GPU_buffers.gravity_sources.grabbed_gravity_source = game_logic__util__proximity_NULL_INDEX;
 
 		GLuint const vertex_shader{ ::util::shader::create_shader(GL_VERTEX_SHADER) };
 		GLuint const fragment_shader{ ::util::shader::create_shader(GL_FRAGMENT_SHADER) };
@@ -1985,7 +1985,7 @@ namespace game_logic
 			environment.state.GPU_buffers.rigid_bodies.distance_constraints.buffer, 
 			environment.state.GPU_buffers.fluid_triangle.contacts.buffer,
 			environment.state.GPU_buffers.fluid_triangle.contact_count.buffer,
-			environment.state.gravity_sources_buffer, 
+			environment.state.GPU_buffers.gravity_sources.buffer,
 			environment.state.count_buffer, 
 			environment.state.GPU_buffers.rigid_bodies.masses.buffer
 		};
@@ -2018,7 +2018,7 @@ namespace game_logic
 		environment.state.GPU_buffers.rigid_bodies.distance_constraints.buffer = buffers[23u];
 		environment.state.GPU_buffers.fluid_triangle.contacts.buffer = buffers[24u];
 		environment.state.GPU_buffers.fluid_triangle.contact_count.buffer = buffers[25u];
-		environment.state.gravity_sources_buffer = buffers[26u];
+		environment.state.GPU_buffers.gravity_sources.buffer = buffers[26u];
 		environment.state.count_buffer = buffers[27u];
 		environment.state.GPU_buffers.rigid_bodies.masses.buffer = buffers[28u];
 
@@ -2105,7 +2105,7 @@ namespace game_logic
 		environment.state.GPU_buffers.fluid.contact_count.current_persistent_contact_count = 0u;
 		environment.state.GPU_buffers.fluid_triangle.contact_count.current_contact_count = 0u;
 		environment.state.GPU_buffers.fluid_triangle.contact_count.current_persistent_contact_count = 0u;
-		environment.state.current_gravity_source_count = 0u;
+		environment.state.GPU_buffers.gravity_sources.current_gravity_source_count = 0u;
 
 		{ // Fluid position buffer
 			GLuint const p_index
@@ -4559,7 +4559,7 @@ namespace game_logic
 			glGetProgramResourceiv
 			(
 				environment.state.gravity_directions_draw_shader, GL_UNIFORM_BLOCK, block_index,
-				1u, &buffer_size_label, 1u, nullptr, &environment.state.gravity_sources_buffer_size
+				1u, &buffer_size_label, 1u, nullptr, &environment.state.GPU_buffers.gravity_sources.size
 			);
 
 			GLenum const offset_label{ GL_OFFSET };
@@ -4571,7 +4571,7 @@ namespace game_logic
 			glGetProgramResourceiv
 			(
 				environment.state.gravity_directions_draw_shader, GL_UNIFORM, count_index,
-				1u, &offset_label, 1u, nullptr, &environment.state.gravity_sources_buffer_count_offset
+				1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.gravity_sources.count_offset
 			);
 
 			GLenum prop_labels[]{ GL_OFFSET, GL_ARRAY_STRIDE };
@@ -4586,8 +4586,8 @@ namespace game_logic
 				environment.state.gravity_directions_draw_shader, GL_UNIFORM, positions_index,
 				std::size(prop_labels), prop_labels, 2u, nullptr, props
 			);
-			environment.state.gravity_sources_buffer_positions_offset = props[0u];
-			environment.state.gravity_sources_buffer_positions_stride = props[1u];
+			environment.state.GPU_buffers.gravity_sources.positions_offset = props[0u];
+			environment.state.GPU_buffers.gravity_sources.positions_stride = props[1u];
 
 			GLuint const strengths_index
 			{
@@ -4598,23 +4598,23 @@ namespace game_logic
 				environment.state.gravity_directions_draw_shader, GL_UNIFORM, strengths_index,
 				std::size(prop_labels), prop_labels, 2u, nullptr, props
 			);
-			environment.state.gravity_sources_buffer_strengths_offset = props[0u];
-			environment.state.gravity_sources_buffer_strengths_stride = props[1u];
+			environment.state.GPU_buffers.gravity_sources.strengths_offset = props[0u];
+			environment.state.GPU_buffers.gravity_sources.strengths_stride = props[1u];
 
 			glNamedBufferStorage
 			(
-				environment.state.gravity_sources_buffer, environment.state.gravity_sources_buffer_size, nullptr,
+				environment.state.GPU_buffers.gravity_sources.buffer, environment.state.GPU_buffers.gravity_sources.size, nullptr,
 				0u
 			);
 			glClearNamedBufferSubData
 			(
-				environment.state.gravity_sources_buffer,
+				environment.state.GPU_buffers.gravity_sources.buffer,
 				GL_R32UI,
-				environment.state.gravity_sources_buffer_count_offset, sizeof(GLuint),
+				environment.state.GPU_buffers.gravity_sources.count_offset, sizeof(GLuint),
 				GL_RED_INTEGER, GL_UNSIGNED_INT,
-				&environment.state.current_gravity_source_count
+				&environment.state.GPU_buffers.gravity_sources.current_gravity_source_count
 			);
-			glBindBufferBase(GL_UNIFORM_BUFFER, game_logic__util_GRAVITY_SOURCES_BINDING, environment.state.gravity_sources_buffer);
+			glBindBufferBase(GL_UNIFORM_BUFFER, game_logic__util_GRAVITY_SOURCES_BINDING, environment.state.GPU_buffers.gravity_sources.buffer);
 		}
 
 		{ // Count buffer
@@ -4964,13 +4964,13 @@ namespace game_logic
 		std::cout << "count offset: " << environment.state.GPU_buffers.fluid_triangle.contact_count.count_offset << std::endl;
 		std::cout << std::endl;
 
-		std::cout << "Gravity sources buffer (" << environment.state.gravity_sources_buffer << "):" << std::endl;
-		std::cout << "size: " << environment.state.gravity_sources_buffer_size << std::endl;
-		std::cout << "count offset: " << environment.state.gravity_sources_buffer_count_offset << std::endl;
-		std::cout << "positions offset: " << environment.state.gravity_sources_buffer_positions_offset << std::endl;
-		std::cout << "positions stride: " << environment.state.gravity_sources_buffer_positions_stride << std::endl;
-		std::cout << "strengths offset: " << environment.state.gravity_sources_buffer_strengths_offset << std::endl;
-		std::cout << "strengths stride: " << environment.state.gravity_sources_buffer_strengths_stride << std::endl;
+		std::cout << "Gravity sources buffer (" << environment.state.GPU_buffers.gravity_sources.buffer << "):" << std::endl;
+		std::cout << "size: " << environment.state.GPU_buffers.gravity_sources.size << std::endl;
+		std::cout << "count offset: " << environment.state.GPU_buffers.gravity_sources.count_offset << std::endl;
+		std::cout << "positions offset: " << environment.state.GPU_buffers.gravity_sources.positions_offset << std::endl;
+		std::cout << "positions stride: " << environment.state.GPU_buffers.gravity_sources.positions_stride << std::endl;
+		std::cout << "strengths offset: " << environment.state.GPU_buffers.gravity_sources.strengths_offset << std::endl;
+		std::cout << "strengths stride: " << environment.state.GPU_buffers.gravity_sources.strengths_stride << std::endl;
 		std::cout << std::endl;
 
 		std::cout << "Count buffer (" << environment.state.count_buffer << "):" << std::endl;
@@ -6313,35 +6313,35 @@ namespace game_logic
 						environment,
 						&cursor_world_position[0u], &cursor_world_position[1u]
 					);
-					environment.state.gravity_source_positions[environment.state.current_gravity_source_count] = ::util::math::Vector_2D{ cursor_world_position[0u], cursor_world_position[1u] };
-					environment.state.gravity_source_strengths[environment.state.current_gravity_source_count] = 0.0f;
+					environment.state.GPU_buffers.gravity_sources.gravity_source_positions[environment.state.GPU_buffers.gravity_sources.current_gravity_source_count] = ::util::math::Vector_2D{ cursor_world_position[0u], cursor_world_position[1u] };
+					environment.state.GPU_buffers.gravity_sources.gravity_source_strengths[environment.state.GPU_buffers.gravity_sources.current_gravity_source_count] = 0.0f;
 					glClearNamedBufferSubData
 					(
-						environment.state.gravity_sources_buffer,
+						environment.state.GPU_buffers.gravity_sources.buffer,
 						GL_RG32UI,
-						environment.state.gravity_sources_buffer_positions_offset + environment.state.current_gravity_source_count * environment.state.gravity_sources_buffer_positions_stride,
+						environment.state.GPU_buffers.gravity_sources.positions_offset + environment.state.GPU_buffers.gravity_sources.current_gravity_source_count * environment.state.GPU_buffers.gravity_sources.positions_stride,
 						sizeof(GLuint[2u]),
 						GL_RG_INTEGER, GL_UNSIGNED_INT,
 						cursor_world_position
 					);
 					glClearNamedBufferSubData
 					(
-						environment.state.gravity_sources_buffer,
+						environment.state.GPU_buffers.gravity_sources.buffer,
 						GL_R32F,
-						environment.state.gravity_sources_buffer_strengths_offset + environment.state.current_gravity_source_count * environment.state.gravity_sources_buffer_strengths_stride,
+						environment.state.GPU_buffers.gravity_sources.strengths_offset + environment.state.GPU_buffers.gravity_sources.current_gravity_source_count * environment.state.GPU_buffers.gravity_sources.strengths_stride,
 						sizeof(GLfloat),
 						GL_RED, GL_FLOAT,
 						nullptr
 					);
-					++environment.state.current_gravity_source_count;
+					++environment.state.GPU_buffers.gravity_sources.current_gravity_source_count;
 					glClearNamedBufferSubData
 					(
-						environment.state.gravity_sources_buffer, 
+						environment.state.GPU_buffers.gravity_sources.buffer,
 						GL_R32UI, 
-						environment.state.gravity_sources_buffer_count_offset, 
+						environment.state.GPU_buffers.gravity_sources.count_offset,
 						sizeof(GLuint), 
 						GL_RED_INTEGER, GL_UNSIGNED_INT, 
-						&environment.state.current_gravity_source_count
+						&environment.state.GPU_buffers.gravity_sources.current_gravity_source_count
 					);
 					return;
 				}
@@ -6356,9 +6356,9 @@ namespace game_logic
 					);
 
 					GLuint hovered_gravity_source;
-					for (hovered_gravity_source = 0u; hovered_gravity_source < environment.state.current_gravity_source_count; ++hovered_gravity_source)
+					for (hovered_gravity_source = 0u; hovered_gravity_source < environment.state.GPU_buffers.gravity_sources.current_gravity_source_count; ++hovered_gravity_source)
 					{
-						::util::math::Vector_2D const& gravity_source_position{ environment.state.gravity_source_positions[hovered_gravity_source] };
+						::util::math::Vector_2D const& gravity_source_position{ environment.state.GPU_buffers.gravity_sources.gravity_source_positions[hovered_gravity_source] };
 						GLfloat diff_x{ static_cast<GLfloat>(cursor_world_x - gravity_source_position.x) };
 						GLfloat diff_y{ static_cast<GLfloat>(cursor_world_y - gravity_source_position.y) };
 						GLfloat distance_squared{ diff_x * diff_x + diff_y * diff_y };
@@ -6367,9 +6367,9 @@ namespace game_logic
 							break;
 						}
 					}
-					if (hovered_gravity_source != environment.state.current_gravity_source_count)
+					if (hovered_gravity_source != environment.state.GPU_buffers.gravity_sources.current_gravity_source_count)
 					{
-						environment.state.grabbed_gravity_source = hovered_gravity_source;
+						environment.state.GPU_buffers.gravity_sources.grabbed_gravity_source = hovered_gravity_source;
 					}
 					else
 					{
@@ -6482,7 +6482,7 @@ namespace game_logic
 				}
 				break;
 			case GLFW_RELEASE:
-				environment.state.grabbed_gravity_source = game_logic__util__proximity_NULL_INDEX;
+				environment.state.GPU_buffers.gravity_sources.grabbed_gravity_source = game_logic__util__proximity_NULL_INDEX;
 				environment.state.grabbed_triangle = game_logic__util__proximity_NULL_INDEX;
 				break;
 			}
@@ -6518,9 +6518,9 @@ namespace game_logic
 					);
 
 					GLuint hovered_gravity_source;
-					for (hovered_gravity_source = 0u; hovered_gravity_source < environment.state.current_gravity_source_count; ++hovered_gravity_source)
+					for (hovered_gravity_source = 0u; hovered_gravity_source < environment.state.GPU_buffers.gravity_sources.current_gravity_source_count; ++hovered_gravity_source)
 					{
-						::util::math::Vector_2D const& gravity_source_position{ environment.state.gravity_source_positions[hovered_gravity_source] };
+						::util::math::Vector_2D const& gravity_source_position{ environment.state.GPU_buffers.gravity_sources.gravity_source_positions[hovered_gravity_source] };
 						GLfloat diff_x{ static_cast<GLfloat>(cursor_world_x - gravity_source_position.x) };
 						GLfloat diff_y{ static_cast<GLfloat>(cursor_world_y - gravity_source_position.y) };
 						GLfloat distance_squared{ diff_x * diff_x + diff_y * diff_y };
@@ -6529,38 +6529,38 @@ namespace game_logic
 							break;
 						}
 					}
-					if (hovered_gravity_source != environment.state.current_gravity_source_count)
+					if (hovered_gravity_source != environment.state.GPU_buffers.gravity_sources.current_gravity_source_count)
 					{
-						if (hovered_gravity_source == environment.state.grabbed_gravity_source)
+						if (hovered_gravity_source == environment.state.GPU_buffers.gravity_sources.grabbed_gravity_source)
 						{
-							environment.state.grabbed_gravity_source = game_logic__util__proximity_NULL_INDEX;
+							environment.state.GPU_buffers.gravity_sources.grabbed_gravity_source = game_logic__util__proximity_NULL_INDEX;
 						}
-						--environment.state.current_gravity_source_count;
+						--environment.state.GPU_buffers.gravity_sources.current_gravity_source_count;
 						glClearNamedBufferSubData
 						(
-							environment.state.gravity_sources_buffer, 
+							environment.state.GPU_buffers.gravity_sources.buffer,
 							GL_R32UI, 
-							environment.state.gravity_sources_buffer_count_offset, 
+							environment.state.GPU_buffers.gravity_sources.count_offset,
 							sizeof(GLuint), 
 							GL_RED_INTEGER, GL_UNSIGNED_INT, 
-							&environment.state.current_gravity_source_count
+							&environment.state.GPU_buffers.gravity_sources.current_gravity_source_count
 						);
-						if (hovered_gravity_source != environment.state.current_gravity_source_count)
+						if (hovered_gravity_source != environment.state.GPU_buffers.gravity_sources.current_gravity_source_count)
 						{
-							environment.state.gravity_source_positions[hovered_gravity_source] = environment.state.gravity_source_positions[environment.state.current_gravity_source_count];
-							environment.state.gravity_source_strengths[hovered_gravity_source] = environment.state.gravity_source_strengths[environment.state.current_gravity_source_count];
+							environment.state.GPU_buffers.gravity_sources.gravity_source_positions[hovered_gravity_source] = environment.state.GPU_buffers.gravity_sources.gravity_source_positions[environment.state.GPU_buffers.gravity_sources.current_gravity_source_count];
+							environment.state.GPU_buffers.gravity_sources.gravity_source_strengths[hovered_gravity_source] = environment.state.GPU_buffers.gravity_sources.gravity_source_strengths[environment.state.GPU_buffers.gravity_sources.current_gravity_source_count];
 							glCopyNamedBufferSubData
 							(
-								environment.state.gravity_sources_buffer, environment.state.gravity_sources_buffer, 
-								environment.state.gravity_sources_buffer_positions_offset + environment.state.current_gravity_source_count * environment.state.gravity_sources_buffer_positions_stride, 
-								environment.state.gravity_sources_buffer_positions_offset + hovered_gravity_source * environment.state.gravity_sources_buffer_positions_stride, 
+								environment.state.GPU_buffers.gravity_sources.buffer, environment.state.GPU_buffers.gravity_sources.buffer,
+								environment.state.GPU_buffers.gravity_sources.positions_offset + environment.state.GPU_buffers.gravity_sources.current_gravity_source_count * environment.state.GPU_buffers.gravity_sources.positions_stride,
+								environment.state.GPU_buffers.gravity_sources.positions_offset + hovered_gravity_source * environment.state.GPU_buffers.gravity_sources.positions_stride,
 								sizeof(GLint[2u])
 							);
 							glCopyNamedBufferSubData
 							(
-								environment.state.gravity_sources_buffer, environment.state.gravity_sources_buffer,
-								environment.state.gravity_sources_buffer_strengths_offset + environment.state.current_gravity_source_count * environment.state.gravity_sources_buffer_strengths_stride,
-								environment.state.gravity_sources_buffer_strengths_offset + hovered_gravity_source * environment.state.gravity_sources_buffer_strengths_stride,
+								environment.state.GPU_buffers.gravity_sources.buffer, environment.state.GPU_buffers.gravity_sources.buffer,
+								environment.state.GPU_buffers.gravity_sources.strengths_offset + environment.state.GPU_buffers.gravity_sources.current_gravity_source_count * environment.state.GPU_buffers.gravity_sources.strengths_stride,
+								environment.state.GPU_buffers.gravity_sources.strengths_offset + hovered_gravity_source * environment.state.GPU_buffers.gravity_sources.strengths_stride,
 								sizeof(GLfloat)
 							);
 						}
@@ -6836,9 +6836,9 @@ namespace game_logic
 			);
 
 			GLuint hovered_gravity_source;
-			for (hovered_gravity_source = 0u; hovered_gravity_source < environment.state.current_gravity_source_count; ++hovered_gravity_source)
+			for (hovered_gravity_source = 0u; hovered_gravity_source < environment.state.GPU_buffers.gravity_sources.current_gravity_source_count; ++hovered_gravity_source)
 			{
-				::util::math::Vector_2D const& gravity_source_position{ environment.state.gravity_source_positions[hovered_gravity_source] };
+				::util::math::Vector_2D const& gravity_source_position{ environment.state.GPU_buffers.gravity_sources.gravity_source_positions[hovered_gravity_source] };
 				GLfloat diff_x{ static_cast<GLfloat>(cursor_world_x - gravity_source_position.x) };
 				GLfloat diff_y{ static_cast<GLfloat>(cursor_world_y - gravity_source_position.y) };
 				GLfloat distance_squared{ diff_x * diff_x + diff_y * diff_y };
@@ -6847,15 +6847,15 @@ namespace game_logic
 					break;
 				}
 			}
-			if (hovered_gravity_source != environment.state.current_gravity_source_count)
+			if (hovered_gravity_source != environment.state.GPU_buffers.gravity_sources.current_gravity_source_count)
 			{
-				GLfloat strength = environment.state.gravity_source_strengths[hovered_gravity_source] + y_offset * 1.0f * game_logic__util__spatial_METER(environment);
-				environment.state.gravity_source_strengths[hovered_gravity_source] = strength;
+				GLfloat strength = environment.state.GPU_buffers.gravity_sources.gravity_source_strengths[hovered_gravity_source] + y_offset * 1.0f * game_logic__util__spatial_METER(environment);
+				environment.state.GPU_buffers.gravity_sources.gravity_source_strengths[hovered_gravity_source] = strength;
 				glClearNamedBufferSubData
 				(
-					environment.state.gravity_sources_buffer,
+					environment.state.GPU_buffers.gravity_sources.buffer,
 					GL_R32F,
-					environment.state.gravity_sources_buffer_strengths_offset + hovered_gravity_source * environment.state.gravity_sources_buffer_strengths_stride, 
+					environment.state.GPU_buffers.gravity_sources.strengths_offset + hovered_gravity_source * environment.state.GPU_buffers.gravity_sources.strengths_stride,
 					sizeof(GLfloat),
 					GL_RED, GL_FLOAT,
 					&strength
@@ -6953,14 +6953,14 @@ namespace game_logic
 			GL_RG_INTEGER, GL_INT,
 			cursor_world_position
 		);
-		if (environment.state.grabbed_gravity_source != game_logic__util__proximity_NULL_INDEX)
+		if (environment.state.GPU_buffers.gravity_sources.grabbed_gravity_source != game_logic__util__proximity_NULL_INDEX)
 		{
-			environment.state.gravity_source_positions[environment.state.grabbed_gravity_source] = ::util::math::Vector_2D{ cursor_world_position[0u], cursor_world_position[1u] };
+			environment.state.GPU_buffers.gravity_sources.gravity_source_positions[environment.state.GPU_buffers.gravity_sources.grabbed_gravity_source] = ::util::math::Vector_2D{ cursor_world_position[0u], cursor_world_position[1u] };
 			glClearNamedBufferSubData
 			(
-				environment.state.gravity_sources_buffer, 
+				environment.state.GPU_buffers.gravity_sources.buffer,
 				GL_RG32I,
-				environment.state.gravity_sources_buffer_positions_offset + environment.state.grabbed_gravity_source * environment.state.gravity_sources_buffer_positions_stride, 
+				environment.state.GPU_buffers.gravity_sources.positions_offset + environment.state.GPU_buffers.gravity_sources.grabbed_gravity_source * environment.state.GPU_buffers.gravity_sources.positions_stride,
 				sizeof(cursor_world_position), 
 				GL_RG_INTEGER, GL_INT, 
 				cursor_world_position
@@ -7307,7 +7307,7 @@ namespace game_logic
 			glDrawArrays(GL_LINES, 0, environment.state.GPU_buffers.rigid_bodies.triangles.contacts.current_contact_count * 16u);
 		}
 
-		GLuint hovered_gravity_source = environment.state.current_gravity_source_count;
+		GLuint hovered_gravity_source = environment.state.GPU_buffers.gravity_sources.current_gravity_source_count;
 
 		if (!environment.state.point_grabbed)
 		{
@@ -7328,9 +7328,9 @@ namespace game_logic
 					&cursor_world_x, &cursor_world_y
 				);
 
-				for (hovered_gravity_source = 0u; hovered_gravity_source < environment.state.current_gravity_source_count; ++hovered_gravity_source)
+				for (hovered_gravity_source = 0u; hovered_gravity_source < environment.state.GPU_buffers.gravity_sources.current_gravity_source_count; ++hovered_gravity_source)
 				{
-					::util::math::Vector_2D const& gravity_source_position{ environment.state.gravity_source_positions[hovered_gravity_source] };
+					::util::math::Vector_2D const& gravity_source_position{ environment.state.GPU_buffers.gravity_sources.gravity_source_positions[hovered_gravity_source] };
 					GLfloat diff_x{ static_cast<GLfloat>(cursor_world_x - gravity_source_position.x) };
 					GLfloat diff_y{ static_cast<GLfloat>(cursor_world_y - gravity_source_position.y) };
 					GLfloat distance_squared{ diff_x * diff_x + diff_y * diff_y };
@@ -7340,7 +7340,7 @@ namespace game_logic
 						break;
 					}
 				}
-				if (hovered_gravity_source == environment.state.current_gravity_source_count)
+				if (hovered_gravity_source == environment.state.GPU_buffers.gravity_sources.current_gravity_source_count)
 				{
 					GLenum fence_status = glClientWaitSync(environment.state.physics_tick_results_fence, 0u, 0u);
 					while (fence_status != GL_ALREADY_SIGNALED && fence_status != GL_CONDITION_SATISFIED)
@@ -7417,8 +7417,8 @@ namespace game_logic
 		if 
 		(
 			environment.state.gravity_visible || 
-			hovered_gravity_source != environment.state.current_gravity_source_count || 
-			environment.state.grabbed_gravity_source != game_logic__util__proximity_NULL_INDEX
+			hovered_gravity_source != environment.state.GPU_buffers.gravity_sources.current_gravity_source_count ||
+			environment.state.GPU_buffers.gravity_sources.grabbed_gravity_source != game_logic__util__proximity_NULL_INDEX
 		)
 		{
 			GLfloat const x_step{ GRAVITY_SAMPLE_STEP(environment) * game_logic__util__projection_SCALE_X(environment) };
@@ -7437,10 +7437,10 @@ namespace game_logic
 
 		glEnablei(GL_BLEND, 0u);
 		glUseProgram(environment.state.gravity_sources_draw_shader);
-		glDrawArrays(GL_TRIANGLES, 0, environment.state.current_gravity_source_count * 6u);
+		glDrawArrays(GL_TRIANGLES, 0, environment.state.GPU_buffers.gravity_sources.current_gravity_source_count * 6u);
 		glDisablei(GL_BLEND, 0u);
 
-		if (hovered_gravity_source != environment.state.current_gravity_source_count)
+		if (hovered_gravity_source != environment.state.GPU_buffers.gravity_sources.current_gravity_source_count)
 		{
 			glUseProgram(environment.state.hovered_gravity_source_wireframe_draw_shader);
 			glUniform1ui(environment.state.hovered_gravity_source_wireframe_draw_shader_hovered_gravity_source_uniform_location, hovered_gravity_source);
@@ -7507,7 +7507,7 @@ namespace game_logic
 			environment.state.GPU_buffers.fluid.velocities.snapshot_buffer,
 			environment.state.GPU_buffers.fluid_triangle.contacts.buffer,
 			environment.state.GPU_buffers.fluid_triangle.contact_count.buffer,
-			environment.state.gravity_sources_buffer, 
+			environment.state.GPU_buffers.gravity_sources.buffer,
 			environment.state.count_buffer, 
 			environment.state.GPU_buffers.rigid_bodies.masses.buffer
 		};

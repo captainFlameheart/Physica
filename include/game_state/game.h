@@ -8,8 +8,6 @@
 #include "GPU_buffers/include.h"
 #include "shaders/include.h"
 
-#define MAX_GRAVITY_SOURCE_COUNT 100u
-
 template <unsigned int Vertex_Index_Count>
 struct Model
 {
@@ -49,19 +47,6 @@ namespace game_state
 		GPU_buffers::GPU_Buffer_Set GPU_buffers;
 		shaders::Shader_Set shaders;
 		proximity::Tree proximity_tree;
-
-		GLuint gravity_sources_buffer;
-		GLint gravity_sources_buffer_size;
-		GLint gravity_sources_buffer_count_offset;
-		GLint gravity_sources_buffer_positions_offset;
-		GLint gravity_sources_buffer_positions_stride;
-		GLint gravity_sources_buffer_strengths_offset;
-		GLint gravity_sources_buffer_strengths_stride;
-
-		GLuint current_gravity_source_count;
-		util::math::Vector_2D gravity_source_positions[MAX_GRAVITY_SOURCE_COUNT];
-		GLfloat gravity_source_strengths[MAX_GRAVITY_SOURCE_COUNT];
-		GLuint grabbed_gravity_source;
 
 		GLuint count_buffer;
 		GLint count_buffer_size;
