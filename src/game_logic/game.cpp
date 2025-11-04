@@ -1981,7 +1981,7 @@ namespace game_logic
 			environment.state.GPU_buffers.rigid_bodies.positions.snapshot_buffer, 
 			environment.state.GPU_buffers.cursor.position.buffer, 
 			environment.state.GPU_buffers.cursor.constrained_point.buffer,
-			environment.state.cursor_constraint_buffer, 
+			environment.state.GPU_buffers.cursor.constraint.buffer,
 			environment.state.GPU_buffers.rigid_bodies.distance_constraints.buffer, 
 			environment.state.GPU_buffers.fluid_triangle.contacts.buffer,
 			environment.state.GPU_buffers.fluid_triangle.contact_count.buffer,
@@ -2014,7 +2014,7 @@ namespace game_logic
 		environment.state.GPU_buffers.rigid_bodies.positions.snapshot_buffer = buffers[19u];
 		environment.state.GPU_buffers.cursor.position.buffer = buffers[20u];
 		environment.state.GPU_buffers.cursor.constrained_point.buffer = buffers[21u];
-		environment.state.cursor_constraint_buffer = buffers[22u];
+		environment.state.GPU_buffers.cursor.constraint.buffer = buffers[22u];
 		environment.state.GPU_buffers.rigid_bodies.distance_constraints.buffer = buffers[23u];
 		environment.state.GPU_buffers.fluid_triangle.contacts.buffer = buffers[24u];
 		environment.state.GPU_buffers.fluid_triangle.contact_count.buffer = buffers[25u];
@@ -3809,7 +3809,7 @@ namespace game_logic
 			glGetProgramResourceiv
 			(
 				environment.state.shaders.warm_start.update_and_warm_start_cursor_constraint_shader, GL_BUFFER_VARIABLE, offset_index,
-				1u, &offset_label, 1u, nullptr, &environment.state.cursor_constraint_buffer_offset_offset
+				1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.cursor.constraint.offset_offset
 			);
 
 			GLuint const target_velocity_index
@@ -3819,7 +3819,7 @@ namespace game_logic
 			glGetProgramResourceiv
 			(
 				environment.state.shaders.warm_start.update_and_warm_start_cursor_constraint_shader, GL_BUFFER_VARIABLE, target_velocity_index,
-				1u, &offset_label, 1u, nullptr, &environment.state.cursor_constraint_buffer_target_velocity_offset
+				1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.cursor.constraint.target_velocity_offset
 			);
 
 			GLenum const prop_labels[]{ GL_OFFSET, GL_MATRIX_STRIDE };
@@ -3834,8 +3834,8 @@ namespace game_logic
 				std::size(prop_labels), prop_labels, 2u, nullptr, props
 			);
 			// TODO: Consider putting offset and matrix stride contigously in game state
-			environment.state.cursor_constraint_buffer_mass_offset = props[0u];
-			environment.state.cursor_constraint_buffer_mass_matrix_stride = props[1u];
+			environment.state.GPU_buffers.cursor.constraint.mass_offset = props[0u];
+			environment.state.GPU_buffers.cursor.constraint.mass_matrix_stride = props[1u];
 
 			GLuint const impulse_index
 			{
@@ -3844,7 +3844,7 @@ namespace game_logic
 			glGetProgramResourceiv
 			(
 				environment.state.shaders.warm_start.update_and_warm_start_cursor_constraint_shader, GL_BUFFER_VARIABLE, impulse_index,
-				1u, &offset_label, 1u, nullptr, &environment.state.cursor_constraint_buffer_impulse_offset
+				1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.cursor.constraint.impulse_offset
 			);
 
 			GLuint const block_index
@@ -3855,16 +3855,16 @@ namespace game_logic
 			glGetProgramResourceiv
 			(
 				environment.state.shaders.warm_start.update_and_warm_start_cursor_constraint_shader, GL_SHADER_STORAGE_BLOCK, block_index,
-				1, &buffer_size_label, 1, nullptr, &environment.state.cursor_constraint_buffer_size
+				1, &buffer_size_label, 1, nullptr, &environment.state.GPU_buffers.cursor.constraint.size
 			);
 
 			glNamedBufferStorage
 			(
-				environment.state.cursor_constraint_buffer, environment.state.cursor_constraint_buffer_size, nullptr,
+				environment.state.GPU_buffers.cursor.constraint.buffer, environment.state.GPU_buffers.cursor.constraint.size, nullptr,
 				0u
 			);
 
-			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_CURSOR_CONSTRAINT_BINDING, environment.state.cursor_constraint_buffer);
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_CURSOR_CONSTRAINT_BINDING, environment.state.GPU_buffers.cursor.constraint.buffer);
 		}
 
 		{ // Distance constraint buffer
@@ -4871,13 +4871,13 @@ namespace game_logic
 		std::cout << "local point offset: " << environment.state.GPU_buffers.cursor.constrained_point.local_point_offset << std::endl;
 		std::cout << std::endl;
 
-		std::cout << "Cursor constraint buffer (" << environment.state.cursor_constraint_buffer << "):" << std::endl;
-		std::cout << "size: " << environment.state.cursor_constraint_buffer_size << std::endl;
-		std::cout << "offset offset: " << environment.state.cursor_constraint_buffer_offset_offset << std::endl;
-		std::cout << "target velocity offset: " << environment.state.cursor_constraint_buffer_target_velocity_offset << std::endl;
-		std::cout << "mass offset: " << environment.state.cursor_constraint_buffer_mass_offset << std::endl;
-		std::cout << "mass matrix stride: " << environment.state.cursor_constraint_buffer_mass_matrix_stride << std::endl;
-		std::cout << "impulse offset: " << environment.state.cursor_constraint_buffer_impulse_offset << std::endl;
+		std::cout << "Cursor constraint buffer (" << environment.state.GPU_buffers.cursor.constraint.buffer << "):" << std::endl;
+		std::cout << "size: " << environment.state.GPU_buffers.cursor.constraint.size << std::endl;
+		std::cout << "offset offset: " << environment.state.GPU_buffers.cursor.constraint.offset_offset << std::endl;
+		std::cout << "target velocity offset: " << environment.state.GPU_buffers.cursor.constraint.target_velocity_offset << std::endl;
+		std::cout << "mass offset: " << environment.state.GPU_buffers.cursor.constraint.mass_offset << std::endl;
+		std::cout << "mass matrix stride: " << environment.state.GPU_buffers.cursor.constraint.mass_matrix_stride << std::endl;
+		std::cout << "impulse offset: " << environment.state.GPU_buffers.cursor.constraint.impulse_offset << std::endl;
 		std::cout << std::endl;
 
 		std::cout << "Distance constraint buffer (" << environment.state.GPU_buffers.rigid_bodies.distance_constraints.buffer << "):" << std::endl;
@@ -6468,9 +6468,9 @@ namespace game_logic
 
 								glClearNamedBufferSubData
 								(
-									environment.state.cursor_constraint_buffer,
+									environment.state.GPU_buffers.cursor.constraint.buffer,
 									GL_RG32F,
-									environment.state.cursor_constraint_buffer_impulse_offset, sizeof(GLfloat[2u]),
+									environment.state.GPU_buffers.cursor.constraint.impulse_offset, sizeof(GLfloat[2u]),
 									GL_RG, GL_FLOAT,
 									nullptr
 								);
@@ -7496,7 +7496,7 @@ namespace game_logic
 			environment.state.GPU_buffers.rigid_bodies.positions.snapshot_buffer,
 			environment.state.GPU_buffers.cursor.position.buffer,
 			environment.state.GPU_buffers.cursor.constrained_point.buffer,
-			environment.state.cursor_constraint_buffer, 
+			environment.state.GPU_buffers.cursor.constraint.buffer,
 			environment.state.GPU_buffers.rigid_bodies.distance_constraints.buffer,
 			environment.state.GPU_buffers.fluid.positions.buffer,
 			environment.state.GPU_buffers.fluid.velocities.buffer,
