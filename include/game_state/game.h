@@ -6,6 +6,7 @@
 #include "game_state/rigid_body/Triangle.h"
 #include "game_state/cursor_types/cursor_type_set.h"
 #include "GPU_buffers/include.h"
+#include "shaders/include.h"
 
 #define MAX_GRAVITY_SOURCE_COUNT 100u
 
@@ -46,6 +47,7 @@ namespace game_state
 		GLuint vbo;
 
 		GPU_buffers::GPU_Buffer_Set GPU_buffers;
+		shaders::Shader_Set shaders;
 
 		GLuint add_distance_constraint_shader;
 
@@ -62,12 +64,6 @@ namespace game_state
 		GLuint new_triangle_contact_shader;
 
 		GLuint update_distance_constraints_shader;
-
-		GLuint warm_start_fluid_contacts_shader;
-		GLuint warm_start_fluid_triangle_contacts_shader;
-		GLuint warm_start_contact_impulses_shader;
-		GLuint warm_start_distance_constraints_shader;
-		GLuint update_and_warm_start_cursor_constraint_shader;
 
 		GLuint solve_fluid_contacts_shader;
 		GLuint solve_fluid_triangle_contacts_shader;

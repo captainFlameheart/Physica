@@ -1703,7 +1703,7 @@ namespace game_logic
 			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))),
 			::util::shader::file_to_string("util/warm_start_fluid_contacts.comp")
 		);
-		environment.state.warm_start_fluid_contacts_shader = ::util::shader::create_program(compute_shader);
+		environment.state.shaders.warm_start.warm_start_fluid_contacts_shader = ::util::shader::create_program(compute_shader);
 		std::cout << "Warm start fluid contacts shader compiled" << std::endl;
 
 		::util::shader::set_shader_statically
@@ -1734,7 +1734,7 @@ namespace game_logic
 			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))),
 			::util::shader::file_to_string("util/warm_start_fluid_triangle_contacts.comp")
 		);
-		environment.state.warm_start_fluid_triangle_contacts_shader = ::util::shader::create_program(compute_shader);
+		environment.state.shaders.warm_start.warm_start_fluid_triangle_contacts_shader = ::util::shader::create_program(compute_shader);
 		std::cout << "Warm start fluid triangle contacts shader compiled" << std::endl;
 
 		::util::shader::set_shader_statically
@@ -1760,7 +1760,7 @@ namespace game_logic
 			util_shader_DEFINE("FRICTION_COEFFICIENT", STRINGIFY(FRICTION_COEFFICIENT)),
 			::util::shader::file_to_string("util/warm_start_contact_impulses.comp")
 		);
-		environment.state.warm_start_contact_impulses_shader = ::util::shader::create_program(compute_shader);
+		environment.state.shaders.warm_start.warm_start_contact_impulses_shader = ::util::shader::create_program(compute_shader);
 		std::cout << "Warm start contact impulses shader compiled" << std::endl;
 
 		::util::shader::set_shader_statically
@@ -1784,7 +1784,7 @@ namespace game_logic
 			util_shader_DEFINE("PENETRATION_VELOCITY_SCALE", STRINGIFY(game_logic_DISTANCE_CONSTRAINT_PENETRATION_VELOCITY_SCALE(environment))),
 			::util::shader::file_to_string("util/warm_start_distance_constraints.comp")
 		);
-		environment.state.warm_start_distance_constraints_shader = ::util::shader::create_program(compute_shader);
+		environment.state.shaders.warm_start.warm_start_distance_constraints_shader = ::util::shader::create_program(compute_shader);
 		std::cout << "Warm start distance constraints shader compiled" << std::endl;
 
 		::util::shader::set_shader_statically
@@ -1808,7 +1808,7 @@ namespace game_logic
 			util_shader_DEFINE("IMPULSE_SCALE", STRINGIFY(game_logic_CURSOR_CONSTRAINT_IMPULSE_SCALE(environment))),
 			::util::shader::file_to_string("util/update_and_warm_start_cursor_constraint.comp")
 		);
-		environment.state.update_and_warm_start_cursor_constraint_shader = ::util::shader::create_program(compute_shader);
+		environment.state.shaders.warm_start.update_and_warm_start_cursor_constraint_shader = ::util::shader::create_program(compute_shader);
 		std::cout << "Update and warm start cursor constraint shader compiled" << std::endl;
 
 		::util::shader::set_shader_statically
@@ -3724,24 +3724,24 @@ namespace game_logic
 		{ // Cursor position buffer
 			GLuint const position_index
 			{
-				glGetProgramResourceIndex(environment.state.update_and_warm_start_cursor_constraint_shader, GL_UNIFORM, "Cursor_Position.position")
+				glGetProgramResourceIndex(environment.state.shaders.warm_start.update_and_warm_start_cursor_constraint_shader, GL_UNIFORM, "Cursor_Position.position")
 			};
 
 			GLenum offset_label{ GL_OFFSET };
 			glGetProgramResourceiv
 			(
-				environment.state.update_and_warm_start_cursor_constraint_shader, GL_UNIFORM, position_index,
+				environment.state.shaders.warm_start.update_and_warm_start_cursor_constraint_shader, GL_UNIFORM, position_index,
 				1u, &offset_label, 1u, nullptr, &environment.state.cursor_position_buffer_position_offset
 			);
 
 			GLuint const block_index
 			{
-				glGetProgramResourceIndex(environment.state.update_and_warm_start_cursor_constraint_shader, GL_UNIFORM_BLOCK, "Cursor_Position")
+				glGetProgramResourceIndex(environment.state.shaders.warm_start.update_and_warm_start_cursor_constraint_shader, GL_UNIFORM_BLOCK, "Cursor_Position")
 			};
 			GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
 			glGetProgramResourceiv
 			(
-				environment.state.update_and_warm_start_cursor_constraint_shader, GL_UNIFORM_BLOCK, block_index,
+				environment.state.shaders.warm_start.update_and_warm_start_cursor_constraint_shader, GL_UNIFORM_BLOCK, block_index,
 				1u, &buffer_size_label, 1u, nullptr, &environment.state.cursor_position_buffer_size
 			);
 
@@ -3760,32 +3760,32 @@ namespace game_logic
 
 			GLuint const body_index
 			{
-				glGetProgramResourceIndex(environment.state.update_and_warm_start_cursor_constraint_shader, GL_UNIFORM, "Cursor_Constrained_Point.body")
+				glGetProgramResourceIndex(environment.state.shaders.warm_start.update_and_warm_start_cursor_constraint_shader, GL_UNIFORM, "Cursor_Constrained_Point.body")
 			};
 			glGetProgramResourceiv
 			(
-				environment.state.update_and_warm_start_cursor_constraint_shader, GL_UNIFORM, body_index,
+				environment.state.shaders.warm_start.update_and_warm_start_cursor_constraint_shader, GL_UNIFORM, body_index,
 				1u, &offset_label, 1u, nullptr, &environment.state.cursor_constrained_point_buffer_body_offset
 			);
 
 			GLuint const local_point_index
 			{
-				glGetProgramResourceIndex(environment.state.update_and_warm_start_cursor_constraint_shader, GL_UNIFORM, "Cursor_Constrained_Point.local_point")
+				glGetProgramResourceIndex(environment.state.shaders.warm_start.update_and_warm_start_cursor_constraint_shader, GL_UNIFORM, "Cursor_Constrained_Point.local_point")
 			};
 			glGetProgramResourceiv
 			(
-				environment.state.update_and_warm_start_cursor_constraint_shader, GL_UNIFORM, local_point_index,
+				environment.state.shaders.warm_start.update_and_warm_start_cursor_constraint_shader, GL_UNIFORM, local_point_index,
 				1u, &offset_label, 1u, nullptr, &environment.state.cursor_constrained_point_buffer_local_point_offset
 			);
 
 			GLuint const block_index
 			{
-				glGetProgramResourceIndex(environment.state.update_and_warm_start_cursor_constraint_shader, GL_UNIFORM_BLOCK, "Cursor_Constrained_Point")
+				glGetProgramResourceIndex(environment.state.shaders.warm_start.update_and_warm_start_cursor_constraint_shader, GL_UNIFORM_BLOCK, "Cursor_Constrained_Point")
 			};
 			GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
 			glGetProgramResourceiv
 			(
-				environment.state.update_and_warm_start_cursor_constraint_shader, GL_UNIFORM_BLOCK, block_index,
+				environment.state.shaders.warm_start.update_and_warm_start_cursor_constraint_shader, GL_UNIFORM_BLOCK, block_index,
 				1u, &buffer_size_label, 1u, nullptr, &environment.state.cursor_constrained_point_buffer_size
 			);
 
@@ -3804,21 +3804,21 @@ namespace game_logic
 
 			GLuint const offset_index
 			{
-				glGetProgramResourceIndex(environment.state.update_and_warm_start_cursor_constraint_shader, GL_BUFFER_VARIABLE, "Cursor_Constraint.offset")
+				glGetProgramResourceIndex(environment.state.shaders.warm_start.update_and_warm_start_cursor_constraint_shader, GL_BUFFER_VARIABLE, "Cursor_Constraint.offset")
 			};
 			glGetProgramResourceiv
 			(
-				environment.state.update_and_warm_start_cursor_constraint_shader, GL_BUFFER_VARIABLE, offset_index,
+				environment.state.shaders.warm_start.update_and_warm_start_cursor_constraint_shader, GL_BUFFER_VARIABLE, offset_index,
 				1u, &offset_label, 1u, nullptr, &environment.state.cursor_constraint_buffer_offset_offset
 			);
 
 			GLuint const target_velocity_index
 			{
-				glGetProgramResourceIndex(environment.state.update_and_warm_start_cursor_constraint_shader, GL_BUFFER_VARIABLE, "Cursor_Constraint.target_velocity")
+				glGetProgramResourceIndex(environment.state.shaders.warm_start.update_and_warm_start_cursor_constraint_shader, GL_BUFFER_VARIABLE, "Cursor_Constraint.target_velocity")
 			};
 			glGetProgramResourceiv
 			(
-				environment.state.update_and_warm_start_cursor_constraint_shader, GL_BUFFER_VARIABLE, target_velocity_index,
+				environment.state.shaders.warm_start.update_and_warm_start_cursor_constraint_shader, GL_BUFFER_VARIABLE, target_velocity_index,
 				1u, &offset_label, 1u, nullptr, &environment.state.cursor_constraint_buffer_target_velocity_offset
 			);
 
@@ -3826,11 +3826,11 @@ namespace game_logic
 			GLint props[2u];
 			GLuint const mass_index
 			{
-				glGetProgramResourceIndex(environment.state.update_and_warm_start_cursor_constraint_shader, GL_BUFFER_VARIABLE, "Cursor_Constraint.mass")
+				glGetProgramResourceIndex(environment.state.shaders.warm_start.update_and_warm_start_cursor_constraint_shader, GL_BUFFER_VARIABLE, "Cursor_Constraint.mass")
 			};
 			glGetProgramResourceiv
 			(
-				environment.state.update_and_warm_start_cursor_constraint_shader, GL_BUFFER_VARIABLE, mass_index,
+				environment.state.shaders.warm_start.update_and_warm_start_cursor_constraint_shader, GL_BUFFER_VARIABLE, mass_index,
 				std::size(prop_labels), prop_labels, 2u, nullptr, props
 			);
 			// TODO: Consider putting offset and matrix stride contigously in game state
@@ -3839,22 +3839,22 @@ namespace game_logic
 
 			GLuint const impulse_index
 			{
-				glGetProgramResourceIndex(environment.state.update_and_warm_start_cursor_constraint_shader, GL_BUFFER_VARIABLE, "Cursor_Constraint.impulse")
+				glGetProgramResourceIndex(environment.state.shaders.warm_start.update_and_warm_start_cursor_constraint_shader, GL_BUFFER_VARIABLE, "Cursor_Constraint.impulse")
 			};
 			glGetProgramResourceiv
 			(
-				environment.state.update_and_warm_start_cursor_constraint_shader, GL_BUFFER_VARIABLE, impulse_index,
+				environment.state.shaders.warm_start.update_and_warm_start_cursor_constraint_shader, GL_BUFFER_VARIABLE, impulse_index,
 				1u, &offset_label, 1u, nullptr, &environment.state.cursor_constraint_buffer_impulse_offset
 			);
 
 			GLuint const block_index
 			{
-				glGetProgramResourceIndex(environment.state.update_and_warm_start_cursor_constraint_shader, GL_SHADER_STORAGE_BLOCK, "Cursor_Constraint")
+				glGetProgramResourceIndex(environment.state.shaders.warm_start.update_and_warm_start_cursor_constraint_shader, GL_SHADER_STORAGE_BLOCK, "Cursor_Constraint")
 			};
 			GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
 			glGetProgramResourceiv
 			(
-				environment.state.update_and_warm_start_cursor_constraint_shader, GL_SHADER_STORAGE_BLOCK, block_index,
+				environment.state.shaders.warm_start.update_and_warm_start_cursor_constraint_shader, GL_SHADER_STORAGE_BLOCK, block_index,
 				1, &buffer_size_label, 1, nullptr, &environment.state.cursor_constraint_buffer_size
 			);
 
@@ -5280,28 +5280,28 @@ namespace game_logic
 
 	void warm_start_constraint_impulses(game_environment::Environment& environment)
 	{
-		glUseProgram(environment.state.warm_start_fluid_contacts_shader);
+		glUseProgram(environment.state.shaders.warm_start.warm_start_fluid_contacts_shader);
 		glDispatchCompute
 		(
 			ceil_div(environment.state.GPU_buffers.fluid.contact_count.current_contact_count, WARM_START_FLUID_CONTACTS_LOCAL_SIZE(environment)),
 			1u, 1u
 		);
 
-		glUseProgram(environment.state.warm_start_fluid_triangle_contacts_shader);
+		glUseProgram(environment.state.shaders.warm_start.warm_start_fluid_triangle_contacts_shader);
 		glDispatchCompute
 		(
 			ceil_div(environment.state.GPU_buffers.fluid_triangle.contact_count.current_contact_count, WARM_START_FLUID_TRIANGLE_CONTACTS_LOCAL_SIZE(environment)),
 			1u, 1u
 		);
 
-		glUseProgram(environment.state.warm_start_contact_impulses_shader);
+		glUseProgram(environment.state.shaders.warm_start.warm_start_contact_impulses_shader);
 		glDispatchCompute
 		(
 			ceil_div(environment.state.current_persistent_contact_count, game_logic__util__rigid_body_WARM_START_CONTACT_IMPULSES_LOCAL_SIZE(environment)), 
 			1u, 1u
 		);
 		
-		glUseProgram(environment.state.warm_start_distance_constraints_shader);
+		glUseProgram(environment.state.shaders.warm_start.warm_start_distance_constraints_shader);
 		glDispatchCompute
 		(
 			ceil_div(environment.state.GPU_buffers.rigid_bodies.distance_constraints.current_count, game_logic_WARM_START_DISTANCE_CONSTRAINTS_LOCAL_SIZE(environment)), 
@@ -5310,7 +5310,7 @@ namespace game_logic
 
 		if (environment.state.grabbed_triangle != game_logic__util__proximity_NULL_INDEX)
 		{
-			glUseProgram(environment.state.update_and_warm_start_cursor_constraint_shader);
+			glUseProgram(environment.state.shaders.warm_start.update_and_warm_start_cursor_constraint_shader);
 			glDispatchCompute(1u, 1u, 1u);
 		}
 	}
