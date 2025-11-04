@@ -49,18 +49,6 @@ namespace game_state
 
 		GPU_buffers::GPU_Buffer_Set GPU_buffers;
 
-		GLuint changed_fluid_bounding_box_buffer;
-		GLint changed_fluid_bounding_box_buffer_size;
-		GLint changed_fluid_bounding_box_buffer_size_offset;
-		GLint changed_fluid_bounding_box_buffer_boxes_stride;
-		GLint changed_fluid_bounding_box_buffer_boxes_index_offset;
-		GLint changed_fluid_bounding_box_buffer_boxes_min_x_offset;
-		GLint changed_fluid_bounding_box_buffer_boxes_min_y_offset;
-		GLint changed_fluid_bounding_box_buffer_boxes_max_x_offset;
-		GLint changed_fluid_bounding_box_buffer_boxes_max_y_offset;
-
-		unsigned char* changed_fluid_bounding_boxes_mapping;
-
 		GLuint fluid_contact_buffer;
 		GLint fluid_contact_buffer_size;
 		GLint fluid_contact_buffer_contacts_offset;

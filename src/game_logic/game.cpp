@@ -1962,7 +1962,7 @@ namespace game_logic
 			environment.state.GPU_buffers.fluid.positions.buffer,
 			environment.state.GPU_buffers.fluid.velocities.buffer,
 			environment.state.GPU_buffers.fluid.bounding_boxes.buffer,
-			environment.state.changed_fluid_bounding_box_buffer,
+			environment.state.GPU_buffers.fluid.changed_bounding_boxes.buffer,
 			environment.state.fluid_contact_buffer,
 			environment.state.fluid_contact_count_buffer,
 			environment.state.GPU_buffers.fluid.velocities.snapshot_buffer,
@@ -1995,7 +1995,7 @@ namespace game_logic
 		environment.state.GPU_buffers.fluid.positions.buffer = buffers[1u];
 		environment.state.GPU_buffers.fluid.velocities.buffer = buffers[2u];
 		environment.state.GPU_buffers.fluid.bounding_boxes.buffer = buffers[3u];
-		environment.state.changed_fluid_bounding_box_buffer = buffers[4u];
+		environment.state.GPU_buffers.fluid.changed_bounding_boxes.buffer = buffers[4u];
 		environment.state.fluid_contact_buffer = buffers[5u];
 		environment.state.fluid_contact_count_buffer = buffers[6u];
 		environment.state.GPU_buffers.fluid.velocities.snapshot_buffer = buffers[7u];
@@ -2339,7 +2339,7 @@ namespace game_logic
 				glGetProgramResourceiv
 				(
 					environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, size_index,
-					1u, &offset_label, 1u, nullptr, &environment.state.changed_fluid_bounding_box_buffer_size_offset
+					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.fluid.changed_bounding_boxes.size_offset
 				);
 			}
 
@@ -2356,8 +2356,8 @@ namespace game_logic
 					std::size(prop_labels), prop_labels, 2u, nullptr, props
 				);
 				// TODO: Consider putting offset and stride contigously in game state
-				environment.state.changed_fluid_bounding_box_buffer_boxes_index_offset = props[0u];
-				environment.state.changed_fluid_bounding_box_buffer_boxes_stride = props[1u];
+				environment.state.GPU_buffers.fluid.changed_bounding_boxes.boxes_index_offset = props[0u];
+				environment.state.GPU_buffers.fluid.changed_bounding_boxes.boxes_stride = props[1u];
 
 				GLenum const offset_label{ GL_OFFSET };
 
@@ -2368,7 +2368,7 @@ namespace game_logic
 				glGetProgramResourceiv
 				(
 					environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, boxes_min_x_index,
-					1u, &offset_label, 1u, nullptr, &environment.state.changed_fluid_bounding_box_buffer_boxes_min_x_offset
+					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.fluid.changed_bounding_boxes.boxes_min_x_offset
 				);
 
 				GLuint const boxes_min_y_index
@@ -2378,7 +2378,7 @@ namespace game_logic
 				glGetProgramResourceiv
 				(
 					environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, boxes_min_y_index,
-					1u, &offset_label, 1u, nullptr, &environment.state.changed_fluid_bounding_box_buffer_boxes_min_y_offset
+					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.fluid.changed_bounding_boxes.boxes_min_y_offset
 				);
 
 				GLuint const boxes_max_x_index
@@ -2388,7 +2388,7 @@ namespace game_logic
 				glGetProgramResourceiv
 				(
 					environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, boxes_max_x_index,
-					1u, &offset_label, 1u, nullptr, &environment.state.changed_fluid_bounding_box_buffer_boxes_max_x_offset
+					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.fluid.changed_bounding_boxes.boxes_max_x_offset
 				);
 
 				GLuint const boxes_max_y_index
@@ -2398,21 +2398,21 @@ namespace game_logic
 				glGetProgramResourceiv
 				(
 					environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, boxes_max_y_index,
-					1u, &offset_label, 1u, nullptr, &environment.state.changed_fluid_bounding_box_buffer_boxes_max_y_offset
+					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.fluid.changed_bounding_boxes.boxes_max_y_offset
 				);
 			}
 
 #if USE_DYNAMIC_SIZES == true
 			GLint const offsets[]
 			{
-			   environment.state.changed_fluid_bounding_box_buffer_boxes_index_offset,
-			   environment.state.changed_fluid_bounding_box_buffer_boxes_min_x_offset,
-			   environment.state.changed_fluid_bounding_box_buffer_boxes_min_y_offset,
-			   environment.state.changed_fluid_bounding_box_buffer_boxes_max_x_offset,
-			   environment.state.changed_fluid_bounding_box_buffer_boxes_max_y_offset
+			   environment.state.GPU_buffers.fluid.changed_bounding_boxes.boxes_index_offset,
+			   environment.state.GPU_buffers.fluid.changed_bounding_boxes.boxes_min_x_offset,
+			   environment.state.GPU_buffers.fluid.changed_bounding_boxes.boxes_min_y_offset,
+			   environment.state.GPU_buffers.fluid.changed_bounding_boxes.boxes_max_x_offset,
+			   environment.state.GPU_buffers.fluid.changed_bounding_boxes.boxes_max_y_offset
 			};
 			GLint const offset{ *std::min_element(std::begin(offsets), std::end(offsets)) };
-			environment.state.changed_fluid_bounding_box_buffer_size = offset + game_logic_MAX_FLUID_PARTICLE_COUNT(environment) * environment.state.changed_fluid_bounding_box_buffer_boxes_stride;
+			environment.state.GPU_buffers.fluid.changed_bounding_boxes.size = offset + game_logic_MAX_FLUID_PARTICLE_COUNT(environment) * environment.state.GPU_buffers.fluid.changed_bounding_boxes.boxes_stride;
 #else
 			GLuint const block_index
 			{
@@ -2422,32 +2422,32 @@ namespace game_logic
 			glGetProgramResourceiv
 			(
 				environment.state.integrate_fluid_velocity_shader, GL_SHADER_STORAGE_BLOCK, block_index,
-				1u, &buffer_size_label, 1u, nullptr, &environment.state.changed_fluid_bounding_box_buffer_size
+				1u, &buffer_size_label, 1u, nullptr, &environment.state.GPU_buffers.fluid.changed_bounding_boxes.size
 			);
 #endif
 
 			glNamedBufferStorage
 			(
-				environment.state.changed_fluid_bounding_box_buffer, environment.state.changed_fluid_bounding_box_buffer_size, nullptr,
+				environment.state.GPU_buffers.fluid.changed_bounding_boxes.buffer, environment.state.GPU_buffers.fluid.changed_bounding_boxes.size, nullptr,
 				GL_MAP_READ_BIT | GL_MAP_PERSISTENT_BIT
 			);
 			glClearNamedBufferSubData
 			(
-				environment.state.changed_fluid_bounding_box_buffer,
+				environment.state.GPU_buffers.fluid.changed_bounding_boxes.buffer,
 				GL_R32UI,
-				environment.state.changed_fluid_bounding_box_buffer_size_offset, sizeof(GLuint),
+				environment.state.GPU_buffers.fluid.changed_bounding_boxes.size_offset, sizeof(GLuint),
 				GL_RED_INTEGER, GL_UNSIGNED_INT,
 				nullptr
 			);
 
-			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_CHANGED_FLUID_BOUNDING_BOX_BINDING, environment.state.changed_fluid_bounding_box_buffer);
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_CHANGED_FLUID_BOUNDING_BOX_BINDING, environment.state.GPU_buffers.fluid.changed_bounding_boxes.buffer);
 
-			environment.state.changed_fluid_bounding_boxes_mapping = static_cast<unsigned char*>
+			environment.state.GPU_buffers.fluid.changed_bounding_boxes.mapping = static_cast<unsigned char*>
 				(
 					glMapNamedBufferRange
 					(
-						environment.state.changed_fluid_bounding_box_buffer,
-						0u, environment.state.changed_fluid_bounding_box_buffer_size,
+						environment.state.GPU_buffers.fluid.changed_bounding_boxes.buffer,
+						0u, environment.state.GPU_buffers.fluid.changed_bounding_boxes.size,
 						GL_MAP_READ_BIT | GL_MAP_PERSISTENT_BIT
 					)
 					);
@@ -4252,7 +4252,7 @@ namespace game_logic
 //				glGetProgramResourceiv
 //				(
 //					environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, size_index,
-//					1u, &offset_label, 1u, nullptr, &environment.state.changed_fluid_bounding_box_buffer_size_offset
+//					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.fluid.changed_bounding_boxes.size_offset
 //				);
 //			}
 //
@@ -4269,8 +4269,8 @@ namespace game_logic
 //					std::size(prop_labels), prop_labels, 2u, nullptr, props
 //				);
 //				// TODO: Consider putting offset and stride contigously in game state
-//				environment.state.changed_fluid_bounding_box_buffer_boxes_index_offset = props[0u];
-//				environment.state.changed_fluid_bounding_box_buffer_boxes_stride = props[1u];
+//				environment.state.GPU_buffers.fluid.changed_bounding_boxes.boxes_index_offset = props[0u];
+//				environment.state.GPU_buffers.fluid.changed_bounding_boxes.boxes_stride = props[1u];
 //
 //				GLenum const offset_label{ GL_OFFSET };
 //
@@ -4281,7 +4281,7 @@ namespace game_logic
 //				glGetProgramResourceiv
 //				(
 //					environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, boxes_min_x_index,
-//					1u, &offset_label, 1u, nullptr, &environment.state.changed_fluid_bounding_box_buffer_boxes_min_x_offset
+//					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.fluid.changed_bounding_boxes.boxes_min_x_offset
 //				);
 //
 //				GLuint const boxes_min_y_index
@@ -4291,7 +4291,7 @@ namespace game_logic
 //				glGetProgramResourceiv
 //				(
 //					environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, boxes_min_y_index,
-//					1u, &offset_label, 1u, nullptr, &environment.state.changed_fluid_bounding_box_buffer_boxes_min_y_offset
+//					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.fluid.changed_bounding_boxes.boxes_min_y_offset
 //				);
 //
 //				GLuint const boxes_max_x_index
@@ -4301,7 +4301,7 @@ namespace game_logic
 //				glGetProgramResourceiv
 //				(
 //					environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, boxes_max_x_index,
-//					1u, &offset_label, 1u, nullptr, &environment.state.changed_fluid_bounding_box_buffer_boxes_max_x_offset
+//					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.fluid.changed_bounding_boxes.boxes_max_x_offset
 //				);
 //
 //				GLuint const boxes_max_y_index
@@ -4311,21 +4311,21 @@ namespace game_logic
 //				glGetProgramResourceiv
 //				(
 //					environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, boxes_max_y_index,
-//					1u, &offset_label, 1u, nullptr, &environment.state.changed_fluid_bounding_box_buffer_boxes_max_y_offset
+//					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.fluid.changed_bounding_boxes.boxes_max_y_offset
 //				);
 //			}
 //
 //#if USE_DYNAMIC_SIZES == true
 //			GLint const offsets[]
 //			{
-//			   environment.state.changed_fluid_bounding_box_buffer_boxes_index_offset,
-//			   environment.state.changed_fluid_bounding_box_buffer_boxes_min_x_offset,
-//			   environment.state.changed_fluid_bounding_box_buffer_boxes_min_y_offset,
-//			   environment.state.changed_fluid_bounding_box_buffer_boxes_max_x_offset,
-//			   environment.state.changed_fluid_bounding_box_buffer_boxes_max_y_offset
+//			   environment.state.GPU_buffers.fluid.changed_bounding_boxes.boxes_index_offset,
+//			   environment.state.GPU_buffers.fluid.changed_bounding_boxes.boxes_min_x_offset,
+//			   environment.state.GPU_buffers.fluid.changed_bounding_boxes.boxes_min_y_offset,
+//			   environment.state.GPU_buffers.fluid.changed_bounding_boxes.boxes_max_x_offset,
+//			   environment.state.GPU_buffers.fluid.changed_bounding_boxes.boxes_max_y_offset
 //			};
 //			GLint const offset{ *std::min_element(std::begin(offsets), std::end(offsets)) };
-//			environment.state.changed_fluid_bounding_box_buffer_size = offset + game_logic_MAX_FLUID_PARTICLE_COUNT(environment) * environment.state.changed_fluid_bounding_box_buffer_boxes_stride;
+//			environment.state.GPU_buffers.fluid.changed_bounding_boxes.size = offset + game_logic_MAX_FLUID_PARTICLE_COUNT(environment) * environment.state.GPU_buffers.fluid.changed_bounding_boxes.boxes_stride;
 //#else
 //			GLuint const block_index
 //			{
@@ -4335,32 +4335,32 @@ namespace game_logic
 //			glGetProgramResourceiv
 //			(
 //				environment.state.integrate_fluid_velocity_shader, GL_SHADER_STORAGE_BLOCK, block_index,
-//				1u, &buffer_size_label, 1u, nullptr, &environment.state.changed_fluid_bounding_box_buffer_size
+//				1u, &buffer_size_label, 1u, nullptr, &environment.state.GPU_buffers.fluid.changed_bounding_boxes.size
 //			);
 //#endif
 //
 //			glNamedBufferStorage
 //			(
-//				environment.state.changed_fluid_bounding_box_buffer, environment.state.changed_fluid_bounding_box_buffer_size, nullptr,
+//				environment.state.GPU_buffers.fluid.changed_bounding_boxes.buffer, environment.state.GPU_buffers.fluid.changed_bounding_boxes.size, nullptr,
 //				GL_MAP_READ_BIT | GL_MAP_PERSISTENT_BIT
 //			);
 //			glClearNamedBufferSubData
 //			(
-//				environment.state.changed_fluid_bounding_box_buffer,
+//				environment.state.GPU_buffers.fluid.changed_bounding_boxes.buffer,
 //				GL_R32UI,
-//				environment.state.changed_fluid_bounding_box_buffer_size_offset, sizeof(GLuint),
+//				environment.state.GPU_buffers.fluid.changed_bounding_boxes.size_offset, sizeof(GLuint),
 //				GL_RED_INTEGER, GL_UNSIGNED_INT,
 //				nullptr
 //			);
 //
-//			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_CHANGED_FLUID_BOUNDING_BOX_BINDING, environment.state.changed_fluid_bounding_box_buffer);
+//			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_CHANGED_FLUID_BOUNDING_BOX_BINDING, environment.state.GPU_buffers.fluid.changed_bounding_boxes.buffer);
 //
 //			environment.state.changed_fluid_bounding_boxes_mapping = static_cast<unsigned char*>
 //			(
 //				glMapNamedBufferRange
 //				(
-//					environment.state.changed_fluid_bounding_box_buffer,
-//					0u, environment.state.changed_fluid_bounding_box_buffer_size,
+//					environment.state.GPU_buffers.fluid.changed_bounding_boxes.buffer,
+//					0u, environment.state.GPU_buffers.fluid.changed_bounding_boxes.size,
 //					GL_MAP_READ_BIT | GL_MAP_PERSISTENT_BIT
 //				)
 //			);
@@ -4915,15 +4915,15 @@ namespace game_logic
 		std::cout << "boxes stride: " << environment.state.GPU_buffers.fluid.bounding_boxes.boxes_stride << std::endl;
 		std::cout << std::endl;
 
-		std::cout << "Changed fluid bounding box buffer (" << environment.state.changed_fluid_bounding_box_buffer << "):" << std::endl;
-		std::cout << "size: " << environment.state.changed_fluid_bounding_box_buffer_size << std::endl;
-		std::cout << "push index offset: " << environment.state.changed_fluid_bounding_box_buffer_size_offset << std::endl;
-		std::cout << "boxes stride: " << environment.state.changed_fluid_bounding_box_buffer_boxes_stride << std::endl;
-		std::cout << "boxes index offset: " << environment.state.changed_fluid_bounding_box_buffer_boxes_index_offset << std::endl;
-		std::cout << "boxes min_x offset: " << environment.state.changed_fluid_bounding_box_buffer_boxes_min_x_offset << std::endl;
-		std::cout << "boxes min_y offset: " << environment.state.changed_fluid_bounding_box_buffer_boxes_min_y_offset << std::endl;
-		std::cout << "boxes max_x offset: " << environment.state.changed_fluid_bounding_box_buffer_boxes_max_x_offset << std::endl;
-		std::cout << "boxes max_y offset: " << environment.state.changed_fluid_bounding_box_buffer_boxes_max_y_offset << std::endl;
+		std::cout << "Changed fluid bounding box buffer (" << environment.state.GPU_buffers.fluid.changed_bounding_boxes.buffer << "):" << std::endl;
+		std::cout << "size: " << environment.state.GPU_buffers.fluid.changed_bounding_boxes.size << std::endl;
+		std::cout << "push index offset: " << environment.state.GPU_buffers.fluid.changed_bounding_boxes.size_offset << std::endl;
+		std::cout << "boxes stride: " << environment.state.GPU_buffers.fluid.changed_bounding_boxes.boxes_stride << std::endl;
+		std::cout << "boxes index offset: " << environment.state.GPU_buffers.fluid.changed_bounding_boxes.boxes_index_offset << std::endl;
+		std::cout << "boxes min_x offset: " << environment.state.GPU_buffers.fluid.changed_bounding_boxes.boxes_min_x_offset << std::endl;
+		std::cout << "boxes min_y offset: " << environment.state.GPU_buffers.fluid.changed_bounding_boxes.boxes_min_y_offset << std::endl;
+		std::cout << "boxes max_x offset: " << environment.state.GPU_buffers.fluid.changed_bounding_boxes.boxes_max_x_offset << std::endl;
+		std::cout << "boxes max_y offset: " << environment.state.GPU_buffers.fluid.changed_bounding_boxes.boxes_max_y_offset << std::endl;
 		std::cout << std::endl;
 
 		std::cout << "Fluid contact buffer (" << environment.state.fluid_contact_buffer << "):" << std::endl;
@@ -5474,15 +5474,15 @@ namespace game_logic
 		std::memcpy
 		(
 			&changed_fluid_leaf_count, 
-			environment.state.changed_fluid_bounding_boxes_mapping + environment.state.changed_fluid_bounding_box_buffer_size_offset,
+			environment.state.GPU_buffers.fluid.changed_bounding_boxes.mapping + environment.state.GPU_buffers.fluid.changed_bounding_boxes.size_offset,
 			sizeof(GLuint)
 		);
 
 		glClearNamedBufferSubData
 		(
-			environment.state.changed_fluid_bounding_box_buffer,
+			environment.state.GPU_buffers.fluid.changed_bounding_boxes.buffer,
 			GL_R32UI,
-			environment.state.changed_fluid_bounding_box_buffer_size_offset, sizeof(GLuint),
+			environment.state.GPU_buffers.fluid.changed_bounding_boxes.size_offset, sizeof(GLuint),
 			GL_RED_INTEGER, GL_UNSIGNED_INT,
 			nullptr
 		);
@@ -5497,11 +5497,11 @@ namespace game_logic
 		}
 		else
 		{
-			unsigned char const* index_start{ environment.state.changed_fluid_bounding_boxes_mapping + environment.state.changed_fluid_bounding_box_buffer_boxes_index_offset };
-			unsigned char const* min_x_start{ environment.state.changed_fluid_bounding_boxes_mapping + environment.state.changed_fluid_bounding_box_buffer_boxes_min_x_offset };
-			unsigned char const* min_y_start{ environment.state.changed_fluid_bounding_boxes_mapping + environment.state.changed_fluid_bounding_box_buffer_boxes_min_y_offset };
-			unsigned char const* max_x_start{ environment.state.changed_fluid_bounding_boxes_mapping + environment.state.changed_fluid_bounding_box_buffer_boxes_max_x_offset };
-			unsigned char const* max_y_start{ environment.state.changed_fluid_bounding_boxes_mapping + environment.state.changed_fluid_bounding_box_buffer_boxes_max_y_offset };
+			unsigned char const* index_start{ environment.state.GPU_buffers.fluid.changed_bounding_boxes.mapping + environment.state.GPU_buffers.fluid.changed_bounding_boxes.boxes_index_offset };
+			unsigned char const* min_x_start{ environment.state.GPU_buffers.fluid.changed_bounding_boxes.mapping + environment.state.GPU_buffers.fluid.changed_bounding_boxes.boxes_min_x_offset };
+			unsigned char const* min_y_start{ environment.state.GPU_buffers.fluid.changed_bounding_boxes.mapping + environment.state.GPU_buffers.fluid.changed_bounding_boxes.boxes_min_y_offset };
+			unsigned char const* max_x_start{ environment.state.GPU_buffers.fluid.changed_bounding_boxes.mapping + environment.state.GPU_buffers.fluid.changed_bounding_boxes.boxes_max_x_offset };
+			unsigned char const* max_y_start{ environment.state.GPU_buffers.fluid.changed_bounding_boxes.mapping + environment.state.GPU_buffers.fluid.changed_bounding_boxes.boxes_max_y_offset };
 
 			for (GLuint i{ 0u }; i < changed_fluid_leaf_count; ++i)
 			{
@@ -7501,7 +7501,7 @@ namespace game_logic
 			environment.state.GPU_buffers.fluid.positions.buffer,
 			environment.state.GPU_buffers.fluid.velocities.buffer,
 			environment.state.GPU_buffers.fluid.bounding_boxes.buffer,
-			environment.state.changed_fluid_bounding_box_buffer, 
+			environment.state.GPU_buffers.fluid.changed_bounding_boxes.buffer, 
 			environment.state.fluid_contact_buffer, 
 			environment.state.fluid_contact_count_buffer, 
 			environment.state.GPU_buffers.fluid.velocities.snapshot_buffer,
