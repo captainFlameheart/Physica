@@ -1496,7 +1496,7 @@ namespace game_logic
 			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))),
 			::util::shader::file_to_string("util/persist_fluid_contacts.comp")
 		);
-		environment.state.persist_fluid_contacts_shader = ::util::shader::create_program(compute_shader);
+		environment.state.shaders.persist.persist_fluid_contacts_shader = ::util::shader::create_program(compute_shader);
 		std::cout << "Persist fluid contacts shader compiled" << std::endl;
 
 		::util::shader::set_shader_statically
@@ -1526,7 +1526,7 @@ namespace game_logic
 			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))),
 			::util::shader::file_to_string("util/persist_fluid_triangle_contacts.comp")
 		);
-		environment.state.persist_fluid_triangle_contacts_shader = ::util::shader::create_program(compute_shader);
+		environment.state.shaders.persist.persist_fluid_triangle_contacts_shader = ::util::shader::create_program(compute_shader);
 		std::cout << "Persist fluid triangle contacts shader compiled" << std::endl;
 
 		::util::shader::set_shader_statically
@@ -1593,7 +1593,7 @@ namespace game_logic
 			util_shader_DEFINE("POSITION_IMPULSE_SCALE", STRINGIFY(game_logic_POSITION_IMPULSE_SCALE(environment))),
 			::util::shader::file_to_string("util/old_triangle_contact_update.comp")
 		);
-		environment.state.old_triangle_contact_update_shader = ::util::shader::create_program(compute_shader);
+		environment.state.shaders.persist.old_triangle_contact_update_shader = ::util::shader::create_program(compute_shader);
 		std::cout << "Old triangle contact update shader compiled" << std::endl;
 
 		::util::shader::set_shader_statically
@@ -1676,7 +1676,7 @@ namespace game_logic
 			util_shader_DEFINE("PENETRATION_VELOCITY_SCALE", STRINGIFY(game_logic_DISTANCE_CONSTRAINT_PENETRATION_VELOCITY_SCALE(environment))),
 			::util::shader::file_to_string("util/update_distance_constraints.comp")
 		);
-		environment.state.update_distance_constraints_shader = ::util::shader::create_program(compute_shader);
+		environment.state.shaders.persist.update_distance_constraints_shader = ::util::shader::create_program(compute_shader);
 		std::cout << "Update distance constraints shader compiled" << std::endl;
 
 		std::string force_distance_definition
@@ -2457,13 +2457,13 @@ namespace game_logic
 			{
 				GLuint const contacts_inactive_index
 				{
-					glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Contacts.contacts[0].inactive")
+					glGetProgramResourceIndex(environment.state.shaders.persist.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Contacts.contacts[0].inactive")
 				};
 				GLenum const prop_labels[]{ GL_OFFSET, GL_TOP_LEVEL_ARRAY_STRIDE };
 				GLint props[std::size(prop_labels)];
 				glGetProgramResourceiv
 				(
-					environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, contacts_inactive_index,
+					environment.state.shaders.persist.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, contacts_inactive_index,
 					std::size(prop_labels), prop_labels, 2u, nullptr, props
 				);
 				// TODO: Consider putting offset and stride contigously in game state
@@ -2474,61 +2474,61 @@ namespace game_logic
 
 				GLuint const impulse_index
 				{
-					glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Contacts.contacts[0].impulse")
+					glGetProgramResourceIndex(environment.state.shaders.persist.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Contacts.contacts[0].impulse")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, impulse_index,
+					environment.state.shaders.persist.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, impulse_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.fluid.contacts.contacts_impulse_offset
 				);
 
 				GLuint const contacts_particles_index
 				{
-					glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Contacts.contacts[0].particles")
+					glGetProgramResourceIndex(environment.state.shaders.persist.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Contacts.contacts[0].particles")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, contacts_particles_index,
+					environment.state.shaders.persist.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, contacts_particles_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.fluid.contacts.contacts_particles_offset
 				);
 
 				GLuint const direction_index
 				{
-					glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Contacts.contacts[0].direction")
+					glGetProgramResourceIndex(environment.state.shaders.persist.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Contacts.contacts[0].direction")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, direction_index,
+					environment.state.shaders.persist.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, direction_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.fluid.contacts.contacts_direction_offset
 				);
 
 				GLuint const target_velocity_index
 				{
-					glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Contacts.contacts[0].target_velocity")
+					glGetProgramResourceIndex(environment.state.shaders.persist.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Contacts.contacts[0].target_velocity")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, target_velocity_index,
+					environment.state.shaders.persist.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, target_velocity_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.fluid.contacts.contacts_target_velocity_offset
 				);
 
 				GLuint const mass_index
 				{
-					glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Contacts.contacts[0].mass")
+					glGetProgramResourceIndex(environment.state.shaders.persist.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Contacts.contacts[0].mass")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, mass_index,
+					environment.state.shaders.persist.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, mass_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.fluid.contacts.contacts_mass_offset
 				);
 
 				GLuint const impulse_range_index
 				{
-					glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Contacts.contacts[0].impulse_range")
+					glGetProgramResourceIndex(environment.state.shaders.persist.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Contacts.contacts[0].impulse_range")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, impulse_range_index,
+					environment.state.shaders.persist.persist_fluid_contacts_shader, GL_BUFFER_VARIABLE, impulse_range_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.fluid.contacts.contacts_impulse_range_offset
 				);
 			}
@@ -2583,22 +2583,22 @@ namespace game_logic
 
 			GLuint const count_index
 			{
-				glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_UNIFORM, "Fluid_Contact_Count.count")
+				glGetProgramResourceIndex(environment.state.shaders.persist.persist_fluid_contacts_shader, GL_UNIFORM, "Fluid_Contact_Count.count")
 			};
 			glGetProgramResourceiv
 			(
-				environment.state.persist_fluid_contacts_shader, GL_UNIFORM, count_index,
+				environment.state.shaders.persist.persist_fluid_contacts_shader, GL_UNIFORM, count_index,
 				1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.fluid.contact_count.count_offset
 			);
 
 			GLuint const block_index
 			{
-				glGetProgramResourceIndex(environment.state.persist_fluid_contacts_shader, GL_UNIFORM_BLOCK, "Fluid_Contact_Count")
+				glGetProgramResourceIndex(environment.state.shaders.persist.persist_fluid_contacts_shader, GL_UNIFORM_BLOCK, "Fluid_Contact_Count")
 			};
 			GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
 			glGetProgramResourceiv
 			(
-				environment.state.persist_fluid_contacts_shader, GL_UNIFORM_BLOCK, block_index,
+				environment.state.shaders.persist.persist_fluid_contacts_shader, GL_UNIFORM_BLOCK, block_index,
 				1u, &buffer_size_label, 1u, nullptr, &environment.state.GPU_buffers.fluid.contact_count.size
 			);
 
@@ -2630,13 +2630,13 @@ namespace game_logic
 			{
 				GLuint const contacts_triangle_index
 				{
-					glGetProgramResourceIndex(environment.state.persist_fluid_triangle_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Triangle_Contacts.contacts[0].triangle")
+					glGetProgramResourceIndex(environment.state.shaders.persist.persist_fluid_triangle_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Triangle_Contacts.contacts[0].triangle")
 				};
 				GLenum const prop_labels[]{ GL_OFFSET, GL_TOP_LEVEL_ARRAY_STRIDE };
 				GLint props[std::size(prop_labels)];
 				glGetProgramResourceiv
 				(
-					environment.state.persist_fluid_triangle_contacts_shader, GL_BUFFER_VARIABLE, contacts_triangle_index,
+					environment.state.shaders.persist.persist_fluid_triangle_contacts_shader, GL_BUFFER_VARIABLE, contacts_triangle_index,
 					std::size(prop_labels), prop_labels, 2u, nullptr, props
 				);
 				// TODO: Consider putting offset and stride contigously in game state
@@ -2647,81 +2647,81 @@ namespace game_logic
 
 				GLuint const mass_index
 				{
-					glGetProgramResourceIndex(environment.state.persist_fluid_triangle_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Triangle_Contacts.contacts[0].mass")
+					glGetProgramResourceIndex(environment.state.shaders.persist.persist_fluid_triangle_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Triangle_Contacts.contacts[0].mass")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.persist_fluid_triangle_contacts_shader, GL_BUFFER_VARIABLE, mass_index,
+					environment.state.shaders.persist.persist_fluid_triangle_contacts_shader, GL_BUFFER_VARIABLE, mass_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.fluid_triangle.contacts.contacts_mass_offset
 				);
 
 				GLuint const impulse_index
 				{
-					glGetProgramResourceIndex(environment.state.persist_fluid_triangle_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Triangle_Contacts.contacts[0].impulse")
+					glGetProgramResourceIndex(environment.state.shaders.persist.persist_fluid_triangle_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Triangle_Contacts.contacts[0].impulse")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.persist_fluid_triangle_contacts_shader, GL_BUFFER_VARIABLE, impulse_index,
+					environment.state.shaders.persist.persist_fluid_triangle_contacts_shader, GL_BUFFER_VARIABLE, impulse_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.fluid_triangle.contacts.contacts_impulse_offset
 				);
 
 				GLuint const particle_index
 				{
-					glGetProgramResourceIndex(environment.state.persist_fluid_triangle_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Triangle_Contacts.contacts[0].particle")
+					glGetProgramResourceIndex(environment.state.shaders.persist.persist_fluid_triangle_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Triangle_Contacts.contacts[0].particle")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.persist_fluid_triangle_contacts_shader, GL_BUFFER_VARIABLE, particle_index,
+					environment.state.shaders.persist.persist_fluid_triangle_contacts_shader, GL_BUFFER_VARIABLE, particle_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.fluid_triangle.contacts.contacts_particle_offset
 				);
 
 				GLuint const body_index
 				{
-					glGetProgramResourceIndex(environment.state.persist_fluid_triangle_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Triangle_Contacts.contacts[0].body")
+					glGetProgramResourceIndex(environment.state.shaders.persist.persist_fluid_triangle_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Triangle_Contacts.contacts[0].body")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.persist_fluid_triangle_contacts_shader, GL_BUFFER_VARIABLE, body_index,
+					environment.state.shaders.persist.persist_fluid_triangle_contacts_shader, GL_BUFFER_VARIABLE, body_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.fluid_triangle.contacts.contacts_body_offset
 				);
 
 				GLuint const target_velocity_index
 				{
-					glGetProgramResourceIndex(environment.state.persist_fluid_triangle_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Triangle_Contacts.contacts[0].target_velocity")
+					glGetProgramResourceIndex(environment.state.shaders.persist.persist_fluid_triangle_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Triangle_Contacts.contacts[0].target_velocity")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.persist_fluid_triangle_contacts_shader, GL_BUFFER_VARIABLE, target_velocity_index,
+					environment.state.shaders.persist.persist_fluid_triangle_contacts_shader, GL_BUFFER_VARIABLE, target_velocity_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.fluid_triangle.contacts.contacts_target_velocity_offset
 				);
 
 				GLuint const offset_index
 				{
-					glGetProgramResourceIndex(environment.state.persist_fluid_triangle_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Triangle_Contacts.contacts[0].offset")
+					glGetProgramResourceIndex(environment.state.shaders.persist.persist_fluid_triangle_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Triangle_Contacts.contacts[0].offset")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.persist_fluid_triangle_contacts_shader, GL_BUFFER_VARIABLE, offset_index,
+					environment.state.shaders.persist.persist_fluid_triangle_contacts_shader, GL_BUFFER_VARIABLE, offset_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.fluid_triangle.contacts.contacts_offset_offset
 				);
 
 				GLuint const direction_index
 				{
-					glGetProgramResourceIndex(environment.state.persist_fluid_triangle_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Triangle_Contacts.contacts[0].direction")
+					glGetProgramResourceIndex(environment.state.shaders.persist.persist_fluid_triangle_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Triangle_Contacts.contacts[0].direction")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.persist_fluid_triangle_contacts_shader, GL_BUFFER_VARIABLE, direction_index,
+					environment.state.shaders.persist.persist_fluid_triangle_contacts_shader, GL_BUFFER_VARIABLE, direction_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.fluid_triangle.contacts.contacts_direction_offset
 				);
 
 				GLuint const impulse_range_index
 				{
-					glGetProgramResourceIndex(environment.state.persist_fluid_triangle_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Triangle_Contacts.contacts[0].impulse_range")
+					glGetProgramResourceIndex(environment.state.shaders.persist.persist_fluid_triangle_contacts_shader, GL_BUFFER_VARIABLE, "Fluid_Triangle_Contacts.contacts[0].impulse_range")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.persist_fluid_triangle_contacts_shader, GL_BUFFER_VARIABLE, impulse_range_index,
+					environment.state.shaders.persist.persist_fluid_triangle_contacts_shader, GL_BUFFER_VARIABLE, impulse_range_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.fluid_triangle.contacts.contacts_impulse_range_offset
 				);
 			}
@@ -2768,22 +2768,22 @@ namespace game_logic
 
 			GLuint const count_index
 			{
-				glGetProgramResourceIndex(environment.state.persist_fluid_triangle_contacts_shader, GL_UNIFORM, "Fluid_Triangle_Contact_Count.count")
+				glGetProgramResourceIndex(environment.state.shaders.persist.persist_fluid_triangle_contacts_shader, GL_UNIFORM, "Fluid_Triangle_Contact_Count.count")
 			};
 			glGetProgramResourceiv
 			(
-				environment.state.persist_fluid_triangle_contacts_shader, GL_UNIFORM, count_index,
+				environment.state.shaders.persist.persist_fluid_triangle_contacts_shader, GL_UNIFORM, count_index,
 				1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.fluid_triangle.contact_count.count_offset
 			);
 
 			GLuint const block_index
 			{
-				glGetProgramResourceIndex(environment.state.persist_fluid_triangle_contacts_shader, GL_UNIFORM_BLOCK, "Fluid_Triangle_Contact_Count")
+				glGetProgramResourceIndex(environment.state.shaders.persist.persist_fluid_triangle_contacts_shader, GL_UNIFORM_BLOCK, "Fluid_Triangle_Contact_Count")
 			};
 			GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
 			glGetProgramResourceiv
 			(
-				environment.state.persist_fluid_triangle_contacts_shader, GL_UNIFORM_BLOCK, block_index,
+				environment.state.shaders.persist.persist_fluid_triangle_contacts_shader, GL_UNIFORM_BLOCK, block_index,
 				1u, &buffer_size_label, 1u, nullptr, &environment.state.GPU_buffers.fluid_triangle.contact_count.size
 			);
 
@@ -3449,13 +3449,13 @@ namespace game_logic
 			{
 				GLuint const bodies_index
 				{
-					glGetProgramResourceIndex(environment.state.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, "Contact_Surfaces.contact_surfaces[0].bodies[0]")
+					glGetProgramResourceIndex(environment.state.shaders.persist.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, "Contact_Surfaces.contact_surfaces[0].bodies[0]")
 				};
 				GLenum const prop_labels[]{ GL_OFFSET, GL_TOP_LEVEL_ARRAY_STRIDE, GL_ARRAY_STRIDE };
 				GLint props[std::size(prop_labels)];
 				glGetProgramResourceiv
 				(
-					environment.state.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, bodies_index, 
+					environment.state.shaders.persist.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, bodies_index,
 					std::size(prop_labels), prop_labels, 3u, nullptr, props
 				);
 				// TODO: Consider putting offset and strides contigously in game state
@@ -3468,11 +3468,11 @@ namespace game_logic
 
 				GLuint const contact_surfaces_contact_point_position_0_offsets_index
 				{
-					glGetProgramResourceIndex(environment.state.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, "Contact_Surfaces.contact_surfaces[0].contact_point_positions[0].offsets[0]")
+					glGetProgramResourceIndex(environment.state.shaders.persist.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, "Contact_Surfaces.contact_surfaces[0].contact_point_positions[0].offsets[0]")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, contact_surfaces_contact_point_position_0_offsets_index,
+					environment.state.shaders.persist.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, contact_surfaces_contact_point_position_0_offsets_index,
 					std::size(array_prop_labels), array_prop_labels, 2u, nullptr, array_props
 				);
 				environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_position_0_offsets_offset = array_props[0];
@@ -3480,11 +3480,11 @@ namespace game_logic
 
 				GLuint const contact_surfaces_contact_point_position_1_offsets_index
 				{
-					glGetProgramResourceIndex(environment.state.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, "Contact_Surfaces.contact_surfaces[0].contact_point_positions[1].offsets[0]")
+					glGetProgramResourceIndex(environment.state.shaders.persist.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, "Contact_Surfaces.contact_surfaces[0].contact_point_positions[1].offsets[0]")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, contact_surfaces_contact_point_position_1_offsets_index,
+					environment.state.shaders.persist.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, contact_surfaces_contact_point_position_1_offsets_index,
 					std::size(array_prop_labels), array_prop_labels, 2u, nullptr, array_props
 				);
 				environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_position_1_offsets_offset = array_props[0];
@@ -3494,111 +3494,111 @@ namespace game_logic
 
 				GLuint const contact_surfaces_tangent_index
 				{
-					glGetProgramResourceIndex(environment.state.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, "Contact_Surfaces.contact_surfaces[0].tangent")
+					glGetProgramResourceIndex(environment.state.shaders.persist.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, "Contact_Surfaces.contact_surfaces[0].tangent")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, contact_surfaces_tangent_index,
+					environment.state.shaders.persist.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, contact_surfaces_tangent_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_tangent_offset
 				);
 
 				GLuint const contact_surfaces_contact_point_tangent_0_mass_index
 				{
-					glGetProgramResourceIndex(environment.state.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, "Contact_Surfaces.contact_surfaces[0].contact_point_tangents[0].mass")
+					glGetProgramResourceIndex(environment.state.shaders.persist.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, "Contact_Surfaces.contact_surfaces[0].contact_point_tangents[0].mass")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, contact_surfaces_contact_point_tangent_0_mass_index,
+					environment.state.shaders.persist.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, contact_surfaces_contact_point_tangent_0_mass_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_tangent_0_mass_offset
 				);
 
 				GLuint const contact_surfaces_contact_point_tangent_0_impulse_index
 				{
-					glGetProgramResourceIndex(environment.state.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, "Contact_Surfaces.contact_surfaces[0].contact_point_tangents[0].impulse")
+					glGetProgramResourceIndex(environment.state.shaders.persist.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, "Contact_Surfaces.contact_surfaces[0].contact_point_tangents[0].impulse")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, contact_surfaces_contact_point_tangent_0_impulse_index,
+					environment.state.shaders.persist.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, contact_surfaces_contact_point_tangent_0_impulse_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_tangent_0_impulse_offset
 				);
 
 				GLuint const contact_surfaces_contact_point_tangent_1_mass_index
 				{
-					glGetProgramResourceIndex(environment.state.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, "Contact_Surfaces.contact_surfaces[0].contact_point_tangents[1].mass")
+					glGetProgramResourceIndex(environment.state.shaders.persist.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, "Contact_Surfaces.contact_surfaces[0].contact_point_tangents[1].mass")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, contact_surfaces_contact_point_tangent_1_mass_index,
+					environment.state.shaders.persist.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, contact_surfaces_contact_point_tangent_1_mass_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_tangent_1_mass_offset
 				);
 
 				GLuint const contact_surfaces_contact_point_tangent_1_impulse_index
 				{
-					glGetProgramResourceIndex(environment.state.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, "Contact_Surfaces.contact_surfaces[0].contact_point_tangents[1].impulse")
+					glGetProgramResourceIndex(environment.state.shaders.persist.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, "Contact_Surfaces.contact_surfaces[0].contact_point_tangents[1].impulse")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, contact_surfaces_contact_point_tangent_1_impulse_index,
+					environment.state.shaders.persist.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, contact_surfaces_contact_point_tangent_1_impulse_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_tangent_1_impulse_offset
 				);
 
 				GLuint const contact_surfaces_contact_point_normal_0_target_velocity_index
 				{
-					glGetProgramResourceIndex(environment.state.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, "Contact_Surfaces.contact_surfaces[0].contact_point_normals[0].target_velocity")
+					glGetProgramResourceIndex(environment.state.shaders.persist.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, "Contact_Surfaces.contact_surfaces[0].contact_point_normals[0].target_velocity")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, contact_surfaces_contact_point_normal_0_target_velocity_index,
+					environment.state.shaders.persist.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, contact_surfaces_contact_point_normal_0_target_velocity_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_normal_0_target_velocity_offset
 				);
 
 				GLuint const contact_surfaces_contact_point_normal_0_mass_index
 				{
-					glGetProgramResourceIndex(environment.state.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, "Contact_Surfaces.contact_surfaces[0].contact_point_normals[0].mass")
+					glGetProgramResourceIndex(environment.state.shaders.persist.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, "Contact_Surfaces.contact_surfaces[0].contact_point_normals[0].mass")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, contact_surfaces_contact_point_normal_0_mass_index,
+					environment.state.shaders.persist.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, contact_surfaces_contact_point_normal_0_mass_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_normal_0_mass_offset
 				);
 
 				GLuint const contact_surfaces_contact_point_normal_0_impulse_index
 				{
-					glGetProgramResourceIndex(environment.state.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, "Contact_Surfaces.contact_surfaces[0].contact_point_normals[0].impulse")
+					glGetProgramResourceIndex(environment.state.shaders.persist.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, "Contact_Surfaces.contact_surfaces[0].contact_point_normals[0].impulse")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, contact_surfaces_contact_point_normal_0_impulse_index,
+					environment.state.shaders.persist.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, contact_surfaces_contact_point_normal_0_impulse_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_normal_0_impulse_offset
 				);
 
 				GLuint const contact_surfaces_contact_point_normal_1_target_velocity_index
 				{
-					glGetProgramResourceIndex(environment.state.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, "Contact_Surfaces.contact_surfaces[0].contact_point_normals[1].target_velocity")
+					glGetProgramResourceIndex(environment.state.shaders.persist.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, "Contact_Surfaces.contact_surfaces[0].contact_point_normals[1].target_velocity")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, contact_surfaces_contact_point_normal_1_target_velocity_index,
+					environment.state.shaders.persist.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, contact_surfaces_contact_point_normal_1_target_velocity_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_normal_1_target_velocity_offset
 				);
 
 				GLuint const contact_surfaces_contact_point_normal_1_mass_index
 				{
-					glGetProgramResourceIndex(environment.state.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, "Contact_Surfaces.contact_surfaces[0].contact_point_normals[1].mass")
+					glGetProgramResourceIndex(environment.state.shaders.persist.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, "Contact_Surfaces.contact_surfaces[0].contact_point_normals[1].mass")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, contact_surfaces_contact_point_normal_1_mass_index,
+					environment.state.shaders.persist.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, contact_surfaces_contact_point_normal_1_mass_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_normal_1_mass_offset
 				);
 
 				GLuint const contact_surfaces_contact_point_normal_1_impulse_index
 				{
-					glGetProgramResourceIndex(environment.state.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, "Contact_Surfaces.contact_surfaces[0].contact_point_normals[1].impulse")
+					glGetProgramResourceIndex(environment.state.shaders.persist.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, "Contact_Surfaces.contact_surfaces[0].contact_point_normals[1].impulse")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, contact_surfaces_contact_point_normal_1_impulse_index,
+					environment.state.shaders.persist.old_triangle_contact_update_shader, GL_BUFFER_VARIABLE, contact_surfaces_contact_point_normal_1_impulse_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.rigid_bodies.triangles.contact_surfaces.contact_surfaces_contact_point_normal_1_impulse_offset
 				);
 
@@ -3648,24 +3648,24 @@ namespace game_logic
 		 { // Contact count buffer
 			 GLuint const contact_count_index
 			 {
-				 glGetProgramResourceIndex(environment.state.old_triangle_contact_update_shader, GL_UNIFORM, "Contact_Count.contact_count")
+				 glGetProgramResourceIndex(environment.state.shaders.persist.old_triangle_contact_update_shader, GL_UNIFORM, "Contact_Count.contact_count")
 			 };
 
 			 GLenum offset_label{ GL_OFFSET };
 			 glGetProgramResourceiv
 			 (
-				 environment.state.old_triangle_contact_update_shader, GL_UNIFORM, contact_count_index,
+				 environment.state.shaders.persist.old_triangle_contact_update_shader, GL_UNIFORM, contact_count_index,
 				 1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.rigid_bodies.triangles.contact_count.contact_count_offset
 			 );
 
 			 GLuint const block_index
 			 {
-				 glGetProgramResourceIndex(environment.state.old_triangle_contact_update_shader, GL_UNIFORM_BLOCK, "Contact_Count")
+				 glGetProgramResourceIndex(environment.state.shaders.persist.old_triangle_contact_update_shader, GL_UNIFORM_BLOCK, "Contact_Count")
 			 };
 			 GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
 			 glGetProgramResourceiv
 			 (
-				 environment.state.old_triangle_contact_update_shader, GL_UNIFORM_BLOCK, block_index,
+				 environment.state.shaders.persist.old_triangle_contact_update_shader, GL_UNIFORM_BLOCK, block_index,
 				 1u, &buffer_size_label, 1u, nullptr, &environment.state.GPU_buffers.rigid_bodies.triangles.contact_count.size
 			 );
 
@@ -3873,23 +3873,23 @@ namespace game_logic
 
 				GLuint const count_index
 				{
-					glGetProgramResourceIndex(environment.state.update_distance_constraints_shader, GL_BUFFER_VARIABLE, "Distance_Constraints.count")
+					glGetProgramResourceIndex(environment.state.shaders.persist.update_distance_constraints_shader, GL_BUFFER_VARIABLE, "Distance_Constraints.count")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.update_distance_constraints_shader, GL_BUFFER_VARIABLE, count_index,
+					environment.state.shaders.persist.update_distance_constraints_shader, GL_BUFFER_VARIABLE, count_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.rigid_bodies.distance_constraints.count_offset
 				);
 
 				GLuint const distance_constraints_bodies_index
 				{
-					glGetProgramResourceIndex(environment.state.update_distance_constraints_shader, GL_BUFFER_VARIABLE, "Distance_Constraints.distance_constraints[0].bodies")
+					glGetProgramResourceIndex(environment.state.shaders.persist.update_distance_constraints_shader, GL_BUFFER_VARIABLE, "Distance_Constraints.distance_constraints[0].bodies")
 				};
 				GLenum const prop_labels[]{ GL_OFFSET, GL_TOP_LEVEL_ARRAY_STRIDE };
 				GLint props[std::size(prop_labels)];
 				glGetProgramResourceiv
 				(
-					environment.state.update_distance_constraints_shader, GL_BUFFER_VARIABLE, distance_constraints_bodies_index,
+					environment.state.shaders.persist.update_distance_constraints_shader, GL_BUFFER_VARIABLE, distance_constraints_bodies_index,
 					std::size(prop_labels), prop_labels, 2u, nullptr, props
 				);
 				// TODO: Consider putting offset and stride contigously in game state (but probably not)
@@ -3901,11 +3901,11 @@ namespace game_logic
 
 				GLuint const distance_constraints_local_points_index
 				{
-					glGetProgramResourceIndex(environment.state.update_distance_constraints_shader, GL_BUFFER_VARIABLE, "Distance_Constraints.distance_constraints[0].local_points[0]")
+					glGetProgramResourceIndex(environment.state.shaders.persist.update_distance_constraints_shader, GL_BUFFER_VARIABLE, "Distance_Constraints.distance_constraints[0].local_points[0]")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.update_distance_constraints_shader, GL_BUFFER_VARIABLE, distance_constraints_local_points_index,
+					environment.state.shaders.persist.update_distance_constraints_shader, GL_BUFFER_VARIABLE, distance_constraints_local_points_index,
 					std::size(array_prop_labels), array_prop_labels, 2u, nullptr, array_props
 				);
 				environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_local_points_offset = array_props[0u];
@@ -3913,11 +3913,11 @@ namespace game_logic
 
 				GLuint const distance_constraints_offsets_index
 				{
-					glGetProgramResourceIndex(environment.state.update_distance_constraints_shader, GL_BUFFER_VARIABLE, "Distance_Constraints.distance_constraints[0].offsets[0]")
+					glGetProgramResourceIndex(environment.state.shaders.persist.update_distance_constraints_shader, GL_BUFFER_VARIABLE, "Distance_Constraints.distance_constraints[0].offsets[0]")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.update_distance_constraints_shader, GL_BUFFER_VARIABLE, distance_constraints_offsets_index,
+					environment.state.shaders.persist.update_distance_constraints_shader, GL_BUFFER_VARIABLE, distance_constraints_offsets_index,
 					std::size(array_prop_labels), array_prop_labels, 2u, nullptr, array_props
 				);
 				environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_offsets_offset = array_props[0u];
@@ -3925,51 +3925,51 @@ namespace game_logic
 
 				GLuint const distance_constraints_direction_index
 				{
-					glGetProgramResourceIndex(environment.state.update_distance_constraints_shader, GL_BUFFER_VARIABLE, "Distance_Constraints.distance_constraints[0].direction")
+					glGetProgramResourceIndex(environment.state.shaders.persist.update_distance_constraints_shader, GL_BUFFER_VARIABLE, "Distance_Constraints.distance_constraints[0].direction")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.update_distance_constraints_shader, GL_BUFFER_VARIABLE, distance_constraints_direction_index,
+					environment.state.shaders.persist.update_distance_constraints_shader, GL_BUFFER_VARIABLE, distance_constraints_direction_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_direction_offset
 				);
 
 				GLuint const distance_constraints_max_distance_index
 				{
-					glGetProgramResourceIndex(environment.state.update_distance_constraints_shader, GL_BUFFER_VARIABLE, "Distance_Constraints.distance_constraints[0].max_distance")
+					glGetProgramResourceIndex(environment.state.shaders.persist.update_distance_constraints_shader, GL_BUFFER_VARIABLE, "Distance_Constraints.distance_constraints[0].max_distance")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.update_distance_constraints_shader, GL_BUFFER_VARIABLE, distance_constraints_max_distance_index,
+					environment.state.shaders.persist.update_distance_constraints_shader, GL_BUFFER_VARIABLE, distance_constraints_max_distance_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_max_distance_offset
 				);
 
 				GLuint const distance_constraints_target_velocity_index
 				{
-					glGetProgramResourceIndex(environment.state.update_distance_constraints_shader, GL_BUFFER_VARIABLE, "Distance_Constraints.distance_constraints[0].target_velocity")
+					glGetProgramResourceIndex(environment.state.shaders.persist.update_distance_constraints_shader, GL_BUFFER_VARIABLE, "Distance_Constraints.distance_constraints[0].target_velocity")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.update_distance_constraints_shader, GL_BUFFER_VARIABLE, distance_constraints_target_velocity_index,
+					environment.state.shaders.persist.update_distance_constraints_shader, GL_BUFFER_VARIABLE, distance_constraints_target_velocity_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_target_velocity_offset
 				);
 
 				GLuint const distance_constraints_mass_index
 				{
-					glGetProgramResourceIndex(environment.state.update_distance_constraints_shader, GL_BUFFER_VARIABLE, "Distance_Constraints.distance_constraints[0].mass")
+					glGetProgramResourceIndex(environment.state.shaders.persist.update_distance_constraints_shader, GL_BUFFER_VARIABLE, "Distance_Constraints.distance_constraints[0].mass")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.update_distance_constraints_shader, GL_BUFFER_VARIABLE, distance_constraints_mass_index,
+					environment.state.shaders.persist.update_distance_constraints_shader, GL_BUFFER_VARIABLE, distance_constraints_mass_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_mass_offset
 				);
 
 				GLuint const distance_constraints_impulse_index
 				{
-					glGetProgramResourceIndex(environment.state.update_distance_constraints_shader, GL_BUFFER_VARIABLE, "Distance_Constraints.distance_constraints[0].impulse")
+					glGetProgramResourceIndex(environment.state.shaders.persist.update_distance_constraints_shader, GL_BUFFER_VARIABLE, "Distance_Constraints.distance_constraints[0].impulse")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.update_distance_constraints_shader, GL_BUFFER_VARIABLE, distance_constraints_impulse_index,
+					environment.state.shaders.persist.update_distance_constraints_shader, GL_BUFFER_VARIABLE, distance_constraints_impulse_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.rigid_bodies.distance_constraints.distance_constraints_impulse_offset
 				);
 
@@ -5426,14 +5426,14 @@ namespace game_logic
 		// so that this memory barrier becomes unnecessary.
 		//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);	// Writes to bounding boxes must occur before constraining the positions and velocities
 
-		glUseProgram(environment.state.persist_fluid_contacts_shader);
+		glUseProgram(environment.state.shaders.persist.persist_fluid_contacts_shader);
 		glDispatchCompute
 		(
 			ceil_div(environment.state.GPU_buffers.fluid.contact_count.current_contact_count, PERSIST_FLUID_CONTACT_LOCAL_SIZE(environment)),
 			1u, 1u
 		);
 
-		glUseProgram(environment.state.persist_fluid_triangle_contacts_shader);
+		glUseProgram(environment.state.shaders.persist.persist_fluid_triangle_contacts_shader);
 		glDispatchCompute
 		(
 			ceil_div(environment.state.GPU_buffers.fluid_triangle.contact_count.current_contact_count, PERSIST_FLUID_TRIANGLE_CONTACT_LOCAL_SIZE(environment)), 
@@ -5441,14 +5441,14 @@ namespace game_logic
 		);
 
 		// TODO: Optimize this shader! It's expensive! Also make sure we do not use any flags for the buffers
-		glUseProgram(environment.state.old_triangle_contact_update_shader);
+		glUseProgram(environment.state.shaders.persist.old_triangle_contact_update_shader);
 		glDispatchCompute
 		(
 			ceil_div(environment.state.current_triangle_contact_count, game_logic__util__rigid_body_OLD_TRIANGLE_CONTACT_UPDATE_LOCAL_SIZE(environment)),
 			1u, 1u
 		);
 
-		glUseProgram(environment.state.update_distance_constraints_shader);
+		glUseProgram(environment.state.shaders.persist.update_distance_constraints_shader);
 		glDispatchCompute
 		(
 			ceil_div(environment.state.GPU_buffers.rigid_bodies.distance_constraints.current_count, game_logic_UPDATE_DISTANCE_CONSTRAINTS_LOCAL_SIZE(environment)),

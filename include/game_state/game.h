@@ -53,9 +53,9 @@ namespace game_state
 
 		GLuint current_triangle_contact_count;
 
-		GLuint persist_fluid_contacts_shader;
-		GLuint persist_fluid_triangle_contacts_shader;
-		GLuint old_triangle_contact_update_shader;
+		//GLuint persist_fluid_contacts_shader;
+		//GLuint persist_fluid_triangle_contacts_shader;
+		//GLuint old_triangle_contact_update_shader;
 
 		GLuint new_fluid_contacts_shader;
 		GLuint new_fluid_triangle_contacts_shader;
@@ -63,7 +63,7 @@ namespace game_state
 		GLint new_fluid_contacts_shader_persistent_count_uniform_location;
 		GLuint new_triangle_contact_shader;
 
-		GLuint update_distance_constraints_shader;
+		//GLuint update_distance_constraints_shader;
 
 		proximity::Tree proximity_tree;
 
