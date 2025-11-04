@@ -1390,7 +1390,7 @@ namespace game_logic
 			util_shader_DEFINE("MAX_GRAVITY_SOURCE_COUNT", STRINGIFY(MAX_GRAVITY_SOURCE_COUNT)),
 			::util::shader::file_to_string("util/rigid_body_velocity_integration.comp")
 		);
-		environment.state.rigid_body_velocity_integration_shader = ::util::shader::create_program(compute_shader);
+		environment.state.shaders.integrate_velocities.rigid_body_velocity_integration_shader = ::util::shader::create_program(compute_shader);
 		std::cout << "Rigid body velocity integration shader compiled" << std::endl;
 
 		// TODO: Think about how to deal with this temporary variable
@@ -1419,7 +1419,7 @@ namespace game_logic
 			fluid_paritcle_physical_radius_definition,
 			::util::shader::file_to_string("util/integrate_fluid_velocity.comp")
 		);
-		environment.state.integrate_fluid_velocity_shader = ::util::shader::create_program(compute_shader);
+		environment.state.shaders.integrate_velocities.integrate_fluid_velocity_shader = ::util::shader::create_program(compute_shader);
 		std::cout << "Integrate fluid velocity shader compiled" << std::endl;
 
 		// TODO: Think about how to deal with this temporary variable
@@ -1447,7 +1447,7 @@ namespace game_logic
 			util_shader_DEFINE("TRIANGLE_LEAFS_BASE_INDEX", STRINGIFY(game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment))),
 			::util::shader::file_to_string("util/triangle_bounding_box_update.comp")
 		);
-		environment.state.triangle_bounding_box_update_shader = ::util::shader::create_program(compute_shader);
+		environment.state.shaders.integrate_velocities.triangle_bounding_box_update_shader = ::util::shader::create_program(compute_shader);
 		std::cout << "Triangle bounding box update shader compiled" << std::endl;
 
 		::util::shader::set_shader_statically
@@ -2110,14 +2110,14 @@ namespace game_logic
 		{ // Fluid position buffer
 			GLuint const p_index
 			{
-				glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, "Fluid_Position.p")
+				glGetProgramResourceIndex(environment.state.shaders.integrate_velocities.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, "Fluid_Position.p")
 			};
 
 			GLenum const prop_labels[]{ GL_OFFSET, GL_ARRAY_STRIDE };
 			GLint props[std::size(prop_labels)];
 			glGetProgramResourceiv
 			(
-				environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, p_index,
+				environment.state.shaders.integrate_velocities.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, p_index,
 				std::size(prop_labels), prop_labels, 2, nullptr, props
 			);
 			// TODO: Consider putting p_offset and p_stride contigously in game state
@@ -2185,14 +2185,14 @@ namespace game_logic
 		{ // Fluid velocity buffer
 			GLuint const v_index
 			{
-				glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, "Fluid_Velocity.v")
+				glGetProgramResourceIndex(environment.state.shaders.integrate_velocities.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, "Fluid_Velocity.v")
 			};
 
 			GLenum const prop_labels[]{ GL_OFFSET, GL_ARRAY_STRIDE };
 			GLint props[std::size(prop_labels)];
 			glGetProgramResourceiv
 			(
-				environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, v_index,
+				environment.state.shaders.integrate_velocities.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, v_index,
 				std::size(prop_labels), prop_labels, 2, nullptr, props
 			);
 			// TODO: Consider putting v_offset and v_stride contigously in game state
@@ -2264,14 +2264,14 @@ namespace game_logic
 		{ // Fluid bounding box buffer
 			GLuint const boxes_index
 			{
-				glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, "Fluid_Bounding_Boxes.boxes")
+				glGetProgramResourceIndex(environment.state.shaders.integrate_velocities.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, "Fluid_Bounding_Boxes.boxes")
 			};
 
 			GLenum const prop_labels[]{ GL_OFFSET, GL_ARRAY_STRIDE };
 			GLint props[std::size(prop_labels)];
 			glGetProgramResourceiv
 			(
-				environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, boxes_index,
+				environment.state.shaders.integrate_velocities.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, boxes_index,
 				std::size(prop_labels), prop_labels, 2u, nullptr, props
 			);
 			// TODO: Consider putting offset and stride contigously in game state
@@ -2333,12 +2333,12 @@ namespace game_logic
 			{
 				GLuint const size_index
 				{
-					glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, "Changed_Fluid_Bounding_Boxes.size")
+					glGetProgramResourceIndex(environment.state.shaders.integrate_velocities.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, "Changed_Fluid_Bounding_Boxes.size")
 				};
 				GLenum const offset_label{ GL_OFFSET };
 				glGetProgramResourceiv
 				(
-					environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, size_index,
+					environment.state.shaders.integrate_velocities.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, size_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.fluid.changed_bounding_boxes.size_offset
 				);
 			}
@@ -2346,13 +2346,13 @@ namespace game_logic
 			{
 				GLuint const boxes_index_index
 				{
-					glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, "Changed_Fluid_Bounding_Boxes.boxes[0].index")
+					glGetProgramResourceIndex(environment.state.shaders.integrate_velocities.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, "Changed_Fluid_Bounding_Boxes.boxes[0].index")
 				};
 				GLenum const prop_labels[]{ GL_OFFSET, GL_TOP_LEVEL_ARRAY_STRIDE };
 				GLint props[std::size(prop_labels)];
 				glGetProgramResourceiv
 				(
-					environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, boxes_index_index,
+					environment.state.shaders.integrate_velocities.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, boxes_index_index,
 					std::size(prop_labels), prop_labels, 2u, nullptr, props
 				);
 				// TODO: Consider putting offset and stride contigously in game state
@@ -2363,41 +2363,41 @@ namespace game_logic
 
 				GLuint const boxes_min_x_index
 				{
-					glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, "Changed_Fluid_Bounding_Boxes.boxes[0].min_x")
+					glGetProgramResourceIndex(environment.state.shaders.integrate_velocities.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, "Changed_Fluid_Bounding_Boxes.boxes[0].min_x")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, boxes_min_x_index,
+					environment.state.shaders.integrate_velocities.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, boxes_min_x_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.fluid.changed_bounding_boxes.boxes_min_x_offset
 				);
 
 				GLuint const boxes_min_y_index
 				{
-					glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, "Changed_Fluid_Bounding_Boxes.boxes[0].min_y")
+					glGetProgramResourceIndex(environment.state.shaders.integrate_velocities.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, "Changed_Fluid_Bounding_Boxes.boxes[0].min_y")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, boxes_min_y_index,
+					environment.state.shaders.integrate_velocities.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, boxes_min_y_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.fluid.changed_bounding_boxes.boxes_min_y_offset
 				);
 
 				GLuint const boxes_max_x_index
 				{
-					glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, "Changed_Fluid_Bounding_Boxes.boxes[0].max_x")
+					glGetProgramResourceIndex(environment.state.shaders.integrate_velocities.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, "Changed_Fluid_Bounding_Boxes.boxes[0].max_x")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, boxes_max_x_index,
+					environment.state.shaders.integrate_velocities.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, boxes_max_x_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.fluid.changed_bounding_boxes.boxes_max_x_offset
 				);
 
 				GLuint const boxes_max_y_index
 				{
-					glGetProgramResourceIndex(environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, "Changed_Fluid_Bounding_Boxes.boxes[0].max_y")
+					glGetProgramResourceIndex(environment.state.shaders.integrate_velocities.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, "Changed_Fluid_Bounding_Boxes.boxes[0].max_y")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, boxes_max_y_index,
+					environment.state.shaders.integrate_velocities.integrate_fluid_velocity_shader, GL_BUFFER_VARIABLE, boxes_max_y_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.fluid.changed_bounding_boxes.boxes_max_y_offset
 				);
 			}
@@ -2805,14 +2805,14 @@ namespace game_logic
 		{ // Position buffer
 			GLuint const p_index
 			{
-				glGetProgramResourceIndex(environment.state.rigid_body_velocity_integration_shader, GL_BUFFER_VARIABLE, "Positions.p")
+				glGetProgramResourceIndex(environment.state.shaders.integrate_velocities.rigid_body_velocity_integration_shader, GL_BUFFER_VARIABLE, "Positions.p")
 			};
 
 			GLenum const prop_labels[]{ GL_OFFSET, GL_ARRAY_STRIDE };
 			GLint props[std::size(prop_labels)];
 			glGetProgramResourceiv
 			(
-				environment.state.rigid_body_velocity_integration_shader, GL_BUFFER_VARIABLE, p_index,
+				environment.state.shaders.integrate_velocities.rigid_body_velocity_integration_shader, GL_BUFFER_VARIABLE, p_index,
 				std::size(prop_labels), prop_labels, 2, nullptr, props
 			);
 			// TODO: Consider putting p_offset and p_stride contigously in game state
@@ -2915,14 +2915,14 @@ namespace game_logic
 		{ // Velocity buffer
 			GLuint const v_index
 			{
-				glGetProgramResourceIndex(environment.state.rigid_body_velocity_integration_shader, GL_BUFFER_VARIABLE, "Velocities.v")
+				glGetProgramResourceIndex(environment.state.shaders.integrate_velocities.rigid_body_velocity_integration_shader, GL_BUFFER_VARIABLE, "Velocities.v")
 			};
 
 			GLenum const prop_labels[]{ GL_OFFSET, GL_ARRAY_STRIDE };
 			GLint props[std::size(prop_labels)];
 			glGetProgramResourceiv
 			(
-				environment.state.rigid_body_velocity_integration_shader, GL_BUFFER_VARIABLE, v_index,
+				environment.state.shaders.integrate_velocities.rigid_body_velocity_integration_shader, GL_BUFFER_VARIABLE, v_index,
 				std::size(prop_labels), prop_labels, 2, nullptr, props
 			);
 			// TODO: Consider putting v_offset and v_stride contigously in game state
@@ -3184,14 +3184,14 @@ namespace game_logic
 		 { // Bounding box buffer
 			GLuint const boxes_index
 			{
-				glGetProgramResourceIndex(environment.state.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, "Bounding_Boxes.boxes")
+				glGetProgramResourceIndex(environment.state.shaders.integrate_velocities.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, "Bounding_Boxes.boxes")
 			};
 
 			GLenum const prop_labels[]{ GL_OFFSET, GL_ARRAY_STRIDE };
 			GLint props[std::size(prop_labels)];
 			glGetProgramResourceiv
 			(
-				environment.state.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, boxes_index,
+				environment.state.shaders.integrate_velocities.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, boxes_index,
 				std::size(prop_labels), prop_labels, 2, nullptr, props
 			);
 			// TODO: Consider putting offset and stride contigously in game state
@@ -3253,12 +3253,12 @@ namespace game_logic
 			 {
 				 GLuint const size_index
 				 {
-					 glGetProgramResourceIndex(environment.state.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, "Changed_Bounding_Boxes.size")
+					 glGetProgramResourceIndex(environment.state.shaders.integrate_velocities.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, "Changed_Bounding_Boxes.size")
 				 };
 				 GLenum const offset_label{ GL_OFFSET };
 				 glGetProgramResourceiv
 				 (
-					 environment.state.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, size_index,
+					 environment.state.shaders.integrate_velocities.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, size_index,
 					 1, &offset_label, 1, nullptr, &environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.size_offset
 				 );
 			 }
@@ -3266,13 +3266,13 @@ namespace game_logic
 			 {
 				 GLuint const boxes_index_index
 				 {
-					 glGetProgramResourceIndex(environment.state.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, "Changed_Bounding_Boxes.boxes[0].index")
+					 glGetProgramResourceIndex(environment.state.shaders.integrate_velocities.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, "Changed_Bounding_Boxes.boxes[0].index")
 				 };
 				 GLenum const prop_labels[]{ GL_OFFSET, GL_TOP_LEVEL_ARRAY_STRIDE };
 				 GLint props[std::size(prop_labels)];
 				 glGetProgramResourceiv
 				 (
-					 environment.state.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, boxes_index_index,
+					 environment.state.shaders.integrate_velocities.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, boxes_index_index,
 					 std::size(prop_labels), prop_labels, 2, nullptr, props
 				 );
 				 // TODO: Consider putting offset and stride contigously in game state
@@ -3283,41 +3283,41 @@ namespace game_logic
 
 				 GLuint const boxes_min_x_index
 				 {
-					 glGetProgramResourceIndex(environment.state.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, "Changed_Bounding_Boxes.boxes[0].min_x")
+					 glGetProgramResourceIndex(environment.state.shaders.integrate_velocities.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, "Changed_Bounding_Boxes.boxes[0].min_x")
 				 };
 				 glGetProgramResourceiv
 				 (
-					 environment.state.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, boxes_min_x_index,
+					 environment.state.shaders.integrate_velocities.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, boxes_min_x_index,
 					 1, &offset_label, 1, nullptr, &environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.boxes_min_x_offset
 				 );
 
 				 GLuint const boxes_min_y_index
 				 {
-					 glGetProgramResourceIndex(environment.state.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, "Changed_Bounding_Boxes.boxes[0].min_y")
+					 glGetProgramResourceIndex(environment.state.shaders.integrate_velocities.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, "Changed_Bounding_Boxes.boxes[0].min_y")
 				 };
 				 glGetProgramResourceiv
 				 (
-					 environment.state.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, boxes_min_y_index,
+					 environment.state.shaders.integrate_velocities.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, boxes_min_y_index,
 					 1, &offset_label, 1, nullptr, &environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.boxes_min_y_offset
 				 );
 
 				 GLuint const boxes_max_x_index
 				 {
-					 glGetProgramResourceIndex(environment.state.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, "Changed_Bounding_Boxes.boxes[0].max_x")
+					 glGetProgramResourceIndex(environment.state.shaders.integrate_velocities.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, "Changed_Bounding_Boxes.boxes[0].max_x")
 				 };
 				 glGetProgramResourceiv
 				 (
-					 environment.state.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, boxes_max_x_index,
+					 environment.state.shaders.integrate_velocities.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, boxes_max_x_index,
 					 1, &offset_label, 1, nullptr, &environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.boxes_max_x_offset
 				 );
 
 				 GLuint const boxes_max_y_index
 				 {
-					 glGetProgramResourceIndex(environment.state.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, "Changed_Bounding_Boxes.boxes[0].max_y")
+					 glGetProgramResourceIndex(environment.state.shaders.integrate_velocities.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, "Changed_Bounding_Boxes.boxes[0].max_y")
 				 };
 				 glGetProgramResourceiv
 				 (
-					 environment.state.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, boxes_max_y_index,
+					 environment.state.shaders.integrate_velocities.triangle_bounding_box_update_shader, GL_BUFFER_VARIABLE, boxes_max_y_index,
 					 1, &offset_label, 1, nullptr, &environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.boxes_max_y_offset
 				 );
 			}
@@ -4620,12 +4620,12 @@ namespace game_logic
 		{ // Count buffer
 			GLuint const block_index
 			{
-				glGetProgramResourceIndex(environment.state.rigid_body_velocity_integration_shader, GL_UNIFORM_BLOCK, "Count")
+				glGetProgramResourceIndex(environment.state.shaders.integrate_velocities.rigid_body_velocity_integration_shader, GL_UNIFORM_BLOCK, "Count")
 			};
 			GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
 			glGetProgramResourceiv
 			(
-				environment.state.rigid_body_velocity_integration_shader, GL_UNIFORM_BLOCK, block_index,
+				environment.state.shaders.integrate_velocities.rigid_body_velocity_integration_shader, GL_UNIFORM_BLOCK, block_index,
 				1u, &buffer_size_label, 1u, nullptr, &environment.state.count_buffer_size
 			);
 
@@ -4633,31 +4633,31 @@ namespace game_logic
 
 			GLuint const bodies_index
 			{
-				glGetProgramResourceIndex(environment.state.rigid_body_velocity_integration_shader, GL_UNIFORM, "Count.bodies")
+				glGetProgramResourceIndex(environment.state.shaders.integrate_velocities.rigid_body_velocity_integration_shader, GL_UNIFORM, "Count.bodies")
 			};
 			glGetProgramResourceiv
 			(
-				environment.state.rigid_body_velocity_integration_shader, GL_UNIFORM, bodies_index,
+				environment.state.shaders.integrate_velocities.rigid_body_velocity_integration_shader, GL_UNIFORM, bodies_index,
 				1u, &offset_label, 1u, nullptr, &environment.state.count_buffer_bodies_offset
 			);
 
 			GLuint const triangles_index
 			{
-				glGetProgramResourceIndex(environment.state.rigid_body_velocity_integration_shader, GL_UNIFORM, "Count.triangles")
+				glGetProgramResourceIndex(environment.state.shaders.integrate_velocities.rigid_body_velocity_integration_shader, GL_UNIFORM, "Count.triangles")
 			};
 			glGetProgramResourceiv
 			(
-				environment.state.rigid_body_velocity_integration_shader, GL_UNIFORM, triangles_index,
+				environment.state.shaders.integrate_velocities.rigid_body_velocity_integration_shader, GL_UNIFORM, triangles_index,
 				1u, &offset_label, 1u, nullptr, &environment.state.count_buffer_triangles_offset
 			);
 
 			GLuint const fluid_particles_index
 			{
-				glGetProgramResourceIndex(environment.state.rigid_body_velocity_integration_shader, GL_UNIFORM, "Count.fluid_particles")
+				glGetProgramResourceIndex(environment.state.shaders.integrate_velocities.rigid_body_velocity_integration_shader, GL_UNIFORM, "Count.fluid_particles")
 			};
 			glGetProgramResourceiv
 			(
-				environment.state.rigid_body_velocity_integration_shader, GL_UNIFORM, fluid_particles_index,
+				environment.state.shaders.integrate_velocities.rigid_body_velocity_integration_shader, GL_UNIFORM, fluid_particles_index,
 				1u, &offset_label, 1u, nullptr, &environment.state.count_buffer_fluid_particles_offset
 			);
 
@@ -5382,7 +5382,7 @@ namespace game_logic
 	{
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);	// Updated velocities
 
-		glUseProgram(environment.state.integrate_fluid_velocity_shader);
+		glUseProgram(environment.state.shaders.integrate_velocities.integrate_fluid_velocity_shader);
 		glDispatchCompute
 		(
 			ceil_div(environment.state.GPU_buffers.fluid.current_particle_count, INTEGRATE_FLUID_VELOCITY_LOCAL_SIZE(environment)),
@@ -5394,7 +5394,7 @@ namespace game_logic
 		glFlush();
 		// IMPORTANT TODO: I think the CPU is stalled on flush until all buffered commands have been submitted by the driver
 
-		glUseProgram(environment.state.rigid_body_velocity_integration_shader);
+		glUseProgram(environment.state.shaders.integrate_velocities.rigid_body_velocity_integration_shader);
 		glDispatchCompute
 		(
 			ceil_div(environment.state.GPU_buffers.rigid_bodies.current_count, game_logic__util__rigid_body_VELOCITY_INTEGRATION_LOCAL_SIZE(environment)),
@@ -5402,7 +5402,7 @@ namespace game_logic
 		);
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);	// Positions and velocities from velocity integration
 
-		glUseProgram(environment.state.triangle_bounding_box_update_shader);
+		glUseProgram(environment.state.shaders.integrate_velocities.triangle_bounding_box_update_shader);
 		glDispatchCompute
 		(
 			ceil_div(environment.state.GPU_buffers.rigid_bodies.triangles.current_count, game_logic__util__rigid_body_TRIANGLE_BOUNDING_BOX_UPDATE_LOCAL_SIZE(environment)),

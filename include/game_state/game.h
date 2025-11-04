@@ -112,10 +112,6 @@ namespace game_state
 
 		GLuint test_compute_shader;
 
-		GLuint rigid_body_velocity_integration_shader;
-		GLuint integrate_fluid_velocity_shader;
-		GLuint triangle_bounding_box_update_shader;
-
 		unsigned char* changed_bounding_boxes_mapping;
 		
 		// TODO: Consider using std::430 layout to improve runtime performance
