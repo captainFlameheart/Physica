@@ -395,9 +395,9 @@ namespace game_logic
 		}
 		glClearNamedBufferSubData
 		(
-			environment.state.count_buffer, 
+			environment.state.GPU_buffers.count.buffer, 
 			GL_R32UI, 
-			environment.state.count_buffer_triangles_offset, 
+			environment.state.GPU_buffers.count.triangles_offset,
 			sizeof(GLuint), 
 			GL_RED_INTEGER, GL_UNSIGNED_INT, 
 			&environment.state.GPU_buffers.rigid_bodies.triangles.current_count
@@ -406,9 +406,9 @@ namespace game_logic
 		++environment.state.GPU_buffers.rigid_bodies.current_count;
 		glClearNamedBufferSubData
 		(
-			environment.state.count_buffer,
+			environment.state.GPU_buffers.count.buffer,
 			GL_R32UI,
-			environment.state.count_buffer_bodies_offset,
+			environment.state.GPU_buffers.count.bodies_offset,
 			sizeof(GLuint),
 			GL_RED_INTEGER, GL_UNSIGNED_INT,
 			&environment.state.GPU_buffers.rigid_bodies.current_count
@@ -1986,7 +1986,7 @@ namespace game_logic
 			environment.state.GPU_buffers.fluid_triangle.contacts.buffer,
 			environment.state.GPU_buffers.fluid_triangle.contact_count.buffer,
 			environment.state.GPU_buffers.gravity_sources.buffer,
-			environment.state.count_buffer, 
+			environment.state.GPU_buffers.count.buffer,
 			environment.state.GPU_buffers.rigid_bodies.masses.buffer
 		};
 		glCreateBuffers(std::size(buffers), buffers);
@@ -2019,7 +2019,7 @@ namespace game_logic
 		environment.state.GPU_buffers.fluid_triangle.contacts.buffer = buffers[24u];
 		environment.state.GPU_buffers.fluid_triangle.contact_count.buffer = buffers[25u];
 		environment.state.GPU_buffers.gravity_sources.buffer = buffers[26u];
-		environment.state.count_buffer = buffers[27u];
+		environment.state.GPU_buffers.count.buffer = buffers[27u];
 		environment.state.GPU_buffers.rigid_bodies.masses.buffer = buffers[28u];
 
 		{ // Camera buffer
@@ -4626,7 +4626,7 @@ namespace game_logic
 			glGetProgramResourceiv
 			(
 				environment.state.shaders.integrate_velocities.rigid_body_velocity_integration_shader, GL_UNIFORM_BLOCK, block_index,
-				1u, &buffer_size_label, 1u, nullptr, &environment.state.count_buffer_size
+				1u, &buffer_size_label, 1u, nullptr, &environment.state.GPU_buffers.count.size
 			);
 
 			GLenum const offset_label{ GL_OFFSET };
@@ -4638,7 +4638,7 @@ namespace game_logic
 			glGetProgramResourceiv
 			(
 				environment.state.shaders.integrate_velocities.rigid_body_velocity_integration_shader, GL_UNIFORM, bodies_index,
-				1u, &offset_label, 1u, nullptr, &environment.state.count_buffer_bodies_offset
+				1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.count.bodies_offset
 			);
 
 			GLuint const triangles_index
@@ -4648,7 +4648,7 @@ namespace game_logic
 			glGetProgramResourceiv
 			(
 				environment.state.shaders.integrate_velocities.rigid_body_velocity_integration_shader, GL_UNIFORM, triangles_index,
-				1u, &offset_label, 1u, nullptr, &environment.state.count_buffer_triangles_offset
+				1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.count.triangles_offset
 			);
 
 			GLuint const fluid_particles_index
@@ -4658,36 +4658,36 @@ namespace game_logic
 			glGetProgramResourceiv
 			(
 				environment.state.shaders.integrate_velocities.rigid_body_velocity_integration_shader, GL_UNIFORM, fluid_particles_index,
-				1u, &offset_label, 1u, nullptr, &environment.state.count_buffer_fluid_particles_offset
+				1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.count.fluid_particles_offset
 			);
 
-			unsigned char* initial_count = new unsigned char[environment.state.count_buffer_size];
+			unsigned char* initial_count = new unsigned char[environment.state.GPU_buffers.count.size];
 			std::memcpy
 			(
-				initial_count + environment.state.count_buffer_bodies_offset, 
+				initial_count + environment.state.GPU_buffers.count.bodies_offset,
 				&environment.state.GPU_buffers.rigid_bodies.current_count, 
 				sizeof(GLuint)
 			);
 			std::memcpy
 			(
-				initial_count + environment.state.count_buffer_triangles_offset,
+				initial_count + environment.state.GPU_buffers.count.triangles_offset,
 				&environment.state.GPU_buffers.rigid_bodies.triangles.current_count,
 				sizeof(GLuint)
 			);
 			std::memcpy
 			(
-				initial_count + environment.state.count_buffer_fluid_particles_offset, 
+				initial_count + environment.state.GPU_buffers.count.fluid_particles_offset,
 				&environment.state.GPU_buffers.fluid.current_particle_count,
 				sizeof(GLuint)
 			);
 			glNamedBufferStorage
 			(
-				environment.state.count_buffer, environment.state.count_buffer_size, initial_count,
+				environment.state.GPU_buffers.count.buffer, environment.state.GPU_buffers.count.size, initial_count,
 				0u
 			);
 			delete[] initial_count;
 
-			glBindBufferBase(GL_UNIFORM_BUFFER, game_logic__util_COUNT_BINDING, environment.state.count_buffer);
+			glBindBufferBase(GL_UNIFORM_BUFFER, game_logic__util_COUNT_BINDING, environment.state.GPU_buffers.count.buffer);
 		}
 
 		{ // Body masses buffer
@@ -4973,11 +4973,11 @@ namespace game_logic
 		std::cout << "strengths stride: " << environment.state.GPU_buffers.gravity_sources.strengths_stride << std::endl;
 		std::cout << std::endl;
 
-		std::cout << "Count buffer (" << environment.state.count_buffer << "):" << std::endl;
-		std::cout << "size: " << environment.state.count_buffer_size << std::endl;
-		std::cout << "bodies offset: " << environment.state.count_buffer_bodies_offset << std::endl;
-		std::cout << "triangles offset: " << environment.state.count_buffer_triangles_offset << std::endl;
-		std::cout << "fluid particles offset: " << environment.state.count_buffer_fluid_particles_offset << std::endl;
+		std::cout << "Count buffer (" << environment.state.GPU_buffers.count.buffer << "):" << std::endl;
+		std::cout << "size: " << environment.state.GPU_buffers.count.size << std::endl;
+		std::cout << "bodies offset: " << environment.state.GPU_buffers.count.bodies_offset << std::endl;
+		std::cout << "triangles offset: " << environment.state.GPU_buffers.count.triangles_offset << std::endl;
+		std::cout << "fluid particles offset: " << environment.state.GPU_buffers.count.fluid_particles_offset << std::endl;
 		std::cout << std::endl;
 
 		std::cout << "Body masses buffer (" << environment.state.GPU_buffers.rigid_bodies.masses.buffer << "):" << std::endl;
@@ -7508,7 +7508,7 @@ namespace game_logic
 			environment.state.GPU_buffers.fluid_triangle.contacts.buffer,
 			environment.state.GPU_buffers.fluid_triangle.contact_count.buffer,
 			environment.state.GPU_buffers.gravity_sources.buffer,
-			environment.state.count_buffer, 
+			environment.state.GPU_buffers.count.buffer,
 			environment.state.GPU_buffers.rigid_bodies.masses.buffer
 		};
 		glDeleteBuffers(std::size(buffers), buffers);

@@ -48,12 +48,6 @@ namespace game_state
 		shaders::Shader_Set shaders;
 		proximity::Tree proximity_tree;
 
-		GLuint count_buffer;
-		GLint count_buffer_size;
-		GLint count_buffer_bodies_offset;
-		GLint count_buffer_triangles_offset;
-		GLint count_buffer_fluid_particles_offset;
-
 		GLuint test_compute_shader;
 
 		unsigned char* changed_bounding_boxes_mapping;
