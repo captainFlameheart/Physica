@@ -4,6 +4,7 @@
 #include "bounding_boxes/include.h"
 #include "changed_bounding_boxes/include.h"
 #include "contacts/include.h"
+#include "contact_count/include.h"
 
 namespace game_state::GPU_buffers::fluid
 {
@@ -14,5 +15,6 @@ namespace game_state::GPU_buffers::fluid
 		bounding_boxes::Buffer bounding_boxes;
 		changed_bounding_boxes::Buffer changed_bounding_boxes;
 		contacts::Buffer contacts;
+		contact_count::Buffer contact_count;
 	};
 }
