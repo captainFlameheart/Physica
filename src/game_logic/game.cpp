@@ -1556,12 +1556,12 @@ namespace game_logic
 			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))),
 			::util::shader::file_to_string("util/new_fluid_triangle_contacts.comp")
 		);
-		environment.state.new_fluid_triangle_contacts_shader = ::util::shader::create_program(compute_shader);
-		environment.state.new_fluid_triangle_contacts_shader_persistent_count_uniform_location = glGetUniformLocation
+		environment.state.shaders.new_constraints.new_fluid_triangle_contacts_shader = ::util::shader::create_program(compute_shader);
+		environment.state.shaders.new_constraints.new_fluid_triangle_contacts_shader_persistent_count_uniform_location = glGetUniformLocation
 		(
-			environment.state.new_fluid_triangle_contacts_shader, "persistent_count"
+			environment.state.shaders.new_constraints.new_fluid_triangle_contacts_shader, "persistent_count"
 		);
-		std::cout << "New fluid triangle contacts shader compiled. Persistent count uniform location: " << environment.state.new_fluid_triangle_contacts_shader_persistent_count_uniform_location << std::endl;
+		std::cout << "New fluid triangle contacts shader compiled. Persistent count uniform location: " << environment.state.shaders.new_constraints.new_fluid_triangle_contacts_shader_persistent_count_uniform_location << std::endl;
 
 		::util::shader::set_shader_statically
 		(
@@ -1617,9 +1617,9 @@ namespace game_logic
 			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))),
 			::util::shader::file_to_string("util/new_fluid_contacts.comp")
 		);
-		environment.state.new_fluid_contacts_shader = ::util::shader::create_program(compute_shader);
-		environment.state.new_fluid_contacts_shader_persistent_count_uniform_location = glGetUniformLocation(environment.state.new_fluid_contacts_shader, "persistent_count");
-		std::cout << "New fluid contacts shader compiled. Persistent count uniform location: " << environment.state.new_fluid_contacts_shader_persistent_count_uniform_location << std::endl;
+		environment.state.shaders.new_constraints.new_fluid_contacts_shader = ::util::shader::create_program(compute_shader);
+		environment.state.shaders.new_constraints.new_fluid_contacts_shader_persistent_count_uniform_location = glGetUniformLocation(environment.state.shaders.new_constraints.new_fluid_contacts_shader, "persistent_count");
+		std::cout << "New fluid contacts shader compiled. Persistent count uniform location: " << environment.state.shaders.new_constraints.new_fluid_contacts_shader_persistent_count_uniform_location << std::endl;
 
 		::util::shader::set_shader_statically
 		(
@@ -1652,7 +1652,7 @@ namespace game_logic
 			util_shader_DEFINE("POSITION_IMPULSE_SCALE", STRINGIFY(game_logic_POSITION_IMPULSE_SCALE(environment))),
 			::util::shader::file_to_string("util/new_triangle_contact.comp")
 		);
-		environment.state.new_triangle_contact_shader = ::util::shader::create_program(compute_shader);
+		environment.state.shaders.new_constraints.new_triangle_contact_shader = ::util::shader::create_program(compute_shader);
 		std::cout << "New triangle contact shader compiled" << std::endl;
 
 		::util::shader::set_shader_statically
@@ -3686,24 +3686,24 @@ namespace game_logic
 		{ // Persistent contact count buffer
 			GLuint const persistent_contact_count_index
 			{
-				glGetProgramResourceIndex(environment.state.new_triangle_contact_shader, GL_UNIFORM, "Persistent_Contact_Count.persistent_contact_count")
+				glGetProgramResourceIndex(environment.state.shaders.new_constraints.new_triangle_contact_shader, GL_UNIFORM, "Persistent_Contact_Count.persistent_contact_count")
 			};
 
 			GLenum offset_label{ GL_OFFSET };
 			glGetProgramResourceiv
 			(
-				environment.state.new_triangle_contact_shader, GL_UNIFORM, persistent_contact_count_index,
+				environment.state.shaders.new_constraints.new_triangle_contact_shader, GL_UNIFORM, persistent_contact_count_index,
 				1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.rigid_bodies.triangles.persistent_contact_count.persistent_contact_count_offset
 			);
 
 			GLuint const block_index
 			{
-				glGetProgramResourceIndex(environment.state.new_triangle_contact_shader, GL_UNIFORM_BLOCK, "Persistent_Contact_Count")
+				glGetProgramResourceIndex(environment.state.shaders.new_constraints.new_triangle_contact_shader, GL_UNIFORM_BLOCK, "Persistent_Contact_Count")
 			};
 			GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
 			glGetProgramResourceiv
 			(
-				environment.state.new_triangle_contact_shader, GL_UNIFORM_BLOCK, block_index,
+				environment.state.shaders.new_constraints.new_triangle_contact_shader, GL_UNIFORM_BLOCK, block_index,
 				1u, &buffer_size_label, 1u, nullptr, &environment.state.GPU_buffers.rigid_bodies.triangles.persistent_contact_count.size
 			);
 
@@ -5937,8 +5937,8 @@ namespace game_logic
 				GL_RED_INTEGER, GL_UNSIGNED_INT,
 				&environment.state.GPU_buffers.fluid.contact_count.current_contact_count
 			);
-			glUseProgram(environment.state.new_fluid_contacts_shader);
-			glUniform1ui(environment.state.new_fluid_contacts_shader_persistent_count_uniform_location, environment.state.GPU_buffers.fluid.contact_count.current_persistent_contact_count);
+			glUseProgram(environment.state.shaders.new_constraints.new_fluid_contacts_shader);
+			glUniform1ui(environment.state.shaders.new_constraints.new_fluid_contacts_shader_persistent_count_uniform_location, environment.state.GPU_buffers.fluid.contact_count.current_persistent_contact_count);
 			glDispatchCompute
 			(
 				ceil_div(new_fluid_contact_count, NEW_FLUID_CONTACT_LOCAL_SIZE(environment)),
@@ -6058,10 +6058,10 @@ namespace game_logic
 				GL_RED_INTEGER, GL_UNSIGNED_INT,
 				&environment.state.GPU_buffers.fluid_triangle.contact_count.current_contact_count
 			);
-			glUseProgram(environment.state.new_fluid_triangle_contacts_shader);
+			glUseProgram(environment.state.shaders.new_constraints.new_fluid_triangle_contacts_shader);
 			glUniform1ui
 			(
-				environment.state.new_fluid_triangle_contacts_shader_persistent_count_uniform_location,
+				environment.state.shaders.new_constraints.new_fluid_triangle_contacts_shader_persistent_count_uniform_location,
 				environment.state.GPU_buffers.fluid_triangle.contact_count.current_persistent_contact_count
 			);
 			glDispatchCompute
@@ -6085,7 +6085,7 @@ namespace game_logic
 				GL_RED_INTEGER, GL_UNSIGNED_INT,
 				&environment.state.current_triangle_contact_count
 			);
-			glUseProgram(environment.state.new_triangle_contact_shader);
+			glUseProgram(environment.state.shaders.new_constraints.new_triangle_contact_shader);
 			glDispatchCompute
 			(
 				ceil_div(new_contact_count, game_logic__util__rigid_body_NEW_TRIANGLE_CONTACT_LOCAL_SIZE(environment)),

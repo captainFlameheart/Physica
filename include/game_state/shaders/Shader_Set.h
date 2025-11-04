@@ -3,6 +3,7 @@
 #include "solve/include.h"
 #include "integrate_velocities/include.h"
 #include "persist/include.h"
+#include "new_constraints/include.h"
 
 namespace game_state::shaders
 {
@@ -12,5 +13,6 @@ namespace game_state::shaders
 		solve::Shader_Set solve;
 		integrate_velocities::Shader_Set integrate_velocities;
 		persist::Shader_Set persist;
+		new_constraints::Shader_Set new_constraints;
 	};
 }
