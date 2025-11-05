@@ -2146,6 +2146,48 @@ namespace game_logic
 			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_MATERIALS_BINDING, environment.state.GPU_buffers.rigid_bodies.triangles.materials.buffer);
 		}
 
+		{ // Material indices buffer
+			{
+				GLuint const material_indices_index
+				{
+					glGetProgramResourceIndex(environment.state.holographic_triangle_draw_shader, GL_BUFFER_VARIABLE, "Material_Indices.material_indices")
+				};
+				GLenum const prop_labels[]{ GL_OFFSET, GL_ARRAY_STRIDE };
+				GLint props[std::size(prop_labels)];
+				glGetProgramResourceiv
+				(
+					environment.state.holographic_triangle_draw_shader, GL_BUFFER_VARIABLE, material_indices_index,
+					std::size(prop_labels), prop_labels, 2u, nullptr, props
+				);
+				// TODO: Consider putting offset and stride contigously in game state
+				environment.state.GPU_buffers.rigid_bodies.triangles.material_indices.material_indices_offset = props[0u];
+				environment.state.GPU_buffers.rigid_bodies.triangles.material_indices.material_indices_stride = props[1u];
+			}
+
+#if USE_DYNAMIC_SIZES == true
+			environment.state.GPU_buffers.rigid_bodies.triangles.material_indices.size = environment.state.GPU_buffers.rigid_bodies.triangles.material_indices.material_indices_offset + game_logic_MAX_TRIANGLE_COUNT(environment) * environment.state.GPU_buffers.rigid_bodies.triangles.material_indices.material_indices_stride;
+#else
+			GLuint const block_index
+			{
+				glGetProgramResourceIndex(environment.state.holographic_triangle_draw_shader, GL_SHADER_STORAGE_BLOCK, "Material_Indices")
+			};
+			GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
+			glGetProgramResourceiv
+			(
+				environment.state.holographic_triangle_draw_shader, GL_SHADER_STORAGE_BLOCK, block_index,
+				1u, &buffer_size_label, 1u, nullptr, &environment.state.GPU_buffers.rigid_bodies.triangles.material_indices.size
+			);
+#endif
+
+			glNamedBufferStorage
+			(
+				environment.state.GPU_buffers.rigid_bodies.triangles.material_indices.buffer, environment.state.GPU_buffers.rigid_bodies.triangles.material_indices.size, nullptr,
+				0u
+			);
+
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_MATERIAL_INDICES_BINDING, environment.state.GPU_buffers.rigid_bodies.triangles.material_indices.buffer);
+		}
+
 		{ // Camera buffer
 			GLuint const block_index
 			{
@@ -4911,6 +4953,12 @@ namespace game_logic
 		std::cout << "materials emission offset: " << environment.state.GPU_buffers.rigid_bodies.triangles.materials.materials_emission_offset << std::endl;
 		std::cout << "materials absorption offset: " << environment.state.GPU_buffers.rigid_bodies.triangles.materials.materials_absorption_offset << std::endl;
 		std::cout << "materials scattering offset: " << environment.state.GPU_buffers.rigid_bodies.triangles.materials.materials_scattering_offset << std::endl;
+		std::cout << std::endl;
+
+		std::cout << "Material indices buffer (" << environment.state.GPU_buffers.rigid_bodies.triangles.material_indices.buffer << "):" << std::endl;
+		std::cout << "size: " << environment.state.GPU_buffers.rigid_bodies.triangles.material_indices.size << std::endl;
+		std::cout << "material indices stride: " << environment.state.GPU_buffers.rigid_bodies.triangles.material_indices.material_indices_stride << std::endl;
+		std::cout << "material indices offset: " << environment.state.GPU_buffers.rigid_bodies.triangles.material_indices.material_indices_offset << std::endl;
 		std::cout << std::endl;
 
 		std::cout << "Position buffer (" << environment.state.GPU_buffers.rigid_bodies.positions.buffer << "):" << std::endl;
