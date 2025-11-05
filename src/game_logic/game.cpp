@@ -2146,6 +2146,33 @@ namespace game_logic
 				GLfloat emission[4u]{ 1.0f, 0.0f, 0.0f, 1.0f };
 				GLfloat absorption[4u]{ 1.0f, 0.0f, 0.0f, 1.0f };
 				GLfloat scattering[4u]{ 1.0f, 0.0f, 0.0f, 1.0f };
+				switch (i % 10u)
+				{
+				case 0u:
+					albedo[0u] = 1.0f;
+					albedo[1u] = 0.0f;
+					albedo[2u] = 0.0f;
+					albedo[3u] = 1.0f;
+					break;
+				case 1u:
+					albedo[0u] = 0.0f;
+					albedo[1u] = 0.0f;
+					albedo[2u] = 1.0f;
+					albedo[3u] = 1.0f;
+					break;
+				case 2u:
+					albedo[0u] = 1.0f;
+					albedo[1u] = 0.0f;
+					albedo[2u] = 1.0f;
+					albedo[3u] = 1.0f;
+					break;
+				default:
+					albedo[0u] = 0.0f;
+					albedo[1u] = 1.0f;
+					albedo[2u] = 0.0f;
+					albedo[3u] = 1.0f;
+					break;
+				}
 
 				unsigned char* const base{ initial_materials + environment.state.GPU_buffers.rigid_bodies.triangles.materials.materials_offset + i * environment.state.GPU_buffers.rigid_bodies.triangles.materials.materials_stride };
 
@@ -2222,7 +2249,7 @@ namespace game_logic
 
 			for (GLuint i = 0; i < game_logic_MAX_TRIANGLE_COUNT(environment); ++i)
 			{
-				GLuint index{ 0u };
+				GLuint index{ i % 10u };
 
 				unsigned char* const base{ initial_material_indices + environment.state.GPU_buffers.rigid_bodies.triangles.material_indices.material_indices_offset + i * environment.state.GPU_buffers.rigid_bodies.triangles.material_indices.material_indices_stride };
 
@@ -7466,7 +7493,9 @@ namespace game_logic
 			glDrawArrays(GL_POINTS, 0, environment.state.GPU_buffers.fluid.current_particle_count);
 		}
 
-		glUseProgram(environment.state.triangle_draw_shader);
+		//glUseProgram(environment.state.triangle_draw_shader);
+		//glDrawArrays(GL_TRIANGLES, 0, environment.state.GPU_buffers.rigid_bodies.triangles.current_count * 3u);
+		glUseProgram(environment.state.holographic_triangle_draw_shader);
 		glDrawArrays(GL_TRIANGLES, 0, environment.state.GPU_buffers.rigid_bodies.triangles.current_count * 3u);
 
 		if (environment.state.triangle_wireframes_visible)
