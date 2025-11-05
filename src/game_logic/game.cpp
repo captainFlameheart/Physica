@@ -2137,11 +2137,49 @@ namespace game_logic
 			);
 #endif
 
+			unsigned char* const initial_materials = new unsigned char[environment.state.GPU_buffers.rigid_bodies.triangles.materials.size];
+			//environment.state.GPU_buffers.rigid_bodies.triangles.values = new game_state::rigid_body::Triangle[game_logic_MAX_TRIANGLE_COUNT(environment)];
+
+			for (GLuint i = 0; i < MAX_MATERIAL_COUNT(environment); ++i)
+			{
+				GLfloat albedo[4u]{ 1.0f, 0.0f, 0.0f, 1.0f };
+				GLfloat emission[4u]{ 1.0f, 0.0f, 0.0f, 1.0f };
+				GLfloat absorption[4u]{ 1.0f, 0.0f, 0.0f, 1.0f };
+				GLfloat scattering[4u]{ 1.0f, 0.0f, 0.0f, 1.0f };
+
+				unsigned char* const base{ initial_materials + environment.state.GPU_buffers.rigid_bodies.triangles.materials.materials_offset + i * environment.state.GPU_buffers.rigid_bodies.triangles.materials.materials_stride };
+
+				std::memcpy
+				(
+					base + environment.state.GPU_buffers.rigid_bodies.triangles.materials.materials_albedo_offset,
+					&albedo, sizeof(albedo)
+				);
+				std::memcpy
+				(
+					base + environment.state.GPU_buffers.rigid_bodies.triangles.materials.materials_emission_offset,
+					&emission, sizeof(emission)
+				);
+				std::memcpy
+				(
+					base + environment.state.GPU_buffers.rigid_bodies.triangles.materials.materials_absorption_offset,
+					&absorption, sizeof(absorption)
+				);
+				std::memcpy
+				(
+					base + environment.state.GPU_buffers.rigid_bodies.triangles.materials.materials_scattering_offset,
+					&scattering, sizeof(scattering)
+				);
+
+				//environment.state.GPU_buffers.rigid_bodies.triangles.values[i] = triangle;
+			}
+
 			glNamedBufferStorage
 			(
-				environment.state.GPU_buffers.rigid_bodies.triangles.materials.buffer, environment.state.GPU_buffers.rigid_bodies.triangles.materials.size, nullptr,
+				environment.state.GPU_buffers.rigid_bodies.triangles.materials.buffer, environment.state.GPU_buffers.rigid_bodies.triangles.materials.size, initial_materials,
 				0u
 			);
+
+			delete[] initial_materials;
 
 			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_MATERIALS_BINDING, environment.state.GPU_buffers.rigid_bodies.triangles.materials.buffer);
 		}
@@ -2179,11 +2217,29 @@ namespace game_logic
 			);
 #endif
 
+			unsigned char* const initial_material_indices = new unsigned char[environment.state.GPU_buffers.rigid_bodies.triangles.material_indices.size];
+			//environment.state.GPU_buffers.rigid_bodies.triangles.values = new game_state::rigid_body::Triangle[game_logic_MAX_TRIANGLE_COUNT(environment)];
+
+			for (GLuint i = 0; i < game_logic_MAX_TRIANGLE_COUNT(environment); ++i)
+			{
+				GLuint index{ 0u };
+
+				unsigned char* const base{ initial_material_indices + environment.state.GPU_buffers.rigid_bodies.triangles.material_indices.material_indices_offset + i * environment.state.GPU_buffers.rigid_bodies.triangles.material_indices.material_indices_stride };
+
+				std::memcpy
+				(
+					base,
+					&index, sizeof(index)
+				);
+			}
+
 			glNamedBufferStorage
 			(
-				environment.state.GPU_buffers.rigid_bodies.triangles.material_indices.buffer, environment.state.GPU_buffers.rigid_bodies.triangles.material_indices.size, nullptr,
+				environment.state.GPU_buffers.rigid_bodies.triangles.material_indices.buffer, environment.state.GPU_buffers.rigid_bodies.triangles.material_indices.size, initial_material_indices,
 				0u
 			);
+
+			delete[] initial_material_indices;
 
 			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_MATERIAL_INDICES_BINDING, environment.state.GPU_buffers.rigid_bodies.triangles.material_indices.buffer);
 		}
