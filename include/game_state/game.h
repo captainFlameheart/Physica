@@ -62,6 +62,8 @@ namespace game_state
 		GLuint tick;
 		bool physics_running;
 
+		GLuint holographic_triangle_draw_shader;
+
 		GLuint fluid_texture;
 		GLuint fluid_framebuffer;
 

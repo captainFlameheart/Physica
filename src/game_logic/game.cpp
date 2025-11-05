@@ -180,6 +180,8 @@
 
 // TODO: USE EXCLUSIVE OR IN PROXIMITY UTIL WHEN FLIPPING A BOOLEAN UNSIGNED INT
 
+#define MAX_MATERIAL_COUNT(environment) 100u
+
 namespace game_logic
 {
 	template <unsigned int Vertex_Count, unsigned int Vertex_Index_Count>
@@ -550,6 +552,7 @@ namespace game_logic
 		// Do the same for GL_MAX_UNIFORM_BUFFER_BINDINGS, but that has a lower limit of 
 		// 36.
 
+		char const* max_material_count_definition;
 		char const* max_rigid_body_count_definition;
 		char const* max_triangle_count_definition;
 		char const* max_vertex_count_definition;
@@ -559,6 +562,7 @@ namespace game_logic
 		char const* max_fluid_contact_count_definition;
 		char const* max_fluid_triangle_contact_count_definition;
 #if USE_DYNAMIC_SIZES == true
+		max_material_count_definition = util_shader_DEFINE("MAX_MATERIAL_COUNT ");
 		max_rigid_body_count_definition = util_shader_DEFINE("MAX_RIGID_BODY_COUNT", "");
 		max_triangle_count_definition = util_shader_DEFINE("MAX_TRIANGLE_COUNT", "");
 		max_vertex_count_definition = util_shader_DEFINE("MAX_VERTEX_COUNT", "");
@@ -568,6 +572,7 @@ namespace game_logic
 		max_fluid_contact_count_definition = util_shader_DEFINE("MAX_FLUID_CONTACT_COUNT", "");
 		max_fluid_triangle_contact_count_definition = util_shader_DEFINE("MAX_FLUID_TRIANGLE_CONTACT_COUNT", "");
 #else
+		max_material_count_definition = util_shader_DEFINE("MAX_MATERIAL_COUNT ", STRINGIFY(MAX_MATERIAL_COUNT(environment)};
 		max_rigid_body_count_definition = util_shader_DEFINE("MAX_RIGID_BODY_COUNT", STRINGIFY(game_logic_MAX_RIGID_BODY_COUNT(environment)));
 		max_triangle_count_definition = util_shader_DEFINE("MAX_TRIANGLE_COUNT", STRINGIFY(game_logic_MAX_TRIANGLE_COUNT(environment)));
 		max_vertex_count_definition = util_shader_DEFINE("MAX_VERTEX_COUNT", STRINGIFY(game_logic_MAX_VERTEX_COUNT(environment)));
@@ -600,6 +605,39 @@ namespace game_logic
 
 		GLuint const vertex_shader{ ::util::shader::create_shader(GL_VERTEX_SHADER) };
 		GLuint const fragment_shader{ ::util::shader::create_shader(GL_FRAGMENT_SHADER) };
+
+		::util::shader::set_shader_statically
+		(
+			vertex_shader,
+			util_shader_VERSION,
+			game_PROJECTION_SCALE_DEFINITION(environment),
+			max_triangle_count_definition,
+			max_vertex_count_definition,
+			max_rigid_body_count_definition,
+			util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
+			util_shader_DEFINE("POSITION_BINDING", STRINGIFY(game_logic__util_RIGID_BODY_POSITION_BINDING)),
+			util_shader_DEFINE("TRIANGLE_BINDING", STRINGIFY(game_logic__util_TRIANGLE_BINDING)),
+			util_shader_DEFINE("VERTEX_BINDING", STRINGIFY(game_logic__util_VERTEX_BINDING)),
+			util_shader_DEFINE("METER", STRINGIFY(game_logic__util__spatial_METER(environment))), // TODO: Remove
+			util_shader_DEFINE("RADIAN_INVERSE", STRINGIFY(game_logic__util__spatial_RADIAN_INVERSE(environment))),
+			util_shader_DEFINE("MATERIALS_BINDING", STRINGIFY(game_logic__util_MATERIALS_BINDING)),
+			util_shader_DEFINE("MATERIAL_INDICES_BINDING", STRINGIFY(game_logic__util_MATERIAL_INDICES_BINDING)),
+			max_material_count_definition,
+			max_triangle_count_definition,
+			::util::shader::file_to_string("holographic_radiance_cascades/triangle/triangle.vert")
+		);
+		::util::shader::set_shader_statically
+		(
+			fragment_shader,
+			util_shader_VERSION,
+			util_shader_DEFINE("MATERIALS_BINDING", STRINGIFY(game_logic__util_MATERIALS_BINDING)),
+			util_shader_DEFINE("MATERIAL_INDICES_BINDING", STRINGIFY(game_logic__util_MATERIAL_INDICES_BINDING)),
+			max_material_count_definition,
+			max_triangle_count_definition,
+			::util::shader::file_to_string("holographic_radiance_cascades/triangle/triangle.frag")
+		);
+		environment.state.holographic_triangle_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+		std::cout << "Holographic triangle draw shader compiled" << std::endl;
 
 		::util::shader::set_shader_statically
 		(
@@ -1987,7 +2025,9 @@ namespace game_logic
 			environment.state.GPU_buffers.fluid_triangle.contact_count.buffer,
 			environment.state.GPU_buffers.gravity_sources.buffer,
 			environment.state.GPU_buffers.count.buffer,
-			environment.state.GPU_buffers.rigid_bodies.masses.buffer
+			environment.state.GPU_buffers.rigid_bodies.masses.buffer, 
+			environment.state.GPU_buffers.rigid_bodies.triangles.materials.buffer,
+			environment.state.GPU_buffers.rigid_bodies.triangles.material_indices.buffer,
 		};
 		glCreateBuffers(std::size(buffers), buffers);
 		environment.state.camera_buffer = buffers[0u];
@@ -2021,6 +2061,90 @@ namespace game_logic
 		environment.state.GPU_buffers.gravity_sources.buffer = buffers[26u];
 		environment.state.GPU_buffers.count.buffer = buffers[27u];
 		environment.state.GPU_buffers.rigid_bodies.masses.buffer = buffers[28u];
+		environment.state.GPU_buffers.rigid_bodies.triangles.materials.buffer = buffers[29u];
+		environment.state.GPU_buffers.rigid_bodies.triangles.material_indices.buffer = buffers[30u];
+
+		{ // Materials buffer
+			{
+				GLuint const materials_albedo_index
+				{
+					glGetProgramResourceIndex(environment.state.holographic_triangle_draw_shader, GL_BUFFER_VARIABLE, "Materials.materials[0].albedo")
+				};
+				GLenum const prop_labels[]{ GL_OFFSET, GL_TOP_LEVEL_ARRAY_STRIDE };
+				GLint props[std::size(prop_labels)];
+				glGetProgramResourceiv
+				(
+					environment.state.holographic_triangle_draw_shader, GL_BUFFER_VARIABLE, materials_albedo_index,
+					std::size(prop_labels), prop_labels, 2u, nullptr, props
+				);
+				// TODO: Consider putting offset and stride contigously in game state
+				environment.state.GPU_buffers.rigid_bodies.triangles.materials.materials_albedo_offset = props[0u];
+				environment.state.GPU_buffers.rigid_bodies.triangles.materials.materials_stride = props[1u];
+
+				GLenum const offset_label{ GL_OFFSET };
+
+				GLuint const materials_emission_index
+				{
+					glGetProgramResourceIndex(environment.state.holographic_triangle_draw_shader, GL_BUFFER_VARIABLE, "Materials.materials[0].emission")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.holographic_triangle_draw_shader, GL_BUFFER_VARIABLE, materials_emission_index,
+					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.rigid_bodies.triangles.materials.materials_emission_offset
+				);
+
+				GLuint const materials_absorption_index
+				{
+					glGetProgramResourceIndex(environment.state.holographic_triangle_draw_shader, GL_BUFFER_VARIABLE, "Materials.materials[0].absorption")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.holographic_triangle_draw_shader, GL_BUFFER_VARIABLE, materials_absorption_index,
+					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.rigid_bodies.triangles.materials.materials_absorption_offset
+				);
+
+				GLuint const materials_scattering_index
+				{
+					glGetProgramResourceIndex(environment.state.holographic_triangle_draw_shader, GL_BUFFER_VARIABLE, "Materials.materials[0].scattering")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.holographic_triangle_draw_shader, GL_BUFFER_VARIABLE, materials_scattering_index,
+					1u, &offset_label, 1u, nullptr, &environment.state.GPU_buffers.rigid_bodies.triangles.materials.materials_scattering_offset
+				);
+			}
+
+			GLint const offsets[]
+			{
+				environment.state.GPU_buffers.rigid_bodies.triangles.materials.materials_albedo_offset,
+				environment.state.GPU_buffers.rigid_bodies.triangles.materials.materials_emission_offset,
+				environment.state.GPU_buffers.rigid_bodies.triangles.materials.materials_absorption_offset,
+				environment.state.GPU_buffers.rigid_bodies.triangles.materials.materials_scattering_offset,
+			};
+			environment.state.GPU_buffers.rigid_bodies.triangles.materials.materials_offset = *std::min_element(std::begin(offsets), std::end(offsets));
+#if USE_DYNAMIC_SIZES == true
+			environment.state.GPU_buffers.rigid_bodies.triangles.materials.size = environment.state.GPU_buffers.rigid_bodies.triangles.materials.materials_offset + MAX_MATERIAL_COUNT(environment) * (environment.state.GPU_buffers.rigid_bodies.triangles.materials.materials_stride);
+#else
+			GLuint const block_index
+			{
+				glGetProgramResourceIndex(environment.state.holographic_triangle_draw_shader, GL_SHADER_STORAGE_BLOCK, "Materials")
+			};
+			GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
+			glGetProgramResourceiv
+			(
+				environment.state.holographic_triangle_draw_shader, GL_SHADER_STORAGE_BLOCK, block_index,
+				1u, &buffer_size_label, 1u, nullptr, &environment.state.GPU_buffers.rigid_bodies.triangles.materials.size
+			);
+#endif
+
+			glNamedBufferStorage
+			(
+				environment.state.GPU_buffers.rigid_bodies.triangles.materials.buffer, environment.state.GPU_buffers.rigid_bodies.triangles.materials.size, nullptr,
+				0u
+			);
+
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_MATERIALS_BINDING, environment.state.GPU_buffers.rigid_bodies.triangles.materials.buffer);
+		}
 
 		{ // Camera buffer
 			GLuint const block_index
@@ -4780,6 +4904,15 @@ namespace game_logic
 
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
+		std::cout << "Materials buffer (" << environment.state.GPU_buffers.rigid_bodies.triangles.materials.buffer << "):" << std::endl;
+		std::cout << "size: " << environment.state.GPU_buffers.rigid_bodies.triangles.materials.size << std::endl;
+		std::cout << "materials stride: " << environment.state.GPU_buffers.rigid_bodies.triangles.materials.materials_stride << std::endl;
+		std::cout << "materials albedo offset: " << environment.state.GPU_buffers.rigid_bodies.triangles.materials.materials_albedo_offset << std::endl;
+		std::cout << "materials emission offset: " << environment.state.GPU_buffers.rigid_bodies.triangles.materials.materials_emission_offset << std::endl;
+		std::cout << "materials absorption offset: " << environment.state.GPU_buffers.rigid_bodies.triangles.materials.materials_absorption_offset << std::endl;
+		std::cout << "materials scattering offset: " << environment.state.GPU_buffers.rigid_bodies.triangles.materials.materials_scattering_offset << std::endl;
+		std::cout << std::endl;
+
 		std::cout << "Position buffer (" << environment.state.GPU_buffers.rigid_bodies.positions.buffer << "):" << std::endl;
 		std::cout << "size: " << environment.state.GPU_buffers.rigid_bodies.positions.size << std::endl;
 		std::cout << "p offset: " << environment.state.GPU_buffers.rigid_bodies.positions.p_offset << std::endl;
@@ -7509,7 +7642,9 @@ namespace game_logic
 			environment.state.GPU_buffers.fluid_triangle.contact_count.buffer,
 			environment.state.GPU_buffers.gravity_sources.buffer,
 			environment.state.GPU_buffers.count.buffer,
-			environment.state.GPU_buffers.rigid_bodies.masses.buffer
+			environment.state.GPU_buffers.rigid_bodies.masses.buffer, 
+			environment.state.GPU_buffers.rigid_bodies.triangles.materials.buffer,
+			environment.state.GPU_buffers.rigid_bodies.triangles.material_indices.buffer,
 		};
 		glDeleteBuffers(std::size(buffers), buffers);
 
