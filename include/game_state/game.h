@@ -65,8 +65,24 @@ namespace game_state
 
 		GLuint holographic_triangle_draw_shader;
 
-		GLuint fluid_texture;
-		GLuint fluid_framebuffer;
+		union
+		{
+			struct
+			{
+				GLuint fluid_framebuffer;
+				GLuint holographic_source_framebuffer;
+			};
+			GLuint framebuffers[2u];
+		};
+		union
+		{
+			struct
+			{
+				GLuint fluid_texture;
+				GLuint holographic_source_array_texture;
+			};
+			GLuint framebuffer_textures[2u];
+		};
 
 		GLuint fluid_particles_draw_shader;
 

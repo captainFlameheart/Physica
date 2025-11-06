@@ -504,31 +504,74 @@ namespace game_logic
 	{
 		glViewport(0, 0, width, height);
 
-		// TODO: Make sure supersampling is not used for the default framebuffer. Otherwise, we should 
-		// make the fluid texture use supersampling and resolve (downscale) it manually to another texture.
-		glCreateTextures(GL_TEXTURE_2D, 1u, &environment.state.fluid_texture);
-		glTextureParameteri(environment.state.fluid_texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTextureParameteri(environment.state.fluid_texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTextureStorage2D(environment.state.fluid_texture, 1u, GL_RGBA32F, width, height);
+		glCreateFramebuffers(2u, environment.state.framebuffers);
 
-		glBindTextureUnit(0u, environment.state.fluid_texture);
-
-		glCreateFramebuffers(1u, &environment.state.fluid_framebuffer);
-		glNamedFramebufferTexture(environment.state.fluid_framebuffer, GL_COLOR_ATTACHMENT0, environment.state.fluid_texture, 0);
-		GLenum const draw_buffers[]{ GL_NONE, GL_NONE, GL_NONE, GL_NONE, GL_NONE, GL_NONE, GL_NONE, GL_COLOR_ATTACHMENT0 };
-		glNamedFramebufferDrawBuffers(environment.state.fluid_framebuffer, std::size(draw_buffers), draw_buffers);
-
-		GLenum framebuffer_status = glCheckNamedFramebufferStatus(environment.state.fluid_framebuffer, GL_DRAW_FRAMEBUFFER);
-		if (framebuffer_status != GL_FRAMEBUFFER_COMPLETE)
 		{
-			std::cerr << "Fluid framebuffer not completed, status code: " << framebuffer_status << std::endl;
+			// TODO: Make sure supersampling is not used for the default framebuffer. Otherwise, we should 
+			// make the fluid texture use supersampling and resolve (downscale) it manually to another texture.
+			glCreateTextures(GL_TEXTURE_2D, 1u, &environment.state.fluid_texture);
+			glTextureParameteri(environment.state.fluid_texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTextureParameteri(environment.state.fluid_texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTextureStorage2D(environment.state.fluid_texture, 1u, GL_RGBA32F, width, height);
+
+			glBindTextureUnit(0u, environment.state.fluid_texture);
+
+			glNamedFramebufferTexture(environment.state.fluid_framebuffer, GL_COLOR_ATTACHMENT0, environment.state.fluid_texture, 0);
+			GLenum const draw_buffers[]{ GL_NONE, GL_NONE, GL_NONE, GL_NONE, GL_NONE, GL_NONE, GL_NONE, GL_COLOR_ATTACHMENT0 };
+			glNamedFramebufferDrawBuffers(environment.state.fluid_framebuffer, std::size(draw_buffers), draw_buffers);
+
+			GLenum const framebuffer_status{ glCheckNamedFramebufferStatus(environment.state.fluid_framebuffer, GL_DRAW_FRAMEBUFFER) };
+			if (framebuffer_status != GL_FRAMEBUFFER_COMPLETE)
+			{
+				std::cerr << "Fluid framebuffer not completed, status code: " << framebuffer_status << std::endl;
+			}
+		}
+
+		{
+			glCreateTextures(GL_TEXTURE_2D_ARRAY, 1u, &environment.state.holographic_source_array_texture);
+			glTextureParameteri(environment.state.holographic_source_array_texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTextureParameteri(environment.state.holographic_source_array_texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			// TODO: GL_RGBA32F might not be needed
+			glTextureStorage3D(environment.state.holographic_source_array_texture, 1u, GL_RGBA32F, width, height, 4u);
+
+			glBindTextureUnit(1u, environment.state.holographic_source_array_texture);
+
+			glNamedFramebufferTextureLayer
+			(
+				environment.state.holographic_source_framebuffer, GL_COLOR_ATTACHMENT0,
+				environment.state.holographic_source_array_texture, 0, 0
+			);
+			glNamedFramebufferTextureLayer
+			(
+				environment.state.holographic_source_framebuffer, GL_COLOR_ATTACHMENT1,
+				environment.state.holographic_source_array_texture, 0, 1
+			);
+			glNamedFramebufferTextureLayer
+			(
+				environment.state.holographic_source_framebuffer, GL_COLOR_ATTACHMENT2,
+				environment.state.holographic_source_array_texture, 0, 2
+			);
+			glNamedFramebufferTextureLayer
+			(
+				environment.state.holographic_source_framebuffer, GL_COLOR_ATTACHMENT3,
+				environment.state.holographic_source_array_texture, 0, 3
+			);
+
+			GLenum const draw_buffers[]{ GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
+			glNamedFramebufferDrawBuffers(environment.state.holographic_source_framebuffer, std::size(draw_buffers), draw_buffers);
+
+			GLenum const framebuffer_status{ glCheckNamedFramebufferStatus(environment.state.holographic_source_framebuffer, GL_DRAW_FRAMEBUFFER) };
+			if (framebuffer_status != GL_FRAMEBUFFER_COMPLETE)
+			{
+				std::cerr << "Holographic source framebuffer not completed, status code: " << framebuffer_status << std::endl;
+			}
 		}
 	}
 
-	void delete_fluid_texture_and_framebuffer(game_environment::Environment& environment)
+	void free_default_framebuffer_size_dependent_data(game_environment::Environment& environment)
 	{
-		glDeleteTextures(1u, &environment.state.fluid_texture);
-		glDeleteFramebuffers(1u, &environment.state.fluid_framebuffer);
+		glDeleteTextures(std::size(environment.state.framebuffer_textures), environment.state.framebuffer_textures);
+		glDeleteFramebuffers(std::size(environment.state.framebuffers), environment.state.framebuffers);
 	}
 
 	void initialize(game_environment::Environment& environment)
@@ -6439,7 +6482,7 @@ namespace game_logic
 		int width, int height
 	)
 	{
-		delete_fluid_texture_and_framebuffer(environment);
+		free_default_framebuffer_size_dependent_data(environment);
 		adapt_to_default_framebuffer_size(environment, width, height);
 	}
 
@@ -7781,7 +7824,7 @@ namespace game_logic
 
 	void free(game_environment::Environment& environment)
 	{
-		delete_fluid_texture_and_framebuffer(environment);
+		free_default_framebuffer_size_dependent_data(environment);
 
 		glUnmapNamedBuffer(environment.state.GPU_buffers.rigid_bodies.positions.buffer);
 		glUnmapNamedBuffer(environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.buffer);
