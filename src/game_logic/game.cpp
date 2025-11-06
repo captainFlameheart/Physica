@@ -468,6 +468,26 @@ namespace game_logic
 		std::cout << std::endl;
 	}
 
+	void print_default_frame_buffer_parameters(game_environment::Environment& environment)
+	{
+		std::cout << "Default frame buffer parameters:\n";
+		GLint params;
+
+		glGetNamedFramebufferAttachmentParameteriv(0u, GL_FRONT_LEFT, GL_FRAMEBUFFER_ATTACHMENT_COLOR_ENCODING, &params);
+		std::cout << "Front left color encoding: " << (params == GL_LINEAR ? "linear" : "sRGB") << '\n';
+
+		glGetNamedFramebufferAttachmentParameteriv(0u, GL_FRONT_RIGHT, GL_FRAMEBUFFER_ATTACHMENT_COLOR_ENCODING, &params);
+		std::cout << "Front right color encoding: " << (params == GL_LINEAR ? "linear" : "sRGB") << '\n';
+
+		glGetNamedFramebufferAttachmentParameteriv(0u, GL_BACK_LEFT, GL_FRAMEBUFFER_ATTACHMENT_COLOR_ENCODING, &params);
+		std::cout << "Back left color encoding: " << (params == GL_LINEAR ? "linear" : "sRGB") << '\n';
+
+		glGetNamedFramebufferAttachmentParameteriv(0u, GL_BACK_RIGHT, GL_FRAMEBUFFER_ATTACHMENT_COLOR_ENCODING, &params);
+		std::cout << "Back right color encoding: " << (params == GL_LINEAR ? "linear" : "sRGB") << '\n';
+
+		std::cout << std::endl;
+	}
+
 	void adapt_to_default_framebuffer_size
 	(
 		game_environment::Environment& environment, 
@@ -515,6 +535,10 @@ namespace game_logic
 		std::cout << "Max triangle contact count: " << game_logic_MAX_TRIANGLE_CONTACT_COUNT(environment) << "\n" << std::endl;
 
 		print_capabilities(environment);
+		print_default_frame_buffer_parameters(environment);
+
+		glEnable(GL_FRAMEBUFFER_SRGB);
+		environment.state.framebuffer_sRGB_enabled = true;
 
 		glCreateQueries(GL_TIME_ELAPSED, 1, &environment.state.time_elapsed_query);
 
@@ -769,7 +793,7 @@ namespace game_logic
 		(
 			fragment_shader,
 			util_shader_VERSION,
-			util_shader_DEFINE("COLOR", "vec4(0.3, 0.3, 0.3, 0.5)"), // TODO: REMOVE ALPHA
+			util_shader_DEFINE("COLOR", "vec4(0.1, 0.1, 0.1, 0.5)"), // TODO: REMOVE ALPHA
 			::util::shader::file_to_string("util/static_color.frag") // TODO: Should only be done once
 		);
 		environment.state.triangle_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
@@ -6475,6 +6499,20 @@ namespace game_logic
 				environment.state.contact_impulses_visible = false;
 				environment.state.gravity_visible = false;
 				break;
+			case GLFW_KEY_0:
+				if (environment.state.framebuffer_sRGB_enabled)
+				{
+					std::cout << "Disable framebuffer sRGB" << std::endl;
+					glDisable(GL_FRAMEBUFFER_SRGB);
+					environment.state.framebuffer_sRGB_enabled = false;
+				}
+				else
+				{
+					std::cout << "Enable framebuffer sRGB" << std::endl;
+					glEnable(GL_FRAMEBUFFER_SRGB);
+					environment.state.framebuffer_sRGB_enabled = true;
+				}
+				break;
 			case GLFW_KEY_ESCAPE:
 				glfwSetWindowShouldClose(environment.window, GLFW_TRUE);
 				break;
@@ -7493,10 +7531,10 @@ namespace game_logic
 			glDrawArrays(GL_POINTS, 0, environment.state.GPU_buffers.fluid.current_particle_count);
 		}
 
-		//glUseProgram(environment.state.triangle_draw_shader);
-		//glDrawArrays(GL_TRIANGLES, 0, environment.state.GPU_buffers.rigid_bodies.triangles.current_count * 3u);
-		glUseProgram(environment.state.holographic_triangle_draw_shader);
+		glUseProgram(environment.state.triangle_draw_shader);
 		glDrawArrays(GL_TRIANGLES, 0, environment.state.GPU_buffers.rigid_bodies.triangles.current_count * 3u);
+		//glUseProgram(environment.state.holographic_triangle_draw_shader);
+		//glDrawArrays(GL_TRIANGLES, 0, environment.state.GPU_buffers.rigid_bodies.triangles.current_count * 3u);
 
 		if (environment.state.triangle_wireframes_visible)
 		{

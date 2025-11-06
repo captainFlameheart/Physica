@@ -11,7 +11,7 @@ void main()
     vec4 texture_color = texture(fluid_texture, texture_position);
     if (texture_color.a < 1.0)
     {
-        color.rgb = texture_color.rgb * texture_color.a * 0.3f;
+        color.rgb = texture_color.rgb * texture_color.a * 0.1f;//0.3f;
     }
     else
     {

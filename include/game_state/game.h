@@ -23,6 +23,7 @@ namespace game_state
 	// (initialize -> render -> events -> tick * n -> render -> events -> tick * n -> render -> ...)
 	struct Game
 	{
+		GLboolean framebuffer_sRGB_enabled;
 		GLuint time_elapsed_query;
 
 		cursor_types::Cursor_Type_Set cursor_types;
