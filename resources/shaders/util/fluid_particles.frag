@@ -1,7 +1,7 @@
 noperspective in vec2 offset;
 noperspective in vec4 base_color;
 
-layout (location = 1) out vec4 color;
+layout (location = 7) out vec4 color;
 
 void main()
 {

@@ -465,6 +465,14 @@ namespace game_logic
 		glGetIntegerv(GL_MAX_VERTEX_SHADER_STORAGE_BLOCKS, &max_vertex_shader_storage_blocks);
 		std::cout << "Max vertex shader storage blocks: " << max_vertex_shader_storage_blocks << '\n';
 
+		GLint max_color_attachements;
+		glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &max_color_attachements);
+		std::cout << "Max color attachments: " << max_color_attachements << '\n';
+
+		GLint max_draw_buffers;
+		glGetIntegerv(GL_MAX_DRAW_BUFFERS, &max_draw_buffers);
+		std::cout << "Max draw buffers: " << max_draw_buffers << '\n';
+
 		std::cout << std::endl;
 	}
 
@@ -507,7 +515,7 @@ namespace game_logic
 
 		glCreateFramebuffers(1u, &environment.state.fluid_framebuffer);
 		glNamedFramebufferTexture(environment.state.fluid_framebuffer, GL_COLOR_ATTACHMENT0, environment.state.fluid_texture, 0);
-		GLenum const draw_buffers[]{ GL_NONE, GL_COLOR_ATTACHMENT0 };
+		GLenum const draw_buffers[]{ GL_NONE, GL_NONE, GL_NONE, GL_NONE, GL_NONE, GL_NONE, GL_NONE, GL_COLOR_ATTACHMENT0 };
 		glNamedFramebufferDrawBuffers(environment.state.fluid_framebuffer, std::size(draw_buffers), draw_buffers);
 
 		GLenum framebuffer_status = glCheckNamedFramebufferStatus(environment.state.fluid_framebuffer, GL_DRAW_FRAMEBUFFER);
@@ -551,9 +559,9 @@ namespace game_logic
 		glfwGetFramebufferSize(environment.window, &width, &height);
 		adapt_to_default_framebuffer_size(environment, width, height);
 
-		glEnablei(GL_BLEND, 1);
-		glBlendEquationSeparatei(1, GL_FUNC_ADD, GL_FUNC_ADD);
-		glBlendFuncSeparatei(1, GL_SRC_ALPHA, GL_ONE, GL_ONE, GL_ONE);
+		glEnablei(GL_BLEND, 7u);
+		glBlendEquationSeparatei(7u, GL_FUNC_ADD, GL_FUNC_ADD);
+		glBlendFuncSeparatei(7u, GL_SRC_ALPHA, GL_ONE, GL_ONE, GL_ONE);
 
 		environment.state.debug_fluid_particles_visible = false;
 		environment.state.triangle_wireframes_visible = false;
@@ -7513,7 +7521,7 @@ namespace game_logic
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, environment.state.fluid_framebuffer);
 
 		GLfloat const fluid_clear_color[4u]{ 0.0f, 0.0f, 0.0f, 0.0f }; // IMPORTANT!!!! ALPHA SHOULD BE 0
-		glClearBufferfv(GL_COLOR, 1, fluid_clear_color);
+		glClearBufferfv(GL_COLOR, 7, fluid_clear_color);
 
 		glUseProgram(environment.state.fluid_particles_draw_shader);
 		glDrawArrays(GL_TRIANGLES, 0, environment.state.GPU_buffers.fluid.current_particle_count * 6u);
