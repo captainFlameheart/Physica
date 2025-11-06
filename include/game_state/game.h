@@ -63,7 +63,7 @@ namespace game_state
 		GLuint tick;
 		bool physics_running;
 
-		GLuint holographic_triangle_draw_shader;
+		bool use_holographic_radiance_cascades;
 
 		union
 		{
@@ -83,6 +83,8 @@ namespace game_state
 			};
 			GLuint framebuffer_textures[2u];
 		};
+
+		GLuint holographic_triangle_draw_shader;
 
 		GLuint fluid_particles_draw_shader;
 
@@ -147,5 +149,11 @@ namespace game_state
 		GLuint cursor_constraint_draw_shader;
 		
 		GLuint cursor_position_draw_shader;
+
+		GLuint holographic_source_draw_shader;
+		GLint holographic_source_draw_shader_source_uniform_location;
+		GLint holographic_source_draw_shader_layer_uniform_location;
+
+		GLuint presentation_stage;
 	};
 }

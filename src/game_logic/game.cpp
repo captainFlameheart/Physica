@@ -504,7 +504,7 @@ namespace game_logic
 	{
 		glViewport(0, 0, width, height);
 
-		glCreateFramebuffers(2u, environment.state.framebuffers);
+		glCreateFramebuffers(std::size(environment.state.framebuffers), environment.state.framebuffers);
 
 		{
 			// TODO: Make sure supersampling is not used for the default framebuffer. Otherwise, we should 
@@ -513,8 +513,6 @@ namespace game_logic
 			glTextureParameteri(environment.state.fluid_texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			glTextureParameteri(environment.state.fluid_texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTextureStorage2D(environment.state.fluid_texture, 1u, GL_RGBA32F, width, height);
-
-			glBindTextureUnit(0u, environment.state.fluid_texture);
 
 			glNamedFramebufferTexture(environment.state.fluid_framebuffer, GL_COLOR_ATTACHMENT0, environment.state.fluid_texture, 0);
 			GLenum const draw_buffers[]{ GL_NONE, GL_NONE, GL_NONE, GL_NONE, GL_NONE, GL_NONE, GL_NONE, GL_COLOR_ATTACHMENT0 };
@@ -533,8 +531,6 @@ namespace game_logic
 			glTextureParameteri(environment.state.holographic_source_array_texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			// TODO: GL_RGBA32F might not be needed
 			glTextureStorage3D(environment.state.holographic_source_array_texture, 1u, GL_RGBA32F, width, height, 4u);
-
-			glBindTextureUnit(1u, environment.state.holographic_source_array_texture);
 
 			glNamedFramebufferTextureLayer
 			(
@@ -566,6 +562,66 @@ namespace game_logic
 				std::cerr << "Holographic source framebuffer not completed, status code: " << framebuffer_status << std::endl;
 			}
 		}
+
+		glBindTextures(0u, std::size(environment.state.framebuffer_textures), environment.state.framebuffer_textures);
+	}
+
+	void start_presentation_stage(game_environment::Environment& environment)
+	{
+		GLuint stage{ environment.state.presentation_stage };
+		std::cout << "Initialize stage " << stage << std::endl;
+		switch (stage)
+		{
+		case 0u:
+			glProgramUniform1f
+			(
+				environment.state.holographic_source_draw_shader,
+				environment.state.holographic_source_draw_shader_layer_uniform_location,
+				0.0f
+			);
+			break;
+		case 1u:
+			glProgramUniform1f
+			(
+				environment.state.holographic_source_draw_shader,
+				environment.state.holographic_source_draw_shader_layer_uniform_location,
+				1.0f
+			);
+			break;
+		case 2u:
+			glProgramUniform1f
+			(
+				environment.state.holographic_source_draw_shader,
+				environment.state.holographic_source_draw_shader_layer_uniform_location,
+				2.0f
+			);
+			break;
+		case 3u:
+			glProgramUniform1f
+			(
+				environment.state.holographic_source_draw_shader,
+				environment.state.holographic_source_draw_shader_layer_uniform_location,
+				3.0f
+			);
+			break;
+		}
+	}
+
+	void end_presentation_stage(game_environment::Environment& environment)
+	{
+		GLuint stage{ environment.state.presentation_stage };
+		std::cout << "End stage " << stage << std::endl;
+		switch (stage)
+		{
+		case 0u:
+			break;
+		case 1u:
+			break;
+		case 2u:
+			break;
+		case 3u:
+			break;
+		}
 	}
 
 	void free_default_framebuffer_size_dependent_data(game_environment::Environment& environment)
@@ -587,6 +643,9 @@ namespace game_logic
 
 		print_capabilities(environment);
 		print_default_frame_buffer_parameters(environment);
+
+		environment.state.presentation_stage = 0u;
+		environment.state.use_holographic_radiance_cascades = true;
 
 		glEnable(GL_FRAMEBUFFER_SRGB);
 		environment.state.framebuffer_sRGB_enabled = true;
@@ -1469,6 +1528,38 @@ namespace game_logic
 		environment.state.cursor_position_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
 		std::cout << "Cursor position draw shader compiled" << std::endl;
 
+		// TODO: This vertex shader compilation should be done ONCE
+		::util::shader::set_shader_statically
+		(
+			vertex_shader,
+			util_shader_VERSION,
+			::util::shader::file_to_string("util/full_screen.vert")
+		);
+		::util::shader::set_shader_statically
+		(
+			fragment_shader,
+			util_shader_VERSION,
+			::util::shader::file_to_string("holographic_radiance_cascades/source/source.frag")
+		);
+		environment.state.holographic_source_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+		environment.state.holographic_source_draw_shader_source_uniform_location = glGetUniformLocation(environment.state.holographic_source_draw_shader, "source");
+		environment.state.holographic_source_draw_shader_layer_uniform_location = glGetUniformLocation(environment.state.holographic_source_draw_shader, "layer");
+		glProgramUniform1i
+		(
+			environment.state.holographic_source_draw_shader,
+			environment.state.holographic_source_draw_shader_source_uniform_location,
+			1u
+		);
+		glProgramUniform1f
+		(
+			environment.state.holographic_source_draw_shader,
+			environment.state.holographic_source_draw_shader_layer_uniform_location,
+			0.0f
+		);
+		std::cout << "Holographic source draw shader compiled. Source uniform location: " 
+			<< environment.state.holographic_source_draw_shader_source_uniform_location << ". Layer uniform location: " 
+			<< environment.state.holographic_source_draw_shader_layer_uniform_location << std::endl;
+
 		::util::shader::delete_shader(vertex_shader);
 		::util::shader::delete_shader(fragment_shader);
 
@@ -2218,9 +2309,9 @@ namespace game_logic
 			for (GLuint i = 0; i < MAX_MATERIAL_COUNT(environment); ++i)
 			{
 				GLfloat albedo[4u]{ 1.0f, 0.0f, 0.0f, 1.0f };
-				GLfloat emission[4u]{ 1.0f, 0.0f, 0.0f, 1.0f };
-				GLfloat absorption[4u]{ 1.0f, 0.0f, 0.0f, 1.0f };
-				GLfloat scattering[4u]{ 1.0f, 0.0f, 0.0f, 1.0f };
+				GLfloat emission[4u]{ 0.0f, 1.0f, 0.0f, 1.0f };
+				GLfloat absorption[4u]{ 0.0f, 0.0f, 1.0f, 1.0f };
+				GLfloat scattering[4u]{ 1.0f, 1.0f, 1.0f, 1.0f };
 				switch (i % 10u)
 				{
 				case 0u:
@@ -5602,6 +5693,8 @@ namespace game_logic
 		glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
 		environment.state.physics_tick_results_fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0u);
 		glFlush();
+
+		start_presentation_stage(environment);
 	}
 
 	// TODO: Move to ::util::math
@@ -6563,6 +6656,19 @@ namespace game_logic
 					glEnable(GL_FRAMEBUFFER_SRGB);
 					environment.state.framebuffer_sRGB_enabled = true;
 				}
+				break;
+			case GLFW_KEY_H:
+				environment.state.use_holographic_radiance_cascades = !environment.state.use_holographic_radiance_cascades;
+				break;
+			case GLFW_KEY_E:
+				end_presentation_stage(environment);
+				++environment.state.presentation_stage;
+				start_presentation_stage(environment);
+				break;
+			case GLFW_KEY_Q:
+				end_presentation_stage(environment);
+				--environment.state.presentation_stage;
+				start_presentation_stage(environment);
 				break;
 			case GLFW_KEY_ESCAPE:
 				glfwSetWindowShouldClose(environment.window, GLFW_TRUE);
@@ -7569,8 +7675,12 @@ namespace game_logic
 		glUseProgram(environment.state.fluid_particles_draw_shader);
 		glDrawArrays(GL_TRIANGLES, 0, environment.state.GPU_buffers.fluid.current_particle_count * 6u);
 
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0u);
-		//glClear(GL_COLOR_BUFFER_BIT);	// IMPORTANT TODO: REMOVE!!!
+		GLuint target_framebuffer{ 0u };
+		if (environment.state.use_holographic_radiance_cascades)
+		{
+			target_framebuffer = environment.state.holographic_source_framebuffer;
+		}
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, target_framebuffer);
 
 		glUseProgram(environment.state.fluid_draw_shader);
 		glDrawArrays(GL_TRIANGLES, 0, 6u);
@@ -7582,10 +7692,10 @@ namespace game_logic
 			glDrawArrays(GL_POINTS, 0, environment.state.GPU_buffers.fluid.current_particle_count);
 		}
 
-		glUseProgram(environment.state.triangle_draw_shader);
-		glDrawArrays(GL_TRIANGLES, 0, environment.state.GPU_buffers.rigid_bodies.triangles.current_count * 3u);
-		//glUseProgram(environment.state.holographic_triangle_draw_shader);
+		//glUseProgram(environment.state.triangle_draw_shader);
 		//glDrawArrays(GL_TRIANGLES, 0, environment.state.GPU_buffers.rigid_bodies.triangles.current_count * 3u);
+		glUseProgram(environment.state.holographic_triangle_draw_shader);
+		glDrawArrays(GL_TRIANGLES, 0, environment.state.GPU_buffers.rigid_bodies.triangles.current_count * 3u);
 
 		if (environment.state.triangle_wireframes_visible)
 		{
@@ -7790,10 +7900,14 @@ namespace game_logic
 			glDrawArrays(GL_LINES, 0, grid_point_count * 2u);
 		}
 
-		glEnablei(GL_BLEND, 0u);
-		glUseProgram(environment.state.gravity_sources_draw_shader);
-		glDrawArrays(GL_TRIANGLES, 0, environment.state.GPU_buffers.gravity_sources.current_gravity_source_count * 6u);
-		glDisablei(GL_BLEND, 0u);
+		if (environment.state.presentation_stage < 4u)
+		{
+			GLuint const layer{ environment.state.presentation_stage };
+			glEnablei(GL_BLEND, layer);
+			glUseProgram(environment.state.gravity_sources_draw_shader);
+			glDrawArrays(GL_TRIANGLES, 0, environment.state.GPU_buffers.gravity_sources.current_gravity_source_count * 6u);
+			glDisablei(GL_BLEND, layer);
+		}
 
 		if (hovered_gravity_source != environment.state.GPU_buffers.gravity_sources.current_gravity_source_count)
 		{
@@ -7820,6 +7934,13 @@ namespace game_logic
 		glUseProgram(environment.state.cursor_position_draw_shader);
 		glPointSize(5.0f);
 		glDrawArrays(GL_POINTS, 0, 1u);
+
+		if (environment.state.use_holographic_radiance_cascades)
+		{
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0u);
+			glUseProgram(environment.state.holographic_source_draw_shader);
+			glDrawArrays(GL_TRIANGLES, 0, 6u);
+		}
 	}
 
 	void free(game_environment::Environment& environment)
