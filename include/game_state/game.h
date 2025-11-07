@@ -156,6 +156,9 @@ namespace game_state
 
 		GLuint holographic_probe_grid_size[2u];
 
+		GLuint holographic_probe_grid_draw_shader;
+		GLint holographic_probe_grid_draw_shader_probe_grid_size_uniform_location;
+
 		GLuint holographic_cascade_draw_shader;
 		GLint holographic_cascade_draw_shader_probe_grid_size_uniform_location;
 		GLuint holographic_cascade_draw_shader_cascade;
