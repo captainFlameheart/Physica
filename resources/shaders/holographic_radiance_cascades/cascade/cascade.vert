@@ -29,8 +29,10 @@ void main()
 	#define SHORTEN_DIRECTION 1
 	#if SHORTEN_DIRECTION == 1
 		vec2 direction = vec2(float(cascade_power_of_two), float(int(direction_index << 1u) - int(cascade_power_of_two)));
-		const float scale_factor = 0.95;
-		vec2 position = vec2(float(probe_x), float(probe_y)) + scale_factor * float(gl_VertexID & 1u) * direction;
+		const float removed_length = 0.2;
+		float direction_length = length(direction);
+		vec2 normalized_direction = direction / direction_length;
+		vec2 position = vec2(float(probe_x), float(probe_y)) + float(gl_VertexID & 1u) * (normalized_direction * (direction_length - removed_length));
 
 		gl_Position = vec4
 		(
@@ -52,4 +54,6 @@ void main()
 
 	float color_factor = float(probe_y & 1u);
 	line_color = (1.0 - 2.0 * color_factor) * cascade_colors[cascade % cascade_colors.length()] + color_factor;
+
+	
 }
