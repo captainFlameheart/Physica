@@ -569,7 +569,7 @@ namespace game_logic
 	void start_presentation_stage(game_environment::Environment& environment)
 	{
 		GLuint stage{ environment.state.presentation_stage };
-		std::cout << "Initialize stage " << stage << std::endl;
+		std::cout << "Start stage " << stage << std::endl;
 		switch (stage)
 		{
 		case 0u:
@@ -602,6 +602,42 @@ namespace game_logic
 				environment.state.holographic_source_draw_shader,
 				environment.state.holographic_source_draw_shader_layer_uniform_location,
 				3.0f
+			);
+			break;
+		case 4u:
+			environment.state.holographic_cascade_draw_shader_cascade = 0u;
+			glProgramUniform1ui
+			(
+				environment.state.holographic_cascade_draw_shader, 
+				environment.state.holographic_cascade_draw_shader_cascade_uniform_location, 
+				environment.state.holographic_cascade_draw_shader_cascade
+			);
+			break;
+		case 5u:
+			environment.state.holographic_cascade_draw_shader_cascade = 1u;
+			glProgramUniform1ui
+			(
+				environment.state.holographic_cascade_draw_shader,
+				environment.state.holographic_cascade_draw_shader_cascade_uniform_location,
+				environment.state.holographic_cascade_draw_shader_cascade
+			);
+			break;
+		case 6u:
+			environment.state.holographic_cascade_draw_shader_cascade = 2u;
+			glProgramUniform1ui
+			(
+				environment.state.holographic_cascade_draw_shader,
+				environment.state.holographic_cascade_draw_shader_cascade_uniform_location,
+				environment.state.holographic_cascade_draw_shader_cascade
+			);
+			break;
+		case 7u:
+			environment.state.holographic_cascade_draw_shader_cascade = 3u;
+			glProgramUniform1ui
+			(
+				environment.state.holographic_cascade_draw_shader,
+				environment.state.holographic_cascade_draw_shader_cascade_uniform_location,
+				environment.state.holographic_cascade_draw_shader_cascade
 			);
 			break;
 		}
@@ -646,8 +682,8 @@ namespace game_logic
 
 		environment.state.presentation_stage = 0u;
 		environment.state.use_holographic_radiance_cascades = true;
-		environment.state.holographic_probe_grid_size[0u] = 4u;
-		environment.state.holographic_probe_grid_size[1u] = 4u;
+		environment.state.holographic_probe_grid_size[0u] = 8u;
+		environment.state.holographic_probe_grid_size[1u] = 8u;
 
 		glEnable(GL_FRAMEBUFFER_SRGB);
 		environment.state.framebuffer_sRGB_enabled = true;
