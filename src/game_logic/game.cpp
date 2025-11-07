@@ -682,8 +682,8 @@ namespace game_logic
 
 		environment.state.presentation_stage = 0u;
 		environment.state.use_holographic_radiance_cascades = true;
-		environment.state.holographic_probe_grid_size[0u] = 8u;
-		environment.state.holographic_probe_grid_size[1u] = 8u;
+		environment.state.holographic_probe_grid_size[0u] = 32u;
+		environment.state.holographic_probe_grid_size[1u] = 32u;
 
 		glEnable(GL_FRAMEBUFFER_SRGB);
 		environment.state.framebuffer_sRGB_enabled = true;

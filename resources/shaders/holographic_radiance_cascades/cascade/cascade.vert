@@ -1,6 +1,16 @@
 uniform uvec2 probe_grid_size;
 uniform uint cascade;
 
+const vec4 cascade_colors[] = 
+{
+	vec4(0xFF, 0x00, 0xFF, 1.0), 
+	vec4(0xFF, 0x00, 0x00, 1.0), 
+	vec4(0x00, 0xFF, 0x00, 1.0), 
+	vec4(0x00, 0x00, 0xFF, 1.0), 
+};
+
+out vec4 line_color;
+
 void main()
 {
 	uint cascade_power_of_two = 1u << cascade;
@@ -39,4 +49,7 @@ void main()
 			0.0, 1.0
 		);
 	#endif
+
+	float color_factor = float(probe_y & 1u);
+	line_color = (1.0 - 2.0 * color_factor) * cascade_colors[cascade % cascade_colors.length()] + color_factor;
 }
