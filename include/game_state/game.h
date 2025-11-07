@@ -154,6 +154,13 @@ namespace game_state
 		GLint holographic_source_draw_shader_source_uniform_location;
 		GLint holographic_source_draw_shader_layer_uniform_location;
 
+		GLuint holographic_probe_grid_size[2u];
+
+		GLuint holographic_cascade_draw_shader;
+		GLint holographic_cascade_draw_shader_probe_grid_size_uniform_location;
+		GLuint holographic_cascade_draw_shader_cascade;
+		GLint holographic_cascade_draw_shader_cascade_uniform_location;
+
 		GLuint presentation_stage;
 	};
 }

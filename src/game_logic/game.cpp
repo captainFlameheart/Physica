@@ -646,6 +646,8 @@ namespace game_logic
 
 		environment.state.presentation_stage = 0u;
 		environment.state.use_holographic_radiance_cascades = true;
+		environment.state.holographic_probe_grid_size[0u] = 4u;
+		environment.state.holographic_probe_grid_size[1u] = 4u;
 
 		glEnable(GL_FRAMEBUFFER_SRGB);
 		environment.state.framebuffer_sRGB_enabled = true;
@@ -1559,6 +1561,38 @@ namespace game_logic
 		std::cout << "Holographic source draw shader compiled. Source uniform location: " 
 			<< environment.state.holographic_source_draw_shader_source_uniform_location << ". Layer uniform location: " 
 			<< environment.state.holographic_source_draw_shader_layer_uniform_location << std::endl;
+
+		::util::shader::set_shader_statically
+		(
+			vertex_shader,
+			util_shader_VERSION,
+			::util::shader::file_to_string("holographic_radiance_cascades/cascade/cascade.vert")
+		);
+		::util::shader::set_shader_statically
+		(
+			fragment_shader,
+			util_shader_VERSION,
+			::util::shader::file_to_string("holographic_radiance_cascades/cascade/cascade.frag")
+		);
+		environment.state.holographic_cascade_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+		environment.state.holographic_cascade_draw_shader_probe_grid_size_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_draw_shader, "probe_grid_size");
+		environment.state.holographic_cascade_draw_shader_cascade_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_draw_shader, "cascade");
+		glProgramUniform2ui
+		(
+			environment.state.holographic_cascade_draw_shader,
+			environment.state.holographic_cascade_draw_shader_probe_grid_size_uniform_location,
+			environment.state.holographic_probe_grid_size[0u], environment.state.holographic_probe_grid_size[1u]
+		);
+		environment.state.holographic_cascade_draw_shader_cascade = 1u;
+		glProgramUniform1ui
+		(
+			environment.state.holographic_cascade_draw_shader,
+			environment.state.holographic_cascade_draw_shader_cascade_uniform_location,
+			environment.state.holographic_cascade_draw_shader_cascade
+		);
+		std::cout << "Holographic cascade draw shader compiled. Probe grid size uniform location: "
+			<< environment.state.holographic_cascade_draw_shader_probe_grid_size_uniform_location << ". Cascade uniform location: "
+			<< environment.state.holographic_cascade_draw_shader_cascade_uniform_location << std::endl;
 
 		::util::shader::delete_shader(vertex_shader);
 		::util::shader::delete_shader(fragment_shader);
@@ -7941,6 +7975,17 @@ namespace game_logic
 			glUseProgram(environment.state.holographic_source_draw_shader);
 			glDrawArrays(GL_TRIANGLES, 0, 6u);
 		}
+
+		glUseProgram(environment.state.holographic_cascade_draw_shader);
+		GLuint const cascade_power_of_two{ 1u << environment.state.holographic_cascade_draw_shader_cascade };
+		// TODO: Avoid calling ceil function
+		// IMPORTANT TODO: Probe column 0 is not needed
+		GLuint const vertex_count
+		{ 
+			(environment.state.holographic_probe_grid_size[1u] << 1u) * (cascade_power_of_two + 1u) * 
+			static_cast<GLuint>(std::ceilf(environment.state.holographic_probe_grid_size[0u] / static_cast<GLfloat>(cascade_power_of_two))) 
+		};
+		glDrawArrays(GL_LINES, 0, vertex_count);
 	}
 
 	void free(game_environment::Environment& environment)
