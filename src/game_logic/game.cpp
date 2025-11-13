@@ -528,6 +528,13 @@ namespace game_logic
 		}
 
 		glCreateTextures(GL_TEXTURE_2D_ARRAY, std::size(environment.state.texture_2d_arrays), environment.state.texture_2d_arrays);
+		
+		// TODO: Optimize max cascade index calculation
+		environment.state.max_cascade_index = static_cast<GLuint>(std::ceil(std::log2(static_cast<double>(environment.state.holographic_probe_grid_width - 1u))));
+		std::cout << "Grid width: " << environment.state.holographic_probe_grid_width << std::endl;
+		std::cout << "Max cascade index: " << environment.state.max_cascade_index << std::endl;
+
+		//glCreateTextures(GL_TEXTURE_2D_ARRAY, , environment.state.texture_2d_arrays);
 
 		{
 			glTextureParameteri(environment.state.holographic_source_array_texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);

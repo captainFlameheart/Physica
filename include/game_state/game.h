@@ -72,9 +72,11 @@ namespace game_state
 				GLuint fluid_framebuffer;
 				GLuint holographic_source_framebuffer;
 				GLuint angular_fluence_framebuffer;
+				GLuint ray_framebuffer;
 			};
-			GLuint framebuffers[3u];
+			GLuint framebuffers[4u];
 		};
+
 		union
 		{
 			struct
@@ -88,11 +90,14 @@ namespace game_state
 						GLuint angular_fluence_texture;
 					};
 					GLuint texture_2d_arrays[2u];
+
 				};
 
 			};
 			GLuint framebuffer_textures[3u];
 		};
+		GLuint max_cascade_index;
+		GLuint* ray_textures;
 
 		GLuint holographic_triangle_draw_shader;
 
