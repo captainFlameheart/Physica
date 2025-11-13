@@ -534,7 +534,9 @@ namespace game_logic
 		std::cout << "Grid width: " << environment.state.holographic_probe_grid_width << std::endl;
 		std::cout << "Max cascade index: " << environment.state.max_cascade_index << std::endl;
 
-		//glCreateTextures(GL_TEXTURE_2D_ARRAY, , environment.state.texture_2d_arrays);
+		// TODO: Combine with above call
+		environment.state.ray_textures = new GLuint[environment.state.max_cascade_index];
+		glCreateTextures(GL_TEXTURE_2D_ARRAY, environment.state.max_cascade_index, environment.state.ray_textures);
 
 		{
 			glTextureParameteri(environment.state.holographic_source_array_texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -724,6 +726,7 @@ namespace game_logic
 	{
 		std::cout << "Free default framebuffer size dependent data" << std::endl;
 		glDeleteTextures(std::size(environment.state.framebuffer_textures), environment.state.framebuffer_textures);
+		glDeleteTextures(environment.state.max_cascade_index, environment.state.ray_textures);
 		glDeleteFramebuffers(std::size(environment.state.framebuffers), environment.state.framebuffers);
 	}
 
