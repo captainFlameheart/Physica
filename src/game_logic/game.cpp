@@ -525,8 +525,9 @@ namespace game_logic
 			}
 		}
 
+		glCreateTextures(GL_TEXTURE_2D_ARRAY, std::size(environment.state.texture_2d_arrays), environment.state.texture_2d_arrays);
+
 		{
-			glCreateTextures(GL_TEXTURE_2D_ARRAY, 1u, &environment.state.holographic_source_array_texture);
 			glTextureParameteri(environment.state.holographic_source_array_texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			glTextureParameteri(environment.state.holographic_source_array_texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			// TODO: GL_RGBA32F might not be needed
@@ -562,6 +563,43 @@ namespace game_logic
 				std::cerr << "Holographic source framebuffer not completed, status code: " << framebuffer_status << std::endl;
 			}
 		}
+
+		/* {
+			glTextureParameteri(environment.state.holographic_source_array_texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTextureParameteri(environment.state.holographic_source_array_texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			// TODO: GL_RGBA32F might not be needed
+			glTextureStorage3D(environment.state.holographic_source_array_texture, 1u, GL_RGBA32F, width, height, 4u);
+
+			glNamedFramebufferTextureLayer
+			(
+				environment.state.holographic_source_framebuffer, GL_COLOR_ATTACHMENT0,
+				environment.state.holographic_source_array_texture, 0, 0
+			);
+			glNamedFramebufferTextureLayer
+			(
+				environment.state.holographic_source_framebuffer, GL_COLOR_ATTACHMENT1,
+				environment.state.holographic_source_array_texture, 0, 1
+			);
+			glNamedFramebufferTextureLayer
+			(
+				environment.state.holographic_source_framebuffer, GL_COLOR_ATTACHMENT2,
+				environment.state.holographic_source_array_texture, 0, 2
+			);
+			glNamedFramebufferTextureLayer
+			(
+				environment.state.holographic_source_framebuffer, GL_COLOR_ATTACHMENT3,
+				environment.state.holographic_source_array_texture, 0, 3
+			);
+
+			GLenum const draw_buffers[]{ GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
+			glNamedFramebufferDrawBuffers(environment.state.holographic_source_framebuffer, std::size(draw_buffers), draw_buffers);
+
+			GLenum const framebuffer_status{ glCheckNamedFramebufferStatus(environment.state.holographic_source_framebuffer, GL_DRAW_FRAMEBUFFER) };
+			if (framebuffer_status != GL_FRAMEBUFFER_COMPLETE)
+			{
+				std::cerr << "Holographic source framebuffer not completed, status code: " << framebuffer_status << std::endl;
+			}
+		}*/
 
 		glBindTextures(0u, std::size(environment.state.framebuffer_textures), environment.state.framebuffer_textures);
 	}
