@@ -164,7 +164,15 @@ namespace game_state
 		GLint holographic_source_draw_shader_source_uniform_location;
 		GLint holographic_source_draw_shader_layer_uniform_location;
 
-		GLuint holographic_probe_grid_size[2u];
+		union
+		{
+			struct
+			{
+				GLuint holographic_probe_grid_width;
+				GLuint holographic_probe_grid_height;
+			};
+			GLuint holographic_probe_grid_size[2u];
+		};
 
 		GLuint holographic_probe_grid_draw_shader;
 		GLint holographic_probe_grid_draw_shader_probe_grid_size_uniform_location;

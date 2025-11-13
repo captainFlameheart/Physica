@@ -502,6 +502,8 @@ namespace game_logic
 		GLint const width, GLint const height
 	)
 	{
+		std::cout << "Adapting to default framebuffer size" << std::endl;
+
 		glViewport(0, 0, width, height);
 
 		glCreateFramebuffers(std::size(environment.state.framebuffers), environment.state.framebuffers);
@@ -564,42 +566,19 @@ namespace game_logic
 			}
 		}
 
-		/* {
-			glTextureParameteri(environment.state.holographic_source_array_texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTextureParameteri(environment.state.holographic_source_array_texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		{
 			// TODO: GL_RGBA32F might not be needed
-			glTextureStorage3D(environment.state.holographic_source_array_texture, 1u, GL_RGBA32F, width, height, 4u);
+			glTextureStorage3D(environment.state.angular_fluence_texture, 1u, GL_RGBA32F, environment.state.holographic_probe_grid_width - 1u, environment.state.holographic_probe_grid_height, 2u);
 
-			glNamedFramebufferTextureLayer
-			(
-				environment.state.holographic_source_framebuffer, GL_COLOR_ATTACHMENT0,
-				environment.state.holographic_source_array_texture, 0, 0
-			);
-			glNamedFramebufferTextureLayer
-			(
-				environment.state.holographic_source_framebuffer, GL_COLOR_ATTACHMENT1,
-				environment.state.holographic_source_array_texture, 0, 1
-			);
-			glNamedFramebufferTextureLayer
-			(
-				environment.state.holographic_source_framebuffer, GL_COLOR_ATTACHMENT2,
-				environment.state.holographic_source_array_texture, 0, 2
-			);
-			glNamedFramebufferTextureLayer
-			(
-				environment.state.holographic_source_framebuffer, GL_COLOR_ATTACHMENT3,
-				environment.state.holographic_source_array_texture, 0, 3
-			);
-
-			GLenum const draw_buffers[]{ GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
-			glNamedFramebufferDrawBuffers(environment.state.holographic_source_framebuffer, std::size(draw_buffers), draw_buffers);
+			GLenum const draw_buffers[]{ GL_COLOR_ATTACHMENT0 };
+			glNamedFramebufferDrawBuffers(environment.state.angular_fluence_framebuffer, std::size(draw_buffers), draw_buffers);
 
 			GLenum const framebuffer_status{ glCheckNamedFramebufferStatus(environment.state.holographic_source_framebuffer, GL_DRAW_FRAMEBUFFER) };
 			if (framebuffer_status != GL_FRAMEBUFFER_COMPLETE)
 			{
-				std::cerr << "Holographic source framebuffer not completed, status code: " << framebuffer_status << std::endl;
+				std::cerr << "Angular fluence framebuffer not completed, status code: " << framebuffer_status << std::endl;
 			}
-		}*/
+		}
 
 		glBindTextures(0u, std::size(environment.state.framebuffer_textures), environment.state.framebuffer_textures);
 	}
@@ -736,6 +715,7 @@ namespace game_logic
 
 	void free_default_framebuffer_size_dependent_data(game_environment::Environment& environment)
 	{
+		std::cout << "Free default framebuffer size dependent data" << std::endl;
 		glDeleteTextures(std::size(environment.state.framebuffer_textures), environment.state.framebuffer_textures);
 		glDeleteFramebuffers(std::size(environment.state.framebuffers), environment.state.framebuffers);
 	}
@@ -756,8 +736,8 @@ namespace game_logic
 
 		environment.state.presentation_stage = 0u;
 		environment.state.use_holographic_radiance_cascades = true;
-		environment.state.holographic_probe_grid_size[0u] = 32u;
-		environment.state.holographic_probe_grid_size[1u] = 16u;
+		environment.state.holographic_probe_grid_width = 5u;
+		environment.state.holographic_probe_grid_height = 5u;
 
 		glEnable(GL_FRAMEBUFFER_SRGB);
 		environment.state.framebuffer_sRGB_enabled = true;
