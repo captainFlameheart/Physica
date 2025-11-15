@@ -77,6 +77,7 @@ namespace game_state
 			GLuint framebuffers[4u];
 		};
 
+		// IMPORTANT TODO: Use 3D textures instead of texture 2D arrays when z locality is present!
 		union
 		{
 			struct

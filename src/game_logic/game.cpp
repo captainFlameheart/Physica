@@ -576,8 +576,9 @@ namespace game_logic
 		}
 
 		{
+			GLuint const width{ 1u << environment.state.max_cascade_index };
 			// TODO: GL_RGBA32F might not be needed
-			glTextureStorage3D(environment.state.angular_fluence_texture, 1u, GL_RGBA32F, environment.state.holographic_probe_grid_width - 1u, environment.state.holographic_probe_grid_height, 2u);
+			glTextureStorage3D(environment.state.angular_fluence_texture, 1u, GL_RGBA32F, width, environment.state.holographic_probe_grid_height, 2u);
 
 			GLenum const draw_buffers[]{ GL_COLOR_ATTACHMENT0 };
 			glNamedFramebufferDrawBuffers(environment.state.angular_fluence_framebuffer, std::size(draw_buffers), draw_buffers);
@@ -587,6 +588,15 @@ namespace game_logic
 			{
 				std::cerr << "Angular fluence framebuffer not completed, status code: " << framebuffer_status << std::endl;
 			}
+		}
+
+		{
+			/*for (GLuint cascade{0u}; cascade < environment.state.max_cascade_index; ++cascade)
+			{
+				GLuint const cascade_power_of_two{ 1u << cascade };
+				GLuint const width{ ceil_div(environment.state.holographic_probe_grid_width - 1u - cascade_power_of_two, cascade_power_of_two) };
+				glTextureStorage3D(environment.state.ray_textures[i], 1u, GL_RGBA32F, )
+			}*/
 		}
 
 		glBindTextures(0u, std::size(environment.state.framebuffer_textures), environment.state.framebuffer_textures);
