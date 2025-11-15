@@ -184,6 +184,12 @@
 
 namespace game_logic
 {
+	// TODO: Move to ::util::math
+	inline GLuint ceil_div(GLuint numerator, GLuint denominator)
+	{
+		return numerator / denominator + (numerator % denominator != 0);
+	}
+
 	template <unsigned int Vertex_Count, unsigned int Vertex_Index_Count>
 	void create_model
 	(
@@ -591,12 +597,14 @@ namespace game_logic
 		}
 
 		{
-			/*for (GLuint cascade{0u}; cascade < environment.state.max_cascade_index; ++cascade)
+			for (GLuint cascade{ 0u }; cascade < environment.state.max_cascade_index; ++cascade)
 			{
 				GLuint const cascade_power_of_two{ 1u << cascade };
 				GLuint const width{ ceil_div(environment.state.holographic_probe_grid_width - 1u - cascade_power_of_two, cascade_power_of_two) };
-				glTextureStorage3D(environment.state.ray_textures[i], 1u, GL_RGBA32F, )
-			}*/
+				GLuint const rays_in_vacuum_per_column{ ceil_div(cascade_power_of_two + 1u, 2) << 1u };
+				GLuint const height{ environment.state.holographic_probe_grid_height * (cascade_power_of_two + 1u) - rays_in_vacuum_per_column };
+				glTextureStorage3D(environment.state.ray_textures[cascade], 1u, GL_RGBA32F, width, height, 2u);
+			}
 		}
 
 		glBindTextures(0u, std::size(environment.state.framebuffer_textures), environment.state.framebuffer_textures);
@@ -5862,12 +5870,6 @@ namespace game_logic
 		glFlush();
 
 		start_presentation_stage(environment);
-	}
-
-	// TODO: Move to ::util::math
-	inline GLuint ceil_div(GLuint numerator, GLuint denominator)
-	{
-		return numerator / denominator + (numerator % denominator != 0);
 	}
 
 	void integrate_forces(game_environment::Environment& environment)
