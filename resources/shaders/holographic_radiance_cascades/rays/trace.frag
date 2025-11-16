@@ -19,8 +19,6 @@ layout(shared, binding = CAMERA_BINDING) uniform Camera
 	mat2 view_rotation;
 } camera;
 
-// TODO: Uniform ring buffer
-
 uniform sampler2DArray source;
 
 layout (location = 0) out vec4 radiance;
