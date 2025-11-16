@@ -1,9 +1,25 @@
-// Expected to be concatenated from CPU:
-// const uint cascade = ?u;
-// const uint step_count = ?u;
+/* Expected to be concatenated from CPU:
 
-// IMPORTANT TODO: Put into uniform ring buffer
-uniform float step_world_distance = ?;
+const int skipped_rays_below_column = ?;
+const int rays_per_probe = ?;
+const int cascade_power_of_two = ?u;
+
+const vec2 probe_grid_point_to_sample_point_factor = ?;
+const vec2 probe_grid_full_step_to_sample_step_factor = ?;
+const vec2 probe_grid_projection = ?;
+
+const uint step_count = ?u;
+*/
+
+layout(shared, binding = CAMERA_BINDING) uniform Camera
+{
+	ivec2 xy;
+	int angle;
+	float z;
+	mat2 view_rotation;
+} camera;
+
+// TODO: Uniform ring buffer
 
 uniform sampler2DArray source;
 
@@ -15,17 +31,26 @@ void main()
 	radiance = vec4(0.0);
 	transmittance = vec4(1.0);
 	
-	vec2 sample_point = vec2(0.0, 0.0);
+	ivec2 output_texel_position = ivec2(gl_FragCoord.xy);
+	int direction_id = (skipped_rays_below_column + output_texel_position.y) % rays_per_probe);
+	vec2 probe_grid_full_step = vec2(cascade_power_of_two, (direction_id << 1) - cascade_power_of_two);
+
+	vec2 sample_step = (probe_grid_full_step * probe_grid_full_step_to_sample_step_factor);
+	vec2 sample_point = vec2(output_texel_position.x + 1, output_texel_position.y) * probe_grid_point_to_sample_point_factor + sample_step * 0.5;
+	
+	float world_step_distance = length(probe_grid_step * probe_grid_projection) * camera.z;
+
+	// TODO: Allow camera to not look straight towards the world plane.
 	for (uint i = 0u; i < step_count; ++i)
 	{
 		// TODO: Maybe change order of emission and absorption.
 		vec4 emission = texture(source, vec3(sample_point, 1.0));
 		vec4 absorption = texture(source, vec3(sample_point, 2.0));
 		
-		vec4 scaled_attenuation = absorption * step_world_distance;
+		vec4 scaled_attenuation = absorption * world_step_distance;
 		vec4 transmittance_factor = exp(-scaled_attenuation)
 
-		vec4 small_emission_factor = step_world_distance * (1.0 - 0.5 * scaled_attenuation); // Second order taylor approximation for small attenuation.
+		vec4 small_emission_factor = world_step_distance * (1.0 - 0.5 * scaled_attenuation); // Second order taylor approximation for small attenuation.
 		vec4 large_emission_factor = emission * (1.0 - transmittance_factor) / absorption;
 		vec4 mix_factor = step(1e-4, abs(absorption)); // TODO: abs is unnecessary if we disallow negative absorptions.
 		vec4 emission_factor = mix(small_emission_factor, large_emission_factor, mix_factor);
@@ -33,8 +58,7 @@ void main()
 		radiance += (emission * transmittance) * emission_factor;
 		transmittance *= transmittance_factor;
 
-		sample_point += 
+		// TODO: Verify that loop unrolling occurs and that this increment is removed for the last operation.
+		sample_point += sample_step;
 	}
-	
-	radiance = texture(source, vec3(texture_position, layer));
 }
