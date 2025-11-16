@@ -32,11 +32,13 @@ void main()
 	transmittance = vec4(1.0);
 	
 	ivec2 output_texel_position = ivec2(gl_FragCoord.xy);
-	int direction_id = (skipped_rays_below_column + output_texel_position.y) % rays_per_probe);
+	int ray_id_in_column = skipped_rays_below_column + output_texel_position.y;
+	int probe_y = ray_id_in_column / rays_per_probe;
+	int direction_id = ray_id_in_column - probe_y * rays_per_probe;
 	vec2 probe_grid_full_step = vec2(cascade_power_of_two, (direction_id << 1) - cascade_power_of_two);
 
 	vec2 sample_step = (probe_grid_full_step * probe_grid_full_step_to_sample_step_factor);
-	vec2 sample_point = vec2(output_texel_position.x + 1, output_texel_position.y) * probe_grid_point_to_sample_point_factor + sample_step * 0.5;
+	vec2 sample_point = vec2(output_texel_position.x + 1, probe_y) * probe_grid_point_to_sample_point_factor + sample_step * 0.5;
 	
 	float world_step_distance = length(probe_grid_step * probe_grid_projection) * camera.z;
 
@@ -58,7 +60,7 @@ void main()
 		radiance += (emission * transmittance) * emission_factor;
 		transmittance *= transmittance_factor;
 
-		// TODO: Verify that loop unrolling occurs and that this increment is removed for the last operation.
+		// TODO: Verify that loop unrolling occurs and that this increment is removed for the last iteration.
 		sample_point += sample_step;
 	}
 }
