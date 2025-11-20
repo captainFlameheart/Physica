@@ -26,6 +26,8 @@ layout (location = 1) out vec4 transmittance;
 
 void main()
 {
+	// IMPORTANT TODO: Rays should be stored with directions expanded along the s-axis.
+
 	radiance = vec4(0.0);
 	transmittance = vec4(1.0);
 	
