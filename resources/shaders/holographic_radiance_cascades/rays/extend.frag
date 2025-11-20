@@ -29,6 +29,8 @@ layout (location = 1) out vec4 transmittance;
 
 void main()
 {
+	// TODO: CLAMP
+
 	ivec2 output_texel_position = ivec2(gl_FragCoord.xy);
 	int ray_id_in_column = ray_casting_data.skipped_rays_below_column + output_texel_position.y;
 	int probe_y = ray_id_in_column / ray_casting_data.rays_per_probe;
