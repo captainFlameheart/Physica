@@ -31,6 +31,7 @@ void main()
 	int lower_direction_id = direction_id << 1;
 	int probe_column = output_texel_position.x >> fluence_gathering_data.cascade;
 	int clamped_near_ray_sample_x = min(probe_column, fluence_gathering_data.max_ray_probe_column);
+	float near_ray_is_inside = float(probe_column <= fluence_gathering_data.max_ray_probe_column);
 
 	int lower_near_ray_sample_y = 
 		output_texel_position.y * fluence_gathering_data.rays_per_probe - fluence_gathering_data.skipped_rays_below_column 
@@ -43,21 +44,32 @@ void main()
 
 	// Lower near ray
 	int clamped_lower_near_ray_sample_y = clamp(lower_near_ray_sample_y, 0, fluence_gathering_data.max_ray_probe_row);
-	fluence = lower_angle * texelFetch(rays, ivec3(clamped_near_ray_sample_x, clamped_lower_near_ray_sample_y, 0), 0);
-	vec4 lower_near_transmittance = texelFetch(rays, ivec3(clamped_near_ray_sample_x, clamped_lower_near_ray_sample_y, 1), 0);
+	float lower_near_ray_is_inside = near_ray_is_inside * float(0 <= lower_near_ray_sample_y) * float(lower_near_ray_sample_y <= fluence_gathering_data.max_ray_probe_row);
+	fluence = (lower_angle * lower_near_ray_is_inside) * texelFetch(rays, ivec3(clamped_near_ray_sample_x, clamped_lower_near_ray_sample_y, 0), 0);
+	vec4 lower_near_transmittance = mix(
+		vec4(1.0), lower_near_ray_is_inside * texelFetch(rays, ivec3(clamped_near_ray_sample_x, clamped_lower_near_ray_sample_y, 1), 0), 
+		lower_near_ray_is_inside
+	);
+	
 	vec4 shifted_lower_near_transmittance = lower_near_transmittance - 1.0;
 
 	int interpolating = probe_column & 1;
 
 	int lower_y_offset = lower_direction_id - fluence_gathering_data.cascade_power_of_two;
 
-	int clamped_far_ray_sample_x = min(probe_column + interpolating, fluence_gathering_data.max_ray_probe_column);
+	int far_ray_sample_x = probe_column + interpolating;
+	int clamped_far_ray_sample_x = min(far_ray_sample_x, fluence_gathering_data.max_ray_probe_column);
+	float far_ray_is_inside = float(far_ray_sample_x <= fluence_gathering_data.max_ray_probe_column);
 	int lower_far_ray_sample_y = lower_near_ray_sample_y + interpolating * lower_y_offset * fluence_gathering_data.rays_per_probe;
 
 	// Lower far ray
 	int clamped_lower_far_ray_sample_y = clamp(lower_far_ray_sample_y, 0, fluence_gathering_data.max_ray_probe_row);
-	vec4 lower_far_fluence = lower_angle * texelFetch(rays, ivec3(clamped_far_ray_sample_x, clamped_lower_far_ray_sample_y, 0), 0);
-	vec4 lower_far_transmittance = texelFetch(rays, ivec3(clamped_far_ray_sample_x, clamped_lower_far_ray_sample_y, 1), 0);
+	float lower_far_ray_is_inside = far_ray_is_inside * float(0 <= lower_far_ray_sample_y) * float(lower_far_ray_sample_y <= fluence_gathering_data.max_ray_probe_row);
+	vec4 lower_far_fluence = (lower_angle * lower_far_ray_is_inside) * texelFetch(rays, ivec3(clamped_far_ray_sample_x, clamped_lower_far_ray_sample_y, 0), 0);
+	vec4 lower_far_transmittance = mix(
+		vec4(1.0), texelFetch(rays, ivec3(clamped_far_ray_sample_x, clamped_lower_far_ray_sample_y, 1), 0), 
+		lower_far_ray_is_inside
+	);
 
 	int not_interpolating = interpolating ^ 1;
 	float not_interpolating_float = float(not_interpolating);
@@ -93,16 +105,24 @@ void main()
 
 	// Upper near ray
 	int clamped_upper_near_ray_sample_y = clamp(upper_near_ray_sample_y, 0, fluence_gathering_data.max_ray_probe_row);
-	fluence += upper_angle * texelFetch(rays, ivec3(clamped_near_ray_sample_x, clamped_upper_near_ray_sample_y, 0), 0);
-	vec4 upper_near_transmittance = texelFetch(rays, ivec3(clamped_near_ray_sample_x, clamped_upper_near_ray_sample_y, 1), 0);
+	float upper_near_ray_is_inside = near_ray_is_inside * float(0 <= upper_near_ray_sample_y) * float(upper_near_ray_sample_y <= fluence_gathering_data.max_ray_probe_row);
+	fluence += (upper_angle * upper_near_ray_is_inside) * texelFetch(rays, ivec3(clamped_near_ray_sample_x, clamped_upper_near_ray_sample_y, 0), 0);
+	vec4 upper_near_transmittance = mix(
+		vec4(1.0), texelFetch(rays, ivec3(clamped_near_ray_sample_x, clamped_upper_near_ray_sample_y, 1), 0), 
+		upper_near_ray_is_inside
+	);
 	vec4 shifted_upper_near_transmittance = upper_near_transmittance - 1.0;
 
 	int upper_far_ray_sample_y = upper_near_ray_sample_y + interpolating * upper_y_offset * fluence_gathering_data.rays_per_probe;
 
 	// Upper far ray
 	int clamped_upper_far_ray_sample_y = clamp(upper_far_ray_sample_y, 0, fluence_gathering_data.max_ray_probe_row);
-	vec4 upper_far_fluence = upper_angle * texelFetch(rays, ivec3(clamped_far_ray_sample_x, clamped_upper_far_ray_sample_y, 0), 0);
-	vec4 upper_far_transmittance = texelFetch(rays, ivec3(clamped_far_ray_sample_x, clamped_upper_far_ray_sample_y, 1), 0);
+	float upper_far_ray_is_inside = far_ray_is_inside * float(0 <= upper_far_ray_sample_y) * float(upper_far_ray_sample_y <= fluence_gathering_data.max_ray_probe_row);
+	vec4 upper_far_fluence = (upper_angle * upper_far_ray_is_inside) * texelFetch(rays, ivec3(clamped_far_ray_sample_x, clamped_upper_far_ray_sample_y, 0), 0);
+	vec4 upper_far_transmittance = mix(
+		vec4(1.0), texelFetch(rays, ivec3(clamped_far_ray_sample_x, clamped_upper_far_ray_sample_y, 1), 0), 
+		upper_far_ray_is_inside
+	);
 
 	/////////////////////////////////////
 
