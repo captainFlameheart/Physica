@@ -1,3 +1,4 @@
+// Important TODO: Replace with single triangle
 const vec2 vertices[6u] = vec2[6u]
 (
 	vec2(1.0, 1.0), 

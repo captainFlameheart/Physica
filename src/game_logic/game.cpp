@@ -745,6 +745,7 @@ namespace game_logic
 		std::cout << "Free default framebuffer size dependent data" << std::endl;
 		glDeleteTextures(std::size(environment.state.framebuffer_textures), environment.state.framebuffer_textures);
 		glDeleteTextures(environment.state.max_cascade_index, environment.state.ray_textures);
+		delete[] environment.state.ray_textures;
 		glDeleteFramebuffers(std::size(environment.state.framebuffers), environment.state.framebuffers);
 	}
 
@@ -764,8 +765,8 @@ namespace game_logic
 
 		environment.state.presentation_stage = 0u;
 		environment.state.use_holographic_radiance_cascades = true;
-		environment.state.holographic_probe_grid_width = 20u;
-		environment.state.holographic_probe_grid_height = 10u;
+		environment.state.holographic_probe_grid_width = 5u;
+		environment.state.holographic_probe_grid_height = 5u;
 
 		glEnable(GL_FRAMEBUFFER_SRGB);
 		environment.state.framebuffer_sRGB_enabled = true;
@@ -1734,6 +1735,95 @@ namespace game_logic
 		std::cout << "Holographic cascade draw shader compiled. Probe grid size uniform location: "
 			<< environment.state.holographic_cascade_draw_shader_probe_grid_size_uniform_location << ". Cascade uniform location: "
 			<< environment.state.holographic_cascade_draw_shader_cascade_uniform_location << std::endl;
+
+		environment.state.holographic_ray_trace_shader_count = 3u;
+		environment.state.holographic_ray_trace_shaders = new GLuint[environment.state.holographic_ray_trace_shader_count];
+		for (GLuint cascade{ 0u }; cascade < environment.state.holographic_ray_trace_shader_count; ++cascade)
+		{
+			// TODO: This vertex shader compilation should be done ONCE
+			::util::shader::set_shader_statically
+			(
+				vertex_shader,
+				util_shader_VERSION,
+				::util::shader::file_to_string("util/plain_full_screen.vert")
+			);
+
+			GLuint const cascade_power_of_two{ 1u << cascade };
+			GLuint const width{ ceil_div(environment.state.holographic_probe_grid_width - 1u - cascade_power_of_two, cascade_power_of_two) };
+			GLuint const rays_per_probe{ cascade_power_of_two + 1u };
+			GLuint const skipped_rays_below_column{ ceil_div(rays_per_probe, 2u) };
+			GLuint const rays_in_vacuum_per_column{ skipped_rays_below_column << 1u };
+			GLuint const height{ environment.state.holographic_probe_grid_height * (cascade_power_of_two + 1u) - rays_in_vacuum_per_column };
+			
+			GLuint const edge_width{ environment.state.holographic_probe_grid_width - 1u };
+			GLuint const edge_height{ environment.state.holographic_probe_grid_height - 1u };
+			
+			GLfloat const inverse_edge_width{ 1.0f / static_cast<GLfloat>(edge_width) };
+			GLfloat const inverse_edge_height{ 1.0f / static_cast<GLfloat>(edge_height) };
+
+			GLuint const step_count{ 4u * cascade_power_of_two };
+			GLfloat const step_count_inverse{ 1.0f / static_cast<GLfloat>(step_count) };
+
+			GLfloat const probe_grid_full_step_to_sample_step_factor_x{ inverse_edge_width * step_count_inverse };
+			GLfloat const probe_grid_full_step_to_sample_step_factor_y{ inverse_edge_height * step_count_inverse };
+
+			GLfloat const probe_grid_point_to_sample_point_factor_x{ static_cast<GLfloat>(cascade_power_of_two) * inverse_edge_width };
+			GLfloat const probe_grid_point_to_sample_point_factor_y{ inverse_edge_height };
+
+			GLfloat const probe_grid_full_step_to_sample_step_projection_x{
+				(probe_grid_full_step_to_sample_step_factor_x * 2.0f) * game_logic__util__projection_INVERSE_SCALE_X(environment)
+			};
+			GLfloat const probe_grid_full_step_to_sample_step_projection_y{
+				(probe_grid_full_step_to_sample_step_factor_y * 2.0f) * game_logic__util__projection_INVERSE_SCALE_Y(environment)
+			};
+
+			std::string skipped_rays_below_column_declaration{ "const int skipped_rays_below_column = " + std::to_string(skipped_rays_below_column) + ";\n" };
+			std::string rays_per_probe_declaration{ "const int rays_per_probe = " + std::to_string(rays_per_probe) + ";\n" };
+			std::string cascade_power_of_two_declaration{ "const int cascade_power_of_two = " + std::to_string(cascade_power_of_two) + ";\n"};
+			std::string probe_grid_full_step_to_sample_step_factor_declaration{
+				"const vec2 probe_grid_full_step_to_sample_step_factor = vec2("
+				+ std::to_string(probe_grid_full_step_to_sample_step_factor_x) + ", " + std::to_string(probe_grid_full_step_to_sample_step_factor_y)
+				+ ");\n"
+			};
+			std::string probe_grid_point_to_sample_point_factor_declaration
+			{ 
+				"const vec2 probe_grid_point_to_sample_point_factor = vec2(" 
+				+ std::to_string(probe_grid_point_to_sample_point_factor_x) + ", " + std::to_string(probe_grid_point_to_sample_point_factor_y) 
+				+ ");\n"
+			};
+			std::string probe_grid_full_step_to_sample_step_projection_declaration
+			{
+				"const vec2 probe_grid_full_step_to_sample_step_projection = vec2("
+				+ std::to_string(probe_grid_full_step_to_sample_step_projection_x) + ", " + std::to_string(probe_grid_full_step_to_sample_step_projection_y) 
+				+ ");\n"
+			};
+			std::string step_count_declaration{ "const uint step_count = " + std::to_string(step_count) + "u;\n" };
+
+			::util::shader::set_shader_statically
+			(
+				fragment_shader,
+				util_shader_VERSION,
+				skipped_rays_below_column_declaration,
+				rays_per_probe_declaration,
+				cascade_power_of_two_declaration,
+				probe_grid_full_step_to_sample_step_factor_declaration,
+				probe_grid_point_to_sample_point_factor_declaration,
+				probe_grid_full_step_to_sample_step_projection_declaration,
+				step_count_declaration,
+				util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
+				::util::shader::file_to_string("holographic_radiance_cascades/rays/trace.frag")
+			);
+			environment.state.holographic_ray_trace_shaders[cascade] = ::util::shader::create_program(vertex_shader, fragment_shader);
+			std::cout << "Holographic ray trace shader " << cascade << " compiled:"
+				<< "\n	skipped_rays_below_column = " << skipped_rays_below_column
+				<< "\n	rays_per_probe = " << rays_per_probe
+				<< "\n	cascade_power_of_two = " << cascade_power_of_two
+				<< "\n	probe_grid_full_step_to_sample_step_factor = (" << probe_grid_full_step_to_sample_step_factor_x << ", " << probe_grid_full_step_to_sample_step_factor_y << ")"
+				<< "\n	probe_grid_point_to_sample_point_factor = (" << probe_grid_point_to_sample_point_factor_x << ", " << probe_grid_point_to_sample_point_factor_y << ")"
+				<< "\n	probe_grid_full_step_to_sample_step_projection = (" << probe_grid_full_step_to_sample_step_projection_x << ", " << probe_grid_full_step_to_sample_step_projection_y << ")"
+				<< "\n	step_count = " << step_count
+				<< std::endl;
+		}
 
 		::util::shader::delete_shader(vertex_shader);
 		::util::shader::delete_shader(fragment_shader);
@@ -8135,6 +8225,7 @@ namespace game_logic
 		glUnmapNamedBuffer(environment.state.GPU_buffers.rigid_bodies.triangles.contacts.buffer);
 
 		::util::shader::delete_program(environment.state.shader);
+		delete[] environment.state.holographic_ray_trace_shaders;
 
 		delete[] environment.state.camera_send_buffer;
 		// TODO: Probably flip position and velocity buffers

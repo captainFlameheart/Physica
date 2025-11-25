@@ -18,7 +18,6 @@ struct Model
 
 namespace game_state
 {
-
 	// TODO: Organize based on access patterns 
 	// (initialize -> render -> events -> tick * n -> render -> events -> tick * n -> render -> ...)
 	struct Game
@@ -187,6 +186,9 @@ namespace game_state
 		GLint holographic_cascade_draw_shader_probe_grid_size_uniform_location;
 		GLuint holographic_cascade_draw_shader_cascade;
 		GLint holographic_cascade_draw_shader_cascade_uniform_location;
+
+		GLuint holographic_ray_trace_shader_count;
+		GLuint* holographic_ray_trace_shaders;
 
 		GLuint presentation_stage;
 	};
