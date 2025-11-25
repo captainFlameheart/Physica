@@ -37,7 +37,7 @@ void main()
 		output_texel_position.y * fluence_gathering_data.rays_per_probe - fluence_gathering_data.skipped_rays_below_column 
 		+ direction_id;
 
-	float cascade_power_of_two_float = float(fluence_gathering_data.cascade_power_of_two);
+	float cascade_power_of_two_float = float(fluence_gathering_data.cascade_power_of_two); // TODO: Put in uniform block
 	float middle_angle = atan(float((lower_direction_id + 1) - fluence_gathering_data.cascade_power_of_two) / cascade_power_of_two_float);
 
 	float lower_angle = middle_angle - atan(float(lower_direction_id - fluence_gathering_data.cascade_power_of_two) / cascade_power_of_two_float);
@@ -55,7 +55,7 @@ void main()
 
 	int interpolating = probe_column & 1;
 
-	int lower_y_offset = lower_direction_id - fluence_gathering_data.cascade_power_of_two;
+	int lower_y_offset = lower_direction_id - fluence_gathering_data.cascade_power_of_two;	// TODO: This expression is used by lower angle
 
 	int far_ray_sample_x = probe_column + interpolating;
 	int clamped_far_ray_sample_x = min(far_ray_sample_x, fluence_gathering_data.max_ray_probe_column);
@@ -99,7 +99,7 @@ void main()
 	int upper_near_ray_sample_y = lower_near_ray_sample_y + 1;
 
 	int upper_direction_id = lower_direction_id + 2;
-	int upper_y_offset = upper_direction_id - fluence_gathering_data.cascade_power_of_two;
+	int upper_y_offset = upper_direction_id - fluence_gathering_data.cascade_power_of_two; // TODO: This expression is used by upper angle
 
 	float upper_angle = atan(float(upper_direction_id - fluence_gathering_data.cascade_power_of_two) / cascade_power_of_two_float) - middle_angle;
 
@@ -124,8 +124,6 @@ void main()
 		upper_far_ray_is_inside
 	);
 
-	/////////////////////////////////////
-
 	float upper_near_transmit_factor = 1.0 + not_interpolating_float * shifted_upper_near_transmittance;
 
 	int upper_near_fluence_sample_x = near_sample_probe_column_texel_x + upper_direction_id - 1;
@@ -141,7 +139,7 @@ void main()
 
 	int upper_far_fluence_sample_x = min(
 		near_sample_probe_column_texel_x + (interpolating << fluence_gathering_data.upper_cascade), fluence_gathering_data.max_fluence_probe_column_texel_x
-	) + upper_direction_id - 1;
+	) + upper_direction_id - 1;	// TODO: Many expressions that have been evaluated earlier
 	int upper_far_fluence_sample_y = clamp(output_texel_position.y + (interpolating + 1) * upper_y_offset, 0, fluence_gathering.max_fluence_probe_y);
 	
 	//int upper_far_fluence_sample_x = upper_near_fluence_sample_x + (interpolating << fluence_gathering_data.upper_cascade);
