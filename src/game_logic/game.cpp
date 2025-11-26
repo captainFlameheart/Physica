@@ -423,9 +423,12 @@ namespace game_logic
 		);
 	}
 
-	void print_capabilities(game_environment::Environment& environment)
+	void get_OpenGL_capabilities(game_environment::Environment& environment)
 	{
 		std::cout << "OpenGL Capabilities:\n";
+
+		glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &environment.state.uniform_buffer_offset_alignment);
+		std::cout << "Uniform buffer offset alignment: " << environment.state.uniform_buffer_offset_alignment << '\n';
 
 		GLint max_uniform_buffer_bindings;
 		glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &max_uniform_buffer_bindings);
@@ -760,7 +763,7 @@ namespace game_logic
 		std::cout << "Max leaf count: " << game_logic_MAX_LEAF_COUNT(environment) << " (Capacity: " << 0b01111111111111111111111111111111u << ")\n";
 		std::cout << "Max triangle contact count: " << game_logic_MAX_TRIANGLE_CONTACT_COUNT(environment) << "\n" << std::endl;
 
-		print_capabilities(environment);
+		get_OpenGL_capabilities(environment);
 		print_default_frame_buffer_parameters(environment);
 
 		environment.state.presentation_stage = 0u;
