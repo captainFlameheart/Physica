@@ -554,6 +554,12 @@ namespace game_logic
 		{
 			glTextureParameteri(environment.state.holographic_source_array_texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			glTextureParameteri(environment.state.holographic_source_array_texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			
+			glTextureParameteri(environment.state.holographic_source_array_texture, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+			glTextureParameteri(environment.state.holographic_source_array_texture, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+			GLfloat border_color[]{ 0.0f, 0.0f, 0.0f, 0.0f };	// Emission and absorption are both vec4(0.0f) in vacuum
+			glTextureParameterfv(environment.state.holographic_source_array_texture, GL_TEXTURE_BORDER_COLOR, border_color);
+
 			// TODO: GL_RGBA32F might not be needed
 			glTextureStorage3D(environment.state.holographic_source_array_texture, 1u, GL_RGBA32F, width, height, 4u);
 
