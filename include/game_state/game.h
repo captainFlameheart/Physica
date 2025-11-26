@@ -193,6 +193,17 @@ namespace game_state
 		GLuint holographic_ray_extend_shader;
 		GLint holographic_ray_extend_shader_shorter_rays_uniform_location;
 
+		GLuint holographic_ray_extend_buffer;
+		GLint holographic_ray_extend_buffer_size;
+		GLint holographic_ray_extend_buffer_skipped_rays_below_column_offset;
+		GLint holographic_ray_extend_buffer_rays_per_probe_offset;
+		GLint holographic_ray_extend_buffer_g_offset;
+		GLint holographic_ray_extend_buffer_f_offset;
+		GLint holographic_ray_extend_buffer_lower_cascade_rays_per_probe_offset;
+		GLint holographic_ray_extend_buffer_lower_cascade_skipped_rays_below_column_offset;
+		GLint holographic_ray_extend_buffer_lower_cascade_max_ray_probe_column_offset;
+		GLint holographic_ray_extend_buffer_lower_cascade_max_ray_probe_row_offset;
+
 		GLuint presentation_stage;
 	};
 }

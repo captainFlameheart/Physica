@@ -5434,6 +5434,178 @@ namespace game_logic
 			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_BODY_MASSES_BINDING, environment.state.GPU_buffers.rigid_bodies.masses.buffer);
 		}
 
+		{ // Holographic ray extend buffer
+			{
+				GLenum const offset_label{ GL_OFFSET };
+
+				GLuint const skipped_rays_below_column_index
+				{
+					glGetProgramResourceIndex(environment.state.holographic_ray_extend_shader, GL_UNIFORM, "Ray_Casting_Data.skipped_rays_below_column")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.holographic_ray_extend_shader, GL_UNIFORM, skipped_rays_below_column_index,
+					1u, &offset_label, 1u, nullptr, &environment.state.holographic_ray_extend_buffer_skipped_rays_below_column_offset
+				);
+
+				GLuint const rays_per_probe_index
+				{
+					glGetProgramResourceIndex(environment.state.holographic_ray_extend_shader, GL_UNIFORM, "Ray_Casting_Data.rays_per_probe")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.holographic_ray_extend_shader, GL_UNIFORM, rays_per_probe_index,
+					1u, &offset_label, 1u, nullptr, &environment.state.holographic_ray_extend_buffer_rays_per_probe_offset
+				);
+
+				GLuint const g_index
+				{
+					glGetProgramResourceIndex(environment.state.holographic_ray_extend_shader, GL_UNIFORM, "Ray_Casting_Data.g")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.holographic_ray_extend_shader, GL_UNIFORM, g_index,
+					1u, &offset_label, 1u, nullptr, &environment.state.holographic_ray_extend_buffer_g_offset
+				);
+
+				GLuint const f_index
+				{
+					glGetProgramResourceIndex(environment.state.holographic_ray_extend_shader, GL_UNIFORM, "Ray_Casting_Data.f")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.holographic_ray_extend_shader, GL_UNIFORM, f_index,
+					1u, &offset_label, 1u, nullptr, &environment.state.holographic_ray_extend_buffer_f_offset
+				);
+
+				GLuint const lower_cascade_rays_per_probe_index
+				{
+					glGetProgramResourceIndex(environment.state.holographic_ray_extend_shader, GL_UNIFORM, "Ray_Casting_Data.lower_cascade_rays_per_probe")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.holographic_ray_extend_shader, GL_UNIFORM, lower_cascade_rays_per_probe_index,
+					1u, &offset_label, 1u, nullptr, &environment.state.holographic_ray_extend_buffer_lower_cascade_rays_per_probe_offset
+				);
+
+				GLuint const lower_cascade_skipped_rays_below_column_index
+				{
+					glGetProgramResourceIndex(environment.state.holographic_ray_extend_shader, GL_UNIFORM, "Ray_Casting_Data.lower_cascade_skipped_rays_below_column")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.holographic_ray_extend_shader, GL_UNIFORM, lower_cascade_skipped_rays_below_column_index,
+					1u, &offset_label, 1u, nullptr, &environment.state.holographic_ray_extend_buffer_lower_cascade_skipped_rays_below_column_offset
+				);
+
+				GLuint const lower_cascade_max_ray_probe_column_index
+				{
+					glGetProgramResourceIndex(environment.state.holographic_ray_extend_shader, GL_UNIFORM, "Ray_Casting_Data.lower_cascade_max_ray_probe_column")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.holographic_ray_extend_shader, GL_UNIFORM, lower_cascade_max_ray_probe_column_index,
+					1u, &offset_label, 1u, nullptr, &environment.state.holographic_ray_extend_buffer_lower_cascade_max_ray_probe_column_offset
+				);
+
+				GLuint const lower_cascade_max_ray_probe_row_index
+				{
+					glGetProgramResourceIndex(environment.state.holographic_ray_extend_shader, GL_UNIFORM, "Ray_Casting_Data.lower_cascade_max_ray_probe_row")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.holographic_ray_extend_shader, GL_UNIFORM, lower_cascade_max_ray_probe_row_index,
+					1u, &offset_label, 1u, nullptr, &environment.state.holographic_ray_extend_buffer_lower_cascade_max_ray_probe_row_offset
+				);
+			}
+
+			GLuint const block_index
+			{
+				glGetProgramResourceIndex(environment.state.holographic_ray_extend_shader, GL_UNIFORM_BLOCK, "Ray_Casting_Data")
+			};
+			GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
+			glGetProgramResourceiv
+			(
+				environment.state.holographic_ray_extend_shader, GL_UNIFORM_BLOCK, block_index,
+				1u, &buffer_size_label, 1u, nullptr, &environment.state.holographic_ray_extend_buffer_size
+			);
+
+			/*
+
+			unsigned char* const initial_materials = new unsigned char[environment.state.GPU_buffers.rigid_bodies.triangles.materials.size];
+			//environment.state.GPU_buffers.rigid_bodies.triangles.values = new game_state::rigid_body::Triangle[game_logic_MAX_TRIANGLE_COUNT(environment)];
+
+			for (GLuint i = 0; i < MAX_MATERIAL_COUNT(environment); ++i)
+			{
+				GLfloat albedo[4u]{ 1.0f, 0.0f, 0.0f, 1.0f };
+				GLfloat emission[4u]{ 0.0f, 1.0f, 0.0f, 1.0f };
+				GLfloat absorption[4u]{ 0.0f, 0.0f, 1.0f, 1.0f };
+				GLfloat scattering[4u]{ 1.0f, 1.0f, 1.0f, 1.0f };
+				switch (i % 10u)
+				{
+				case 0u:
+					albedo[0u] = 1.0f;
+					albedo[1u] = 0.0f;
+					albedo[2u] = 0.0f;
+					albedo[3u] = 1.0f;
+					break;
+				case 1u:
+					albedo[0u] = 0.0f;
+					albedo[1u] = 0.0f;
+					albedo[2u] = 1.0f;
+					albedo[3u] = 1.0f;
+					break;
+				case 2u:
+					albedo[0u] = 1.0f;
+					albedo[1u] = 0.0f;
+					albedo[2u] = 1.0f;
+					albedo[3u] = 1.0f;
+					break;
+				default:
+					albedo[0u] = 0.0f;
+					albedo[1u] = 1.0f;
+					albedo[2u] = 0.0f;
+					albedo[3u] = 1.0f;
+					break;
+				}
+
+				unsigned char* const base{ initial_materials + environment.state.GPU_buffers.rigid_bodies.triangles.materials.materials_offset + i * environment.state.GPU_buffers.rigid_bodies.triangles.materials.materials_stride };
+
+				std::memcpy
+				(
+					base + environment.state.GPU_buffers.rigid_bodies.triangles.materials.materials_albedo_offset,
+					&albedo, sizeof(albedo)
+				);
+				std::memcpy
+				(
+					base + environment.state.GPU_buffers.rigid_bodies.triangles.materials.materials_emission_offset,
+					&emission, sizeof(emission)
+				);
+				std::memcpy
+				(
+					base + environment.state.GPU_buffers.rigid_bodies.triangles.materials.materials_absorption_offset,
+					&absorption, sizeof(absorption)
+				);
+				std::memcpy
+				(
+					base + environment.state.GPU_buffers.rigid_bodies.triangles.materials.materials_scattering_offset,
+					&scattering, sizeof(scattering)
+				);
+
+				//environment.state.GPU_buffers.rigid_bodies.triangles.values[i] = triangle;
+			}
+
+			glNamedBufferStorage
+			(
+				environment.state.GPU_buffers.rigid_bodies.triangles.materials.buffer, environment.state.GPU_buffers.rigid_bodies.triangles.materials.size, initial_materials,
+				0u
+			);
+
+			delete[] initial_materials;
+
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_MATERIALS_BINDING, environment.state.GPU_buffers.rigid_bodies.triangles.materials.buffer);*/
+		}
+
 		util::proximity::initialize
 		(
 			environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment), 
@@ -5702,6 +5874,19 @@ namespace game_logic
 		std::cout << "size: " << environment.state.GPU_buffers.rigid_bodies.masses.size << std::endl;
 		std::cout << "masses offset: " << environment.state.GPU_buffers.rigid_bodies.masses.masses_offset << std::endl;
 		std::cout << "masses stride: " << environment.state.GPU_buffers.rigid_bodies.masses.masses_stride << std::endl;
+		std::cout << std::endl;
+
+		std::cout << "Holographic ray extend buffer (" << environment.state.holographic_ray_extend_buffer << "):" << std::endl;
+		std::cout << "size: " << environment.state.holographic_ray_extend_buffer_size << std::endl;
+		std::cout << "skipped rays below column offset: " << environment.state.holographic_ray_extend_buffer_skipped_rays_below_column_offset << std::endl;
+		std::cout << "rays per probe offset: " << environment.state.holographic_ray_extend_buffer_rays_per_probe_offset << std::endl;
+		std::cout << "g offset: " << environment.state.holographic_ray_extend_buffer_g_offset << std::endl;
+		std::cout << "f offset: " << environment.state.holographic_ray_extend_buffer_f_offset << std::endl;
+		std::cout << "lower cascade rays per probe offset: " << environment.state.holographic_ray_extend_buffer_lower_cascade_rays_per_probe_offset << std::endl;
+		std::cout << "lower cascade skipped rays below column offset: " << environment.state.holographic_ray_extend_buffer_lower_cascade_skipped_rays_below_column_offset << std::endl;
+		std::cout << "lower cascade max ray probe column offset: " << environment.state.holographic_ray_extend_buffer_lower_cascade_max_ray_probe_column_offset << std::endl;
+		std::cout << "lower cascade max ray probe row offset: " << environment.state.holographic_ray_extend_buffer_lower_cascade_max_ray_probe_row_offset << std::endl;
+
 		std::cout << std::endl;
 
 		Model<3u> triangle_model;
