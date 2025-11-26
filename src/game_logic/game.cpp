@@ -510,13 +510,13 @@ namespace game_logic
 		std::cout << std::endl;
 	}
 
-	void adapt_to_default_framebuffer_size
+	void somewhat_adapt_to_default_framebuffer_size
 	(
-		game_environment::Environment& environment, 
+		game_environment::Environment& environment,
 		GLint const width, GLint const height
 	)
 	{
-		std::cout << "Adapting to default framebuffer size" << std::endl;
+		std::cout << "SOMEWHAT adapt to default framebuffer size" << std::endl;
 
 		glViewport(0, 0, width, height);
 
@@ -542,13 +542,12 @@ namespace game_logic
 		}
 
 		glCreateTextures(GL_TEXTURE_2D_ARRAY, std::size(environment.state.texture_2d_arrays), environment.state.texture_2d_arrays);
-		
+
 		// TODO: Optimize max cascade index calculation
 		environment.state.max_cascade_index = static_cast<GLuint>(std::ceil(std::log2(static_cast<double>(environment.state.holographic_probe_grid_width - 1u))));
 		std::cout << "Grid width: " << environment.state.holographic_probe_grid_width << std::endl;
 		std::cout << "Max cascade index: " << environment.state.max_cascade_index << std::endl;
 
-		// TODO: Combine with above call
 		environment.state.ray_textures = new GLuint[environment.state.max_cascade_index];
 		glCreateTextures(GL_TEXTURE_2D_ARRAY, environment.state.max_cascade_index, environment.state.ray_textures);
 
@@ -616,6 +615,127 @@ namespace game_logic
 		}
 
 		glBindTextures(0u, std::size(environment.state.framebuffer_textures), environment.state.framebuffer_textures);
+
+		{
+			GLuint const min_cascade{ game_state::initial_holographic_ray_trace_cascade_count };
+			if (min_cascade < environment.state.max_cascade_index)
+			{
+				GLint const padded_block_count{ static_cast<GLint>(environment.state.max_cascade_index - min_cascade - 1u) };
+				GLint const padded_block_size
+				{
+					ceil_div(environment.state.holographic_ray_extend_buffer_block_size, environment.state.uniform_buffer_offset_alignment)
+					* environment.state.uniform_buffer_offset_alignment
+				};
+				GLint const buffer_size
+				{
+					padded_block_count * padded_block_size + environment.state.holographic_ray_extend_buffer_block_size
+				};
+
+				unsigned char* const ray_extend_data_buffer_content = new unsigned char[buffer_size];
+
+				std::cout << "Initializing ray extend buffer content:";
+
+				GLint const edge_width{ static_cast<GLint>(environment.state.holographic_probe_grid_width) - 1 };
+				GLint const edge_height{ static_cast<GLint>(environment.state.holographic_probe_grid_height) - 1 };
+
+				for (GLint cascade{ min_cascade }; cascade < environment.state.max_cascade_index; ++cascade)
+				{
+					GLint base_offset{ (cascade - static_cast<GLint>(min_cascade)) * environment.state.uniform_buffer_offset_alignment };
+					unsigned char* const base{ ray_extend_data_buffer_content + base_offset };
+
+					GLint const cascade_power_of_two{ 1 << cascade };
+					GLint const rays_per_probe{ cascade_power_of_two + 1 };
+					GLint const skipped_rays_below_column{ ceil_div(rays_per_probe, 2) };
+
+					GLint const g{ rays_per_probe << 1 };
+					GLint const f{ rays_per_probe << cascade };
+
+					GLint const lower_cascade{ cascade - 1 };
+					GLint const lower_cascade_power_of_two{ 1 << lower_cascade };
+					GLint const lower_cascade_rays_per_probe{ lower_cascade_power_of_two + 1 };
+					GLint const lower_cascade_skipped_rays_below_column{ ceil_div(lower_cascade_rays_per_probe, 2) };
+					GLint const lower_cascade_rays_in_vacuum_per_column{ lower_cascade_skipped_rays_below_column << 1 };
+					GLint const lower_cascade_max_ray_probe_column
+					{
+						ceil_div(edge_width - lower_cascade_power_of_two, lower_cascade_power_of_two) - 1
+					};
+					GLint const lower_cascade_max_ray_probe_row
+					{
+						static_cast<GLint>(environment.state.holographic_probe_grid_height) * lower_cascade_rays_per_probe - lower_cascade_rays_in_vacuum_per_column - 1
+					};
+
+					std::memcpy
+					(
+						base + environment.state.holographic_ray_extend_buffer_skipped_rays_below_column_offset,
+						&skipped_rays_below_column, sizeof(skipped_rays_below_column)
+					);
+					std::memcpy
+					(
+						base + environment.state.holographic_ray_extend_buffer_rays_per_probe_offset,
+						&rays_per_probe, sizeof(rays_per_probe)
+					);
+					std::memcpy
+					(
+						base + environment.state.holographic_ray_extend_buffer_g_offset,
+						&g, sizeof(g)
+					);
+					std::memcpy
+					(
+						base + environment.state.holographic_ray_extend_buffer_f_offset,
+						&f, sizeof(f)
+					);
+					std::memcpy
+					(
+						base + environment.state.holographic_ray_extend_buffer_lower_cascade_rays_per_probe_offset,
+						&lower_cascade_rays_per_probe, sizeof(lower_cascade_rays_per_probe)
+					);
+					std::memcpy
+					(
+						base + environment.state.holographic_ray_extend_buffer_lower_cascade_max_ray_probe_column_offset,
+						&lower_cascade_max_ray_probe_column, sizeof(lower_cascade_max_ray_probe_column)
+					);
+					std::memcpy
+					(
+						base + environment.state.holographic_ray_extend_buffer_lower_cascade_max_ray_probe_row_offset,
+						&lower_cascade_max_ray_probe_row, sizeof(lower_cascade_max_ray_probe_row)
+					);
+
+					std::cout << "\n	cascade = " << cascade << " at " << base_offset << ":"
+						<< "\n		skipped_rays_below_column = " << skipped_rays_below_column << " at " << base_offset + environment.state.holographic_ray_extend_buffer_skipped_rays_below_column_offset
+						<< "\n		rays_per_probe = " << rays_per_probe << " at " << base_offset + environment.state.holographic_ray_extend_buffer_rays_per_probe_offset
+						<< "\n		g = " << g << " at " << base_offset + environment.state.holographic_ray_extend_buffer_g_offset
+						<< "\n		f = " << f << " at " << base_offset + environment.state.holographic_ray_extend_buffer_f_offset
+						<< "\n		lower_cascade_rays_per_probe = " << lower_cascade_rays_per_probe << " at " << base_offset + environment.state.holographic_ray_extend_buffer_lower_cascade_rays_per_probe_offset
+						<< "\n		lower_cascade_skipped_rays_below_column = " << lower_cascade_skipped_rays_below_column << " at " << base_offset + environment.state.holographic_ray_extend_buffer_lower_cascade_skipped_rays_below_column_offset
+						<< "\n		lower_cascade_max_ray_probe_column = " << lower_cascade_max_ray_probe_column << " at " << base_offset + environment.state.holographic_ray_extend_buffer_lower_cascade_max_ray_probe_column_offset
+						<< "\n		lower_cascade_max_ray_probe_row = " << lower_cascade_max_ray_probe_row << " at " << base_offset + environment.state.holographic_ray_extend_buffer_lower_cascade_max_ray_probe_row_offset
+						<< "\n";
+				}
+				std::cout << std::endl;
+
+				glNamedBufferStorage
+				(
+					environment.state.holographic_ray_extend_buffer, buffer_size, ray_extend_data_buffer_content,
+					0u
+				);
+
+				delete[] ray_extend_data_buffer_content;
+
+				// glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_RAY_CASTING_BINDING, environment.state.holographic_ray_extend_buffer);
+			}
+		}
+	}
+
+	void adapt_to_default_framebuffer_size
+	(
+		game_environment::Environment& environment, 
+		GLint const width, GLint const height
+	)
+	{
+		std::cout << "Adapt to default framebuffer size" << std::endl;
+
+		glCreateBuffers(1u, &environment.state.holographic_ray_extend_buffer);
+		somewhat_adapt_to_default_framebuffer_size(environment, width, height);
 	}
 
 	void start_presentation_stage(game_environment::Environment& environment)
@@ -748,13 +868,24 @@ namespace game_logic
 		}
 	}
 
-	void free_default_framebuffer_size_dependent_data(game_environment::Environment& environment)
+	void free_some_default_framebuffer_size_dependent_data(game_environment::Environment& environment)
 	{
-		std::cout << "Free default framebuffer size dependent data" << std::endl;
+		std::cout << "Free SOME default framebuffer size dependent data" << std::endl;
 		glDeleteTextures(std::size(environment.state.framebuffer_textures), environment.state.framebuffer_textures);
 		glDeleteTextures(environment.state.max_cascade_index, environment.state.ray_textures);
 		delete[] environment.state.ray_textures;
 		glDeleteFramebuffers(std::size(environment.state.framebuffers), environment.state.framebuffers);
+	}
+
+	void free_default_framebuffer_size_dependent_data(game_environment::Environment& environment)
+	{
+		std::cout << "Free default framebuffer size dependent data" << std::endl;
+		free_some_default_framebuffer_size_dependent_data(environment);
+		GLuint buffers[]
+		{
+			environment.state.holographic_ray_extend_buffer,
+		};
+		glDeleteBuffers(std::size(buffers), buffers);
 	}
 
 	void initialize(game_environment::Environment& environment)
@@ -785,10 +916,6 @@ namespace game_logic
 
 		glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
 		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
-
-		int width, height;
-		glfwGetFramebufferSize(environment.window, &width, &height);
-		adapt_to_default_framebuffer_size(environment, width, height);
 
 		glEnablei(GL_BLEND, 7u);
 		glBlendEquationSeparatei(7u, GL_FUNC_ADD, GL_FUNC_ADD);
@@ -5539,113 +5666,6 @@ namespace game_logic
 				environment.state.holographic_ray_extend_shader, GL_UNIFORM_BLOCK, block_index,
 				1u, &buffer_size_label, 1u, nullptr, &environment.state.holographic_ray_extend_buffer_block_size
 			);
-
-			GLuint const min_cascade{ game_state::initial_holographic_ray_trace_cascade_count };
-			if (min_cascade < environment.state.max_cascade_index)
-			{
-				GLint const padded_block_count{ static_cast<GLint>(environment.state.max_cascade_index - min_cascade - 1u) };
-				GLint const padded_block_size
-				{
-					ceil_div(environment.state.holographic_ray_extend_buffer_block_size, environment.state.uniform_buffer_offset_alignment)
-					* environment.state.uniform_buffer_offset_alignment
-				};
-				GLint const buffer_size
-				{ 
-					padded_block_count * padded_block_size + environment.state.holographic_ray_extend_buffer_block_size 
-				};
-
-				unsigned char* const ray_extend_data_buffer_content = new unsigned char[buffer_size];
-
-				std::cout << "Initializing ray extend buffer content:";
-
-				GLint const edge_width{ static_cast<GLint>(environment.state.holographic_probe_grid_width) - 1 };
-				GLint const edge_height{ static_cast<GLint>(environment.state.holographic_probe_grid_height) - 1 };
-
-				for (GLint cascade{ min_cascade }; cascade < environment.state.max_cascade_index; ++cascade)
-				{
-					GLint base_offset{ (cascade - static_cast<GLint>(min_cascade)) * environment.state.uniform_buffer_offset_alignment };
-					unsigned char* const base{ ray_extend_data_buffer_content + base_offset };
-
-					GLint const cascade_power_of_two{ 1 << cascade };
-					GLint const rays_per_probe{ cascade_power_of_two + 1 };
-					GLint const skipped_rays_below_column{ ceil_div(rays_per_probe, 2) };
-
-					GLint const g{ rays_per_probe << 1 };
-					GLint const f{ rays_per_probe << cascade };
-
-					GLint const lower_cascade{ cascade - 1 };
-					GLint const lower_cascade_power_of_two{ 1 << lower_cascade };
-					GLint const lower_cascade_rays_per_probe{ lower_cascade_power_of_two + 1 };
-					GLint const lower_cascade_skipped_rays_below_column{ ceil_div(lower_cascade_rays_per_probe, 2) };
-					GLint const lower_cascade_rays_in_vacuum_per_column{ lower_cascade_skipped_rays_below_column << 1 };
-					GLint const lower_cascade_max_ray_probe_column
-					{ 
-						ceil_div(edge_width - lower_cascade_power_of_two, lower_cascade_power_of_two) - 1
-					};
-					GLint const lower_cascade_max_ray_probe_row
-					{ 
-						static_cast<GLint>(environment.state.holographic_probe_grid_height) * lower_cascade_rays_per_probe - lower_cascade_rays_in_vacuum_per_column - 1
-					};
-					
-					std::memcpy
-					(
-						base + environment.state.holographic_ray_extend_buffer_skipped_rays_below_column_offset,
-						&skipped_rays_below_column, sizeof(skipped_rays_below_column)
-					);
-					std::memcpy
-					(
-						base + environment.state.holographic_ray_extend_buffer_rays_per_probe_offset,
-						&rays_per_probe, sizeof(rays_per_probe)
-					);
-					std::memcpy
-					(
-						base + environment.state.holographic_ray_extend_buffer_g_offset,
-						&g, sizeof(g)
-					);
-					std::memcpy
-					(
-						base + environment.state.holographic_ray_extend_buffer_f_offset,
-						&f, sizeof(f)
-					);
-					std::memcpy
-					(
-						base + environment.state.holographic_ray_extend_buffer_lower_cascade_rays_per_probe_offset,
-						&lower_cascade_rays_per_probe, sizeof(lower_cascade_rays_per_probe)
-					);
-					std::memcpy
-					(
-						base + environment.state.holographic_ray_extend_buffer_lower_cascade_max_ray_probe_column_offset,
-						&lower_cascade_max_ray_probe_column, sizeof(lower_cascade_max_ray_probe_column)
-					);
-					std::memcpy
-					(
-						base + environment.state.holographic_ray_extend_buffer_lower_cascade_max_ray_probe_row_offset,
-						&lower_cascade_max_ray_probe_row, sizeof(lower_cascade_max_ray_probe_row)
-					);
-
-					std::cout << "\n	cascade = " << cascade << " at " << base_offset << ":"
-						<< "\n		skipped_rays_below_column = " << skipped_rays_below_column << " at " << base_offset + environment.state.holographic_ray_extend_buffer_skipped_rays_below_column_offset
-						<< "\n		rays_per_probe = " << rays_per_probe << " at " << base_offset + environment.state.holographic_ray_extend_buffer_rays_per_probe_offset
-						<< "\n		g = " << g << " at " << base_offset + environment.state.holographic_ray_extend_buffer_g_offset
-						<< "\n		f = " << f << " at " << base_offset + environment.state.holographic_ray_extend_buffer_f_offset
-						<< "\n		lower_cascade_rays_per_probe = " << lower_cascade_rays_per_probe << " at " << base_offset + environment.state.holographic_ray_extend_buffer_lower_cascade_rays_per_probe_offset
-						<< "\n		lower_cascade_skipped_rays_below_column = " << lower_cascade_skipped_rays_below_column << " at " << base_offset + environment.state.holographic_ray_extend_buffer_lower_cascade_skipped_rays_below_column_offset
-						<< "\n		lower_cascade_max_ray_probe_column = " << lower_cascade_max_ray_probe_column << " at " << base_offset + environment.state.holographic_ray_extend_buffer_lower_cascade_max_ray_probe_column_offset
-						<< "\n		lower_cascade_max_ray_probe_row = " << lower_cascade_max_ray_probe_row << " at " << base_offset + environment.state.holographic_ray_extend_buffer_lower_cascade_max_ray_probe_row_offset
-						<< "\n";
-				}
-				std::cout << std::endl;
-
-				glNamedBufferStorage
-				(
-					environment.state.holographic_ray_extend_buffer, buffer_size, ray_extend_data_buffer_content,
-					0u
-				);
-
-				delete[] ray_extend_data_buffer_content;
-
-				// glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_RAY_CASTING_BINDING, environment.state.holographic_ray_extend_buffer);
-			}
 		}
 
 		util::proximity::initialize
@@ -6204,6 +6224,10 @@ namespace game_logic
 				0, 0, 0
 			);
 		}*/
+
+		int width, height;
+		glfwGetFramebufferSize(environment.window, &width, &height);
+		somewhat_adapt_to_default_framebuffer_size(environment, width, height);
 
 		glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
 		environment.state.physics_tick_results_fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0u);
@@ -8468,7 +8492,7 @@ namespace game_logic
 
 	void free(game_environment::Environment& environment)
 	{
-		free_default_framebuffer_size_dependent_data(environment);
+		free_some_default_framebuffer_size_dependent_data(environment);
 
 		glUnmapNamedBuffer(environment.state.GPU_buffers.rigid_bodies.positions.buffer);
 		glUnmapNamedBuffer(environment.state.GPU_buffers.rigid_bodies.triangles.changed_bounding_boxes.buffer);
