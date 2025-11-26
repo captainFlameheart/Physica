@@ -212,6 +212,20 @@ namespace game_state
 		GLint holographic_fluence_gather_shader_rays_uniform_location;
 		GLint holographic_fluence_gather_shader_upper_cascade_fluence_uniform_location;
 
+		GLuint holographic_fluence_gather_buffer;
+		GLint holographic_fluence_gather_buffer_block_size;
+		GLint holographic_fluence_gather_buffer_direction_mask_offset;
+		GLint holographic_fluence_gather_buffer_cascade_offset;
+		GLint holographic_fluence_gather_buffer_max_ray_probe_column_offset;
+		GLint holographic_fluence_gather_buffer_max_ray_probe_row_offset;
+		GLint holographic_fluence_gather_buffer_max_fluence_probe_column_texel_x_offset;
+		GLint holographic_fluence_gather_buffer_max_fluence_probe_y_offset;
+		GLint holographic_fluence_gather_buffer_rays_per_probe_offset;
+		GLint holographic_fluence_gather_buffer_skipped_rays_below_column_offset;
+		GLint holographic_fluence_gather_buffer_cascade_power_of_two_offset;
+		GLint holographic_fluence_gather_buffer_upper_cascade_probe_column_texel_x_mask_offset;
+		GLint holographic_fluence_gather_buffer_upper_cascade_offset;
+
 		GLuint presentation_stage;
 	};
 }

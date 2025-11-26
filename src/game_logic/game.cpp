@@ -5694,6 +5694,133 @@ namespace game_logic
 			);
 		}
 
+		{ // Holographic fluence gather buffer
+			{
+				GLenum const offset_label{ GL_OFFSET };
+
+				GLuint const direction_mask_index
+				{
+					glGetProgramResourceIndex(environment.state.holographic_fluence_gather_shader, GL_UNIFORM, "Fluence_Gathering_Data.direction_mask")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.holographic_fluence_gather_shader, GL_UNIFORM, direction_mask_index,
+					1u, &offset_label, 1u, nullptr, &environment.state.holographic_fluence_gather_buffer_direction_mask_offset
+				);
+
+				GLuint const cascade_index
+				{
+					glGetProgramResourceIndex(environment.state.holographic_fluence_gather_shader, GL_UNIFORM, "Fluence_Gathering_Data.cascade")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.holographic_fluence_gather_shader, GL_UNIFORM, cascade_index,
+					1u, &offset_label, 1u, nullptr, &environment.state.holographic_fluence_gather_buffer_cascade_offset
+				);
+
+				GLuint const max_ray_probe_column_index
+				{
+					glGetProgramResourceIndex(environment.state.holographic_fluence_gather_shader, GL_UNIFORM, "Fluence_Gathering_Data.max_ray_probe_column")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.holographic_fluence_gather_shader, GL_UNIFORM, max_ray_probe_column_index,
+					1u, &offset_label, 1u, nullptr, &environment.state.holographic_fluence_gather_buffer_max_ray_probe_column_offset
+				);
+
+				GLuint const max_ray_probe_row_index
+				{
+					glGetProgramResourceIndex(environment.state.holographic_fluence_gather_shader, GL_UNIFORM, "Fluence_Gathering_Data.max_ray_probe_row")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.holographic_fluence_gather_shader, GL_UNIFORM, max_ray_probe_row_index,
+					1u, &offset_label, 1u, nullptr, &environment.state.holographic_fluence_gather_buffer_max_ray_probe_row_offset
+				);
+
+				GLuint const max_fluence_probe_column_texel_x_index
+				{
+					glGetProgramResourceIndex(environment.state.holographic_fluence_gather_shader, GL_UNIFORM, "Fluence_Gathering_Data.max_fluence_probe_column_texel_x")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.holographic_fluence_gather_shader, GL_UNIFORM, max_fluence_probe_column_texel_x_index,
+					1u, &offset_label, 1u, nullptr, &environment.state.holographic_fluence_gather_buffer_max_fluence_probe_column_texel_x_offset
+				);
+
+				GLuint const max_fluence_probe_y_index
+				{
+					glGetProgramResourceIndex(environment.state.holographic_fluence_gather_shader, GL_UNIFORM, "Fluence_Gathering_Data.max_fluence_probe_y")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.holographic_fluence_gather_shader, GL_UNIFORM, max_fluence_probe_y_index,
+					1u, &offset_label, 1u, nullptr, &environment.state.holographic_fluence_gather_buffer_max_fluence_probe_y_offset
+				);
+
+				GLuint const rays_per_probe_index
+				{
+					glGetProgramResourceIndex(environment.state.holographic_fluence_gather_shader, GL_UNIFORM, "Fluence_Gathering_Data.rays_per_probe")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.holographic_fluence_gather_shader, GL_UNIFORM, rays_per_probe_index,
+					1u, &offset_label, 1u, nullptr, &environment.state.holographic_fluence_gather_buffer_rays_per_probe_offset
+				);
+
+				GLuint const skipped_rays_below_column_index
+				{
+					glGetProgramResourceIndex(environment.state.holographic_fluence_gather_shader, GL_UNIFORM, "Fluence_Gathering_Data.skipped_rays_below_column")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.holographic_fluence_gather_shader, GL_UNIFORM, skipped_rays_below_column_index,
+					1u, &offset_label, 1u, nullptr, &environment.state.holographic_fluence_gather_buffer_skipped_rays_below_column_offset
+				);
+
+				GLuint const cascade_power_of_two_index
+				{
+					glGetProgramResourceIndex(environment.state.holographic_fluence_gather_shader, GL_UNIFORM, "Fluence_Gathering_Data.cascade_power_of_two")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.holographic_fluence_gather_shader, GL_UNIFORM, cascade_power_of_two_index,
+					1u, &offset_label, 1u, nullptr, &environment.state.holographic_fluence_gather_buffer_cascade_power_of_two_offset
+				);
+
+				GLuint const upper_cascade_probe_column_texel_x_mask_index
+				{
+					glGetProgramResourceIndex(environment.state.holographic_fluence_gather_shader, GL_UNIFORM, "Fluence_Gathering_Data.upper_cascade_probe_column_texel_x_mask")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.holographic_fluence_gather_shader, GL_UNIFORM, upper_cascade_probe_column_texel_x_mask_index,
+					1u, &offset_label, 1u, nullptr, &environment.state.holographic_fluence_gather_buffer_upper_cascade_probe_column_texel_x_mask_offset
+				);
+
+				GLuint const upper_cascade_index
+				{
+					glGetProgramResourceIndex(environment.state.holographic_fluence_gather_shader, GL_UNIFORM, "Fluence_Gathering_Data.upper_cascade")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.holographic_fluence_gather_shader, GL_UNIFORM, upper_cascade_index,
+					1u, &offset_label, 1u, nullptr, &environment.state.holographic_fluence_gather_buffer_upper_cascade_offset
+				);
+			}
+
+			GLuint const block_index
+			{
+				glGetProgramResourceIndex(environment.state.holographic_fluence_gather_shader, GL_UNIFORM_BLOCK, "Fluence_Gathering_Data")
+			};
+			GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
+			glGetProgramResourceiv
+			(
+				environment.state.holographic_fluence_gather_shader, GL_UNIFORM_BLOCK, block_index,
+				1u, &buffer_size_label, 1u, nullptr, &environment.state.holographic_fluence_gather_buffer_block_size
+			);
+		}
+
 		util::proximity::initialize
 		(
 			environment.state.proximity_tree, game_logic_MAX_LEAF_COUNT(environment), 
@@ -5974,7 +6101,21 @@ namespace game_logic
 		std::cout << "lower cascade skipped rays below column offset: " << environment.state.holographic_ray_extend_buffer_lower_cascade_skipped_rays_below_column_offset << std::endl;
 		std::cout << "lower cascade max ray probe column offset: " << environment.state.holographic_ray_extend_buffer_lower_cascade_max_ray_probe_column_offset << std::endl;
 		std::cout << "lower cascade max ray probe row offset: " << environment.state.holographic_ray_extend_buffer_lower_cascade_max_ray_probe_row_offset << std::endl;
+		std::cout << std::endl;
 
+		std::cout << "Holographic fluence gather buffer (" << environment.state.holographic_fluence_gather_buffer << "):" << std::endl;
+		std::cout << "block size: " << environment.state.holographic_fluence_gather_buffer_block_size << std::endl;
+		std::cout << "direction mask offset: " << environment.state.holographic_fluence_gather_buffer_direction_mask_offset << std::endl;
+		std::cout << "cascade offset: " << environment.state.holographic_fluence_gather_buffer_cascade_offset << std::endl;
+		std::cout << "max ray probe column offset: " << environment.state.holographic_fluence_gather_buffer_max_ray_probe_column_offset << std::endl;
+		std::cout << "max ray probe row offset: " << environment.state.holographic_fluence_gather_buffer_max_ray_probe_row_offset << std::endl;
+		std::cout << "max fluence probe column texel x offset: " << environment.state.holographic_fluence_gather_buffer_max_fluence_probe_column_texel_x_offset << std::endl;
+		std::cout << "max fluence probe y offset: " << environment.state.holographic_fluence_gather_buffer_max_fluence_probe_y_offset << std::endl;
+		std::cout << "rays per probe offset: " << environment.state.holographic_fluence_gather_buffer_rays_per_probe_offset << std::endl;
+		std::cout << "skipped_rays_below_column offset: " << environment.state.holographic_fluence_gather_buffer_skipped_rays_below_column_offset << std::endl;
+		std::cout << "cascade power of two offset: " << environment.state.holographic_fluence_gather_buffer_cascade_power_of_two_offset << std::endl;
+		std::cout << "upper cascade probe column texel x mask offset: " << environment.state.holographic_fluence_gather_buffer_upper_cascade_probe_column_texel_x_mask_offset << std::endl;
+		std::cout << "upper cascade offset: " << environment.state.holographic_fluence_gather_buffer_upper_cascade_offset << std::endl;
 		std::cout << std::endl;
 
 		Model<3u> triangle_model;
