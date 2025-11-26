@@ -75,7 +75,7 @@ void main()
 	
 	// Upper far
 	int upper_far_sample_y = h + e * ray_casting_data.g - ray_casting_data.f;	// Does not need to be clamped
-	vec4 radiance += upper_near_transmittance * (c_is_inside * texelFetch(shorter_rays, ivec3(clamped_c, upper_far_sample_y, 0), 0));
+	radiance += upper_transmittance * (c_is_inside * texelFetch(shorter_rays, ivec3(clamped_c, upper_far_sample_y, 0), 0));
 	upper_transmittance *= mix(vec4(1.0), texelFetch(shorter_rays, ivec3(clamped_c, upper_far_sample_y, 1), 0), c_is_inside);
 	
 	transmittance += upper_transmittance;

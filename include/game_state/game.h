@@ -190,6 +190,9 @@ namespace game_state
 		GLuint holographic_ray_trace_shader_count;
 		GLuint* holographic_ray_trace_shaders;
 
+		GLuint holographic_ray_extend_shader;
+		GLint holographic_ray_extend_shader_shorter_rays_uniform_location;
+
 		GLuint presentation_stage;
 	};
 }

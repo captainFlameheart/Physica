@@ -1825,6 +1825,29 @@ namespace game_logic
 				<< std::endl;
 		}
 
+		::util::shader::set_shader_statically
+		(
+			vertex_shader,
+			util_shader_VERSION,
+			::util::shader::file_to_string("util/plain_full_screen.vert")
+		);
+
+		::util::shader::set_shader_statically
+		(
+			fragment_shader,
+			util_shader_VERSION,
+			util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
+			util_shader_DEFINE("RAY_CASTING_BINDING", STRINGIFY(game_logic__util_RAY_CASTING_BINDING)),
+			::util::shader::file_to_string("holographic_radiance_cascades/rays/extend.frag")
+		);
+		environment.state.holographic_ray_extend_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+		environment.state.holographic_ray_extend_shader_shorter_rays_uniform_location = glGetUniformLocation
+		(
+			environment.state.holographic_ray_extend_shader, "shorter_rays"
+		);
+		std::cout << "Holographic ray extend shader compiled. Shorter rays uniform location: "
+			<< environment.state.holographic_ray_extend_shader_shorter_rays_uniform_location << std::endl;
+
 		::util::shader::delete_shader(vertex_shader);
 		::util::shader::delete_shader(fragment_shader);
 
