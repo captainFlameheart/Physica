@@ -50,6 +50,7 @@
 #define game_logic__util_GRAVITY_SOURCES_BINDING 7
 #define game_logic__util_COUNT_BINDING 8
 #define game_logic__util_RAY_CASTING_BINDING 9
+#define game_logic__util_FLUENCE_GATHERING_BINDING 10
 
 // TODO: Probably flip position and velocity binding and position snapshot and velocity snapshot binding
 #define game_logic__util_FLUID_POSITION_BINDING 0

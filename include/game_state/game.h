@@ -208,6 +208,10 @@ namespace game_state
 		GLint holographic_ray_extend_buffer_lower_cascade_max_ray_probe_column_offset;
 		GLint holographic_ray_extend_buffer_lower_cascade_max_ray_probe_row_offset;
 
+		GLuint holographic_fluence_gather_shader;
+		GLint holographic_fluence_gather_shader_rays_uniform_location;
+		GLint holographic_fluence_gather_shader_upper_cascade_fluence_uniform_location;
+
 		GLuint presentation_stage;
 	};
 }

@@ -557,7 +557,7 @@ namespace game_logic
 			
 			glTextureParameteri(environment.state.holographic_source_array_texture, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
 			glTextureParameteri(environment.state.holographic_source_array_texture, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-			GLfloat border_color[]{ 0.0f, 0.0f, 0.0f, 0.0f };	// Emission and absorption are both vec4(0.0f) in vacuum
+			GLfloat const border_color[]{ 0.0f, 0.0f, 0.0f, 0.0f };	// Emission and absorption are both vec4(0.0f) in vacuum
 			glTextureParameterfv(environment.state.holographic_source_array_texture, GL_TEXTURE_BORDER_COLOR, border_color);
 
 			// TODO: GL_RGBA32F might not be needed
@@ -1988,6 +1988,26 @@ namespace game_logic
 		);
 		std::cout << "Holographic ray extend shader compiled. Shorter rays uniform location: "
 			<< environment.state.holographic_ray_extend_shader_shorter_rays_uniform_location << std::endl;
+
+		::util::shader::set_shader_statically
+		(
+			vertex_shader,
+			util_shader_VERSION,
+			::util::shader::file_to_string("util/plain_full_screen.vert")
+		);
+		::util::shader::set_shader_statically
+		(
+			fragment_shader,
+			util_shader_VERSION,
+			util_shader_DEFINE("FLUENCE_GATHERING_BINDING", STRINGIFY(game_logic__util_FLUENCE_GATHERING_BINDING)),
+			::util::shader::file_to_string("holographic_radiance_cascades/fluence/gather.frag")
+		);
+		environment.state.holographic_fluence_gather_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+		environment.state.holographic_fluence_gather_shader_rays_uniform_location = glGetUniformLocation(environment.state.holographic_fluence_gather_shader, "rays");
+		environment.state.holographic_fluence_gather_shader_upper_cascade_fluence_uniform_location = glGetUniformLocation(environment.state.holographic_fluence_gather_shader, "upper_cascade_fluence");
+		std::cout << "Holographic fluence gather shader compiled. Rays uniform location: "
+			<< environment.state.holographic_fluence_gather_shader_rays_uniform_location << ". Upper cascade fluence uniform location: "
+			<< environment.state.holographic_fluence_gather_shader_upper_cascade_fluence_uniform_location << std::endl;
 
 		::util::shader::delete_shader(vertex_shader);
 		::util::shader::delete_shader(fragment_shader);
