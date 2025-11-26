@@ -18,6 +18,8 @@ struct Model
 
 namespace game_state
 {
+	constexpr GLuint initial_holographic_ray_trace_cascade_count{ 3u };
+
 	// TODO: Organize based on access patterns 
 	// (initialize -> render -> events -> tick * n -> render -> events -> tick * n -> render -> ...)
 	struct Game
@@ -196,7 +198,7 @@ namespace game_state
 		GLint holographic_ray_extend_shader_shorter_rays_uniform_location;
 
 		GLuint holographic_ray_extend_buffer;
-		GLint holographic_ray_extend_buffer_size;
+		GLint holographic_ray_extend_buffer_block_size;
 		GLint holographic_ray_extend_buffer_skipped_rays_below_column_offset;
 		GLint holographic_ray_extend_buffer_rays_per_probe_offset;
 		GLint holographic_ray_extend_buffer_g_offset;
