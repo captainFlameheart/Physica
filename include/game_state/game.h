@@ -24,6 +24,9 @@ namespace game_state
 	// (initialize -> render -> events -> tick * n -> render -> events -> tick * n -> render -> ...)
 	struct Game
 	{
+		GLint framebuffer_width;
+		GLint framebuffer_height;
+
 		GLint uniform_buffer_offset_alignment;
 
 		GLboolean framebuffer_sRGB_enabled;
