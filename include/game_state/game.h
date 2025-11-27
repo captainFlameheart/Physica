@@ -85,7 +85,15 @@ namespace game_state
 		{
 			struct
 			{
-				GLuint fluid_texture;
+				union
+				{
+					struct
+					{
+						GLuint fluid_texture;
+						GLuint fluence_texture;	// Unionize with fluid texture
+					};
+					GLuint texture_2Ds[2u];
+				};
 				union
 				{
 					struct
@@ -94,11 +102,12 @@ namespace game_state
 						GLuint angular_fluence_texture;
 					};
 					GLuint texture_2d_arrays[2u];
-
 				};
 			};
-			GLuint framebuffer_textures[3u];
+			GLuint framebuffer_textures[4u];
 		};
+
+
 		GLuint max_cascade_index;
 		GLuint* ray_textures;
 
@@ -224,6 +233,7 @@ namespace game_state
 		GLint holographic_fluence_gather_buffer_cascade_power_of_two_offset;
 		GLint holographic_fluence_gather_buffer_upper_cascade_probe_column_texel_x_mask_offset;
 		GLint holographic_fluence_gather_buffer_upper_cascade_offset;
+		GLint holographic_fluence_gather_buffer_upper_cascade_fluence_layer_offset;
 
 		GLuint holographic_draw_fluence_shader;
 		GLint holographic_draw_fluence_shader_source_uniform_location;

@@ -522,10 +522,11 @@ namespace game_logic
 
 		glCreateFramebuffers(std::size(environment.state.framebuffers), environment.state.framebuffers);
 
+		glCreateTextures(GL_TEXTURE_2D, 1u, &environment.state.fluid_texture);	// Unionize with fluence texture
+
 		{
 			// TODO: Make sure supersampling is not used for the default framebuffer. Otherwise, we should 
 			// make the fluid texture use supersampling and resolve (downscale) it manually to another texture.
-			glCreateTextures(GL_TEXTURE_2D, 1u, &environment.state.fluid_texture);
 			glTextureParameteri(environment.state.fluid_texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			glTextureParameteri(environment.state.fluid_texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTextureStorage2D(environment.state.fluid_texture, 1u, GL_RGBA32F, width, height);
@@ -541,12 +542,12 @@ namespace game_logic
 			}
 		}
 
-		glCreateTextures(GL_TEXTURE_2D_ARRAY, std::size(environment.state.texture_2d_arrays), environment.state.texture_2d_arrays);
-
 		// TODO: Optimize max cascade index calculation
 		environment.state.max_cascade_index = static_cast<GLuint>(std::ceil(std::log2(static_cast<double>(environment.state.holographic_probe_grid_width - 1u))));
 		std::cout << "Grid width: " << environment.state.holographic_probe_grid_width << std::endl;
 		std::cout << "Max cascade index: " << environment.state.max_cascade_index << std::endl;
+
+		glCreateTextures(GL_TEXTURE_2D_ARRAY, std::size(environment.state.texture_2d_arrays), environment.state.texture_2d_arrays);
 
 		environment.state.ray_textures = new GLuint[environment.state.max_cascade_index];
 		glCreateTextures(GL_TEXTURE_2D_ARRAY, environment.state.max_cascade_index, environment.state.ray_textures);
@@ -620,7 +621,19 @@ namespace game_logic
 			}
 		}
 
-		glBindTextures(0u, std::size(environment.state.framebuffer_textures), environment.state.framebuffer_textures);
+		{
+			glCreateTextures(GL_TEXTURE_2D, 1u, &environment.state.fluence_texture);	// Unionize with fluid texture
+
+			glTextureParameteri(environment.state.fluence_texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTextureParameteri(environment.state.fluence_texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTextureStorage2D(environment.state.fluence_texture, 1u, GL_RGBA32F, environment.state.holographic_probe_grid_width, environment.state.holographic_probe_grid_height);
+		}
+
+		//glBindTextures(0u, std::size(environment.state.framebuffer_textures), environment.state.framebuffer_textures);
+		glBindTextures(0u, 1u, &environment.state.fluid_texture);
+		glBindTextures(1u, 1u, &environment.state.holographic_source_array_texture);
+		glBindTextures(3u, 1u, &environment.state.angular_fluence_texture);
+		glBindTextures(4u, 1u, &environment.state.fluence_texture);
 
 		{
 			GLuint const min_cascade{ game_state::initial_holographic_ray_trace_cascade_count };
@@ -803,6 +816,10 @@ namespace game_logic
 				{
 					static_cast<GLint>(environment.state.holographic_probe_grid_height) * lower_cascade_rays_per_probe - lower_cascade_rays_in_vacuum_per_column - 1
 				};
+				GLint const upper_cascade_fluence_layer
+				{
+					(max_fluence_gather_cascade - cascade) & 1
+				};
 
 				std::memcpy
 				(
@@ -859,6 +876,11 @@ namespace game_logic
 					base + environment.state.holographic_fluence_gather_buffer_upper_cascade_offset,
 					&upper_cascade, sizeof(upper_cascade)
 				);
+				std::memcpy
+				(
+					base + environment.state.holographic_fluence_gather_buffer_upper_cascade_fluence_layer_offset,
+					&upper_cascade_fluence_layer, sizeof(upper_cascade_fluence_layer)
+				);
 				std::cout << "\n	cascade = " << cascade << " at " << base_offset << ":"
 					<< "\n		direction_mask = " << direction_mask << " at " << base_offset + environment.state.holographic_fluence_gather_buffer_direction_mask_offset
 					<< "\n		cascade = " << cascade << " at " << base_offset + environment.state.holographic_fluence_gather_buffer_cascade_offset
@@ -871,6 +893,7 @@ namespace game_logic
 					<< "\n		cascade_power_of_two = " << cascade_power_of_two << " at " << base_offset + environment.state.holographic_fluence_gather_buffer_cascade_power_of_two_offset
 					<< "\n		upper_cascade_probe_column_texel_x_mask = " << upper_cascade_probe_column_texel_x_mask << " at " << base_offset + environment.state.holographic_fluence_gather_buffer_upper_cascade_probe_column_texel_x_mask_offset
 					<< "\n		upper_cascade = " << upper_cascade << " at " << base_offset + environment.state.holographic_fluence_gather_buffer_upper_cascade_offset
+					<< "\n		upper_cascade_fluence_layer = " << upper_cascade_fluence_layer << " at " << base_offset + environment.state.holographic_fluence_gather_buffer_upper_cascade_fluence_layer_offset
 					<< "\n";
 			}
 			std::cout << std::endl;
@@ -1073,7 +1096,7 @@ namespace game_logic
 
 		environment.state.presentation_stage = 0u;
 		environment.state.use_holographic_radiance_cascades = true;
-		environment.state.holographic_probe_grid_width = 5u;
+		environment.state.holographic_probe_grid_width = 10u;
 		environment.state.holographic_probe_grid_height = 5u;
 
 		glEnable(GL_FRAMEBUFFER_SRGB);
@@ -5991,6 +6014,16 @@ namespace game_logic
 					environment.state.holographic_fluence_gather_shader, GL_UNIFORM, upper_cascade_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.holographic_fluence_gather_buffer_upper_cascade_offset
 				);
+
+				GLuint const upper_cascade_fluence_layer_index
+				{
+					glGetProgramResourceIndex(environment.state.holographic_fluence_gather_shader, GL_UNIFORM, "Fluence_Gathering_Data.upper_cascade_fluence_layer")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.holographic_fluence_gather_shader, GL_UNIFORM, upper_cascade_fluence_layer_index,
+					1u, &offset_label, 1u, nullptr, &environment.state.holographic_fluence_gather_buffer_upper_cascade_fluence_layer_offset
+				);
 			}
 
 			GLuint const block_index
@@ -6300,6 +6333,7 @@ namespace game_logic
 		std::cout << "cascade power of two offset: " << environment.state.holographic_fluence_gather_buffer_cascade_power_of_two_offset << std::endl;
 		std::cout << "upper cascade probe column texel x mask offset: " << environment.state.holographic_fluence_gather_buffer_upper_cascade_probe_column_texel_x_mask_offset << std::endl;
 		std::cout << "upper cascade offset: " << environment.state.holographic_fluence_gather_buffer_upper_cascade_offset << std::endl;
+		std::cout << "upper cascade fluence layer offset: " << environment.state.holographic_fluence_gather_buffer_upper_cascade_fluence_layer_offset << std::endl;
 		std::cout << std::endl;
 
 		Model<3u> triangle_model;
