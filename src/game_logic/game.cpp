@@ -2172,6 +2172,25 @@ namespace game_logic
 			<< environment.state.holographic_fluence_gather_shader_rays_uniform_location << ". Upper cascade fluence uniform location: "
 			<< environment.state.holographic_fluence_gather_shader_upper_cascade_fluence_uniform_location << std::endl;
 
+		::util::shader::set_shader_statically
+		(
+			vertex_shader,
+			util_shader_VERSION,
+			::util::shader::file_to_string("util/plain_full_screen.vert")
+		);
+		::util::shader::set_shader_statically
+		(
+			fragment_shader,
+			util_shader_VERSION,
+			::util::shader::file_to_string("holographic_radiance_cascades/fluence/draw.frag")
+		);
+		environment.state.holographic_draw_fluence_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+		//environment.state.holographic_draw_fluence_shader_source_uniform_location = glGetUniformLocation(environment.state.holographic_draw_fluence_shader, "source");
+		environment.state.holographic_draw_fluence_shader_fluence_uniform_location = glGetUniformLocation(environment.state.holographic_draw_fluence_shader, "fluence");
+		std::cout << "Holographic draw fluence shader compiled. Source uniform location: "
+			<< environment.state.holographic_draw_fluence_shader_source_uniform_location << ". Fluence uniform location: "
+			<< environment.state.holographic_draw_fluence_shader_fluence_uniform_location << std::endl;
+
 		::util::shader::delete_shader(vertex_shader);
 		::util::shader::delete_shader(fragment_shader);
 
