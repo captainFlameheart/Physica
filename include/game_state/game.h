@@ -96,7 +96,6 @@ namespace game_state
 					GLuint texture_2d_arrays[2u];
 
 				};
-
 			};
 			GLuint framebuffer_textures[3u];
 		};

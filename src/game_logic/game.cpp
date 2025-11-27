@@ -730,6 +730,161 @@ namespace game_logic
 				// glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_RAY_CASTING_BINDING, environment.state.holographic_ray_extend_buffer);
 			}
 		}
+
+		{	// Fluence gather buffer
+			GLint const padded_block_count{ static_cast<GLint>(environment.state.max_cascade_index - 1u) };
+			GLint const padded_block_size
+			{
+				ceil_div(environment.state.holographic_fluence_gather_buffer_block_size, environment.state.uniform_buffer_offset_alignment)
+				* environment.state.uniform_buffer_offset_alignment
+			};
+			GLint const buffer_size
+			{
+				padded_block_count * padded_block_size + environment.state.holographic_fluence_gather_buffer_block_size
+			};
+
+			unsigned char* const fluence_gather_data_buffer_content = new unsigned char[buffer_size];
+
+			std::cout << "Initializing fluence gather buffer content:";
+
+			GLint width{ static_cast<GLint>(environment.state.holographic_probe_grid_width) };
+			GLint height{ static_cast<GLint>(environment.state.holographic_probe_grid_height) };
+
+			GLint const edge_width{ width - 1 };
+			GLint const edge_height{ height - 1 };
+
+			GLint const edge_width_decremented{ edge_width - 1 };
+			GLint const max_fluence_probe_y{ edge_height };
+
+			GLint const max_fluence_gather_cascade{ padded_block_count };
+
+			for (GLint cascade{ max_fluence_gather_cascade }; cascade >= 0; --cascade)
+			{
+				GLint base_offset{ (max_fluence_gather_cascade - cascade) * environment.state.uniform_buffer_offset_alignment };
+				unsigned char* const base{ fluence_gather_data_buffer_content + base_offset };
+
+				GLint const direction_mask{ (1 << cascade) - 1 };
+				GLint const cascade_power_of_two{ 1 << cascade };
+				GLint const max_ray_probe_column
+				{
+					ceil_div(edge_width - cascade_power_of_two, cascade_power_of_two) - 1
+				};
+				GLint const rays_per_probe{ cascade_power_of_two + 1 };
+				GLint const skipped_rays_below_column{ ceil_div(rays_per_probe, 2) };
+				GLint const rays_in_vacuum_per_column{ skipped_rays_below_column << 1 };
+				GLint const max_ray_probe_row
+				{
+					static_cast<GLint>(environment.state.holographic_probe_grid_height) * rays_per_probe - rays_in_vacuum_per_column - 1
+				};
+
+				GLuint const upper_cascade{ cascade + 1u };
+				GLint const max_fluence_probe_column_texel_x
+				{
+					(edge_width_decremented >> upper_cascade) << upper_cascade
+				};
+				GLint const upper_cascade_probe_column_texel_x_mask
+				{
+					(-1) << upper_cascade
+				};
+
+				GLint const g{ rays_per_probe << 1 };
+				GLint const f{ rays_per_probe << cascade };
+
+				GLint const lower_cascade{ cascade - 1 };
+				GLint const lower_cascade_power_of_two{ 1 << lower_cascade };
+				GLint const lower_cascade_rays_per_probe{ lower_cascade_power_of_two + 1 };
+				GLint const lower_cascade_skipped_rays_below_column{ ceil_div(lower_cascade_rays_per_probe, 2) };
+				GLint const lower_cascade_rays_in_vacuum_per_column{ lower_cascade_skipped_rays_below_column << 1 };
+				GLint const lower_cascade_max_ray_probe_column
+				{
+					ceil_div(edge_width - lower_cascade_power_of_two, lower_cascade_power_of_two) - 1
+				};
+				GLint const lower_cascade_max_ray_probe_row
+				{
+					static_cast<GLint>(environment.state.holographic_probe_grid_height) * lower_cascade_rays_per_probe - lower_cascade_rays_in_vacuum_per_column - 1
+				};
+
+				std::memcpy
+				(
+					base + environment.state.holographic_fluence_gather_buffer_direction_mask_offset,
+					&direction_mask, sizeof(direction_mask)
+				);
+				std::memcpy
+				(
+					base + environment.state.holographic_fluence_gather_buffer_cascade_offset,
+					&cascade, sizeof(cascade)
+				);
+				std::memcpy
+				(
+					base + environment.state.holographic_fluence_gather_buffer_max_ray_probe_column_offset,
+					&max_ray_probe_column, sizeof(max_ray_probe_column)
+				);
+				std::memcpy
+				(
+					base + environment.state.holographic_fluence_gather_buffer_max_ray_probe_row_offset,
+					&max_ray_probe_row, sizeof(max_ray_probe_row)
+				);
+				std::memcpy
+				(
+					base + environment.state.holographic_fluence_gather_buffer_max_fluence_probe_column_texel_x_offset,
+					&max_fluence_probe_column_texel_x, sizeof(max_fluence_probe_column_texel_x)
+				);
+				std::memcpy
+				(
+					base + environment.state.holographic_fluence_gather_buffer_max_fluence_probe_y_offset,
+					&max_fluence_probe_y, sizeof(max_fluence_probe_y)
+				);
+				std::memcpy
+				(
+					base + environment.state.holographic_fluence_gather_buffer_rays_per_probe_offset,
+					&rays_per_probe, sizeof(rays_per_probe)
+				);
+				std::memcpy
+				(
+					base + environment.state.holographic_fluence_gather_buffer_skipped_rays_below_column_offset,
+					&skipped_rays_below_column, sizeof(skipped_rays_below_column)
+				);
+				std::memcpy
+				(
+					base + environment.state.holographic_fluence_gather_buffer_cascade_power_of_two_offset,
+					&cascade_power_of_two, sizeof(cascade_power_of_two)
+				);
+				std::memcpy
+				(
+					base + environment.state.holographic_fluence_gather_buffer_upper_cascade_probe_column_texel_x_mask_offset,
+					&upper_cascade_probe_column_texel_x_mask, sizeof(upper_cascade_probe_column_texel_x_mask)
+				);
+				std::memcpy
+				(
+					base + environment.state.holographic_fluence_gather_buffer_upper_cascade_offset,
+					&upper_cascade, sizeof(upper_cascade)
+				);
+				std::cout << "\n	cascade = " << cascade << " at " << base_offset << ":"
+					<< "\n		direction_mask = " << direction_mask << " at " << base_offset + environment.state.holographic_fluence_gather_buffer_direction_mask_offset
+					<< "\n		cascade = " << cascade << " at " << base_offset + environment.state.holographic_fluence_gather_buffer_cascade_offset
+					<< "\n		max_ray_probe_column = " << max_ray_probe_column << " at " << base_offset + environment.state.holographic_fluence_gather_buffer_max_ray_probe_column_offset
+					<< "\n		max_ray_probe_row = " << max_ray_probe_row << " at " << base_offset + environment.state.holographic_fluence_gather_buffer_max_ray_probe_row_offset
+					<< "\n		max_fluence_probe_column_texel_x = " << max_fluence_probe_column_texel_x << " at " << base_offset + environment.state.holographic_fluence_gather_buffer_max_fluence_probe_column_texel_x_offset
+					<< "\n		max_fluence_probe_y = " << max_fluence_probe_y << " at " << base_offset + environment.state.holographic_fluence_gather_buffer_max_fluence_probe_y_offset
+					<< "\n		rays_per_probe = " << rays_per_probe << " at " << base_offset + environment.state.holographic_fluence_gather_buffer_rays_per_probe_offset
+					<< "\n		skipped_rays_below_column = " << skipped_rays_below_column << " at " << base_offset + environment.state.holographic_fluence_gather_buffer_skipped_rays_below_column_offset
+					<< "\n		cascade_power_of_two = " << cascade_power_of_two << " at " << base_offset + environment.state.holographic_fluence_gather_buffer_cascade_power_of_two_offset
+					<< "\n		upper_cascade_probe_column_texel_x_mask = " << upper_cascade_probe_column_texel_x_mask << " at " << base_offset + environment.state.holographic_fluence_gather_buffer_upper_cascade_probe_column_texel_x_mask_offset
+					<< "\n		upper_cascade = " << upper_cascade << " at " << base_offset + environment.state.holographic_fluence_gather_buffer_upper_cascade_offset
+					<< "\n";
+			}
+			std::cout << std::endl;
+
+			glNamedBufferStorage
+			(
+				environment.state.holographic_fluence_gather_buffer, buffer_size, fluence_gather_data_buffer_content,
+				0u
+			);
+
+			delete[] fluence_gather_data_buffer_content;
+
+			// glBindBufferBase(GL_SHADER_STORAGE_BUFFER, game_logic__util_RAY_CASTING_BINDING, environment.state.holographic_ray_extend_buffer);
+		}
 	}
 
 	void adapt_to_default_framebuffer_size
@@ -740,7 +895,14 @@ namespace game_logic
 	{
 		std::cout << "Adapt to default framebuffer size" << std::endl;
 
-		glCreateBuffers(1u, &environment.state.holographic_ray_extend_buffer);
+		GLuint buffers[]
+		{
+			environment.state.holographic_ray_extend_buffer,
+			environment.state.holographic_fluence_gather_buffer,
+		};
+		glCreateBuffers(std::size(buffers), buffers);
+		environment.state.holographic_ray_extend_buffer = buffers[0u];
+		environment.state.holographic_fluence_gather_buffer = buffers[1u];
 		somewhat_adapt_to_default_framebuffer_size(environment, width, height);
 	}
 
@@ -890,6 +1052,7 @@ namespace game_logic
 		GLuint buffers[]
 		{
 			environment.state.holographic_ray_extend_buffer,
+			environment.state.holographic_fluence_gather_buffer,
 		};
 		glDeleteBuffers(std::size(buffers), buffers);
 	}
@@ -910,8 +1073,8 @@ namespace game_logic
 
 		environment.state.presentation_stage = 0u;
 		environment.state.use_holographic_radiance_cascades = true;
-		environment.state.holographic_probe_grid_width = 20u;
-		environment.state.holographic_probe_grid_height = 10u;
+		environment.state.holographic_probe_grid_width = 5u;
+		environment.state.holographic_probe_grid_height = 5u;
 
 		glEnable(GL_FRAMEBUFFER_SRGB);
 		environment.state.framebuffer_sRGB_enabled = true;
@@ -2644,6 +2807,7 @@ namespace game_logic
 			environment.state.GPU_buffers.rigid_bodies.triangles.materials.buffer,
 			environment.state.GPU_buffers.rigid_bodies.triangles.material_indices.buffer,
 			environment.state.holographic_ray_extend_buffer,
+			environment.state.holographic_fluence_gather_buffer,
 		};
 		glCreateBuffers(std::size(buffers), buffers);
 		environment.state.camera_buffer = buffers[0u];
@@ -2680,6 +2844,7 @@ namespace game_logic
 		environment.state.GPU_buffers.rigid_bodies.triangles.materials.buffer = buffers[29u];
 		environment.state.GPU_buffers.rigid_bodies.triangles.material_indices.buffer = buffers[30u];
 		environment.state.holographic_ray_extend_buffer = buffers[31u];
+		environment.state.holographic_fluence_gather_buffer = buffers[32u];
 
 		{ // Materials buffer
 			{
@@ -8704,6 +8869,7 @@ namespace game_logic
 			environment.state.GPU_buffers.rigid_bodies.triangles.materials.buffer,
 			environment.state.GPU_buffers.rigid_bodies.triangles.material_indices.buffer,
 			environment.state.holographic_ray_extend_buffer,
+			environment.state.holographic_fluence_gather_buffer,
 		};
 		glDeleteBuffers(std::size(buffers), buffers);
 

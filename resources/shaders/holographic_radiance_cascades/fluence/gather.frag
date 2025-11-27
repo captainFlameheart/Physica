@@ -75,6 +75,8 @@ void main()
 	float not_interpolating_float = float(not_interpolating);
 	vec4 lower_near_transmit_factor = 1.0 + not_interpolating_float * shifted_lower_near_transmittance;
 
+	// IMPORTANT TODO: The clamping should not be necessary here, but it might be necessary when the fluence is added to the final fluence 
+	// buffer.
 	int near_sample_probe_column_texel_x = min(
 		output_texel_position.x & fluence_gathering_data.upper_cascade_probe_column_texel_x_mask, fluence_gathering_data.max_fluence_probe_column_texel_x
 	);
