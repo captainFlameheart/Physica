@@ -522,7 +522,7 @@ namespace game_logic
 
 		glCreateFramebuffers(std::size(environment.state.framebuffers), environment.state.framebuffers);
 
-		glCreateTextures(GL_TEXTURE_2D, 1u, &environment.state.fluid_texture);	// Unionize with fluence texture
+		glCreateTextures(GL_TEXTURE_2D, std::size(environment.state.texture_2Ds), environment.state.texture_2Ds);	// Unionize with fluence texture
 
 		{
 			// TODO: Make sure supersampling is not used for the default framebuffer. Otherwise, we should 
@@ -622,8 +622,6 @@ namespace game_logic
 		}
 
 		{
-			glCreateTextures(GL_TEXTURE_2D, 1u, &environment.state.fluence_texture);	// Unionize with fluid texture
-
 			glTextureParameteri(environment.state.fluence_texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			glTextureParameteri(environment.state.fluence_texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTextureStorage2D(environment.state.fluence_texture, 1u, GL_RGBA32F, environment.state.holographic_probe_grid_width, environment.state.holographic_probe_grid_height);
