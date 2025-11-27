@@ -585,7 +585,10 @@ namespace game_logic
 				environment.state.holographic_source_array_texture, 0, 3
 			);
 
-			GLenum const draw_buffers[]{ GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
+			GLenum const draw_buffers[]{ 
+				GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3, 
+				GL_COLOR_ATTACHMENT4, GL_COLOR_ATTACHMENT5, GL_COLOR_ATTACHMENT6
+			};
 			glNamedFramebufferDrawBuffers(environment.state.holographic_source_framebuffer, std::size(draw_buffers), draw_buffers);
 
 			GLenum const framebuffer_status{ glCheckNamedFramebufferStatus(environment.state.holographic_source_framebuffer, GL_DRAW_FRAMEBUFFER) };
@@ -2063,6 +2066,7 @@ namespace game_logic
 
 		environment.state.holographic_ray_trace_shader_count = game_state::initial_holographic_ray_trace_cascade_count;
 		environment.state.holographic_ray_trace_shaders = new GLuint[environment.state.holographic_ray_trace_shader_count];
+		environment.state.holographic_ray_trace_shader_uniform_locations = new GLint[environment.state.holographic_ray_trace_shader_count];
 		for (GLuint cascade{ 0u }; cascade < environment.state.holographic_ray_trace_shader_count; ++cascade)
 		{
 			// TODO: This vertex shader compilation should be done ONCE
@@ -2139,7 +2143,14 @@ namespace game_logic
 				::util::shader::file_to_string("holographic_radiance_cascades/rays/trace.frag")
 			);
 			environment.state.holographic_ray_trace_shaders[cascade] = ::util::shader::create_program(vertex_shader, fragment_shader);
+			environment.state.holographic_ray_trace_shader_uniform_locations[cascade] = glGetUniformLocation(environment.state.holographic_ray_trace_shaders[cascade], "source");
+			glUniform1i
+			(
+				environment.state.holographic_ray_trace_shader_uniform_locations[cascade], 2
+			);
+
 			std::cout << "Holographic ray trace shader " << cascade << " compiled:"
+				<< "\n	Source uniform location: " << environment.state.holographic_ray_trace_shader_uniform_locations[cascade]
 				<< "\n	skipped_rays_below_column = " << skipped_rays_below_column
 				<< "\n	rays_per_probe = " << rays_per_probe
 				<< "\n	cascade_power_of_two = " << cascade_power_of_two
@@ -8856,6 +8867,23 @@ namespace game_logic
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0u);
 			glUseProgram(environment.state.holographic_source_draw_shader);
 			glDrawArrays(GL_TRIANGLES, 0, 6u);
+
+			/*for (GLuint cascade{0u}; cascade < game_state::initial_holographic_ray_trace_cascade_count; ++cascade)
+			{
+				// IMPORTANT TODO: Remove ray framebuffer and change source framebuffer name!!!
+				glNamedFramebufferTextureLayer
+				(
+					environment.state.holographic_source_framebuffer, GL_COLOR_ATTACHMENT4,
+					environment.state.ray_textures[cascade], 0, 0
+				);
+				glNamedFramebufferTextureLayer
+				(
+					environment.state.holographic_source_framebuffer, GL_COLOR_ATTACHMENT5,
+					environment.state.ray_textures[cascade], 0, 1
+				);
+				glUseProgram(environment.state.holographic_ray_trace_shaders[cascade]);
+				glDrawArrays(GL_TRIANGLES, 0, 3u);
+			}*/
 		}
 
 		glUseProgram(environment.state.holographic_probe_grid_draw_shader);
@@ -8883,6 +8911,7 @@ namespace game_logic
 
 		::util::shader::delete_program(environment.state.shader);
 		delete[] environment.state.holographic_ray_trace_shaders;
+		delete[] environment.state.holographic_ray_trace_shader_uniform_locations;
 
 		delete[] environment.state.camera_send_buffer;
 		// TODO: Probably flip position and velocity buffers

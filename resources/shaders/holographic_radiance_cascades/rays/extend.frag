@@ -26,8 +26,8 @@ layout(shared, binding = RAY_CASTING_BINDING) uniform Ray_Casting_Data
 
 uniform sampler2DArray shorter_rays;
 
-layout (location = 0) out vec4 radiance;
-layout (location = 1) out vec4 transmittance;
+layout (location = 4) out vec4 radiance;
+layout (location = 5) out vec4 transmittance;
 
 void main()
 {

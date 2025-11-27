@@ -23,7 +23,7 @@ layout(shared, binding = FLUENCE_GATHERING_BINDING) uniform Fluence_Gathering_Da
 uniform sampler2DArray rays;
 uniform sampler2DArray upper_cascade_fluence;
 
-layout (location = 0) out vec4 fluence;
+layout (location = 6) out vec4 fluence;
 
 void main()
 {

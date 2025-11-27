@@ -21,8 +21,8 @@ layout(shared, binding = CAMERA_BINDING) uniform Camera
 
 uniform sampler2DArray source;
 
-layout (location = 0) out vec4 radiance;
-layout (location = 1) out vec4 transmittance;
+layout (location = 4) out vec4 radiance;
+layout (location = 5) out vec4 transmittance;
 
 void main()
 {
