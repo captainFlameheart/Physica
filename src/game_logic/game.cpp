@@ -2066,7 +2066,7 @@ namespace game_logic
 
 		environment.state.holographic_ray_trace_shader_count = game_state::initial_holographic_ray_trace_cascade_count;
 		environment.state.holographic_ray_trace_shaders = new GLuint[environment.state.holographic_ray_trace_shader_count];
-		environment.state.holographic_ray_trace_shader_uniform_locations = new GLint[environment.state.holographic_ray_trace_shader_count];
+		environment.state.holographic_ray_trace_shader_source_uniform_locations = new GLint[environment.state.holographic_ray_trace_shader_count];
 		for (GLuint cascade{ 0u }; cascade < environment.state.holographic_ray_trace_shader_count; ++cascade)
 		{
 			// TODO: This vertex shader compilation should be done ONCE
@@ -2143,14 +2143,14 @@ namespace game_logic
 				::util::shader::file_to_string("holographic_radiance_cascades/rays/trace.frag")
 			);
 			environment.state.holographic_ray_trace_shaders[cascade] = ::util::shader::create_program(vertex_shader, fragment_shader);
-			environment.state.holographic_ray_trace_shader_uniform_locations[cascade] = glGetUniformLocation(environment.state.holographic_ray_trace_shaders[cascade], "source");
+			environment.state.holographic_ray_trace_shader_source_uniform_locations[cascade] = glGetUniformLocation(environment.state.holographic_ray_trace_shaders[cascade], "source");
 			glUniform1i
 			(
-				environment.state.holographic_ray_trace_shader_uniform_locations[cascade], 2
+				environment.state.holographic_ray_trace_shader_source_uniform_locations[cascade], 1
 			);
 
 			std::cout << "Holographic ray trace shader " << cascade << " compiled:"
-				<< "\n	Source uniform location: " << environment.state.holographic_ray_trace_shader_uniform_locations[cascade]
+				<< "\n	Source uniform location: " << environment.state.holographic_ray_trace_shader_source_uniform_locations[cascade]
 				<< "\n	skipped_rays_below_column = " << skipped_rays_below_column
 				<< "\n	rays_per_probe = " << rays_per_probe
 				<< "\n	cascade_power_of_two = " << cascade_power_of_two
@@ -2181,6 +2181,10 @@ namespace game_logic
 		(
 			environment.state.holographic_ray_extend_shader, "shorter_rays"
 		);
+		glUniform1i
+		(
+			environment.state.holographic_ray_extend_shader_shorter_rays_uniform_location, 2
+		);
 		std::cout << "Holographic ray extend shader compiled. Shorter rays uniform location: "
 			<< environment.state.holographic_ray_extend_shader_shorter_rays_uniform_location << std::endl;
 
@@ -2200,6 +2204,12 @@ namespace game_logic
 		environment.state.holographic_fluence_gather_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
 		environment.state.holographic_fluence_gather_shader_rays_uniform_location = glGetUniformLocation(environment.state.holographic_fluence_gather_shader, "rays");
 		environment.state.holographic_fluence_gather_shader_upper_cascade_fluence_uniform_location = glGetUniformLocation(environment.state.holographic_fluence_gather_shader, "upper_cascade_fluence");
+		glUniform1i(
+			environment.state.holographic_fluence_gather_shader_rays_uniform_location, 2
+		);
+		glUniform1i(
+			environment.state.holographic_fluence_gather_shader_upper_cascade_fluence_uniform_location, 3
+		);
 		std::cout << "Holographic fluence gather shader compiled. Rays uniform location: "
 			<< environment.state.holographic_fluence_gather_shader_rays_uniform_location << ". Upper cascade fluence uniform location: "
 			<< environment.state.holographic_fluence_gather_shader_upper_cascade_fluence_uniform_location << std::endl;
@@ -8911,7 +8921,7 @@ namespace game_logic
 
 		::util::shader::delete_program(environment.state.shader);
 		delete[] environment.state.holographic_ray_trace_shaders;
-		delete[] environment.state.holographic_ray_trace_shader_uniform_locations;
+		delete[] environment.state.holographic_ray_trace_shader_source_uniform_locations;
 
 		delete[] environment.state.camera_send_buffer;
 		// TODO: Probably flip position and velocity buffers
