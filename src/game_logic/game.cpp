@@ -552,9 +552,6 @@ namespace game_logic
 
 		glCreateTextures(GL_TEXTURE_2D_ARRAY, std::size(environment.state.texture_2d_arrays), environment.state.texture_2d_arrays);
 
-		environment.state.ray_textures = new GLuint[environment.state.max_cascade_index];
-		glCreateTextures(GL_TEXTURE_2D_ARRAY, environment.state.max_cascade_index, environment.state.ray_textures);
-
 		{
 			glTextureParameteri(environment.state.holographic_source_array_texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			glTextureParameteri(environment.state.holographic_source_array_texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -573,18 +570,33 @@ namespace game_logic
 			// TODO: GL_RGBA32F might not be needed
 			glTextureStorage3D(environment.state.angular_fluence_texture, 1u, GL_RGBA32F, width, environment.state.holographic_probe_grid_height, 2u);
 
-			// IMPORTANT TODO: Remove angular fluence framebuffer
-			/*GLenum const draw_buffers[]{GL_COLOR_ATTACHMENT0};
-			glNamedFramebufferDrawBuffers(environment.state.angular_fluence_framebuffer, std::size(draw_buffers), draw_buffers);
+			glNamedFramebufferTextureLayer
+			(
+				environment.state.angular_fluence_framebuffer, GL_COLOR_ATTACHMENT0,
+				environment.state.angular_fluence_texture, 0, 0
+			);
+			glNamedFramebufferTextureLayer
+			(
+				environment.state.angular_fluence_framebuffer, GL_COLOR_ATTACHMENT1,
+				environment.state.angular_fluence_texture, 0, 1
+			);
+
+			//GLenum const draw_buffers[]{ GL_COLOR_ATTACHMENT0 };
+			//glNamedFramebufferDrawBuffers(environment.state.angular_fluence_framebuffer, std::size(draw_buffers), draw_buffers);
 
 			GLenum const framebuffer_status{ glCheckNamedFramebufferStatus(environment.state.angular_fluence_framebuffer, GL_DRAW_FRAMEBUFFER) };
 			if (framebuffer_status != GL_FRAMEBUFFER_COMPLETE)
 			{
 				std::cerr << "Angular fluence framebuffer not completed, status code: " << framebuffer_status << std::endl;
-			}*/
+			}
 		}
 
 		{
+			environment.state.ray_textures = new GLuint[environment.state.max_cascade_index];
+			environment.state.holographic_ray_framebuffers = new GLuint[environment.state.max_cascade_index];
+			glCreateTextures(GL_TEXTURE_2D_ARRAY, environment.state.max_cascade_index, environment.state.ray_textures);
+			glCreateFramebuffers(environment.state.max_cascade_index, environment.state.holographic_ray_framebuffers);
+
 			for (GLuint cascade{ 0u }; cascade < environment.state.max_cascade_index; ++cascade)
 			{
 				GLuint const cascade_power_of_two{ 1u << cascade };
@@ -592,13 +604,46 @@ namespace game_logic
 				GLuint const rays_in_vacuum_per_column{ ceil_div(cascade_power_of_two + 1u, 2u) << 1u };
 				GLuint const height{ environment.state.holographic_probe_grid_height * (cascade_power_of_two + 1u) - rays_in_vacuum_per_column };
 				glTextureStorage3D(environment.state.ray_textures[cascade], 1u, GL_RGBA32F, width, height, 2u);
+
+				glNamedFramebufferTextureLayer
+				(
+					environment.state.holographic_ray_framebuffers[cascade], GL_COLOR_ATTACHMENT0,
+					environment.state.ray_textures[cascade], 0, 0
+				);
+				glNamedFramebufferTextureLayer
+				(
+					environment.state.holographic_ray_framebuffers[cascade], GL_COLOR_ATTACHMENT1,
+					environment.state.ray_textures[cascade], 0, 1
+				);
+
+				GLenum const draw_buffers[]{ GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+				glNamedFramebufferDrawBuffers(environment.state.holographic_ray_framebuffers[cascade], std::size(draw_buffers), draw_buffers);
+
+				GLenum const framebuffer_status{ glCheckNamedFramebufferStatus(environment.state.holographic_ray_framebuffers[cascade], GL_DRAW_FRAMEBUFFER) };
+				if (framebuffer_status != GL_FRAMEBUFFER_COMPLETE)
+				{
+					std::cerr << "Holographic ray framebuffer " << cascade << " not completed, status code : " << framebuffer_status << std::endl;
+				}
 			}
 		}
 
 		{
 			glTextureParameteri(environment.state.fluence_texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			glTextureParameteri(environment.state.fluence_texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			// TODO: Set edge clamping when doing multibounce GI.
 			glTextureStorage2D(environment.state.fluence_texture, 1u, GL_RGBA32F, environment.state.holographic_probe_grid_width, environment.state.holographic_probe_grid_height);
+
+			glNamedFramebufferTexture
+			(
+				environment.state.fluence_framebuffer, GL_COLOR_ATTACHMENT0,
+				environment.state.fluence_texture, 0
+			);
+			glNamedFramebufferDrawBuffer(environment.state.fluence_framebuffer, GL_COLOR_ATTACHMENT0);
+			GLenum const framebuffer_status{ glCheckNamedFramebufferStatus(environment.state.fluence_framebuffer, GL_DRAW_FRAMEBUFFER) };
+			if (framebuffer_status != GL_FRAMEBUFFER_COMPLETE)
+			{
+				std::cerr << "Holographic fluence framebuffer not completed, status code : " << framebuffer_status << std::endl;
+			}
 		}
 
 		//glBindTextures(0u, std::size(environment.state.framebuffer_textures), environment.state.framebuffer_textures);
@@ -627,15 +672,14 @@ namespace game_logic
 				environment.state.holographic_source_framebuffer, GL_COLOR_ATTACHMENT3,
 				environment.state.holographic_source_array_texture, 0, 3
 			);
-			glNamedFramebufferTexture
+			/*glNamedFramebufferTexture
 			(
 				environment.state.holographic_source_framebuffer, GL_COLOR_ATTACHMENT6,
 				environment.state.fluence_texture, 0
-			);
+			);*/
 
 			GLenum const draw_buffers[]{
 				GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3,
-				GL_COLOR_ATTACHMENT4, GL_COLOR_ATTACHMENT5, GL_COLOR_ATTACHMENT6
 			};
 			glNamedFramebufferDrawBuffers(environment.state.holographic_source_framebuffer, std::size(draw_buffers), draw_buffers);
 
@@ -1073,10 +1117,14 @@ namespace game_logic
 	void free_some_default_framebuffer_size_dependent_data(game_environment::Environment& environment)
 	{
 		std::cout << "Free SOME default framebuffer size dependent data" << std::endl;
+
+		glDeleteFramebuffers(std::size(environment.state.framebuffers), environment.state.framebuffers);
+		glDeleteFramebuffers(environment.state.max_cascade_index, environment.state.holographic_ray_framebuffers);
+		delete[] environment.state.holographic_ray_framebuffers;
+
 		glDeleteTextures(std::size(environment.state.framebuffer_textures), environment.state.framebuffer_textures);
 		glDeleteTextures(environment.state.max_cascade_index, environment.state.ray_textures);
 		delete[] environment.state.ray_textures;
-		glDeleteFramebuffers(std::size(environment.state.framebuffers), environment.state.framebuffers);
 	}
 
 	void free_default_framebuffer_size_dependent_data(game_environment::Environment& environment)
@@ -8895,7 +8943,7 @@ namespace game_logic
 				for (GLuint cascade{ 0u }; cascade < game_state::initial_holographic_ray_trace_cascade_count; ++cascade)
 				{
 					// IMPORTANT TODO: Remove ray framebuffer and change source framebuffer name!!!
-					glNamedFramebufferTextureLayer
+					/*glNamedFramebufferTextureLayer
 					(
 						environment.state.holographic_source_framebuffer, GL_COLOR_ATTACHMENT4,
 						environment.state.ray_textures[cascade], 0, 0
@@ -8904,7 +8952,8 @@ namespace game_logic
 					(
 						environment.state.holographic_source_framebuffer, GL_COLOR_ATTACHMENT5,
 						environment.state.ray_textures[cascade], 0, 1
-					);
+					);*/
+					glBindFramebuffer(GL_DRAW_FRAMEBUFFER, environment.state.holographic_ray_framebuffers[cascade]);
 
 					GLuint const cascade_power_of_two{ 1u << cascade };
 					GLuint const width{ ceil_div(environment.state.holographic_probe_grid_width - 1u - cascade_power_of_two, cascade_power_of_two) };
@@ -8933,7 +8982,7 @@ namespace game_logic
 
 					glBindTexture(2, environment.state.ray_textures[cascade - 1u]);
 
-					glNamedFramebufferTextureLayer
+					/*glNamedFramebufferTextureLayer
 					(
 						environment.state.holographic_source_framebuffer, GL_COLOR_ATTACHMENT4,
 						environment.state.ray_textures[cascade], 0, 0
@@ -8942,7 +8991,8 @@ namespace game_logic
 					(
 						environment.state.holographic_source_framebuffer, GL_COLOR_ATTACHMENT5,
 						environment.state.ray_textures[cascade], 0, 1
-					);
+					);*/
+					glBindFramebuffer(GL_DRAW_FRAMEBUFFER, environment.state.holographic_ray_framebuffers[cascade]);
 
 					GLint const cascade_power_of_two{ 1 << cascade };
 					GLint const width{ ceil_div(static_cast<GLint>(environment.state.holographic_probe_grid_width) - 1 - cascade_power_of_two, cascade_power_of_two) };
@@ -8953,22 +9003,36 @@ namespace game_logic
 					glDrawArrays(GL_TRIANGLES, 0, 3u);
 				}
 
-				GLint const destination_layer{ 0 };
+				glUseProgram(environment.state.holographic_fluence_gather_shader);
+
+				/*GLint const destination_layer{0};
 				glNamedFramebufferTextureLayer
 				(
 					environment.state.holographic_source_framebuffer, GL_COLOR_ATTACHMENT4,
 					environment.state.angular_fluence_texture, 0, destination_layer
-				);
+				);*/
+				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, environment.state.angular_fluence_framebuffer);
+				
+				glNamedFramebufferDrawBuffer(environment.state.angular_fluence_framebuffer, GL_COLOR_ATTACHMENT0);
+				
+				GLint const max_cascade{ static_cast<GLint>(environment.state.max_cascade_index) };
+
+				GLint const width
+				{
+					((static_cast<GLint>(environment.state.holographic_probe_grid_width) + (1 << max_cascade) - 2) >> max_cascade) << max_cascade
+				};
+				GLint const height{ static_cast<GLint>(environment.state.holographic_probe_grid_height) };
+				glViewport(0, 0, width, height);
+
 				// TODO: Implement distant lights
 				GLfloat const clear_fluence[]{ 0.0f, 0.0f, 0.0f, 0.0f };
-				glClearNamedFramebufferfv
+				glClearNamedFramebufferfv	// TODO: This is not the fastest, but we will replace it later with a shader anyways
 				(
 					environment.state.holographic_source_framebuffer,
-					GL_COLOR, GL_DRAW_BUFFER4, clear_fluence
+					GL_COLOR, 0, clear_fluence
 				);
 
-				glUseProgram(environment.state.holographic_fluence_gather_shader);
-				GLint const max_fluence_gather_cascade{ static_cast<GLint>(environment.state.max_cascade_index) - 1 };
+				GLint const max_fluence_gather_cascade{ max_cascade - 1 };
 				for (GLint cascade{ max_fluence_gather_cascade }; cascade > 0; --cascade)
 				{
 					GLint const padded_block_size
@@ -8990,15 +9054,13 @@ namespace game_logic
 						(max_fluence_gather_cascade - cascade) & 1
 					};
 
-					// IMPORTANT TODO: Avoid glNamedFramebufferTextureLayer by storing both 
-					// fluence layers as attachments at all times.
-
 					GLint const destination_layer{ upper_cascade_fluence_layer ^ 1 };
-					glNamedFramebufferTextureLayer
+					glNamedFramebufferDrawBuffer(environment.state.angular_fluence_framebuffer, GL_COLOR_ATTACHMENT0 + destination_layer);
+					/*glNamedFramebufferTextureLayer
 					(
 						environment.state.holographic_source_framebuffer, GL_COLOR_ATTACHMENT4,
 						environment.state.angular_fluence_texture, 0, destination_layer
-					);
+					);*/
 
 					GLint const width
 					{
@@ -9024,20 +9086,21 @@ namespace game_logic
 
 				glBindTexture(2, environment.state.ray_textures[0]);
 
-				GLenum const temporary_draw_buffers[]{ GL_NONE, GL_NONE, GL_NONE, GL_NONE, GL_COLOR_ATTACHMENT6 };
-				glNamedFramebufferDrawBuffers(
+
+				//GLenum const temporary_draw_buffers[]{ GL_NONE, GL_NONE, GL_NONE, GL_NONE, GL_COLOR_ATTACHMENT6 };
+				/*glNamedFramebufferDrawBuffers(
 					environment.state.holographic_source_framebuffer, std::size(temporary_draw_buffers), temporary_draw_buffers
-				);
-
+				);*/
+				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, environment.state.fluence_framebuffer);
 				glViewport(0, 0, environment.state.holographic_probe_grid_width, environment.state.holographic_probe_grid_height);
-
+				// IMPORTANT TODO: Additive blending!!!
 				glDrawArrays(GL_TRIANGLES, 0, 3u);
 
-				GLenum const draw_buffers[]{
+				/*GLenum const draw_buffers[]{
 					GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3,
 					GL_COLOR_ATTACHMENT4, GL_COLOR_ATTACHMENT5, GL_COLOR_ATTACHMENT6
 				};
-				glNamedFramebufferDrawBuffers(environment.state.holographic_source_framebuffer, std::size(draw_buffers), draw_buffers);
+				glNamedFramebufferDrawBuffers(environment.state.holographic_source_framebuffer, std::size(draw_buffers), draw_buffers);*/
 
 				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0u);
 				glViewport(0, 0, environment.state.framebuffer_width, environment.state.framebuffer_height);

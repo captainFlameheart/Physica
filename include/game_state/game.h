@@ -78,10 +78,11 @@ namespace game_state
 				GLuint fluid_framebuffer;
 				GLuint holographic_source_framebuffer;
 				GLuint angular_fluence_framebuffer;
-				GLuint ray_framebuffer;
+				GLuint fluence_framebuffer;
 			};
 			GLuint framebuffers[4u];
 		};
+		GLuint* holographic_ray_framebuffers;
 
 		// IMPORTANT TODO: Use 3D textures instead of texture 2D arrays when z locality is present!
 		union
@@ -93,7 +94,7 @@ namespace game_state
 					struct
 					{
 						GLuint fluid_texture;
-						GLuint fluence_texture;	// Unionize with fluid texture
+						GLuint fluence_texture;
 					};
 					GLuint texture_2Ds[2u];
 				};

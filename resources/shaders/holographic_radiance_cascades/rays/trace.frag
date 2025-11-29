@@ -21,8 +21,8 @@ layout(shared, binding = CAMERA_BINDING) uniform Camera
 
 uniform sampler2DArray source;
 
-layout (location = 4) out vec4 radiance;
-layout (location = 5) out vec4 transmittance;
+layout (location = 0) out vec4 radiance;
+layout (location = 1) out vec4 transmittance;
 
 void main()
 {
@@ -44,6 +44,9 @@ void main()
 	vec2 sample_point = vec2(output_texel_position.x + 1, probe_y) * probe_grid_point_to_sample_point_factor + sample_step * 0.5;
 	
 	float world_step_distance = length(probe_grid_full_step * probe_grid_full_step_to_sample_step_projection) * camera.z;
+
+	// VERY IMPORTANT TODO: The source texture should be considered to cover more than [0.0, 1.0] in s- and t-directions due to 
+	// interpolation at the edges.
 
 	// TODO: Allow camera to not look straight towards the world plane.
 	for (uint i = 0u; i < step_count; ++i)
