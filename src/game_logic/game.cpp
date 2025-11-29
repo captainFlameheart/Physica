@@ -1155,8 +1155,8 @@ namespace game_logic
 
 		environment.state.presentation_stage = 0u;
 		environment.state.use_holographic_radiance_cascades = true;
-		environment.state.holographic_probe_grid_width = 200u;
-		environment.state.holographic_probe_grid_height = 100u;
+		environment.state.holographic_probe_grid_width = 40u;
+		environment.state.holographic_probe_grid_height = 20u;
 
 		glEnable(GL_FRAMEBUFFER_SRGB);
 		environment.state.framebuffer_sRGB_enabled = true;
@@ -2197,6 +2197,7 @@ namespace game_logic
 				probe_grid_point_to_sample_point_factor_declaration,
 				probe_grid_full_step_to_sample_step_projection_declaration,
 				step_count_declaration,
+				util_shader_DEFINE("METER_INVERSE", STRINGIFY(game_logic__util__spatial_METER_INVERSE(environment))),
 				util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
 				::util::shader::file_to_string("holographic_radiance_cascades/rays/trace.frag")
 			);
@@ -3066,6 +3067,17 @@ namespace game_logic
 					albedo[1u] = 0.0f;
 					albedo[2u] = 0.0f;
 					albedo[3u] = 1.0f;
+
+
+					/*emission[0u] = 0.0f;
+					emission[1u] = 0.0f;
+					emission[2u] = 0.0f;
+					emission[3u] = 0.0f;
+
+					absorption[0u] = 0.5f;
+					absorption[1u] = 0.5f;
+					absorption[2u] = 0.5f;
+					absorption[3u] = 0.5f;*/
 					break;
 				case 1u:
 					albedo[0u] = 0.0f;
@@ -9078,7 +9090,7 @@ namespace game_logic
 			}
 		}
 
-		glUseProgram(environment.state.holographic_probe_grid_draw_shader);
+		/*glUseProgram(environment.state.holographic_probe_grid_draw_shader);
 		glDrawArrays(GL_LINES, 0, 2u * (environment.state.holographic_probe_grid_size[0u] + environment.state.holographic_probe_grid_size[1u]) + 4u);
 
 		glUseProgram(environment.state.holographic_cascade_draw_shader);
@@ -9090,7 +9102,7 @@ namespace game_logic
 			(environment.state.holographic_probe_grid_size[1u] << 1u) * (cascade_power_of_two + 1u) * 
 			static_cast<GLuint>(std::ceilf(environment.state.holographic_probe_grid_size[0u] / static_cast<GLfloat>(cascade_power_of_two))) 
 		};
-		glDrawArrays(GL_LINES, 0, vertex_count);
+		glDrawArrays(GL_LINES, 0, vertex_count);*/
 	}
 
 	void free(game_environment::Environment& environment)

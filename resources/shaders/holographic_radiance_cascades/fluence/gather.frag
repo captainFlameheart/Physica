@@ -157,7 +157,7 @@ void main()
 	fluence *= 0.5;
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
-	#if 1 == 1
+	#if 1 == 0
 		fluence = texelFetch(rays, ivec3(clamped_near_ray_sample_x, clamped_lower_near_ray_sample_y, 0), 0);
 		//fluence = vec4(1.0, 0.0, 1.0, 1.0);
 		//fluence *= 1000.0;

@@ -9,6 +9,8 @@ const vec2 probe_grid_point_to_sample_point_factor = ?;
 const vec2 probe_grid_full_step_to_sample_step_projection = ?;
 
 const uint step_count = ?u;
+
+#define METER_INVERSE ?	// TODO: Remove
 */
 
 layout(shared, binding = CAMERA_BINDING) uniform Camera
@@ -43,7 +45,9 @@ void main()
 	vec2 sample_step = probe_grid_full_step * probe_grid_full_step_to_sample_step_factor;
 	vec2 sample_point = vec2(output_texel_position.x + 1, probe_y) * probe_grid_point_to_sample_point_factor + sample_step * 0.5;
 	
-	float world_step_distance = length(probe_grid_full_step * probe_grid_full_step_to_sample_step_projection) * camera.z;
+	float world_step_distance = length(probe_grid_full_step * probe_grid_full_step_to_sample_step_projection) * camera.z * METER_INVERSE;
+
+	//world_step_distance = 1000.0;
 
 	// VERY IMPORTANT TODO: The source texture should be considered to cover more than [0.0, 1.0] in s- and t-directions due to 
 	// interpolation at the edges.
@@ -53,19 +57,21 @@ void main()
 	{
 		// TODO: Maybe change order of emission and absorption.
 		vec4 emission = texture(source, vec3(sample_point, 1.0));
-		
-		radiance = emission;
-		return;
-
 		vec4 absorption = texture(source, vec3(sample_point, 2.0));
-		
-		vec4 scaled_attenuation = absorption * world_step_distance;
+
+		vec4 clamped_absorption = max(absorption, 1e-4);	// TODO: Maybe handle negative absorptions
+
+		vec4 scaled_attenuation = clamped_absorption * world_step_distance;
 		vec4 transmittance_factor = exp(-scaled_attenuation);
 
 		vec4 small_emission_factor = world_step_distance * (1.0 - 0.5 * scaled_attenuation); // Second order taylor approximation for small attenuation.
-		vec4 large_emission_factor = emission * (1.0 - transmittance_factor) / absorption;
-		vec4 mix_factor = step(1e-4, abs(absorption)); // TODO: abs is unnecessary if we disallow negative absorptions.
+		vec4 large_emission_factor = emission * (1.0 - transmittance_factor) / clamped_absorption;
+		vec4 mix_factor = step(1e-4, absorption);
 		vec4 emission_factor = mix(small_emission_factor, large_emission_factor, mix_factor);
+
+		/*radiance += (emission * transmittance) * mix(small_emission_factor, large_emission_factor, mix_factor);
+		transmittance *= transmittance_factor;
+		return;*/
 
 		radiance += (emission * transmittance) * emission_factor;
 		transmittance *= transmittance_factor;
