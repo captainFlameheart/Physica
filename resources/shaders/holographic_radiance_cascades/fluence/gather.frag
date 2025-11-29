@@ -155,4 +155,7 @@ void main()
 	fluence += upper_far_transmit_factor * upper_far_fluence;
 
 	fluence *= 0.5;
+
+	//fluence = vec4(1.0, 0.0, 1.0, 1.0);
+	//fluence *= 1000.0;
 }

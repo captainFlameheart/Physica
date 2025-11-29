@@ -2202,8 +2202,9 @@ namespace game_logic
 			);
 			environment.state.holographic_ray_trace_shaders[cascade] = ::util::shader::create_program(vertex_shader, fragment_shader);
 			environment.state.holographic_ray_trace_shader_source_uniform_locations[cascade] = glGetUniformLocation(environment.state.holographic_ray_trace_shaders[cascade], "source");
-			glUniform1i
+			glProgramUniform1i
 			(
+				environment.state.holographic_ray_trace_shaders[cascade], 
 				environment.state.holographic_ray_trace_shader_source_uniform_locations[cascade], 1
 			);
 
@@ -2239,8 +2240,9 @@ namespace game_logic
 		(
 			environment.state.holographic_ray_extend_shader, "shorter_rays"
 		);
-		glUniform1i
+		glProgramUniform1i
 		(
+			environment.state.holographic_ray_extend_shader,
 			environment.state.holographic_ray_extend_shader_shorter_rays_uniform_location, 2
 		);
 		std::cout << "Holographic ray extend shader compiled. Shorter rays uniform location: "
@@ -2262,10 +2264,12 @@ namespace game_logic
 		environment.state.holographic_fluence_gather_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
 		environment.state.holographic_fluence_gather_shader_rays_uniform_location = glGetUniformLocation(environment.state.holographic_fluence_gather_shader, "rays");
 		environment.state.holographic_fluence_gather_shader_upper_cascade_fluence_uniform_location = glGetUniformLocation(environment.state.holographic_fluence_gather_shader, "upper_cascade_fluence");
-		glUniform1i(
+		glProgramUniform1i(
+			environment.state.holographic_fluence_gather_shader,
 			environment.state.holographic_fluence_gather_shader_rays_uniform_location, 2
 		);
-		glUniform1i(
+		glProgramUniform1i(
+			environment.state.holographic_fluence_gather_shader,
 			environment.state.holographic_fluence_gather_shader_upper_cascade_fluence_uniform_location, 3
 		);
 		std::cout << "Holographic fluence gather shader compiled. Rays uniform location: "
@@ -2287,6 +2291,10 @@ namespace game_logic
 		environment.state.holographic_draw_fluence_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
 		//environment.state.holographic_draw_fluence_shader_source_uniform_location = glGetUniformLocation(environment.state.holographic_draw_fluence_shader, "source");
 		environment.state.holographic_draw_fluence_shader_fluence_uniform_location = glGetUniformLocation(environment.state.holographic_draw_fluence_shader, "fluence");
+		glProgramUniform1i(
+			environment.state.holographic_draw_fluence_shader,
+			environment.state.holographic_draw_fluence_shader_fluence_uniform_location, 4
+		);
 		std::cout << "Holographic draw fluence shader compiled. Source uniform location: "
 			<< environment.state.holographic_draw_fluence_shader_source_uniform_location << ". Fluence uniform location: "
 			<< environment.state.holographic_draw_fluence_shader_fluence_uniform_location << std::endl;
@@ -8932,7 +8940,7 @@ namespace game_logic
 
 		if (environment.state.use_holographic_radiance_cascades)
 		{
-			if (true)
+			if (false)
 			{
 				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0u);
 				glUseProgram(environment.state.holographic_source_draw_shader);
