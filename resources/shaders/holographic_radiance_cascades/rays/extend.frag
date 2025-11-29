@@ -82,4 +82,11 @@ void main()
 
 	radiance *= 0.5;
 	transmittance *= 0.5;
+
+	///////////////////////////////////////////////////////////////////////////////////////
+	#if 1 == 1
+		radiance = texelFetch(shorter_rays, ivec3(a, clamped_h, 0), 0);
+		transmittance = vec4(1.0, 1.0, 1.0, 1.0);
+		//radiance = vec4(1.0, 1.0, 1.0, 1.0);
+	#endif
 }

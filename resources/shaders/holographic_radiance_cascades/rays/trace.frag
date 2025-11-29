@@ -53,6 +53,10 @@ void main()
 	{
 		// TODO: Maybe change order of emission and absorption.
 		vec4 emission = texture(source, vec3(sample_point, 1.0));
+		
+		radiance = emission;
+		return;
+
 		vec4 absorption = texture(source, vec3(sample_point, 2.0));
 		
 		vec4 scaled_attenuation = absorption * world_step_distance;
@@ -69,4 +73,10 @@ void main()
 		// TODO: Verify that loop unrolling occurs and that this increment is removed for the last iteration.
 		sample_point += sample_step;
 	}
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////
+	#if 1 == 0
+		radiance = vec4(1.0, 0.5, 1.0, 1.0);
+		transmittance = vec4(1.0, 1.0, 1.0, 1.0);
+	#endif
 }
