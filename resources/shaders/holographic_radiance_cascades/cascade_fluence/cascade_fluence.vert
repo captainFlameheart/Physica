@@ -2,21 +2,36 @@
 
 const float cone_radius = ?;
 
+#define SHOWCASE_CASCADE ?
+#define SHOWCASE_SINGLE_CONE ?
+
+#define MODE ?;
+
 */
 
 uniform uvec2 probe_grid_size;
 uniform uint cascade;
+#if MODE == SHOWCASE_SINGLE_CONE
+	uniform uvec2 showcased_cone_texel_position;
+#endif
 
-const vec4 cascade_colors[] = 
-{
-	vec4(0x00, 0x00, 0xFF, 0.2),
-	vec4(0x00, 0xFF, 0x00, 0.2),
-	vec4(0xFF, 0x00, 0x00, 0.2),
-	vec4(0xFF, 0x00, 0xFF, 0.2),
-};
+#if MODE == SHOWCASE_CASCADE
+	const vec4 cascade_colors[] = 
+	{
+		vec4(0x00, 0x00, 0xFF, 0.2),
+		vec4(0x00, 0xFF, 0x00, 0.2),
+		vec4(0xFF, 0x00, 0x00, 0.2),
+		vec4(0xFF, 0x00, 0xFF, 0.2),
+	};
+#endif
 
 out vec2 offset;
 out vec4 cone_color;
+
+uvec2 convert_cone_logical_to_texel_position(in uint cascade_power_of_two, in uint probe_column, in uint probe_row, in uint direction_id)
+{
+	return uvec2(probe_column * cascade_power_of_two + direction_id, probe_row);
+}
 
 void main()
 {
@@ -57,7 +72,17 @@ void main()
 		0.0, 1.0
 	);
 
-	float color_factor = float(lower_direction_index & 1u);
-	cone_color = cascade_colors[cascade % cascade_colors.length()];
-	cone_color = vec4((1.0 - 2.0 * color_factor) * cone_color.rgb + color_factor, cone_color.a);
+	#if MODE == SHOWCASE_CASCADE
+		float color_factor = float(lower_direction_index & 1u);
+		cone_color = cascade_colors[cascade % cascade_colors.length()];
+		cone_color = vec4((1.0 - 2.0 * color_factor) * cone_color.rgb + color_factor, cone_color.a);
+	#elif MODE == SHOWCASE_SINGLE_CONE
+		uvec2 cone_texel_position = convert_cone_logical_to_texel_position(cascade_power_of_two, probe_column, probe_y, lower_direction_index);
+		const float brightness = 1.0;
+		cone_color = mix(
+			vec4(brightness, brightness, brightness, 0.1),
+			vec4(0.0, 1.0, 0.0, 1.0),
+			float(cone_texel_position == showcased_cone_texel_position)
+		);
+	#endif
 }
