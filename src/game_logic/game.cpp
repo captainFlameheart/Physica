@@ -2111,13 +2111,13 @@ namespace game_logic
 		(
 			vertex_shader,
 			util_shader_VERSION,
-			::util::shader::file_to_string("holographic_radiance_cascades/cascade/cascade.vert")
+			::util::shader::file_to_string("holographic_radiance_cascades/cascade_rays/cascade_rays.vert")
 		);
 		::util::shader::set_shader_statically
 		(
 			fragment_shader,
 			util_shader_VERSION,
-			::util::shader::file_to_string("holographic_radiance_cascades/cascade/cascade.frag")
+			::util::shader::file_to_string("holographic_radiance_cascades/cascade_rays/cascade_rays.frag")
 		);
 		environment.state.holographic_cascade_rays_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
 		environment.state.holographic_cascade_rays_draw_shader_probe_grid_size_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_draw_shader, "probe_grid_size");
