@@ -201,10 +201,10 @@ namespace game_state
 		GLuint holographic_probe_points_draw_shader;
 		GLuint holographic_probe_points_draw_shader_probe_grid_size_uniform_location;
 
-		GLuint holographic_cascade_draw_shader;
-		GLint holographic_cascade_draw_shader_probe_grid_size_uniform_location;
-		GLuint holographic_cascade_draw_shader_cascade;
-		GLint holographic_cascade_draw_shader_cascade_uniform_location;
+		GLuint holographic_cascade_rays_draw_shader;
+		GLint holographic_cascade_rays_draw_shader_probe_grid_size_uniform_location;
+		GLuint holographic_cascade_rays_draw_shader_cascade;
+		GLint holographic_cascade_rays_draw_shader_cascade_uniform_location;
 
 		GLuint holographic_ray_trace_shader_count;
 		GLuint* holographic_ray_trace_shaders;

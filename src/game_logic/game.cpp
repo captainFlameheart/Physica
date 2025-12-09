@@ -1023,75 +1023,75 @@ namespace game_logic
 			);
 			break;
 		case 4u:
-			environment.state.holographic_cascade_draw_shader_cascade = 0u;
+			environment.state.holographic_cascade_rays_draw_shader_cascade = 0u;
 			glProgramUniform1ui
 			(
-				environment.state.holographic_cascade_draw_shader, 
-				environment.state.holographic_cascade_draw_shader_cascade_uniform_location, 
-				environment.state.holographic_cascade_draw_shader_cascade
+				environment.state.holographic_cascade_rays_draw_shader, 
+				environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_location, 
+				environment.state.holographic_cascade_rays_draw_shader_cascade
 			);
 			break;
 		case 5u:
-			environment.state.holographic_cascade_draw_shader_cascade = 1u;
+			environment.state.holographic_cascade_rays_draw_shader_cascade = 1u;
 			glProgramUniform1ui
 			(
-				environment.state.holographic_cascade_draw_shader,
-				environment.state.holographic_cascade_draw_shader_cascade_uniform_location,
-				environment.state.holographic_cascade_draw_shader_cascade
+				environment.state.holographic_cascade_rays_draw_shader,
+				environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_location,
+				environment.state.holographic_cascade_rays_draw_shader_cascade
 			);
 			break;
 		case 6u:
-			environment.state.holographic_cascade_draw_shader_cascade = 2u;
+			environment.state.holographic_cascade_rays_draw_shader_cascade = 2u;
 			glProgramUniform1ui
 			(
-				environment.state.holographic_cascade_draw_shader,
-				environment.state.holographic_cascade_draw_shader_cascade_uniform_location,
-				environment.state.holographic_cascade_draw_shader_cascade
+				environment.state.holographic_cascade_rays_draw_shader,
+				environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_location,
+				environment.state.holographic_cascade_rays_draw_shader_cascade
 			);
 			break;
 		case 7u:
-			environment.state.holographic_cascade_draw_shader_cascade = 3u;
+			environment.state.holographic_cascade_rays_draw_shader_cascade = 3u;
 			glProgramUniform1ui
 			(
-				environment.state.holographic_cascade_draw_shader,
-				environment.state.holographic_cascade_draw_shader_cascade_uniform_location,
-				environment.state.holographic_cascade_draw_shader_cascade
+				environment.state.holographic_cascade_rays_draw_shader,
+				environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_location,
+				environment.state.holographic_cascade_rays_draw_shader_cascade
 			);
 			break;
 		case 8u:
-			environment.state.holographic_cascade_draw_shader_cascade = 4u;
+			environment.state.holographic_cascade_rays_draw_shader_cascade = 4u;
 			glProgramUniform1ui
 			(
-				environment.state.holographic_cascade_draw_shader,
-				environment.state.holographic_cascade_draw_shader_cascade_uniform_location,
-				environment.state.holographic_cascade_draw_shader_cascade
+				environment.state.holographic_cascade_rays_draw_shader,
+				environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_location,
+				environment.state.holographic_cascade_rays_draw_shader_cascade
 			);
 			break;
 		case 9u:
-			environment.state.holographic_cascade_draw_shader_cascade = 5u;
+			environment.state.holographic_cascade_rays_draw_shader_cascade = 5u;
 			glProgramUniform1ui
 			(
-				environment.state.holographic_cascade_draw_shader,
-				environment.state.holographic_cascade_draw_shader_cascade_uniform_location,
-				environment.state.holographic_cascade_draw_shader_cascade
+				environment.state.holographic_cascade_rays_draw_shader,
+				environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_location,
+				environment.state.holographic_cascade_rays_draw_shader_cascade
 			);
 			break;
 		case 10u:
-			environment.state.holographic_cascade_draw_shader_cascade = 6u;
+			environment.state.holographic_cascade_rays_draw_shader_cascade = 6u;
 			glProgramUniform1ui
 			(
-				environment.state.holographic_cascade_draw_shader,
-				environment.state.holographic_cascade_draw_shader_cascade_uniform_location,
-				environment.state.holographic_cascade_draw_shader_cascade
+				environment.state.holographic_cascade_rays_draw_shader,
+				environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_location,
+				environment.state.holographic_cascade_rays_draw_shader_cascade
 			);
 			break;
 		case 11u:
-			environment.state.holographic_cascade_draw_shader_cascade = 7u;
+			environment.state.holographic_cascade_rays_draw_shader_cascade = 7u;
 			glProgramUniform1ui
 			(
-				environment.state.holographic_cascade_draw_shader,
-				environment.state.holographic_cascade_draw_shader_cascade_uniform_location,
-				environment.state.holographic_cascade_draw_shader_cascade
+				environment.state.holographic_cascade_rays_draw_shader,
+				environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_location,
+				environment.state.holographic_cascade_rays_draw_shader_cascade
 			);
 			break;
 		}
@@ -2119,25 +2119,25 @@ namespace game_logic
 			util_shader_VERSION,
 			::util::shader::file_to_string("holographic_radiance_cascades/cascade/cascade.frag")
 		);
-		environment.state.holographic_cascade_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
-		environment.state.holographic_cascade_draw_shader_probe_grid_size_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_draw_shader, "probe_grid_size");
-		environment.state.holographic_cascade_draw_shader_cascade_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_draw_shader, "cascade");
+		environment.state.holographic_cascade_rays_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+		environment.state.holographic_cascade_rays_draw_shader_probe_grid_size_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_draw_shader, "probe_grid_size");
+		environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_draw_shader, "cascade");
 		glProgramUniform2ui
 		(
-			environment.state.holographic_cascade_draw_shader,
-			environment.state.holographic_cascade_draw_shader_probe_grid_size_uniform_location,
+			environment.state.holographic_cascade_rays_draw_shader,
+			environment.state.holographic_cascade_rays_draw_shader_probe_grid_size_uniform_location,
 			environment.state.holographic_probe_grid_size[0u], environment.state.holographic_probe_grid_size[1u]
 		);
-		environment.state.holographic_cascade_draw_shader_cascade = 1u;
+		environment.state.holographic_cascade_rays_draw_shader_cascade = 1u;
 		glProgramUniform1ui
 		(
-			environment.state.holographic_cascade_draw_shader,
-			environment.state.holographic_cascade_draw_shader_cascade_uniform_location,
-			environment.state.holographic_cascade_draw_shader_cascade
+			environment.state.holographic_cascade_rays_draw_shader,
+			environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_location,
+			environment.state.holographic_cascade_rays_draw_shader_cascade
 		);
 		std::cout << "Holographic cascade draw shader compiled. Probe grid size uniform location: "
-			<< environment.state.holographic_cascade_draw_shader_probe_grid_size_uniform_location << ". Cascade uniform location: "
-			<< environment.state.holographic_cascade_draw_shader_cascade_uniform_location << std::endl;
+			<< environment.state.holographic_cascade_rays_draw_shader_probe_grid_size_uniform_location << ". Cascade uniform location: "
+			<< environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_location << std::endl;
 
 		environment.state.holographic_ray_trace_shader_count = game_state::initial_holographic_ray_trace_cascade_count;
 		environment.state.holographic_ray_trace_shaders = new GLuint[environment.state.holographic_ray_trace_shader_count];
@@ -9141,8 +9141,8 @@ namespace game_logic
 		glPointSize(10.0f);
 		glDrawArrays(GL_POINTS, 0, environment.state.holographic_probe_grid_width * environment.state.holographic_probe_grid_height);
 
-		glUseProgram(environment.state.holographic_cascade_draw_shader);
-		GLuint const cascade_power_of_two{ 1u << environment.state.holographic_cascade_draw_shader_cascade };
+		glUseProgram(environment.state.holographic_cascade_rays_draw_shader);
+		GLuint const cascade_power_of_two{ 1u << environment.state.holographic_cascade_rays_draw_shader_cascade };
 		// TODO: Avoid calling ceil function
 		// IMPORTANT TODO: Probe column 0 is not needed
 		GLuint const vertex_count
