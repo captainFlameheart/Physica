@@ -1167,7 +1167,7 @@ namespace game_logic
 			);
 			break;
 		case 13u:
-			environment.state.holographic_cascade_rays_draw_shader_cascade = 2u;
+			environment.state.holographic_cascade_rays_draw_shader_cascade = 3u;
 			glProgramUniform1ui
 			(
 				environment.state.holographic_cascade_rays_draw_shader,
@@ -1250,8 +1250,8 @@ namespace game_logic
 
 		environment.state.presentation_stage = 0u;
 		environment.state.use_holographic_radiance_cascades = true;
-		environment.state.holographic_probe_grid_width = 40u;//800u;
-		environment.state.holographic_probe_grid_height = 20u;//400u;
+		environment.state.holographic_probe_grid_width = 20u;//800u;
+		environment.state.holographic_probe_grid_height = 10u;//400u;
 
 		glEnable(GL_FRAMEBUFFER_SRGB);
 		environment.state.framebuffer_sRGB_enabled = true;

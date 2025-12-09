@@ -183,9 +183,9 @@ void main()
 		cone_color = vec4((1.0 - 2.0 * color_factor) * cone_color.rgb + color_factor, cone_color.a);
 	#elif MODE == SHOWCASE_SINGLE_CONE
 		uvec2 cone_texel_position = convert_cone_logical_to_texel_position(cascade_power_of_two, probe_column, probe_y, lower_direction_index);
-		const float brightness = 0.5 + float(lower_direction_index & 1u) * 0.5;
+		const float brightness = 0.2 + float(lower_direction_index & 1u) * 0.8;
 		cone_color = mix(
-			vec4(0.0, brightness, 0.0, 0.1),
+			vec4(0.0, brightness, 0.0, 0.2),
 			vec4(0.0, 1.0, 0.0, 1.0),
 			float(cone_texel_position == showcased_cone_texel_position)
 		);
