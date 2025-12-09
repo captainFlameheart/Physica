@@ -2094,6 +2094,23 @@ namespace game_logic
 		(
 			vertex_shader,
 			util_shader_VERSION,
+			::util::shader::file_to_string("holographic_radiance_cascades/probe_points/probe_points.vert")
+		);
+		::util::shader::set_shader_statically
+		(
+			fragment_shader,
+			util_shader_VERSION,
+			::util::shader::file_to_string("holographic_radiance_cascades/probe_points/probe_points.frag")
+		);
+		environment.state.holographic_probe_points_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+		environment.state.holographic_probe_points_draw_shader_probe_grid_size_uniform_location = glGetUniformLocation(environment.state.holographic_probe_points_draw_shader, "probe_grid_size");
+		std::cout << "Holographic probe points draw shader compiled. Probe grid size uniform location: "
+			<< environment.state.holographic_probe_points_draw_shader_probe_grid_size_uniform_location << std::endl;
+
+		::util::shader::set_shader_statically
+		(
+			vertex_shader,
+			util_shader_VERSION,
 			::util::shader::file_to_string("holographic_radiance_cascades/cascade/cascade.vert")
 		);
 		::util::shader::set_shader_statically
@@ -9114,6 +9131,15 @@ namespace game_logic
 		glUseProgram(environment.state.holographic_probe_grid_draw_shader);
 		glDrawArrays(GL_LINES, 0, (environment.state.holographic_probe_grid_size[0u] + environment.state.holographic_probe_grid_size[1u] + 2u) << 1u);
 
+		glUseProgram(environment.state.holographic_probe_points_draw_shader);
+		glProgramUniform2ui
+		(
+			environment.state.holographic_probe_points_draw_shader,
+			environment.state.holographic_probe_points_draw_shader_probe_grid_size_uniform_location,
+			environment.state.holographic_probe_grid_width, environment.state.holographic_probe_grid_height
+		);
+		glDrawArrays(GL_POINTS, 0, environment.state.holographic_probe_grid_width * environment.state.holographic_probe_grid_height);
+
 		glUseProgram(environment.state.holographic_cascade_draw_shader);
 		GLuint const cascade_power_of_two{ 1u << environment.state.holographic_cascade_draw_shader_cascade };
 		// TODO: Avoid calling ceil function
@@ -9123,7 +9149,7 @@ namespace game_logic
 			(environment.state.holographic_probe_grid_size[1u] << 1u) * (cascade_power_of_two + 1u) * 
 			static_cast<GLuint>(std::ceilf(environment.state.holographic_probe_grid_size[0u] / static_cast<GLfloat>(cascade_power_of_two))) 
 		};
-		glDrawArrays(GL_LINES, 0, vertex_count);
+		//glDrawArrays(GL_LINES, 0, vertex_count);
 	}
 
 	void free(game_environment::Environment& environment)
