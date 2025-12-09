@@ -1151,7 +1151,7 @@ namespace game_logic
 			);
 			break;
 		case 12u:
-			environment.state.holographic_cascade_rays_draw_shader_cascade = 1u;
+			environment.state.holographic_cascade_rays_draw_shader_cascade = 2u;
 			glProgramUniform1ui
 			(
 				environment.state.holographic_cascade_rays_draw_shader,
@@ -2265,7 +2265,7 @@ namespace game_logic
 				environment.state.holographic_cascade_fluence_single_cone_draw_shader_probe_grid_size_uniform_location,
 				environment.state.holographic_probe_grid_width, environment.state.holographic_probe_grid_height
 			);
-			environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascade = 1u;
+			environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascade = 0u;
 			glProgramUniform1ui
 			(
 				environment.state.holographic_cascade_fluence_single_cone_draw_shader,
@@ -8817,6 +8817,51 @@ namespace game_logic
 		// TODO: Check if memory barrier is needed to fix tearing
 	}
 
+	void get_cursor_position(game_environment::Environment const& environment, GLfloat& cursor_x, GLfloat& cursor_y)
+	{
+		double cursor_x_double;
+		double cursor_y_double;
+		glfwGetCursorPos(environment.window, &cursor_x_double, &cursor_y_double);
+		cursor_x = static_cast<GLfloat>(cursor_x_double);
+		cursor_y = environment.state.framebuffer_height - static_cast<GLfloat>(cursor_y_double);
+	}
+
+	void find_fluence_cone_closest_to_cursor(
+		game_environment::Environment const& environment, 
+		GLuint const cascade, GLuint const cascade_power_of_two, GLfloat const cascade_power_of_two_float,
+		GLuint& closest_cone_texel_x, GLuint& closest_cone_texel_y
+	)
+	{
+		GLfloat cursor_x;
+		GLfloat cursor_y;
+		get_cursor_position(environment, cursor_x, cursor_y);
+
+		GLfloat const normalized_cursor_x{ cursor_x / environment.state.framebuffer_width };
+		GLfloat const normalized_cursor_y{ cursor_y / environment.state.framebuffer_height };
+
+		GLuint const edge_width{ environment.state.holographic_probe_grid_width - 1u };
+		GLuint const edge_height{ environment.state.holographic_probe_grid_height - 1u };
+
+		GLfloat const probe_grid_cursor_x{ normalized_cursor_x * static_cast<GLfloat>(edge_width) };
+		GLfloat const probe_grid_cursor_y{ normalized_cursor_y * static_cast<GLfloat>(edge_height) };
+
+
+		GLuint const max_column_texel_x{ ((environment.state.holographic_probe_grid_width) - 2u) >> cascade };
+		closest_cone_texel_x = static_cast<GLuint>(std::clamp
+		(
+			static_cast<GLint>(std::roundf(probe_grid_cursor_x / cascade_power_of_two_float - 1.0f)),
+			0, static_cast<GLint>(max_column_texel_x)
+		));
+		closest_cone_texel_x *= cascade_power_of_two;
+		closest_cone_texel_y = std::clamp(static_cast<GLint>(std::roundf(probe_grid_cursor_y)), 0, static_cast<GLint>(edge_height));
+
+		GLfloat const y_offset{ probe_grid_cursor_y - closest_cone_texel_y };
+		GLuint const direction_id{ static_cast<GLuint>(
+			std::clamp(static_cast<GLint>((0.5f + y_offset) * cascade_power_of_two_float), 0, static_cast<GLint>(cascade_power_of_two) - 1)
+		) };
+		closest_cone_texel_x += direction_id;
+	}
+
 	void draw_inner_bounding_boxes
 	(
 		game_environment::Environment const& environment, 
@@ -9272,6 +9317,7 @@ namespace game_logic
 					GLint const destination_layer{ upper_cascade_fluence_layer ^ 1 };
 					glNamedFramebufferDrawBuffer(environment.state.angular_fluence_framebuffer, GL_COLOR_ATTACHMENT0 + destination_layer);
 
+					// IMPORTANT TODO: Check that the width is correct
 					GLint const width
 					{
 						((static_cast<GLint>(environment.state.holographic_probe_grid_width) + (1 << cascade) - 2) >> cascade) << cascade
@@ -9340,9 +9386,23 @@ namespace game_logic
 			if (environment.state.presentation_stage == 12u)
 			{
 				glUseProgram(environment.state.holographic_cascade_fluence_single_cone_draw_shader);
-				GLuint const cascade_power_of_two{ 1u << environment.state.holographic_cascade_fluence_draw_shader_cascade };
+				GLuint const cascade_power_of_two{ 1u << environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascade };
+				
+				find_fluence_cone_closest_to_cursor
+				(
+					environment,
+					environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascade, cascade_power_of_two, static_cast<GLfloat>(cascade_power_of_two),
+					environment.state.holographic_cascade_fluence_single_cone_draw_shader_showcased_cone_texel_x, environment.state.holographic_cascade_fluence_single_cone_draw_shader_showcased_cone_texel_y
+				);
+				glProgramUniform2ui
+				(
+					environment.state.holographic_cascade_fluence_single_cone_draw_shader,
+					environment.state.holographic_cascade_fluence_single_cone_draw_shader_showcased_cone_texel_position_uniform_location,
+					environment.state.holographic_cascade_fluence_single_cone_draw_shader_showcased_cone_texel_x,
+					environment.state.holographic_cascade_fluence_single_cone_draw_shader_showcased_cone_texel_y
+				);
+
 				// TODO: Avoid calling ceil function
-				// IMPORTANT TODO: Probe column 0 is not needed
 				GLuint const vertex_count
 				{
 					3u * environment.state.holographic_probe_grid_height * cascade_power_of_two *
@@ -9357,7 +9417,6 @@ namespace game_logic
 				glUseProgram(environment.state.holographic_cascade_fluence_draw_shader);
 				GLuint const cascade_power_of_two{ 1u << environment.state.holographic_cascade_fluence_draw_shader_cascade };
 				// TODO: Avoid calling ceil function
-				// IMPORTANT TODO: Probe column 0 is not needed
 				GLuint const vertex_count
 				{
 					3u * environment.state.holographic_probe_grid_height * cascade_power_of_two *
