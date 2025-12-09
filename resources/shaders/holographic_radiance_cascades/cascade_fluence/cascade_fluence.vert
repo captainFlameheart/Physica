@@ -1,3 +1,9 @@
+/* Expected to be concatenated from the CPU:
+
+const float cone_radius = ?;
+
+*/
+
 uniform uvec2 probe_grid_size;
 uniform uint cascade;
 
@@ -9,6 +15,7 @@ const vec4 cascade_colors[] =
 	vec4(0xFF, 0x00, 0xFF, 0.2),
 };
 
+out vec2 offset;
 out vec4 cone_color;
 
 void main()
@@ -31,16 +38,16 @@ void main()
 	float lower_direction_y_float = float(lower_direction_y);
 	float upper_direction_y_float = float(lower_direction_y + 2);
 
-	const float cone_radius = 0.5;
 	float cone_radius_factor = cone_radius / cascade_power_of_two_float;
 	float at_lower_end = float(id_in_cone & 1u);
 	float at_upper_end = float(id_in_cone >> 1u);
 	float at_end = at_lower_end + at_upper_end;
-	vec2 position = vec2
+	offset = cone_radius_factor * vec2
 	(
-		float(probe_x) + cone_radius_factor * (at_end * cascade_power_of_two_float), 
-		float(probe_y) + cone_radius_factor * (at_lower_end * lower_direction_y_float + at_upper_end * upper_direction_y_float)
+		at_end * cascade_power_of_two_float, 
+		at_lower_end * lower_direction_y_float + at_upper_end * upper_direction_y_float
 	);
+	vec2 position = vec2(probe_x, probe_y) + offset;
 	vec2 normalized_probe_distance = 2.0 / vec2(probe_grid_size - 1u);
 	vec2 normalized_position = position * normalized_probe_distance - 1.0;
 

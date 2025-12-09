@@ -2163,16 +2163,19 @@ namespace game_logic
 		std::cout << "Holographic probe points draw shader compiled. Probe grid size uniform location: "
 			<< environment.state.holographic_probe_points_draw_shader_probe_grid_size_uniform_location << std::endl;
 
+		std::string cone_radius_definition{ "const float cone_radius = " + std::to_string(0.5f) + ";\n" };
 		::util::shader::set_shader_statically
 		(
 			vertex_shader,
 			util_shader_VERSION,
+			cone_radius_definition.c_str(),
 			::util::shader::file_to_string("holographic_radiance_cascades/cascade_fluence/cascade_fluence.vert")
 		);
 		::util::shader::set_shader_statically
 		(
 			fragment_shader,
 			util_shader_VERSION,
+			cone_radius_definition.c_str(),
 			::util::shader::file_to_string("holographic_radiance_cascades/cascade_fluence/cascade_fluence.frag")
 		);
 		environment.state.holographic_cascade_fluence_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
