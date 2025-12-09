@@ -11,13 +11,12 @@ layout (location = 0) out vec4 color;
 
 void main()
 {
+	//color = texture(source, )
 	// IMPORTANT TODO: Store inverse sizes to avoid division
-	vec2 fluence_sample_point = gl_FragCoord.xy / vec2(textureSize(source, 0).xy);
-	fluence_sample_point += (vec2(0.5) - fluence_sample_point) / vec2(textureSize(fluence, 0).xy);
-	color = texture(fluence, fluence_sample_point);
+	vec2 sample_point = gl_FragCoord.xy / vec2(textureSize(source, 0).xy);
+	color = texture(source, vec3(sample_point, 0.0));
 
-	/////////////////////////////////////////////////////////////////////////////////////
-	#if 1 == 0
-		//color = vec4(1.0, 0.0, 0.0, 1.0);
-	#endif
+	sample_point += (vec2(0.5) - sample_point) / vec2(textureSize(fluence, 0).xy);
+	vec4 fluence_value = texture(fluence, sample_point);
+	color = mix(color * (fluence_value + 0.001), fluence_value, 0.2);
 }

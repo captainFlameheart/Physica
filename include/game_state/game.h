@@ -18,7 +18,7 @@ struct Model
 
 namespace game_state
 {
-	constexpr GLuint initial_holographic_ray_trace_cascade_count{ 3u };
+	constexpr GLuint initial_holographic_ray_trace_cascade_count{ 6u };
 
 	// TODO: Organize based on access patterns 
 	// (initialize -> render -> events -> tick * n -> render -> events -> tick * n -> render -> ...)

@@ -27,7 +27,7 @@ void main()
     }
     albedo.a = 1.0;
     
-    emission = vec4(0.0, 0.0, 0.0, 0.0);
-    absorption = vec4(0.0, 0.0, 0.0, 0.0);
+    emission = albedo;
+    absorption = vec4(0.1);
     scattering = vec4(0.0, 0.0, 0.0, 0.0);
 }
