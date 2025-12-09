@@ -15,6 +15,6 @@ void main()
 		0.0, 1.0
 	);
 
-	const float brightness = 0.1;
+	const float brightness = 1.0;
 	probe_color = vec4(brightness, brightness, brightness, 1.0);
 }
