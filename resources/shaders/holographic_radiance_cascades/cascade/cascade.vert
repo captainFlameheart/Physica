@@ -18,12 +18,12 @@ void main()
 	uint vertices_per_probe = lines_per_probe << 1u;
 	uint vertices_per_probe_column = probe_grid_size.y * vertices_per_probe;
 	uint probe_column = gl_VertexID / vertices_per_probe_column;
-	uint id_in_probe_column = gl_VertexID % vertices_per_probe_column;
+	uint id_in_probe_column = gl_VertexID - probe_column * vertices_per_probe_column;
 
-	uint probe_x = probe_column * cascade_power_of_two;
+	uint probe_x = (1u + probe_column) * cascade_power_of_two;
 	uint probe_y = id_in_probe_column / vertices_per_probe;
 
-	uint id_in_probe = gl_VertexID % vertices_per_probe;
+	uint id_in_probe = id_in_probe_column - probe_y * vertices_per_probe;
 	uint direction_index = id_in_probe >> 1u;
 	
 	#define SHORTEN_DIRECTION 1
@@ -32,12 +32,13 @@ void main()
 		const float removed_length = 0.2;
 		float direction_length = length(direction);
 		vec2 normalized_direction = direction / direction_length;
-		vec2 position = vec2(float(probe_x), float(probe_y)) + float(gl_VertexID & 1u) * (normalized_direction * (direction_length - removed_length));
+		vec2 position = vec2(probe_x, probe_y) + float(gl_VertexID & 1u) * (normalized_direction * (direction_length - removed_length));
+		vec2 normalized_probe_distance = 2.0 / vec2(probe_grid_size - 1u);
+		vec2 normalized_position = position * normalized_probe_distance - 1.0;
 
 		gl_Position = vec4
 		(
-			(1.0 + (position.x * 2.0)) / float(probe_grid_size.x) - 1.0, 
-			(1.0 + (position.y * 2.0)) / float(probe_grid_size.y) - 1.0, 
+			normalized_position,
 			0.0, 1.0
 		);
 	#else
@@ -46,14 +47,12 @@ void main()
 
 		gl_Position = vec4
 		(
-			float(1 + (position.x << 1u)) / float(probe_grid_size.x) - 1.0, 
-			float(1 + (position.y << 1u)) / float(probe_grid_size.y) - 1.0, 
+			float(position.x << 1u) / float(probe_grid_size.x - 1u) - 1.0, 
+			float(position.y << 1u) / float(probe_grid_size.y - 1u) - 1.0, 
 			0.0, 1.0
 		);
 	#endif
 
 	float color_factor = float(probe_y & 1u);
 	line_color = (1.0 - 2.0 * color_factor) * cascade_colors[cascade % cascade_colors.length()] + color_factor;
-
-	
 }

@@ -9138,6 +9138,7 @@ namespace game_logic
 			environment.state.holographic_probe_points_draw_shader_probe_grid_size_uniform_location,
 			environment.state.holographic_probe_grid_width, environment.state.holographic_probe_grid_height
 		);
+		glPointSize(10.0f);
 		glDrawArrays(GL_POINTS, 0, environment.state.holographic_probe_grid_width * environment.state.holographic_probe_grid_height);
 
 		glUseProgram(environment.state.holographic_cascade_draw_shader);
@@ -9149,7 +9150,7 @@ namespace game_logic
 			(environment.state.holographic_probe_grid_size[1u] << 1u) * (cascade_power_of_two + 1u) * 
 			static_cast<GLuint>(std::ceilf(environment.state.holographic_probe_grid_size[0u] / static_cast<GLfloat>(cascade_power_of_two))) 
 		};
-		//glDrawArrays(GL_LINES, 0, vertex_count);
+		glDrawArrays(GL_LINES, 0, vertex_count);
 	}
 
 	void free(game_environment::Environment& environment)
