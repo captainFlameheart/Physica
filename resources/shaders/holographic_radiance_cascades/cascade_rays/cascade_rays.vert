@@ -79,7 +79,8 @@ void main()
 
 	#if MODE == SHOWCASE_CASCADE
 		float color_factor = float(probe_y & 1u);
-		line_color = (1.0 - 2.0 * color_factor) * cascade_colors[cascade % cascade_colors.length()] + color_factor;
+		line_color = cascade_colors[cascade % cascade_colors.length()];
+		line_color = vec4((1.0 - 2.0 * color_factor) * line_color.rgb + color_factor, 1.0);
 	#elif MODE == SHOWCASE_SINGLE_RAY
 		uint skipped_rays_below_column = (lines_per_probe + 1u) >> 1u;
 		uvec2 ray_texel_position = convert_ray_logical_to_texel_position
@@ -89,7 +90,7 @@ void main()
 		);
 		const float brightness = 0.2 + float(direction_index & 1u) * 0.8;
 		line_color = mix(
-			vec4(0.0, brightness, 0.0, 0.2),
+			vec4(brightness, brightness, brightness, 0.2),
 			vec4(0.0, 1.0, 0.0, 1.0),
 			float(ray_texel_position == showcased_ray_texel_position)
 		);
