@@ -2,6 +2,7 @@
 
 #define SHOWCASE_CASCADE ?
 #define SHOWCASE_SINGLE_RAY ?
+#define SHOWCASE_MERGE_TO_RAY ?
 #define SHOWCASE_MERGE_TO_CONE ?
 
 #define MODE ?;
@@ -12,6 +13,9 @@ uniform uvec2 probe_grid_size;
 uniform uint cascade;
 #if MODE == SHOWCASE_SINGLE_RAY
 	uniform uvec2 showcased_ray_texel_position;
+#endif
+#if MODE == SHOWCASE_MERGE_TO_RAY
+	uniform uvec2 merged_to_ray_texel_position;
 #endif
 #if MODE == SHOWCASE_MERGE_TO_CONE
 	uniform uvec2 merged_to_cone_texel_position;
@@ -36,14 +40,138 @@ uvec2 convert_ray_logical_to_texel_position
 	return uvec2(probe_column, probe_row * rays_per_probe + direction_id - skipped_rays_below_column);
 }
 
-vec4 pick_color_if_merging_to
+vec4 pick_color_if_merging_to_ray
 (
 	in uvec2 merged_to_texel_position,
 	in uint query_rays_per_probe, in uint query_skipped_rays_below_column,
 	in uint query_probe_column, in uint query_probe_row, in uint query_direction_id
 )
 {
+	ivec2 query_texel_position = ivec2(convert_ray_logical_to_texel_position(
+		query_rays_per_probe, query_skipped_rays_below_column,
+		query_probe_column, query_probe_row, query_direction_id
+	));
+	
+	int cascade_merging_from = int(cascade);
+	int cascade_merging_from_power_of_two = 1 << cascade_merging_from;
+	int merged_to_cascade = cascade_merging_from + 1;
+	int merged_to_cascade_power_of_two = 1 << merged_to_cascade;
+
+	int edge_width = int(probe_grid_size.x) - 1;
+	int edge_height = int(probe_grid_size.y) - 1;
+
+	int ray_casting_data_rays_per_probe = merged_to_cascade_power_of_two + 1;
+	int ray_casting_data_skipped_rays_below_column = (ray_casting_data_rays_per_probe + 1) >> 1;
+	int ray_casting_data_lower_cascade_rays_per_probe = cascade_merging_from_power_of_two + 1;
+	int ray_casting_data_lower_cascade_skipped_rays_below_column = (ray_casting_data_lower_cascade_rays_per_probe + 1) >> 1;
+	int ray_casting_data_lower_cascade_max_ray_probe_column = (edge_width - 1) / cascade_merging_from_power_of_two - 1;
+	int ray_casting_data_lower_cascade_max_ray_probe_row = int(probe_grid_size.y) * ray_casting_data_lower_cascade_rays_per_probe - (ray_casting_data_lower_cascade_skipped_rays_below_column << 1) - 1;
+	int ray_casting_data_g = ray_casting_data_rays_per_probe << 1;
+	int ray_casting_data_f = ray_casting_data_rays_per_probe << merged_to_cascade;
+
 	ivec2 output_texel_position = ivec2(merged_to_texel_position);
+
+	// From here we replicate the ray merge logic.
+
+	int ray_id_in_column = ray_casting_data_skipped_rays_below_column + output_texel_position.y;
+	int probe_y = ray_id_in_column / ray_casting_data_rays_per_probe;
+	int direction_id = ray_id_in_column - probe_y * ray_casting_data_rays_per_probe;
+
+	// Some temporaries
+	int a = (output_texel_position.x << 1) | 1;	// Does not need clamping
+	int b = ray_casting_data_lower_cascade_rays_per_probe * probe_y - ray_casting_data_lower_cascade_skipped_rays_below_column;
+	int d = direction_id >> 1;
+	int h = b + d;
+
+	int clamped_h = max(0, h);
+	float h_is_inside = float(0 <= h);
+
+	// IMPORTANT TODO: Use 16 bit floats for radiance and transmittance to reduce from 8 to 4 texel fetches.
+
+	// Lower near
+	//radiance = h_is_inside * texelFetch(shorter_rays, ivec3(a, clamped_h, 0), 0);
+	//transmittance = mix(vec4(1.0), texelFetch(shorter_rays, ivec3(a, clamped_h, 1), 0), h_is_inside);
+	
+	// And some more temporaries needed from here
+	int e = (direction_id + 1) >> 1;
+	int i = b + e;
+	int c = a + 1;
+
+	int clamped_c = min(c, ray_casting_data_lower_cascade_max_ray_probe_column);
+	float c_is_inside = float(c <= ray_casting_data_lower_cascade_max_ray_probe_column);
+
+	// Lower far
+	int lower_far_sample_y = i + d * ray_casting_data_g - ray_casting_data_f;	// Does not need to be clamped
+	//radiance += transmittance * (c_is_inside * texelFetch(shorter_rays, ivec3(clamped_c, lower_far_sample_y, 0), 0));
+	//transmittance *= mix(vec4(1.0), texelFetch(shorter_rays, ivec3(clamped_c, lower_far_sample_y, 1), 0), c_is_inside);
+
+	int clamped_i = min(i, ray_casting_data_lower_cascade_max_ray_probe_row);
+	float i_is_inside = float(i <= ray_casting_data_lower_cascade_max_ray_probe_row);
+
+	// Upper near
+	//radiance += i_is_inside * texelFetch(shorter_rays, ivec3(a, clamped_i, 0), 0);
+	//vec4 upper_transmittance = mix(vec4(1.0), texelFetch(shorter_rays, ivec3(a, clamped_i, 1), 0), i_is_inside);
+	
+	// Upper far
+	int upper_far_sample_y = h + e * ray_casting_data_g - ray_casting_data_f;	// Does not need to be clamped
+	//radiance += upper_transmittance * (c_is_inside * texelFetch(shorter_rays, ivec3(clamped_c, upper_far_sample_y, 0), 0));
+	//upper_transmittance *= mix(vec4(1.0), texelFetch(shorter_rays, ivec3(clamped_c, upper_far_sample_y, 1), 0), c_is_inside);
+	
+	//transmittance += upper_transmittance;
+
+	//radiance *= 0.5;
+	//transmittance *= 0.5;
+
+	// End of merge replication.
+
+	int lower_near_texel_x = a;
+	int lower_near_texel_y = clamped_h;
+	
+	int lower_far_texel_x = clamped_c;
+	int lower_far_texel_y = lower_far_sample_y;
+
+	int upper_near_texel_x = a;
+	int upper_near_texel_y = clamped_i;
+
+	int upper_far_texel_x = clamped_c;
+	int upper_far_texel_y = upper_far_sample_y;
+
+	bool query_is_lower_near_ray = query_texel_position.x == lower_near_texel_x && query_texel_position.y == lower_near_texel_y;
+	bool query_is_lower_far_ray = query_texel_position.x == lower_far_texel_x && query_texel_position.y == lower_far_texel_y;
+
+	bool query_is_upper_near_ray = query_texel_position.x == upper_near_texel_x && query_texel_position.y == upper_near_texel_y;
+	bool query_is_upper_far_ray = query_texel_position.x == upper_far_texel_x && query_texel_position.y == upper_far_texel_y;
+
+	const float active_alpha = 1.0;
+
+	if (query_is_lower_near_ray)
+	{
+		return vec4(1.0, 0.0, 0.0, active_alpha);
+	}
+	if (query_is_lower_far_ray)
+	{
+		return vec4(0.0, 0.0, 1.0, active_alpha);
+	}
+	if (query_is_upper_near_ray)
+	{
+		return vec4(1.0, 1.0, 0.0, active_alpha);
+	}
+	if (query_is_upper_far_ray)
+	{
+		return vec4(0.0, 1.0, 1.0, active_alpha);
+	}
+
+	const float brightness = 0.2 + float(query_direction_id & 1u) * 0.8;
+	return vec4(brightness, brightness, brightness, 0.2);
+}
+
+vec4 pick_color_if_merging_to_cone
+(
+	in uvec2 merged_to_texel_position,
+	in uint query_rays_per_probe, in uint query_skipped_rays_below_column,
+	in uint query_probe_column, in uint query_probe_row, in uint query_direction_id
+)
+{
 	ivec2 query_texel_position = ivec2(convert_ray_logical_to_texel_position(
 		query_rays_per_probe, query_skipped_rays_below_column,
 		query_probe_column, query_probe_row, query_direction_id
@@ -69,6 +197,8 @@ vec4 pick_color_if_merging_to
 	int fluence_gathering_data_rays_per_probe = fluence_gathering_data_cascade_power_of_two + 1;
 	int fluence_gathering_data_skipped_rays_below_column = (fluence_gathering_data_rays_per_probe + 1) >> 1;
 	int fluence_gathering_data_max_ray_probe_row = int(probe_grid_size.y) * fluence_gathering_data_rays_per_probe - (fluence_gathering_data_skipped_rays_below_column << 1) - 1;
+
+	ivec2 output_texel_position = ivec2(merged_to_texel_position);
 
 	// From here we replicate the fluence gather logic.
 
@@ -213,9 +343,16 @@ void main()
 			vec4(0.0, 1.0, 0.0, 1.0),
 			float(ray_texel_position == showcased_ray_texel_position)
 		);
+	#elif MODE == SHOWCASE_MERGE_TO_RAY
+		uint skipped_rays_below_column = (lines_per_probe + 1u) >> 1u;
+		line_color = pick_color_if_merging_to_ray
+		(
+			merged_to_ray_texel_position, 
+			lines_per_probe, skipped_rays_below_column, probe_column, probe_y, direction_index
+		);
 	#elif MODE == SHOWCASE_MERGE_TO_CONE
 		uint skipped_rays_below_column = (lines_per_probe + 1u) >> 1u;
-		line_color = pick_color_if_merging_to
+		line_color = pick_color_if_merging_to_cone
 		(
 			merged_to_cone_texel_position, 
 			lines_per_probe, skipped_rays_below_column, probe_column, probe_y, direction_index
