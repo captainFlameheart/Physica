@@ -1205,6 +1205,22 @@ namespace game_logic
 				environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascade
 			);
 			break;
+		case 15u:
+			environment.state.holographic_cascade_rays_single_ray_draw_shader_cascade = 1u;
+			glProgramUniform1ui
+			(
+				environment.state.holographic_cascade_rays_single_ray_draw_shader,
+				environment.state.holographic_cascade_rays_single_ray_draw_shader_cascade_uniform_location,
+				environment.state.holographic_cascade_rays_single_ray_draw_shader_cascade
+			);
+			environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_cascade = environment.state.holographic_cascade_rays_single_ray_draw_shader_cascade - 1u;
+			glProgramUniform1ui
+			(
+				environment.state.holographic_cascade_rays_merge_to_ray_draw_shader,
+				environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_cascade_uniform_location,
+				environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_cascade
+			);
+			break;
 		}
 	}
 
@@ -9854,6 +9870,66 @@ namespace game_logic
 					{
 						(environment.state.holographic_probe_grid_size[1u] << 1u) * (cascade_power_of_two + 1u) *
 						static_cast<GLuint>(std::ceilf(environment.state.holographic_probe_grid_size[0u] / static_cast<GLfloat>(cascade_power_of_two)))
+					};
+					glDrawArrays(GL_LINES, 0, vertex_count);
+				}
+			}
+			else if (environment.state.presentation_stage == 15u)
+			{
+				GLuint const merged_to_cascade_power_of_two{ 1u << environment.state.holographic_cascade_rays_single_ray_draw_shader_cascade };
+				GLuint const merged_to_rays_per_probe{ merged_to_cascade_power_of_two + 1u };
+				GLuint const merged_to_skipped_rays_below_column{ (merged_to_rays_per_probe + 1u) >> 1u };
+
+				find_ray_closest_to_cursor
+				(
+					environment,
+					environment.state.holographic_cascade_rays_single_ray_draw_shader_cascade, merged_to_cascade_power_of_two, static_cast<GLfloat>(merged_to_cascade_power_of_two),
+					merged_to_rays_per_probe, merged_to_skipped_rays_below_column,
+					environment.state.holographic_cascade_rays_single_ray_draw_shader_showcased_ray_texel_x, environment.state.holographic_cascade_rays_single_ray_draw_shader_showcased_ray_texel_y
+				);
+
+				{
+					GLuint const merged_from_cascade_power_of_two{ 1u << environment.state.holographic_cascade_rays_single_ray_draw_shader_cascade };
+					GLuint const merged_from_rays_per_probe{ merged_from_cascade_power_of_two + 1u };
+					GLuint const merged_from_skipped_rays_below_column{ (merged_from_rays_per_probe + 1u) >> 1u };
+
+					environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_merged_to_ray_texel_x = environment.state.holographic_cascade_rays_single_ray_draw_shader_showcased_ray_texel_x;
+					environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_merged_to_ray_texel_y = environment.state.holographic_cascade_rays_single_ray_draw_shader_showcased_ray_texel_y;
+					glProgramUniform2ui
+					(
+						environment.state.holographic_cascade_rays_merge_to_ray_draw_shader,
+						environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_merged_to_ray_texel_position_uniform_location,
+						environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_merged_to_ray_texel_x,
+						environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_merged_to_ray_texel_y
+					);
+
+					glUseProgram(environment.state.holographic_cascade_rays_merge_to_ray_draw_shader);
+					// TODO: Avoid calling ceil function
+					// IMPORTANT TODO: Probe column 0 is not needed
+					GLuint const vertex_count
+					{
+						(environment.state.holographic_probe_grid_size[1u] << 1u) * (merged_from_cascade_power_of_two + 1u) *
+						static_cast<GLuint>(std::ceilf(environment.state.holographic_probe_grid_size[0u] / static_cast<GLfloat>(merged_from_cascade_power_of_two)))
+					};
+					glDrawArrays(GL_LINES, 0, vertex_count);
+				}
+
+				{
+					glProgramUniform2ui
+					(
+						environment.state.holographic_cascade_rays_single_ray_draw_shader,
+						environment.state.holographic_cascade_rays_single_ray_draw_shader_showcased_ray_texel_position_uniform_location,
+						environment.state.holographic_cascade_rays_single_ray_draw_shader_showcased_ray_texel_x,
+						environment.state.holographic_cascade_rays_single_ray_draw_shader_showcased_ray_texel_y
+					);
+
+					glUseProgram(environment.state.holographic_cascade_rays_single_ray_draw_shader);
+					// TODO: Avoid calling ceil function
+					// IMPORTANT TODO: Probe column 0 is not needed
+					GLuint const vertex_count
+					{
+						(environment.state.holographic_probe_grid_size[1u] << 1u) * (merged_to_cascade_power_of_two + 1u) *
+						static_cast<GLuint>(std::ceilf(environment.state.holographic_probe_grid_size[0u] / static_cast<GLfloat>(merged_to_cascade_power_of_two)))
 					};
 					glDrawArrays(GL_LINES, 0, vertex_count);
 				}
