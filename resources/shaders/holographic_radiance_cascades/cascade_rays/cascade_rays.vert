@@ -2,7 +2,7 @@
 
 #define SHOWCASE_CASCADE ?
 #define SHOWCASE_SINGLE_RAY ?
-#define SHOWCASE_MERGE_TO ?
+#define SHOWCASE_MERGE_TO_CONE ?
 
 #define MODE ?;
 
@@ -12,6 +12,9 @@ uniform uvec2 probe_grid_size;
 uniform uint cascade;
 #if MODE == SHOWCASE_SINGLE_RAY
 	uniform uvec2 showcased_ray_texel_position;
+#endif
+#if MODE == SHOWCASE_MERGE_TO_CONE
+	uniform uvec2 merged_to_cone_texel_position;
 #endif
 
 #if MODE == SHOWCASE_CASCADE
@@ -31,6 +34,122 @@ uvec2 convert_ray_logical_to_texel_position
 )
 {
 	return uvec2(probe_column, probe_row * rays_per_probe + direction_id - skipped_rays_below_column);
+}
+
+vec4 pick_color_if_merging_to
+(
+	in uvec2 merged_to_texel_position,
+	in uint query_rays_per_probe, in uint query_skipped_rays_below_column,
+	in uint query_probe_column, in uint query_probe_row, in uint query_direction_id
+)
+{
+	ivec2 output_texel_position = ivec2(merged_to_texel_position);
+	ivec2 query_texel_position = ivec2(convert_ray_logical_to_texel_position(
+		query_rays_per_probe, query_skipped_rays_below_column,
+		query_probe_column, query_probe_row, query_direction_id
+	));
+
+	int cascade_merged_to = int(cascade);
+	int upper_cascade = cascade_merged_to + 1;
+	
+	int edge_width = int(probe_grid_size.x) - 1;
+	int edge_height = int(probe_grid_size.y) - 1;
+	
+	int edge_width_decremented = edge_width - 1;
+
+	int fluence_gathering_data_direction_mask = (1 << cascade_merged_to) - 1;
+	int fluence_gathering_data_cascade = cascade_merged_to;
+	int fluence_gathering_data_cascade_power_of_two = 1 << cascade_merged_to;
+	int fluence_gathering_data_upper_cascade_probe_column_texel_x_mask = (-1) << upper_cascade;
+	int fluence_gathering_data_max_fluence_probe_column_texel_x = (edge_width_decremented >> upper_cascade) << upper_cascade;
+	int fluence_gathering_data_upper_cascade = upper_cascade;
+	int fluence_gathering_data_max_fluence_probe_y = edge_height;
+
+	int fluence_gathering_data_max_ray_probe_column = (edge_width - 1) / fluence_gathering_data_cascade_power_of_two - 1;
+	int fluence_gathering_data_rays_per_probe = fluence_gathering_data_cascade_power_of_two + 1;
+	int fluence_gathering_data_skipped_rays_below_column = (fluence_gathering_data_rays_per_probe + 1) >> 1;
+	int fluence_gathering_data_max_ray_probe_row = int(probe_grid_size.y) * fluence_gathering_data_rays_per_probe - (fluence_gathering_data_skipped_rays_below_column << 1) - 1;
+
+	// From here we replicate the fluence gather logic.
+
+	int direction_id = output_texel_position.x & fluence_gathering_data_direction_mask;
+	int lower_direction_id = direction_id << 1;
+	int probe_column = output_texel_position.x >> fluence_gathering_data_cascade;
+	int clamped_near_ray_sample_x = min(probe_column, fluence_gathering_data_max_ray_probe_column);
+	float near_ray_is_inside = float(probe_column <= fluence_gathering_data_max_ray_probe_column);
+
+	int lower_near_ray_sample_y = 
+		output_texel_position.y * fluence_gathering_data_rays_per_probe - fluence_gathering_data_skipped_rays_below_column 
+		+ direction_id;
+
+	float cascade_power_of_two_float = float(fluence_gathering_data_cascade_power_of_two); // TODO: Put in uniform block
+
+	// Lower near ray
+	int clamped_lower_near_ray_sample_y = clamp(lower_near_ray_sample_y, 0, fluence_gathering_data_max_ray_probe_row);
+	float lower_near_ray_is_inside = near_ray_is_inside * float(0 <= lower_near_ray_sample_y) * float(lower_near_ray_sample_y <= fluence_gathering_data_max_ray_probe_row);
+	
+	int interpolating = probe_column & 1;
+
+	int lower_y_offset = lower_direction_id - fluence_gathering_data_cascade_power_of_two;	// TODO: This expression is used by lower angle
+
+	int far_ray_sample_x = probe_column + interpolating;
+	int clamped_far_ray_sample_x = min(far_ray_sample_x, fluence_gathering_data_max_ray_probe_column);
+	float far_ray_is_inside = float(far_ray_sample_x <= fluence_gathering_data_max_ray_probe_column);
+	int lower_far_ray_sample_y = lower_near_ray_sample_y + interpolating * lower_y_offset * fluence_gathering_data_rays_per_probe;
+
+	// Lower far ray
+	int clamped_lower_far_ray_sample_y = clamp(lower_far_ray_sample_y, 0, fluence_gathering_data_max_ray_probe_row);
+	float lower_far_ray_is_inside = far_ray_is_inside * float(0 <= lower_far_ray_sample_y) * float(lower_far_ray_sample_y <= fluence_gathering_data_max_ray_probe_row);
+
+	int not_interpolating = interpolating ^ 1;
+	float not_interpolating_float = float(not_interpolating);
+
+	float interpolating_float = float(interpolating);
+
+	int upper_near_ray_sample_y = lower_near_ray_sample_y + 1;
+
+	int upper_direction_id = lower_direction_id + 2;
+	int upper_y_offset = upper_direction_id - fluence_gathering_data_cascade_power_of_two; // TODO: This expression is used by upper angle
+
+	// Upper near ray
+	int clamped_upper_near_ray_sample_y = clamp(upper_near_ray_sample_y, 0, fluence_gathering_data_max_ray_probe_row);
+	float upper_near_ray_is_inside = near_ray_is_inside * float(0 <= upper_near_ray_sample_y) * float(upper_near_ray_sample_y <= fluence_gathering_data_max_ray_probe_row);
+
+	int upper_far_ray_sample_y = upper_near_ray_sample_y + interpolating * upper_y_offset * fluence_gathering_data_rays_per_probe;
+
+	// Upper far ray
+	int clamped_upper_far_ray_sample_y = clamp(upper_far_ray_sample_y, 0, fluence_gathering_data_max_ray_probe_row);
+	float upper_far_ray_is_inside = far_ray_is_inside * float(0 <= upper_far_ray_sample_y) * float(upper_far_ray_sample_y <= fluence_gathering_data_max_ray_probe_row);
+
+	// End of gather replication
+
+	bool query_is_lower_near_ray = query_texel_position.x == clamped_near_ray_sample_x && query_texel_position.y == clamped_lower_near_ray_sample_y;
+	bool query_is_lower_far_ray = query_texel_position.x == clamped_far_ray_sample_x && query_texel_position.y == clamped_lower_far_ray_sample_y;
+	
+	bool query_is_upper_near_ray = query_texel_position.x == clamped_near_ray_sample_x && query_texel_position.y == clamped_upper_near_ray_sample_y;
+	bool query_is_upper_far_ray = query_texel_position.x == clamped_far_ray_sample_x && query_texel_position.y == clamped_upper_far_ray_sample_y;
+
+	const float active_alpha = 1.0;
+
+	if (query_is_lower_near_ray)
+	{
+		return vec4(1.0, 0.0, 0.0, active_alpha);
+	}
+	if (query_is_lower_far_ray)
+	{
+		return vec4(0.0, 0.0, 1.0, active_alpha);
+	}
+	if (query_is_upper_near_ray)
+	{
+		return vec4(1.0, 1.0, 0.0, active_alpha);
+	}
+	if (query_is_upper_far_ray)
+	{
+		return vec4(0.0, 1.0, 1.0, active_alpha);
+	}
+
+	const float brightness = 0.2 + float(query_direction_id & 1u) * 0.8;
+	return vec4(brightness, brightness, brightness, 0.2);
 }
 
 out vec4 line_color;
@@ -93,6 +212,13 @@ void main()
 			vec4(brightness, brightness, brightness, 0.2),
 			vec4(0.0, 1.0, 0.0, 1.0),
 			float(ray_texel_position == showcased_ray_texel_position)
+		);
+	#elif MODE == SHOWCASE_MERGE_TO_CONE
+		uint skipped_rays_below_column = (lines_per_probe + 1u) >> 1u;
+		line_color = pick_color_if_merging_to
+		(
+			merged_to_cone_texel_position, 
+			lines_per_probe, skipped_rays_below_column, probe_column, probe_y, direction_index
 		);
 	#endif
 }
