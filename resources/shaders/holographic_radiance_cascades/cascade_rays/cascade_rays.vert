@@ -66,8 +66,8 @@ vec4 pick_color_if_merging_to_ray
 	int ray_casting_data_lower_cascade_skipped_rays_below_column = (ray_casting_data_lower_cascade_rays_per_probe + 1) >> 1;
 	int ray_casting_data_lower_cascade_max_ray_probe_column = (edge_width - 1) / cascade_merging_from_power_of_two - 1;
 	int ray_casting_data_lower_cascade_max_ray_probe_row = int(probe_grid_size.y) * ray_casting_data_lower_cascade_rays_per_probe - (ray_casting_data_lower_cascade_skipped_rays_below_column << 1) - 1;
-	int ray_casting_data_g = ray_casting_data_rays_per_probe << 1;
-	int ray_casting_data_f = ray_casting_data_rays_per_probe << merged_to_cascade;
+	int ray_casting_data_g = ray_casting_data_lower_cascade_rays_per_probe << 1; //ray_casting_data_rays_per_probe << 1;
+	int ray_casting_data_f = ray_casting_data_lower_cascade_rays_per_probe << cascade_merging_from; //ray_casting_data_rays_per_probe << merged_to_cascade;
 
 	ivec2 output_texel_position = ivec2(merged_to_texel_position);
 
@@ -86,12 +86,6 @@ vec4 pick_color_if_merging_to_ray
 	int clamped_h = max(0, h);
 	float h_is_inside = float(0 <= h);
 
-	// IMPORTANT TODO: Use 16 bit floats for radiance and transmittance to reduce from 8 to 4 texel fetches.
-
-	// Lower near
-	//radiance = h_is_inside * texelFetch(shorter_rays, ivec3(a, clamped_h, 0), 0);
-	//transmittance = mix(vec4(1.0), texelFetch(shorter_rays, ivec3(a, clamped_h, 1), 0), h_is_inside);
-	
 	// And some more temporaries needed from here
 	int e = (direction_id + 1) >> 1;
 	int i = b + e;
@@ -102,26 +96,13 @@ vec4 pick_color_if_merging_to_ray
 
 	// Lower far
 	int lower_far_sample_y = i + d * ray_casting_data_g - ray_casting_data_f;	// Does not need to be clamped
-	//radiance += transmittance * (c_is_inside * texelFetch(shorter_rays, ivec3(clamped_c, lower_far_sample_y, 0), 0));
-	//transmittance *= mix(vec4(1.0), texelFetch(shorter_rays, ivec3(clamped_c, lower_far_sample_y, 1), 0), c_is_inside);
 
 	int clamped_i = min(i, ray_casting_data_lower_cascade_max_ray_probe_row);
 	float i_is_inside = float(i <= ray_casting_data_lower_cascade_max_ray_probe_row);
 
-	// Upper near
-	//radiance += i_is_inside * texelFetch(shorter_rays, ivec3(a, clamped_i, 0), 0);
-	//vec4 upper_transmittance = mix(vec4(1.0), texelFetch(shorter_rays, ivec3(a, clamped_i, 1), 0), i_is_inside);
-	
 	// Upper far
 	int upper_far_sample_y = h + e * ray_casting_data_g - ray_casting_data_f;	// Does not need to be clamped
-	//radiance += upper_transmittance * (c_is_inside * texelFetch(shorter_rays, ivec3(clamped_c, upper_far_sample_y, 0), 0));
-	//upper_transmittance *= mix(vec4(1.0), texelFetch(shorter_rays, ivec3(clamped_c, upper_far_sample_y, 1), 0), c_is_inside);
 	
-	//transmittance += upper_transmittance;
-
-	//radiance *= 0.5;
-	//transmittance *= 0.5;
-
 	// End of merge replication.
 
 	int lower_near_texel_x = a;
