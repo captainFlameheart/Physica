@@ -241,6 +241,21 @@ namespace game_state
 		GLuint holographic_cascade_rays_draw_shader_cascade;
 		GLint holographic_cascade_rays_draw_shader_cascade_uniform_location;
 
+		GLuint holographic_cascade_rays_single_ray_draw_shader;
+		GLint holographic_cascade_rays_single_ray_draw_shader_probe_grid_size_uniform_location;
+		GLuint holographic_cascade_rays_single_ray_draw_shader_cascade;
+		GLint holographic_cascade_rays_single_ray_draw_shader_cascade_uniform_location;
+		union
+		{
+			struct
+			{
+				GLuint holographic_cascade_rays_single_ray_draw_shader_showcased_ray_texel_x;
+				GLuint holographic_cascade_rays_single_ray_draw_shader_showcased_ray_texel_y;
+			};
+			GLuint holographic_cascade_rays_single_ray_draw_shader_showcased_ray_texel_position[2u];
+		};
+		GLint holographic_cascade_rays_single_ray_draw_shader_showcased_ray_texel_position_uniform_location;
+
 		GLuint holographic_ray_trace_shader_count;
 		GLuint* holographic_ray_trace_shaders;
 		GLint* holographic_ray_trace_shader_source_uniform_locations;

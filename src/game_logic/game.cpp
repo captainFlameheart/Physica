@@ -1151,7 +1151,7 @@ namespace game_logic
 			);
 			break;
 		case 12u:
-			environment.state.holographic_cascade_rays_draw_shader_cascade = 2u;
+			environment.state.holographic_cascade_rays_draw_shader_cascade = 1u;
 			glProgramUniform1ui
 			(
 				environment.state.holographic_cascade_rays_draw_shader,
@@ -1167,7 +1167,7 @@ namespace game_logic
 			);
 			break;
 		case 13u:
-			environment.state.holographic_cascade_rays_draw_shader_cascade = 3u;
+			environment.state.holographic_cascade_rays_draw_shader_cascade = 1u;
 			glProgramUniform1ui
 			(
 				environment.state.holographic_cascade_rays_draw_shader,
@@ -2202,210 +2202,287 @@ namespace game_logic
 		std::cout << "Holographic probe points draw shader compiled. Probe grid size uniform location: "
 			<< environment.state.holographic_probe_points_draw_shader_probe_grid_size_uniform_location << std::endl;
 
-		std::string cone_radius_definition{ "const float cone_radius = " + std::to_string(0.5f) + ";\n" };
-		constexpr GLuint showcase_cascade_value{ 0u };
-		constexpr GLuint showcase_single_cone_value{ 1u };
-		constexpr GLuint showcase_merge_to_value{ 2u };
-
-		std::string showcase_cascade_mode_definition{ "#define SHOWCASE_CASCADE " + std::to_string(showcase_cascade_value) + "\n" };
-		std::string showcase_single_cone_definition{ "#define SHOWCASE_SINGLE_CONE " + std::to_string(showcase_single_cone_value) + "\n" };
-		std::string showcase_merge_to_definition{ "#define SHOWCASE_MERGE_TO " + std::to_string(showcase_merge_to_value) + "\n" };
-
 		{
-			std::string mode_definition{ "#define MODE " + std::to_string(showcase_cascade_value) + "\n" };
+			std::string cone_radius_definition{ "const float cone_radius = " + std::to_string(0.5f) + ";\n" };
+			constexpr GLuint showcase_cascade_value{ 0u };
+			constexpr GLuint showcase_single_cone_value{ 1u };
+			constexpr GLuint showcase_merge_to_value{ 2u };
 
-			::util::shader::set_shader_statically
-			(
-				vertex_shader,
-				util_shader_VERSION,
-				cone_radius_definition.c_str(),
-				showcase_cascade_mode_definition,
-				showcase_single_cone_definition,
-				showcase_merge_to_definition,
-				mode_definition,
-				::util::shader::file_to_string("holographic_radiance_cascades/cascade_fluence/cascade_fluence.vert")
-			);
-			::util::shader::set_shader_statically
-			(
-				fragment_shader,
-				util_shader_VERSION,
-				cone_radius_definition.c_str(),
-				showcase_cascade_mode_definition,
-				showcase_single_cone_definition,
-				showcase_merge_to_definition,
-				mode_definition,
-				::util::shader::file_to_string("holographic_radiance_cascades/cascade_fluence/cascade_fluence.frag")
-			);
-			environment.state.holographic_cascade_fluence_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
-			environment.state.holographic_cascade_fluence_draw_shader_probe_grid_size_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_fluence_draw_shader, "probe_grid_size");
-			environment.state.holographic_cascade_fluence_draw_shader_cascade_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_fluence_draw_shader, "cascade");
-			glProgramUniform2ui
-			(
-				environment.state.holographic_cascade_fluence_draw_shader,
-				environment.state.holographic_cascade_fluence_draw_shader_probe_grid_size_uniform_location,
-				environment.state.holographic_probe_grid_width, environment.state.holographic_probe_grid_height
-			);
-			environment.state.holographic_cascade_fluence_draw_shader_cascade = 1u;
-			glProgramUniform1ui
-			(
-				environment.state.holographic_cascade_fluence_draw_shader,
-				environment.state.holographic_cascade_fluence_draw_shader_cascade_uniform_location,
-				environment.state.holographic_cascade_fluence_draw_shader_cascade
-			);
-			std::cout << "Holographic cascade fluence draw shader compiled. Probe grid size uniform location: "
-				<< environment.state.holographic_cascade_fluence_draw_shader_probe_grid_size_uniform_location << ". Cascade uniform location: "
-				<< environment.state.holographic_cascade_fluence_draw_shader_cascade_uniform_location << std::endl;
+			std::string showcase_cascade_mode_definition{ "#define SHOWCASE_CASCADE " + std::to_string(showcase_cascade_value) + "\n" };
+			std::string showcase_single_cone_definition{ "#define SHOWCASE_SINGLE_CONE " + std::to_string(showcase_single_cone_value) + "\n" };
+			std::string showcase_merge_to_definition{ "#define SHOWCASE_MERGE_TO " + std::to_string(showcase_merge_to_value) + "\n" };
+
+			{
+				std::string mode_definition{ "#define MODE " + std::to_string(showcase_cascade_value) + "\n" };
+
+				::util::shader::set_shader_statically
+				(
+					vertex_shader,
+					util_shader_VERSION,
+					cone_radius_definition.c_str(),
+					showcase_cascade_mode_definition,
+					showcase_single_cone_definition,
+					showcase_merge_to_definition,
+					mode_definition,
+					::util::shader::file_to_string("holographic_radiance_cascades/cascade_fluence/cascade_fluence.vert")
+				);
+				::util::shader::set_shader_statically
+				(
+					fragment_shader,
+					util_shader_VERSION,
+					cone_radius_definition.c_str(),
+					showcase_cascade_mode_definition,
+					showcase_single_cone_definition,
+					showcase_merge_to_definition,
+					mode_definition,
+					::util::shader::file_to_string("holographic_radiance_cascades/cascade_fluence/cascade_fluence.frag")
+				);
+				environment.state.holographic_cascade_fluence_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+				environment.state.holographic_cascade_fluence_draw_shader_probe_grid_size_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_fluence_draw_shader, "probe_grid_size");
+				environment.state.holographic_cascade_fluence_draw_shader_cascade_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_fluence_draw_shader, "cascade");
+				glProgramUniform2ui
+				(
+					environment.state.holographic_cascade_fluence_draw_shader,
+					environment.state.holographic_cascade_fluence_draw_shader_probe_grid_size_uniform_location,
+					environment.state.holographic_probe_grid_width, environment.state.holographic_probe_grid_height
+				);
+				environment.state.holographic_cascade_fluence_draw_shader_cascade = 1u;
+				glProgramUniform1ui
+				(
+					environment.state.holographic_cascade_fluence_draw_shader,
+					environment.state.holographic_cascade_fluence_draw_shader_cascade_uniform_location,
+					environment.state.holographic_cascade_fluence_draw_shader_cascade
+				);
+				std::cout << "Holographic cascade fluence draw shader compiled. Probe grid size uniform location: "
+					<< environment.state.holographic_cascade_fluence_draw_shader_probe_grid_size_uniform_location << ". Cascade uniform location: "
+					<< environment.state.holographic_cascade_fluence_draw_shader_cascade_uniform_location << std::endl;
+			}
+
+			{
+				std::string mode_definition{ "#define MODE " + std::to_string(showcase_single_cone_value) + "\n" };
+
+				::util::shader::set_shader_statically
+				(
+					vertex_shader,
+					util_shader_VERSION,
+					cone_radius_definition.c_str(),
+					showcase_cascade_mode_definition,
+					showcase_single_cone_definition,
+					showcase_merge_to_definition,
+					mode_definition,
+					::util::shader::file_to_string("holographic_radiance_cascades/cascade_fluence/cascade_fluence.vert")
+				);
+				::util::shader::set_shader_statically
+				(
+					fragment_shader,
+					util_shader_VERSION,
+					showcase_cascade_mode_definition,
+					showcase_single_cone_definition,
+					showcase_merge_to_definition,
+					mode_definition,
+					cone_radius_definition.c_str(),
+					::util::shader::file_to_string("holographic_radiance_cascades/cascade_fluence/cascade_fluence.frag")
+				);
+
+				environment.state.holographic_cascade_fluence_single_cone_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+				environment.state.holographic_cascade_fluence_single_cone_draw_shader_probe_grid_size_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_fluence_single_cone_draw_shader, "probe_grid_size");
+				environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascade_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_fluence_single_cone_draw_shader, "cascade");
+				environment.state.holographic_cascade_fluence_single_cone_draw_shader_showcased_cone_texel_position_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_fluence_single_cone_draw_shader, "showcased_cone_texel_position");
+
+				glProgramUniform2ui
+				(
+					environment.state.holographic_cascade_fluence_single_cone_draw_shader,
+					environment.state.holographic_cascade_fluence_single_cone_draw_shader_probe_grid_size_uniform_location,
+					environment.state.holographic_probe_grid_width, environment.state.holographic_probe_grid_height
+				);
+				environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascade = 0u;
+				glProgramUniform1ui
+				(
+					environment.state.holographic_cascade_fluence_single_cone_draw_shader,
+					environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascade_uniform_location,
+					environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascade
+				);
+				environment.state.holographic_cascade_fluence_single_cone_draw_shader_showcased_cone_texel_x = 1u;
+				environment.state.holographic_cascade_fluence_single_cone_draw_shader_showcased_cone_texel_y = 1u;
+				glProgramUniform2ui
+				(
+					environment.state.holographic_cascade_fluence_single_cone_draw_shader,
+					environment.state.holographic_cascade_fluence_single_cone_draw_shader_showcased_cone_texel_position_uniform_location,
+					environment.state.holographic_cascade_fluence_single_cone_draw_shader_showcased_cone_texel_x,
+					environment.state.holographic_cascade_fluence_single_cone_draw_shader_showcased_cone_texel_y
+				);
+				std::cout << "Holographic cascade fluence single cone draw shader compiled. Probe grid size uniform location: "
+					<< environment.state.holographic_cascade_fluence_single_cone_draw_shader_probe_grid_size_uniform_location << ". Cascade uniform location: "
+					<< environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascade_uniform_location << ". Showcased cone texel position: "
+					<< environment.state.holographic_cascade_fluence_single_cone_draw_shader_showcased_cone_texel_position_uniform_location << std::endl;
+			}
+
+			{
+				std::string mode_definition{ "#define MODE " + std::to_string(showcase_merge_to_value) + "\n" };
+
+				::util::shader::set_shader_statically
+				(
+					vertex_shader,
+					util_shader_VERSION,
+					cone_radius_definition.c_str(),
+					showcase_cascade_mode_definition,
+					showcase_single_cone_definition,
+					showcase_merge_to_definition,
+					mode_definition,
+					::util::shader::file_to_string("holographic_radiance_cascades/cascade_fluence/cascade_fluence.vert")
+				);
+				::util::shader::set_shader_statically
+				(
+					fragment_shader,
+					util_shader_VERSION,
+					showcase_cascade_mode_definition,
+					showcase_single_cone_definition,
+					showcase_merge_to_definition,
+					mode_definition,
+					cone_radius_definition.c_str(),
+					::util::shader::file_to_string("holographic_radiance_cascades/cascade_fluence/cascade_fluence.frag")
+				);
+
+				environment.state.holographic_cascade_fluence_merge_to_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+				environment.state.holographic_cascade_fluence_merge_to_draw_shader_probe_grid_size_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_fluence_merge_to_draw_shader, "probe_grid_size");
+				environment.state.holographic_cascade_fluence_merge_to_draw_shader_cascade_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_fluence_merge_to_draw_shader, "cascade");
+				environment.state.holographic_cascade_fluence_merge_to_draw_shader_merged_to_cone_texel_position_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_fluence_merge_to_draw_shader, "merged_to_cone_texel_position");
+
+				glProgramUniform2ui
+				(
+					environment.state.holographic_cascade_fluence_merge_to_draw_shader,
+					environment.state.holographic_cascade_fluence_merge_to_draw_shader_probe_grid_size_uniform_location,
+					environment.state.holographic_probe_grid_width, environment.state.holographic_probe_grid_height
+				);
+				environment.state.holographic_cascade_fluence_merge_to_draw_shader_cascade = 1u;
+				glProgramUniform1ui
+				(
+					environment.state.holographic_cascade_fluence_merge_to_draw_shader,
+					environment.state.holographic_cascade_fluence_merge_to_draw_shader_cascade_uniform_location,
+					environment.state.holographic_cascade_fluence_merge_to_draw_shader_cascade
+				);
+				environment.state.holographic_cascade_fluence_merge_to_draw_shader_merged_to_cone_texel_x = 1u;
+				environment.state.holographic_cascade_fluence_merge_to_draw_shader_merged_to_cone_texel_y = 1u;
+				glProgramUniform2ui
+				(
+					environment.state.holographic_cascade_fluence_merge_to_draw_shader,
+					environment.state.holographic_cascade_fluence_merge_to_draw_shader_merged_to_cone_texel_position_uniform_location,
+					environment.state.holographic_cascade_fluence_merge_to_draw_shader_merged_to_cone_texel_x,
+					environment.state.holographic_cascade_fluence_merge_to_draw_shader_merged_to_cone_texel_y
+				);
+				std::cout << "Holographic cascade fluence merge to draw shader compiled. Probe grid size uniform location: "
+					<< environment.state.holographic_cascade_fluence_merge_to_draw_shader_probe_grid_size_uniform_location << ". Cascade uniform location: "
+					<< environment.state.holographic_cascade_fluence_merge_to_draw_shader_cascade_uniform_location << ". Merged to cone texel position uniform location: "
+					<< environment.state.holographic_cascade_fluence_merge_to_draw_shader_merged_to_cone_texel_position_uniform_location << std::endl;
+			}
 		}
 
 		{
-			std::string mode_definition{ "#define MODE " + std::to_string(showcase_single_cone_value) + "\n" };
+			constexpr GLuint showcase_cascade_value{ 0u };
+			constexpr GLuint showcase_single_ray_value{ 1u };
+			constexpr GLuint showcase_merge_to_value{ 2u };
 
-			::util::shader::set_shader_statically
-			(
-				vertex_shader,
-				util_shader_VERSION,
-				cone_radius_definition.c_str(),
-				showcase_cascade_mode_definition,
-				showcase_single_cone_definition,
-				showcase_merge_to_definition,
-				mode_definition,
-				::util::shader::file_to_string("holographic_radiance_cascades/cascade_fluence/cascade_fluence.vert")
-			);
-			::util::shader::set_shader_statically
-			(
-				fragment_shader,
-				util_shader_VERSION,
-				showcase_cascade_mode_definition,
-				showcase_single_cone_definition,
-				showcase_merge_to_definition,
-				mode_definition,
-				cone_radius_definition.c_str(),
-				::util::shader::file_to_string("holographic_radiance_cascades/cascade_fluence/cascade_fluence.frag")
-			);
-			
-			environment.state.holographic_cascade_fluence_single_cone_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
-			environment.state.holographic_cascade_fluence_single_cone_draw_shader_probe_grid_size_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_fluence_single_cone_draw_shader, "probe_grid_size");
-			environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascade_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_fluence_single_cone_draw_shader, "cascade");
-			environment.state.holographic_cascade_fluence_single_cone_draw_shader_showcased_cone_texel_position_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_fluence_single_cone_draw_shader, "showcased_cone_texel_position");
+			std::string showcase_cascade_mode_definition{ "#define SHOWCASE_CASCADE " + std::to_string(showcase_cascade_value) + "\n" };
+			std::string showcase_single_cone_definition{ "#define SHOWCASE_SINGLE_RAY " + std::to_string(showcase_single_ray_value) + "\n" };
+			std::string showcase_merge_to_definition{ "#define SHOWCASE_MERGE_TO " + std::to_string(showcase_merge_to_value) + "\n" };
 
-			glProgramUniform2ui
-			(
-				environment.state.holographic_cascade_fluence_single_cone_draw_shader,
-				environment.state.holographic_cascade_fluence_single_cone_draw_shader_probe_grid_size_uniform_location,
-				environment.state.holographic_probe_grid_width, environment.state.holographic_probe_grid_height
-			);
-			environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascade = 0u;
-			glProgramUniform1ui
-			(
-				environment.state.holographic_cascade_fluence_single_cone_draw_shader,
-				environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascade_uniform_location,
-				environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascade
-			);
-			environment.state.holographic_cascade_fluence_single_cone_draw_shader_showcased_cone_texel_x = 1u;
-			environment.state.holographic_cascade_fluence_single_cone_draw_shader_showcased_cone_texel_y = 1u;
-			glProgramUniform2ui
-			(
-				environment.state.holographic_cascade_fluence_single_cone_draw_shader,
-				environment.state.holographic_cascade_fluence_single_cone_draw_shader_showcased_cone_texel_position_uniform_location,
-				environment.state.holographic_cascade_fluence_single_cone_draw_shader_showcased_cone_texel_x, 
-				environment.state.holographic_cascade_fluence_single_cone_draw_shader_showcased_cone_texel_y
-			);
-			std::cout << "Holographic cascade fluence single cone draw shader compiled. Probe grid size uniform location: "
-				<< environment.state.holographic_cascade_fluence_single_cone_draw_shader_probe_grid_size_uniform_location << ". Cascade uniform location: "
-				<< environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascade_uniform_location << ". Showcased cone texel position: " 
-				<< environment.state.holographic_cascade_fluence_single_cone_draw_shader_showcased_cone_texel_position_uniform_location << std::endl;
+			{
+				std::string mode_definition{ "#define MODE " + std::to_string(showcase_cascade_value) + "\n" };
+				::util::shader::set_shader_statically
+				(
+					vertex_shader,
+					util_shader_VERSION,
+					showcase_cascade_mode_definition,
+					showcase_single_cone_definition,
+					showcase_merge_to_definition,
+					mode_definition,
+					::util::shader::file_to_string("holographic_radiance_cascades/cascade_rays/cascade_rays.vert")
+				);
+				::util::shader::set_shader_statically
+				(
+					fragment_shader,
+					util_shader_VERSION,
+					showcase_cascade_mode_definition,
+					showcase_single_cone_definition,
+					showcase_merge_to_definition,
+					mode_definition,
+					::util::shader::file_to_string("holographic_radiance_cascades/cascade_rays/cascade_rays.frag")
+				);
+				environment.state.holographic_cascade_rays_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+				environment.state.holographic_cascade_rays_draw_shader_probe_grid_size_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_draw_shader, "probe_grid_size");
+				environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_draw_shader, "cascade");
+				glProgramUniform2ui
+				(
+					environment.state.holographic_cascade_rays_draw_shader,
+					environment.state.holographic_cascade_rays_draw_shader_probe_grid_size_uniform_location,
+					environment.state.holographic_probe_grid_size[0u], environment.state.holographic_probe_grid_size[1u]
+				);
+				environment.state.holographic_cascade_rays_draw_shader_cascade = 1u;
+				glProgramUniform1ui
+				(
+					environment.state.holographic_cascade_rays_draw_shader,
+					environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_location,
+					environment.state.holographic_cascade_rays_draw_shader_cascade
+				);
+				std::cout << "Holographic cascade rays draw shader compiled. Probe grid size uniform location: "
+					<< environment.state.holographic_cascade_rays_draw_shader_probe_grid_size_uniform_location << ". Cascade uniform location: "
+					<< environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_location << std::endl;
+			}
+
+			{
+				std::string mode_definition{ "#define MODE " + std::to_string(showcase_single_ray_value) + "\n" };
+				::util::shader::set_shader_statically
+				(
+					vertex_shader,
+					util_shader_VERSION,
+					showcase_cascade_mode_definition,
+					showcase_single_cone_definition,
+					showcase_merge_to_definition,
+					mode_definition,
+					::util::shader::file_to_string("holographic_radiance_cascades/cascade_rays/cascade_rays.vert")
+				);
+				::util::shader::set_shader_statically
+				(
+					fragment_shader,
+					util_shader_VERSION,
+					showcase_cascade_mode_definition,
+					showcase_single_cone_definition,
+					showcase_merge_to_definition,
+					mode_definition,
+					::util::shader::file_to_string("holographic_radiance_cascades/cascade_rays/cascade_rays.frag")
+				);
+				environment.state.holographic_cascade_rays_single_ray_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+				environment.state.holographic_cascade_rays_single_ray_draw_shader_probe_grid_size_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_single_ray_draw_shader, "probe_grid_size");
+				environment.state.holographic_cascade_rays_single_ray_draw_shader_cascade_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_single_ray_draw_shader, "cascade");
+				environment.state.holographic_cascade_rays_single_ray_draw_shader_showcased_ray_texel_position_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_single_ray_draw_shader, "showcased_ray_texel_position");
+				glProgramUniform2ui
+				(
+					environment.state.holographic_cascade_rays_single_ray_draw_shader,
+					environment.state.holographic_cascade_rays_single_ray_draw_shader_probe_grid_size_uniform_location,
+					environment.state.holographic_probe_grid_size[0u], environment.state.holographic_probe_grid_size[1u]
+				);
+				environment.state.holographic_cascade_rays_single_ray_draw_shader_cascade = 1u;
+				glProgramUniform1ui
+				(
+					environment.state.holographic_cascade_rays_single_ray_draw_shader,
+					environment.state.holographic_cascade_rays_single_ray_draw_shader_cascade_uniform_location,
+					environment.state.holographic_cascade_rays_single_ray_draw_shader_cascade
+				);
+				environment.state.holographic_cascade_rays_single_ray_draw_shader_showcased_ray_texel_x = 0u;
+				environment.state.holographic_cascade_rays_single_ray_draw_shader_showcased_ray_texel_y = 1u;
+				glProgramUniform2ui
+				(
+					environment.state.holographic_cascade_rays_single_ray_draw_shader,
+					environment.state.holographic_cascade_rays_single_ray_draw_shader_showcased_ray_texel_position_uniform_location,
+					environment.state.holographic_cascade_rays_single_ray_draw_shader_showcased_ray_texel_x,
+					environment.state.holographic_cascade_rays_single_ray_draw_shader_showcased_ray_texel_y
+				);
+				std::cout << "Holographic cascade rays single ray draw shader compiled. Probe grid size uniform location: "
+					<< environment.state.holographic_cascade_rays_single_ray_draw_shader_probe_grid_size_uniform_location << ". Cascade uniform location: "
+					<< environment.state.holographic_cascade_rays_single_ray_draw_shader_cascade_uniform_location << ". Showcased ray texel position uniform location: "
+					<< environment.state.holographic_cascade_rays_single_ray_draw_shader_showcased_ray_texel_position_uniform_location << std::endl;
+			}
 		}
-
-		{
-			std::string mode_definition{ "#define MODE " + std::to_string(showcase_merge_to_value) + "\n" };
-
-			::util::shader::set_shader_statically
-			(
-				vertex_shader,
-				util_shader_VERSION,
-				cone_radius_definition.c_str(),
-				showcase_cascade_mode_definition,
-				showcase_single_cone_definition,
-				showcase_merge_to_definition,
-				mode_definition,
-				::util::shader::file_to_string("holographic_radiance_cascades/cascade_fluence/cascade_fluence.vert")
-			);
-			::util::shader::set_shader_statically
-			(
-				fragment_shader,
-				util_shader_VERSION,
-				showcase_cascade_mode_definition,
-				showcase_single_cone_definition,
-				showcase_merge_to_definition,
-				mode_definition,
-				cone_radius_definition.c_str(),
-				::util::shader::file_to_string("holographic_radiance_cascades/cascade_fluence/cascade_fluence.frag")
-			);
-
-			environment.state.holographic_cascade_fluence_merge_to_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
-			environment.state.holographic_cascade_fluence_merge_to_draw_shader_probe_grid_size_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_fluence_merge_to_draw_shader, "probe_grid_size");
-			environment.state.holographic_cascade_fluence_merge_to_draw_shader_cascade_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_fluence_merge_to_draw_shader, "cascade");
-			environment.state.holographic_cascade_fluence_merge_to_draw_shader_merged_to_cone_texel_position_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_fluence_merge_to_draw_shader, "merged_to_cone_texel_position");
-
-			glProgramUniform2ui
-			(
-				environment.state.holographic_cascade_fluence_merge_to_draw_shader,
-				environment.state.holographic_cascade_fluence_merge_to_draw_shader_probe_grid_size_uniform_location,
-				environment.state.holographic_probe_grid_width, environment.state.holographic_probe_grid_height
-			);
-			environment.state.holographic_cascade_fluence_merge_to_draw_shader_cascade = 1u;
-			glProgramUniform1ui
-			(
-				environment.state.holographic_cascade_fluence_merge_to_draw_shader,
-				environment.state.holographic_cascade_fluence_merge_to_draw_shader_cascade_uniform_location,
-				environment.state.holographic_cascade_fluence_merge_to_draw_shader_cascade
-			);
-			environment.state.holographic_cascade_fluence_merge_to_draw_shader_merged_to_cone_texel_x = 1u;
-			environment.state.holographic_cascade_fluence_merge_to_draw_shader_merged_to_cone_texel_y = 1u;
-			glProgramUniform2ui
-			(
-				environment.state.holographic_cascade_fluence_merge_to_draw_shader,
-				environment.state.holographic_cascade_fluence_merge_to_draw_shader_merged_to_cone_texel_position_uniform_location,
-				environment.state.holographic_cascade_fluence_merge_to_draw_shader_merged_to_cone_texel_x,
-				environment.state.holographic_cascade_fluence_merge_to_draw_shader_merged_to_cone_texel_y
-			);
-			std::cout << "Holographic cascade fluence merge to draw shader compiled. Probe grid size uniform location: "
-				<< environment.state.holographic_cascade_fluence_merge_to_draw_shader_probe_grid_size_uniform_location << ". Cascade uniform location: "
-				<< environment.state.holographic_cascade_fluence_merge_to_draw_shader_cascade_uniform_location << ". Merged to cone texel position uniform location: "
-				<< environment.state.holographic_cascade_fluence_merge_to_draw_shader_merged_to_cone_texel_position_uniform_location << std::endl;
-		}
-
-		::util::shader::set_shader_statically
-		(
-			vertex_shader,
-			util_shader_VERSION,
-			::util::shader::file_to_string("holographic_radiance_cascades/cascade_rays/cascade_rays.vert")
-		);
-		::util::shader::set_shader_statically
-		(
-			fragment_shader,
-			util_shader_VERSION,
-			::util::shader::file_to_string("holographic_radiance_cascades/cascade_rays/cascade_rays.frag")
-		);
-		environment.state.holographic_cascade_rays_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
-		environment.state.holographic_cascade_rays_draw_shader_probe_grid_size_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_draw_shader, "probe_grid_size");
-		environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_draw_shader, "cascade");
-		glProgramUniform2ui
-		(
-			environment.state.holographic_cascade_rays_draw_shader,
-			environment.state.holographic_cascade_rays_draw_shader_probe_grid_size_uniform_location,
-			environment.state.holographic_probe_grid_size[0u], environment.state.holographic_probe_grid_size[1u]
-		);
-		environment.state.holographic_cascade_rays_draw_shader_cascade = 1u;
-		glProgramUniform1ui
-		(
-			environment.state.holographic_cascade_rays_draw_shader,
-			environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_location,
-			environment.state.holographic_cascade_rays_draw_shader_cascade
-		);
-		std::cout << "Holographic cascade rays draw shader compiled. Probe grid size uniform location: "
-			<< environment.state.holographic_cascade_rays_draw_shader_probe_grid_size_uniform_location << ". Cascade uniform location: "
-			<< environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_location << std::endl;
 
 		environment.state.holographic_ray_trace_shader_count = game_state::initial_holographic_ray_trace_cascade_count;
 		environment.state.holographic_ray_trace_shaders = new GLuint[environment.state.holographic_ray_trace_shader_count];
