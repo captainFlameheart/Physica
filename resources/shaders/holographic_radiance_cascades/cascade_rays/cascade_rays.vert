@@ -100,27 +100,31 @@ vec4 pick_color_if_merging_to_ray
 	float c_is_inside = float(c <= ray_casting_data_lower_cascade_max_ray_probe_column);
 
 	// Lower far
-	int lower_far_sample_y = i + d * ray_casting_data_g - ray_casting_data_f;	// Does not need to be clamped
+	int lower_far_sample_y = i + d * ray_casting_data_g - ray_casting_data_f;
+	int clamped_lower_far_sample_y = clamp(lower_far_sample_y, 0, ray_casting_data_lower_cascade_max_ray_probe_row);
+	float lower_far_sample_y_is_inside = float(0 <= lower_far_sample_y) * float(lower_far_sample_y <= ray_casting_data_lower_cascade_max_ray_probe_row);
 
 	int clamped_i = min(i, ray_casting_data_lower_cascade_max_ray_probe_row);
 	float i_is_inside = float(i <= ray_casting_data_lower_cascade_max_ray_probe_row);
 
 	// Upper far
 	int upper_far_sample_y = h + e * ray_casting_data_g - ray_casting_data_f;	// Does not need to be clamped
-	
+	int clamped_upper_far_sample_y = clamp(upper_far_sample_y, 0, ray_casting_data_lower_cascade_max_ray_probe_row);
+	float upper_far_sample_y_is_inside = float(0 <= upper_far_sample_y) * float(upper_far_sample_y <= ray_casting_data_lower_cascade_max_ray_probe_row);
+
 	// End of merge replication.
 
 	int lower_near_texel_x = a;
 	int lower_near_texel_y = clamped_h;
 	
 	int lower_far_texel_x = clamped_c;
-	int lower_far_texel_y = lower_far_sample_y;
+	int lower_far_texel_y = clamped_lower_far_sample_y;
 
 	int upper_near_texel_x = a;
 	int upper_near_texel_y = clamped_i;
 
 	int upper_far_texel_x = clamped_c;
-	int upper_far_texel_y = upper_far_sample_y;
+	int upper_far_texel_y = clamped_upper_far_sample_y;
 
 	bool query_is_lower_near_ray = query_texel_position.x == lower_near_texel_x && query_texel_position.y == lower_near_texel_y;
 	bool query_is_lower_far_ray = query_texel_position.x == lower_far_texel_x && query_texel_position.y == lower_far_texel_y;
