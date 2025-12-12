@@ -1006,7 +1006,7 @@ namespace game_logic
 
 	void start_presentation_stage(game_environment::Environment& environment)
 	{
-		environment.state.presentation_state_0 = game_state::Game::Presentation_State_0::DEFAULT;
+		environment.state.presentation_state_0 = game_state::Game::Presentation_State_0::SHOW_INNER_WORKINGS;
 
 		GLuint stage{ environment.state.presentation_stage };
 		std::cout << "Start stage " << stage << std::endl;
@@ -1248,6 +1248,15 @@ namespace game_logic
 			break;
 		case 17u:
 			set_linear_fluence_interpolation(environment);
+			break;
+		case 18u:
+			environment.state.holographic_cascade_rays_radiance_draw_shader_cascade = 0u;
+			glProgramUniform1ui
+			(
+				environment.state.holographic_cascade_rays_radiance_draw_shader,
+				environment.state.holographic_cascade_rays_radiance_draw_shader_cascade_uniform_location,
+				environment.state.holographic_cascade_rays_radiance_draw_shader_cascade
+			);
 			break;
 		}
 	}
@@ -10178,6 +10187,24 @@ namespace game_logic
 						};
 						glDrawArrays(GL_LINES, 0, vertex_count);
 					}
+				}
+				else if (environment.state.presentation_stage == 18u)
+				{
+					GLuint const cascade_power_of_two{ 1u << environment.state.holographic_cascade_rays_radiance_draw_shader_cascade };
+					GLuint const rays_per_probe{ cascade_power_of_two + 1u };
+					GLuint const skipped_rays_below_column{ (cascade_power_of_two + 1u) >> 1u };
+
+					glBindTextureUnit(2u, environment.state.ray_textures[environment.state.holographic_cascade_rays_radiance_draw_shader_cascade]);
+
+					glUseProgram(environment.state.holographic_cascade_rays_radiance_draw_shader);
+					// TODO: Avoid calling ceil function
+					// IMPORTANT TODO: Probe column 0 is not needed
+					GLuint const vertex_count
+					{
+						(environment.state.holographic_probe_grid_size[1u] << 1u) * (cascade_power_of_two + 1u) *
+						(ceil_div(static_cast<GLuint>(environment.state.holographic_probe_grid_width) - 1u - cascade_power_of_two, cascade_power_of_two) + 1u)
+					};
+					glDrawArrays(GL_LINES, 0, vertex_count);
 				}
 				else
 				{

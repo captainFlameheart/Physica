@@ -19,8 +19,7 @@ uniform uvec2 probe_grid_size;
 uniform uint cascade;
 #if MODE == SHOWCASE_SINGLE_RAY
 	uniform uvec2 showcased_ray_texel_position;
-#endif
-#if MODE == SHOWCASE_MERGE_TO_RAY
+#elif MODE == SHOWCASE_MERGE_TO_RAY
 	uniform uvec2 merged_to_ray_texel_position;
 #elif MODE == SHOWCASE_MERGE_TO_CONE
 	uniform uvec2 merged_to_cone_texel_position;
@@ -368,6 +367,18 @@ void main()
 			lines_per_probe, skipped_rays_below_column,
 			probe_column, probe_y, direction_index
 		);
-		line_color = texelFetch(rays, ivec3(ray_texel_position, 0), 0);
+		if
+		(
+			0 <= ray_texel_position.x && ray_texel_position.x < textureSize(rays, 0).x &&
+			0 <= ray_texel_position.y && ray_texel_position.y < textureSize(rays, 0).y
+		)
+		{
+			line_color = texelFetch(rays, ivec3(ray_texel_position, 0), 0);
+			line_color.a = 1.0;
+		}
+		else
+		{
+			line_color = vec4(1.0, 0.0, 0.0, 1.0);
+		}
 	#endif
 }
