@@ -1,9 +1,9 @@
 /* Expected to be concatenated from the CPU:
 
-#define DEFAULT_MODE ?
-#define ZOOMED_OUT_MODE ?
+#define DEFAULT_ZOOM_MODE ?
+#define ZOOMED_OUT_ZOOM_MODE ?
 
-#define MODE ?
+#define ZOOM_MODE ?
 
 */
 
@@ -24,7 +24,7 @@ void main()
 {
 	vec2 vertex = vertices[gl_VertexID];
 	sample_point = vertex * 0.5 + 0.5;
-	#if MODE == ZOOMED_OUT_MODE
+	#if MODE == ZOOMED_OUT_ZOOM_MODE
 		vertex *= 0.5;
 	#endif
 	gl_Position = vec4(vertex, 0.0, 1.0);
