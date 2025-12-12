@@ -122,25 +122,29 @@ vec4 pick_color_if_merging_to
 
 	const float active_alpha = 1.0;
 
+	const float brightness = 0.2 + float(query_direction_id & 1u) * 0.8;
+	vec4 color = vec4(brightness, brightness, brightness, 0.2);
+	if (query_is_lower_near_fluence || query_is_lower_far_fluence || query_is_upper_near_fluence || query_is_upper_far_fluence)
+	{
+		color = vec4(0.0, 0.0, 0.0, active_alpha);
+	}
 	if (query_is_lower_near_fluence)
 	{
-		return vec4(1.0, 0.0, 0.0, active_alpha);
+		color += vec4(1.0, 0.0, 0.0, active_alpha);
 	}
 	if (query_is_lower_far_fluence)
 	{
-		return vec4(0.0, 0.0, 1.0, active_alpha);
+		color += vec4(1.0, 1.0, 0.0, active_alpha);
 	}
 	if (query_is_upper_near_fluence)
 	{
-		return vec4(1.0, 1.0, 0.0, active_alpha);
+		color += vec4(0.0, 0.0, 1.0, active_alpha);
 	}
 	if (query_is_upper_far_fluence)
 	{
-		return vec4(0.0, 1.0, 1.0, active_alpha);
+		color += vec4(0.0, 1.0, 1.0, active_alpha);
 	}
-
-	const float brightness = 0.2 + float(query_direction_id & 1u) * 0.8;
-	return vec4(brightness, brightness, brightness, 0.2);
+	return color;
 }
 
 void main()
