@@ -989,7 +989,7 @@ namespace game_logic
 
 	void start_presentation_stage(game_environment::Environment& environment)
 	{
-		environment.state.presentation_state_0 = game_state::Game::Presentation_State_0::SHOW_INNER_WORKINGS;
+		environment.state.presentation_state_0 = game_state::Game::Presentation_State_0::DEFAULT;
 
 		GLuint stage{ environment.state.presentation_stage };
 		std::cout << "Start stage " << stage << std::endl;
@@ -9601,7 +9601,7 @@ namespace game_logic
 				}
 
 				glUseProgram(environment.state.holographic_ray_extend_shader);
-				for (GLint cascade{ game_state::initial_holographic_ray_trace_cascade_count }; cascade < environment.state.max_cascade_index; ++cascade)
+				for (GLint cascade{ static_cast<GLint>(game_state::initial_holographic_ray_trace_cascade_count) }; cascade < environment.state.max_cascade_index; ++cascade)
 				{
 					GLint const padded_block_size
 					{
@@ -9621,8 +9621,8 @@ namespace game_logic
 
 					GLint const cascade_power_of_two{ 1 << cascade };
 					GLint const width{ ceil_div(static_cast<GLint>(environment.state.holographic_probe_grid_width) - 1 - cascade_power_of_two, cascade_power_of_two) };
-					GLuint const rays_in_vacuum_per_column{ ceil_div(cascade_power_of_two + 1u, 2u) << 1u };
-					GLuint const height{ environment.state.holographic_probe_grid_height * (cascade_power_of_two + 1u) - rays_in_vacuum_per_column };
+					GLint const rays_in_vacuum_per_column{ ceil_div(cascade_power_of_two + 1, 2) << 1 };
+					GLint const height{ static_cast<GLint>(environment.state.holographic_probe_grid_height) * (cascade_power_of_two + 1) - rays_in_vacuum_per_column };
 					glViewport(0, 0, width, height);
 
 					glDrawArrays(GL_TRIANGLES, 0, 3u);
@@ -9916,7 +9916,7 @@ namespace game_logic
 					}
 
 					{
-						GLuint const merged_from_cascade_power_of_two{ 1u << environment.state.holographic_cascade_rays_single_ray_draw_shader_cascade };
+						GLuint const merged_from_cascade_power_of_two{ 1u << environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_cascade };
 						GLuint const merged_from_rays_per_probe{ merged_from_cascade_power_of_two + 1u };
 						GLuint const merged_from_skipped_rays_below_column{ (merged_from_rays_per_probe + 1u) >> 1u };
 
