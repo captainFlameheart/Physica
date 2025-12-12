@@ -61,8 +61,11 @@ void main()
 
 	// Lower far
 	int lower_far_sample_y = i + d * ray_casting_data.g - ray_casting_data.f;	// Does not need to be clamped
-	radiance += transmittance * (c_is_inside * texelFetch(shorter_rays, ivec3(clamped_c, lower_far_sample_y, 0), 0));
-	transmittance *= mix(vec4(1.0), texelFetch(shorter_rays, ivec3(clamped_c, lower_far_sample_y, 1), 0), c_is_inside);
+	int clamped_lower_far_sample_y = clamp(lower_far_sample_y, 0, ray_casting_data.lower_cascade_max_ray_probe_row);
+	float lower_far_sample_y_is_inside = float(0 <= lower_far_sample_y) * float(lower_far_sample_y <= ray_casting_data.lower_cascade_max_ray_probe_row);
+	float lower_far_sample_is_inside = c_is_inside * lower_far_sample_y_is_inside;
+	radiance += transmittance * (lower_far_sample_is_inside * texelFetch(shorter_rays, ivec3(clamped_c, clamped_lower_far_sample_y, 0), 0));
+	transmittance *= mix(vec4(1.0), texelFetch(shorter_rays, ivec3(clamped_c, clamped_lower_far_sample_y, 1), 0), lower_far_sample_is_inside);
 
 	int clamped_i = min(i, ray_casting_data.lower_cascade_max_ray_probe_row);
 	float i_is_inside = float(i <= ray_casting_data.lower_cascade_max_ray_probe_row);
@@ -73,8 +76,11 @@ void main()
 	
 	// Upper far
 	int upper_far_sample_y = h + e * ray_casting_data.g - ray_casting_data.f;	// Does not need to be clamped
-	radiance += upper_transmittance * (c_is_inside * texelFetch(shorter_rays, ivec3(clamped_c, upper_far_sample_y, 0), 0));
-	upper_transmittance *= mix(vec4(1.0), texelFetch(shorter_rays, ivec3(clamped_c, upper_far_sample_y, 1), 0), c_is_inside);
+	int clamped_upper_far_sample_y = clamp(upper_far_sample_y, 0, ray_casting_data.lower_cascade_max_ray_probe_row);
+	float upper_far_sample_y_is_inside = float(0 <= upper_far_sample_y) * float(upper_far_sample_y <= ray_casting_data.lower_cascade_max_ray_probe_row);
+	float upper_far_sample_is_inside = c_is_inside * upper_far_sample_y_is_inside;
+	radiance += upper_transmittance * (upper_far_sample_is_inside * texelFetch(shorter_rays, ivec3(clamped_c, clamped_upper_far_sample_y, 0), 0));
+	upper_transmittance *= mix(vec4(1.0), texelFetch(shorter_rays, ivec3(clamped_c, clamped_upper_far_sample_y, 1), 0), upper_far_sample_is_inside);
 	
 	transmittance += upper_transmittance;
 
