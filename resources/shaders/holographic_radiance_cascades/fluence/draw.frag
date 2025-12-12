@@ -15,7 +15,6 @@ void main()
 {
 	//vec2 sample_point = gl_FragCoord.xy / vec2(textureSize(source, 0).xy);
 	color = texture(source, vec3(sample_point, 0.0));
-	return;
 
 	// IMPORTANT TODO: Store inverse size to avoid division
 	// IMPORTANT TODO: Do this computation inside vertex shader
