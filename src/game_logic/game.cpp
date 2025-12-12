@@ -739,16 +739,16 @@ namespace game_logic
 
 					GLint const cascade_power_of_two{ 1 << cascade };
 					GLint const rays_per_probe{ cascade_power_of_two + 1 };
-					GLint const skipped_rays_below_column{ ceil_div(rays_per_probe, 2) };
+					GLint const skipped_rays_below_column{ (rays_per_probe + 1) >> 1 }; //ceil_div(rays_per_probe, 2) };
 
 					GLint const lower_cascade{ cascade - 1 };
 					GLint const lower_cascade_power_of_two{ 1 << lower_cascade };
 					GLint const lower_cascade_rays_per_probe{ lower_cascade_power_of_two + 1 };
-					GLint const lower_cascade_skipped_rays_below_column{ ceil_div(lower_cascade_rays_per_probe, 2) };
+					GLint const lower_cascade_skipped_rays_below_column{ (lower_cascade_rays_per_probe + 1) >> 1 }; //ceil_div(lower_cascade_rays_per_probe, 2) };
 					GLint const lower_cascade_rays_in_vacuum_per_column{ lower_cascade_skipped_rays_below_column << 1 };
 					GLint const lower_cascade_max_ray_probe_column
 					{
-						ceil_div(edge_width - lower_cascade_power_of_two, lower_cascade_power_of_two) - 1
+						(edge_width - 1) / lower_cascade_power_of_two - 1//ceil_div(edge_width - lower_cascade_power_of_two, lower_cascade_power_of_two) - 1
 					};
 					GLint const lower_cascade_max_ray_probe_row
 					{
@@ -782,6 +782,11 @@ namespace game_logic
 					(
 						base + environment.state.holographic_ray_extend_buffer_lower_cascade_rays_per_probe_offset,
 						&lower_cascade_rays_per_probe, sizeof(lower_cascade_rays_per_probe)
+					);
+					std::memcpy
+					(
+						base + environment.state.holographic_ray_extend_buffer_lower_cascade_skipped_rays_below_column_offset,
+						&lower_cascade_skipped_rays_below_column, sizeof(lower_cascade_skipped_rays_below_column)
 					);
 					std::memcpy
 					(
@@ -1251,6 +1256,33 @@ namespace game_logic
 			break;
 		case 18u:
 			environment.state.holographic_cascade_rays_radiance_draw_shader_cascade = 0u;
+			glProgramUniform1ui
+			(
+				environment.state.holographic_cascade_rays_radiance_draw_shader,
+				environment.state.holographic_cascade_rays_radiance_draw_shader_cascade_uniform_location,
+				environment.state.holographic_cascade_rays_radiance_draw_shader_cascade
+			);
+			break;
+		case 19u:
+			environment.state.holographic_cascade_rays_radiance_draw_shader_cascade = 1u;
+			glProgramUniform1ui
+			(
+				environment.state.holographic_cascade_rays_radiance_draw_shader,
+				environment.state.holographic_cascade_rays_radiance_draw_shader_cascade_uniform_location,
+				environment.state.holographic_cascade_rays_radiance_draw_shader_cascade
+			);
+			break;
+		case 20u:
+			environment.state.holographic_cascade_rays_radiance_draw_shader_cascade = 2u;
+			glProgramUniform1ui
+			(
+				environment.state.holographic_cascade_rays_radiance_draw_shader,
+				environment.state.holographic_cascade_rays_radiance_draw_shader_cascade_uniform_location,
+				environment.state.holographic_cascade_rays_radiance_draw_shader_cascade
+			);
+			break;
+		case 21u:
+			environment.state.holographic_cascade_rays_radiance_draw_shader_cascade = 3u;
 			glProgramUniform1ui
 			(
 				environment.state.holographic_cascade_rays_radiance_draw_shader,
@@ -10188,7 +10220,7 @@ namespace game_logic
 						glDrawArrays(GL_LINES, 0, vertex_count);
 					}
 				}
-				else if (environment.state.presentation_stage == 18u)
+				else if (18u <= environment.state.presentation_stage && environment.state.presentation_stage <= 21u)
 				{
 					GLuint const cascade_power_of_two{ 1u << environment.state.holographic_cascade_rays_radiance_draw_shader_cascade };
 					GLuint const rays_per_probe{ cascade_power_of_two + 1u };
