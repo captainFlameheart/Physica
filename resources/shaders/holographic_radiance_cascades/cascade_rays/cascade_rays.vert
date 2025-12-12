@@ -7,6 +7,11 @@
 
 #define MODE ?;
 
+#define DEFAULT_ZOOM_MODE ?
+#define ZOOMED_OUT_ZOOM_MODE ?
+
+#define ZOOM_MODE ?
+
 */
 
 uniform uvec2 probe_grid_size;
@@ -305,6 +310,10 @@ void main()
 			float(position.y << 1u) / float(probe_grid_size.y - 1u) - 1.0, 
 			0.0, 1.0
 		);
+	#endif
+
+	#if ZOOM_MODE == ZOOMED_OUT_ZOOM_MODE
+		gl_Position.xy *= 0.5;
 	#endif
 
 	#if MODE == SHOWCASE_CASCADE

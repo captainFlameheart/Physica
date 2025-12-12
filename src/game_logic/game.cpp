@@ -2222,45 +2222,83 @@ namespace game_logic
 			<< environment.state.holographic_source_draw_shader_source_uniform_location << ". Layer uniform location: " 
 			<< environment.state.holographic_source_draw_shader_layer_uniform_location << std::endl;
 
-		::util::shader::set_shader_statically
-		(
-			vertex_shader,
-			util_shader_VERSION,
-			::util::shader::file_to_string("holographic_radiance_cascades/probe_grid/probe_grid.vert")
-		);
-		::util::shader::set_shader_statically
-		(
-			fragment_shader,
-			util_shader_VERSION,
-			::util::shader::file_to_string("holographic_radiance_cascades/probe_grid/probe_grid.frag")
-		);
-		environment.state.holographic_probe_grid_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
-		environment.state.holographic_probe_grid_draw_shader_probe_grid_size_uniform_location = glGetUniformLocation(environment.state.holographic_probe_grid_draw_shader, "probe_grid_size");
-		glProgramUniform2ui
-		(
-			environment.state.holographic_probe_grid_draw_shader,
-			environment.state.holographic_probe_grid_draw_shader_probe_grid_size_uniform_location,
-			environment.state.holographic_probe_grid_size[0u], environment.state.holographic_probe_grid_size[1u]
-		);
-		std::cout << "Holographic probe grid draw shader compiled. Probe grid size uniform location: "
-			<< environment.state.holographic_probe_grid_draw_shader_probe_grid_size_uniform_location << std::endl;
+		{
+			constexpr GLuint default_zoom_mode_value{ 0u };
+			constexpr GLuint zoomed_out_zoom_mode_value{ 1u };
 
-		::util::shader::set_shader_statically
-		(
-			vertex_shader,
-			util_shader_VERSION,
-			::util::shader::file_to_string("holographic_radiance_cascades/probe_points/probe_points.vert")
-		);
-		::util::shader::set_shader_statically
-		(
-			fragment_shader,
-			util_shader_VERSION,
-			::util::shader::file_to_string("holographic_radiance_cascades/probe_points/probe_points.frag")
-		);
-		environment.state.holographic_probe_points_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
-		environment.state.holographic_probe_points_draw_shader_probe_grid_size_uniform_location = glGetUniformLocation(environment.state.holographic_probe_points_draw_shader, "probe_grid_size");
-		std::cout << "Holographic probe points draw shader compiled. Probe grid size uniform location: "
-			<< environment.state.holographic_probe_points_draw_shader_probe_grid_size_uniform_location << std::endl;
+			std::string default_zoom_mode_definition{ "#define DEFAULT_ZOOM_MODE " + std::to_string(default_zoom_mode_value) + '\n' };
+			std::string zoomed_out_zoom_mode_definition{ "#define ZOOMED_OUT_ZOOM_MODE " + std::to_string(zoomed_out_zoom_mode_value) + '\n' };
+
+			{
+				constexpr GLuint zoom_mode_value{ zoomed_out_zoom_mode_value };
+				std::string zoom_mode_definition{ "#define ZOOM_MODE " + std::to_string(zoomed_out_zoom_mode_value) + '\n' };
+				
+				::util::shader::set_shader_statically
+				(
+					vertex_shader,
+					util_shader_VERSION,
+					default_zoom_mode_definition,
+					zoomed_out_zoom_mode_definition,
+					zoom_mode_definition,
+					::util::shader::file_to_string("holographic_radiance_cascades/probe_grid/probe_grid.vert")
+				);
+				::util::shader::set_shader_statically
+				(
+					fragment_shader,
+					util_shader_VERSION,
+					default_zoom_mode_definition,
+					zoomed_out_zoom_mode_definition,
+					zoom_mode_definition,
+					::util::shader::file_to_string("holographic_radiance_cascades/probe_grid/probe_grid.frag")
+				);
+				environment.state.holographic_probe_grid_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+				environment.state.holographic_probe_grid_draw_shader_probe_grid_size_uniform_location = glGetUniformLocation(environment.state.holographic_probe_grid_draw_shader, "probe_grid_size");
+				glProgramUniform2ui
+				(
+					environment.state.holographic_probe_grid_draw_shader,
+					environment.state.holographic_probe_grid_draw_shader_probe_grid_size_uniform_location,
+					environment.state.holographic_probe_grid_size[0u], environment.state.holographic_probe_grid_size[1u]
+				);
+				std::cout << "Holographic probe grid draw shader compiled. Probe grid size uniform location: "
+					<< environment.state.holographic_probe_grid_draw_shader_probe_grid_size_uniform_location << std::endl;
+			}
+		}
+
+
+		{
+			constexpr GLuint default_mode_value{ 0u };
+			constexpr GLuint zoomed_out_mode_value{ 1u };
+
+			std::string default_mode_definition{ "#define DEFAULT_MODE " + std::to_string(default_mode_value) + '\n' };
+			std::string zoomed_out_mode_definition{ "#define ZOOMED_OUT_MODE " + std::to_string(zoomed_out_mode_value) + '\n' };
+
+			{
+				constexpr GLuint mode_value{ zoomed_out_mode_value };
+				std::string mode_definition{ "#define MODE " + std::to_string(mode_value) + '\n' };
+				::util::shader::set_shader_statically
+				(
+					vertex_shader,
+					util_shader_VERSION,
+					default_mode_definition,
+					zoomed_out_mode_definition,
+					mode_definition,
+					::util::shader::file_to_string("holographic_radiance_cascades/probe_points/probe_points.vert")
+				);
+				::util::shader::set_shader_statically
+				(
+					fragment_shader,
+					util_shader_VERSION,
+					default_mode_definition,
+					zoomed_out_mode_definition,
+					mode_definition,
+					::util::shader::file_to_string("holographic_radiance_cascades/probe_points/probe_points.frag")
+				);
+				environment.state.holographic_probe_points_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+				environment.state.holographic_probe_points_draw_shader_probe_grid_size_uniform_location = glGetUniformLocation(environment.state.holographic_probe_points_draw_shader, "probe_grid_size");
+				std::cout << "Holographic probe points draw shader compiled. Probe grid size uniform location: "
+					<< environment.state.holographic_probe_points_draw_shader_probe_grid_size_uniform_location << std::endl;
+			}
+		}
 
 		{
 			std::string cone_radius_definition{ "const float cone_radius = " + std::to_string(0.5f) + ";\n" };
@@ -2272,8 +2310,17 @@ namespace game_logic
 			std::string showcase_single_cone_definition{ "#define SHOWCASE_SINGLE_CONE " + std::to_string(showcase_single_cone_value) + "\n" };
 			std::string showcase_merge_to_definition{ "#define SHOWCASE_MERGE_TO " + std::to_string(showcase_merge_to_value) + "\n" };
 
+			constexpr GLuint default_zoom_mode_value{ 0u };
+			constexpr GLuint zoomed_out_zoom_mode_value{ 1u };
+
+			std::string default_zoom_mode_definition{ "#define DEFAULT_ZOOM_MODE " + std::to_string(default_zoom_mode_value) + '\n' };
+			std::string zoomed_out_zoom_mode_definition{ "#define ZOOMED_OUT_ZOOM_MODE " + std::to_string(zoomed_out_zoom_mode_value) + '\n' };
+
 			{
 				std::string mode_definition{ "#define MODE " + std::to_string(showcase_cascade_value) + "\n" };
+
+				constexpr GLuint zoom_mode_value{ zoomed_out_zoom_mode_value };
+				std::string zoom_mode_definition{ "#define ZOOM_MODE " + std::to_string(zoomed_out_zoom_mode_value) + '\n' };
 
 				::util::shader::set_shader_statically
 				(
@@ -2284,6 +2331,9 @@ namespace game_logic
 					showcase_single_cone_definition,
 					showcase_merge_to_definition,
 					mode_definition,
+					default_zoom_mode_definition,
+					zoomed_out_zoom_mode_definition,
+					zoom_mode_definition,
 					::util::shader::file_to_string("holographic_radiance_cascades/cascade_fluence/cascade_fluence.vert")
 				);
 				::util::shader::set_shader_statically
@@ -2294,6 +2344,9 @@ namespace game_logic
 					showcase_cascade_mode_definition,
 					showcase_single_cone_definition,
 					showcase_merge_to_definition,
+					default_zoom_mode_definition,
+					zoomed_out_zoom_mode_definition,
+					zoom_mode_definition,
 					mode_definition,
 					::util::shader::file_to_string("holographic_radiance_cascades/cascade_fluence/cascade_fluence.frag")
 				);
@@ -2321,6 +2374,9 @@ namespace game_logic
 			{
 				std::string mode_definition{ "#define MODE " + std::to_string(showcase_single_cone_value) + "\n" };
 
+				constexpr GLuint zoom_mode_value{ zoomed_out_zoom_mode_value };
+				std::string zoom_mode_definition{ "#define ZOOM_MODE " + std::to_string(zoomed_out_zoom_mode_value) + '\n' };
+
 				::util::shader::set_shader_statically
 				(
 					vertex_shader,
@@ -2329,6 +2385,9 @@ namespace game_logic
 					showcase_cascade_mode_definition,
 					showcase_single_cone_definition,
 					showcase_merge_to_definition,
+					default_zoom_mode_definition,
+					zoomed_out_zoom_mode_definition,
+					zoom_mode_definition,
 					mode_definition,
 					::util::shader::file_to_string("holographic_radiance_cascades/cascade_fluence/cascade_fluence.vert")
 				);
@@ -2340,6 +2399,9 @@ namespace game_logic
 					showcase_single_cone_definition,
 					showcase_merge_to_definition,
 					mode_definition,
+					default_zoom_mode_definition,
+					zoomed_out_zoom_mode_definition,
+					zoom_mode_definition,
 					cone_radius_definition.c_str(),
 					::util::shader::file_to_string("holographic_radiance_cascades/cascade_fluence/cascade_fluence.frag")
 				);
@@ -2380,6 +2442,9 @@ namespace game_logic
 			{
 				std::string mode_definition{ "#define MODE " + std::to_string(showcase_merge_to_value) + "\n" };
 
+				constexpr GLuint zoom_mode_value{ zoomed_out_zoom_mode_value };
+				std::string zoom_mode_definition{ "#define ZOOM_MODE " + std::to_string(zoomed_out_zoom_mode_value) + '\n' };
+
 				::util::shader::set_shader_statically
 				(
 					vertex_shader,
@@ -2389,6 +2454,9 @@ namespace game_logic
 					showcase_single_cone_definition,
 					showcase_merge_to_definition,
 					mode_definition,
+					default_zoom_mode_definition,
+					zoomed_out_zoom_mode_definition,
+					zoom_mode_definition,
 					::util::shader::file_to_string("holographic_radiance_cascades/cascade_fluence/cascade_fluence.vert")
 				);
 				::util::shader::set_shader_statically
@@ -2399,6 +2467,9 @@ namespace game_logic
 					showcase_single_cone_definition,
 					showcase_merge_to_definition,
 					mode_definition,
+					default_zoom_mode_definition,
+					zoomed_out_zoom_mode_definition,
+					zoom_mode_definition,
 					cone_radius_definition.c_str(),
 					::util::shader::file_to_string("holographic_radiance_cascades/cascade_fluence/cascade_fluence.frag")
 				);
@@ -2448,8 +2519,18 @@ namespace game_logic
 			std::string showcase_merge_to_ray_definition{ "#define SHOWCASE_MERGE_TO_RAY " + std::to_string(showcase_merge_to_ray_value) + "\n" };
 			std::string showcase_merge_to_cone_definition{ "#define SHOWCASE_MERGE_TO_CONE " + std::to_string(showcase_merge_to_cone_value) + "\n" };
 
+			constexpr GLuint default_zoom_mode_value{ 0u };
+			constexpr GLuint zoomed_out_zoom_mode_value{ 1u };
+
+			std::string default_zoom_mode_definition{ "#define DEFAULT_ZOOM_MODE " + std::to_string(default_zoom_mode_value) + '\n' };
+			std::string zoomed_out_zoom_mode_definition{ "#define ZOOMED_OUT_ZOOM_MODE " + std::to_string(zoomed_out_zoom_mode_value) + '\n' };
+
 			{
 				std::string mode_definition{ "#define MODE " + std::to_string(showcase_cascade_value) + "\n" };
+
+				constexpr GLuint zoom_mode_value{ zoomed_out_zoom_mode_value };
+				std::string zoom_mode_definition{ "#define ZOOM_MODE " + std::to_string(zoomed_out_zoom_mode_value) + '\n' };
+
 				::util::shader::set_shader_statically
 				(
 					vertex_shader,
@@ -2459,6 +2540,9 @@ namespace game_logic
 					showcase_merge_to_ray_definition,
 					showcase_merge_to_cone_definition,
 					mode_definition,
+					default_zoom_mode_definition,
+					zoomed_out_zoom_mode_definition,
+					zoom_mode_definition,
 					::util::shader::file_to_string("holographic_radiance_cascades/cascade_rays/cascade_rays.vert")
 				);
 				::util::shader::set_shader_statically
@@ -2470,6 +2554,9 @@ namespace game_logic
 					showcase_merge_to_ray_definition,
 					showcase_merge_to_cone_definition,
 					mode_definition,
+					default_zoom_mode_definition,
+					zoomed_out_zoom_mode_definition,
+					zoom_mode_definition,
 					::util::shader::file_to_string("holographic_radiance_cascades/cascade_rays/cascade_rays.frag")
 				);
 				environment.state.holographic_cascade_rays_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
@@ -2495,6 +2582,10 @@ namespace game_logic
 
 			{
 				std::string mode_definition{ "#define MODE " + std::to_string(showcase_single_ray_value) + "\n" };
+
+				constexpr GLuint zoom_mode_value{ zoomed_out_zoom_mode_value };
+				std::string zoom_mode_definition{ "#define ZOOM_MODE " + std::to_string(zoomed_out_zoom_mode_value) + '\n' };
+
 				::util::shader::set_shader_statically
 				(
 					vertex_shader,
@@ -2551,6 +2642,10 @@ namespace game_logic
 
 			{
 				std::string mode_definition{ "#define MODE " + std::to_string(showcase_merge_to_cone_value) + "\n" };
+
+				constexpr GLuint zoom_mode_value{ zoomed_out_zoom_mode_value };
+				std::string zoom_mode_definition{ "#define ZOOM_MODE " + std::to_string(zoomed_out_zoom_mode_value) + '\n' };
+
 				::util::shader::set_shader_statically
 				(
 					vertex_shader,
@@ -2607,6 +2702,10 @@ namespace game_logic
 
 			{
 				std::string mode_definition{ "#define MODE " + std::to_string(showcase_merge_to_ray_value) + "\n" };
+
+				constexpr GLuint zoom_mode_value{ zoomed_out_zoom_mode_value };
+				std::string zoom_mode_definition{ "#define ZOOM_MODE " + std::to_string(zoomed_out_zoom_mode_value) + '\n' };
+
 				::util::shader::set_shader_statically
 				(
 					vertex_shader,
@@ -9750,6 +9849,11 @@ namespace game_logic
 
 				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0u);
 				glViewport(0, 0, environment.state.framebuffer_width, environment.state.framebuffer_height);
+				if (environment.state.presentation_state_0 == game_state::Game::Presentation_State_0::SHOW_INNER_WORKINGS)
+				{	// TODO: This if check be if we are zoomed out
+					GLfloat clear_color[4u]{ 0.0f, 0.0f, 0.0f, 1.0f };
+					glClearNamedFramebufferfv(0, GL_COLOR, 0, clear_color);
+				}
 				glUseProgram(environment.state.holographic_draw_fluence_shader);
 				glDrawArrays(GL_TRIANGLES, 0, 6u);
 			}

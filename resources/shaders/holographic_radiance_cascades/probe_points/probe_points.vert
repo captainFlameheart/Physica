@@ -1,3 +1,12 @@
+/* Expected to be concatenated from the CPU:
+
+#define DEFAULT_MODE ?
+#define ZOOMED_OUT_MODE ?
+
+#define MODE ?
+
+*/
+
 uniform uvec2 probe_grid_size;
 
 out vec4 probe_color;
@@ -14,6 +23,10 @@ void main()
 		row * normalized_probe_distance.y - 1.0, 
 		0.0, 1.0
 	);
+
+	#if MODE == ZOOMED_OUT_MODE
+		gl_Position.xy *= 0.5;
+	#endif
 
 	const float brightness = 1.0;
 	probe_color = vec4(brightness, brightness, brightness, 1.0);

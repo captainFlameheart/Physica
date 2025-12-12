@@ -1,3 +1,12 @@
+/* Expected to be concatenated from the CPU:
+
+#define DEFAULT_ZOOM_MODE ?
+#define ZOOMED_OUT_ZOOM_MODE ?
+
+#define ZOOM_MODE ?
+
+*/
+
 uniform uvec2 probe_grid_size;
 
 out vec4 line_color;
@@ -24,6 +33,10 @@ void main()
 		+ ((float(is_endpoint << 1u) - 1.0) * normalized_line_radius) * line_direction_vector,
 		0.0, 1.0
 	);
+
+	#if ZOOM_MODE == ZOOMED_OUT_ZOOM_MODE
+		gl_Position.xy *= 0.5;
+	#endif
 
 	const float brightness = 0.01;
 	line_color = vec4(brightness, brightness, brightness, 1.0);

@@ -8,6 +8,11 @@ const float cone_radius = ?;
 
 #define MODE ?;
 
+#define DEFAULT_ZOOM_MODE ?
+#define ZOOMED_OUT_ZOOM_MODE ?
+
+#define ZOOM_MODE ?
+
 */
 
 uniform uvec2 probe_grid_size;
@@ -176,6 +181,10 @@ void main()
 		normalized_position,
 		0.0, 1.0
 	);
+
+	#if ZOOM_MODE == ZOOMED_OUT_ZOOM_MODE
+		gl_Position.xy *= 0.5;
+	#endif
 
 	#if MODE == SHOWCASE_CASCADE
 		float color_factor = float(lower_direction_index & 1u);
