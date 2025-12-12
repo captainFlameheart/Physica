@@ -513,6 +513,22 @@ namespace game_logic
 		std::cout << std::endl;
 	}
 
+	void set_fluence_interpolation(game_environment::Environment& environment, GLint interpolation_mode)
+	{
+		glTextureParameteri(environment.state.fluence_texture, GL_TEXTURE_MIN_FILTER, interpolation_mode);
+		glTextureParameteri(environment.state.fluence_texture, GL_TEXTURE_MAG_FILTER, interpolation_mode);
+	}
+
+	void set_linear_fluence_interpolation(game_environment::Environment& environment)
+	{
+		set_fluence_interpolation(environment, GL_LINEAR);
+	}
+
+	void set_nearest_fluence_interpolation(game_environment::Environment& environment)
+	{
+		set_fluence_interpolation(environment, GL_NEAREST);
+	}
+
 	void somewhat_adapt_to_default_framebuffer_size
 	(
 		game_environment::Environment& environment,
@@ -631,8 +647,9 @@ namespace game_logic
 		}
 
 		{
-			glTextureParameteri(environment.state.fluence_texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTextureParameteri(environment.state.fluence_texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			set_linear_fluence_interpolation(environment);
+			//glTextureParameteri(environment.state.fluence_texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			//glTextureParameteri(environment.state.fluence_texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			// TODO: Set edge clamping when doing multibounce GI.
 			glTextureStorage2D(environment.state.fluence_texture, 1u, GL_RGBA32F, environment.state.holographic_probe_grid_width, environment.state.holographic_probe_grid_height);
 
@@ -1226,6 +1243,12 @@ namespace game_logic
 				environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_cascade
 			);
 			break;
+		case 16u:
+			set_nearest_fluence_interpolation(environment);
+			break;
+		case 17u:
+			set_linear_fluence_interpolation(environment);
+			break;
 		}
 	}
 
@@ -1287,8 +1310,8 @@ namespace game_logic
 
 		environment.state.presentation_stage = 0u;
 		environment.state.use_holographic_radiance_cascades = true;
-		environment.state.holographic_probe_grid_width = 100u;//20u;//800u;
-		environment.state.holographic_probe_grid_height = environment.state.holographic_probe_grid_width >> 1u;//10u;//400u;
+		environment.state.holographic_probe_grid_width = 40u;//100u;//20u;//800u;
+		environment.state.holographic_probe_grid_height = 20u;//environment.state.holographic_probe_grid_width >> 1u;//10u;//400u;
 
 		glEnable(GL_FRAMEBUFFER_SRGB);
 		environment.state.framebuffer_sRGB_enabled = true;
