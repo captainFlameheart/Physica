@@ -18,7 +18,7 @@ struct Model
 
 namespace game_state
 {
-	constexpr GLuint initial_holographic_ray_trace_cascade_count{ 3u };
+	constexpr GLuint initial_holographic_ray_trace_cascade_count{ 1u };
 
 	// TODO: Organize based on access patterns 
 	// (initialize -> render -> events -> tick * n -> render -> events -> tick * n -> render -> ...)
@@ -85,7 +85,6 @@ namespace game_state
 		};
 		GLuint* holographic_ray_framebuffers;
 
-		// IMPORTANT TODO: Use 3D textures instead of texture 2D arrays when z locality is present!
 		union
 		{
 			struct
@@ -111,7 +110,6 @@ namespace game_state
 			};
 			GLuint framebuffer_textures[4u];
 		};
-
 
 		GLuint max_cascade_index;
 		GLuint* ray_textures;
@@ -286,6 +284,12 @@ namespace game_state
 			GLuint holographic_cascade_rays_merge_to_ray_draw_shader_merged_to_ray_texel_position[2u];
 		};
 		GLint holographic_cascade_rays_merge_to_ray_draw_shader_merged_to_ray_texel_position_uniform_location;
+
+		GLuint holographic_cascade_rays_radiance_draw_shader;
+		GLint holographic_cascade_rays_radiance_draw_shader_probe_grid_size_uniform_location;
+		GLuint holographic_cascade_rays_radiance_draw_shader_cascade;
+		GLint holographic_cascade_rays_radiance_draw_shader_cascade_uniform_location;
+		GLint holographic_cascade_rays_radiance_draw_shader_rays_uniform_location;
 
 		GLuint holographic_ray_trace_shader_count;
 		GLuint* holographic_ray_trace_shaders;

@@ -4,6 +4,7 @@
 #define SHOWCASE_SINGLE_RAY ?
 #define SHOWCASE_MERGE_TO_RAY ?
 #define SHOWCASE_MERGE_TO_CONE ?
+#define SHOWCASE_RADIANCE ?
 
 #define MODE ?;
 
@@ -21,9 +22,10 @@ uniform uint cascade;
 #endif
 #if MODE == SHOWCASE_MERGE_TO_RAY
 	uniform uvec2 merged_to_ray_texel_position;
-#endif
-#if MODE == SHOWCASE_MERGE_TO_CONE
+#elif MODE == SHOWCASE_MERGE_TO_CONE
 	uniform uvec2 merged_to_cone_texel_position;
+#elif MODE == SHOWCASE_RADIANCE
+	uniform sampler2DArray rays;
 #endif
 
 #if MODE == SHOWCASE_CASCADE
@@ -359,5 +361,13 @@ void main()
 			merged_to_cone_texel_position, 
 			lines_per_probe, skipped_rays_below_column, probe_column, probe_y, direction_index
 		);
+	#elif MODE == SHOWCASE_RADIANCE
+		uint skipped_rays_below_column = (lines_per_probe + 1u) >> 1u;
+		uvec2 ray_texel_position = convert_ray_logical_to_texel_position
+		(
+			lines_per_probe, skipped_rays_below_column,
+			probe_column, probe_y, direction_index
+		);
+		line_color = texelFetch(rays, ivec3(ray_texel_position, 0), 0);
 	#endif
 }
