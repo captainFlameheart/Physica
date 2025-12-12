@@ -320,7 +320,7 @@ void main()
 		);
 		const float brightness = 0.2 + float(direction_index & 1u) * 0.8;
 		line_color = mix(
-			vec4(brightness, brightness, brightness, 0.2),
+			vec4(brightness, 0.0, brightness, 0.2),
 			vec4(0.0, 1.0, 0.0, 1.0),
 			float(ray_texel_position == showcased_ray_texel_position)
 		);

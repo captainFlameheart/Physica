@@ -18,7 +18,7 @@ struct Model
 
 namespace game_state
 {
-	constexpr GLuint initial_holographic_ray_trace_cascade_count{ 6u };
+	constexpr GLuint initial_holographic_ray_trace_cascade_count{ 1u };
 
 	// TODO: Organize based on access patterns 
 	// (initialize -> render -> events -> tick * n -> render -> events -> tick * n -> render -> ...)
@@ -28,6 +28,7 @@ namespace game_state
 		GLint framebuffer_height;
 
 		GLint uniform_buffer_offset_alignment;
+		GLint max_texture_size;
 
 		GLboolean framebuffer_sRGB_enabled;
 		GLuint time_elapsed_query;
@@ -328,5 +329,12 @@ namespace game_state
 		GLint holographic_draw_fluence_shader_fluence_uniform_location;
 
 		GLuint presentation_stage;
+		
+		enum Presentation_State_0
+		{
+			DEFAULT,
+			SHOW_INNER_WORKINGS,
+		};
+		Presentation_State_0 presentation_state_0;
 	};
 }
