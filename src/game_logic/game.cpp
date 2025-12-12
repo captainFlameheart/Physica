@@ -1006,7 +1006,7 @@ namespace game_logic
 
 	void start_presentation_stage(game_environment::Environment& environment)
 	{
-		environment.state.presentation_state_0 = game_state::Game::Presentation_State_0::DEFAULT;
+		environment.state.presentation_state_0 = game_state::Game::Presentation_State_0::SHOW_INNER_WORKINGS;
 
 		GLuint stage{ environment.state.presentation_stage };
 		std::cout << "Start stage " << stage << std::endl;
@@ -1310,8 +1310,8 @@ namespace game_logic
 
 		environment.state.presentation_stage = 0u;
 		environment.state.use_holographic_radiance_cascades = true;
-		environment.state.holographic_probe_grid_width = 40u;//100u;//20u;//800u;
-		environment.state.holographic_probe_grid_height = 20u;//environment.state.holographic_probe_grid_width >> 1u;//10u;//400u;
+		environment.state.holographic_probe_grid_width = 20u;//100u;//20u;//800u;
+		environment.state.holographic_probe_grid_height = 10u;//environment.state.holographic_probe_grid_width >> 1u;//10u;//400u;
 
 		glEnable(GL_FRAMEBUFFER_SRGB);
 		environment.state.framebuffer_sRGB_enabled = true;
@@ -2817,32 +2817,51 @@ namespace game_logic
 			<< environment.state.holographic_fluence_gather_shader_rays_uniform_location << ". Upper cascade fluence uniform location: "
 			<< environment.state.holographic_fluence_gather_shader_upper_cascade_fluence_uniform_location << std::endl;
 
-		::util::shader::set_shader_statically
-		(
-			vertex_shader,
-			util_shader_VERSION,
-			::util::shader::file_to_string("util/plain_full_screen.vert")
-		);
-		::util::shader::set_shader_statically
-		(
-			fragment_shader,
-			util_shader_VERSION,
-			::util::shader::file_to_string("holographic_radiance_cascades/fluence/draw.frag")
-		);
-		environment.state.holographic_draw_fluence_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
-		environment.state.holographic_draw_fluence_shader_source_uniform_location = glGetUniformLocation(environment.state.holographic_draw_fluence_shader, "source");
-		environment.state.holographic_draw_fluence_shader_fluence_uniform_location = glGetUniformLocation(environment.state.holographic_draw_fluence_shader, "fluence");
-		glProgramUniform1i(
-			environment.state.holographic_draw_fluence_shader,
-			environment.state.holographic_draw_fluence_shader_source_uniform_location, 1
-		);
-		glProgramUniform1i(
-			environment.state.holographic_draw_fluence_shader,
-			environment.state.holographic_draw_fluence_shader_fluence_uniform_location, 4
-		);
-		std::cout << "Holographic draw fluence shader compiled. Source uniform location: "
-			<< environment.state.holographic_draw_fluence_shader_source_uniform_location << ". Fluence uniform location: "
-			<< environment.state.holographic_draw_fluence_shader_fluence_uniform_location << std::endl;
+		{
+			constexpr GLuint default_mode_value{ 0u };
+			constexpr GLuint zoomed_out_mode_value{ 1u };
+
+			std::string default_mode_definition{ "#define DEFAULT_MODE " + std::to_string(default_mode_value) + '\n' };
+			std::string zoomed_out_mode_definition{ "#define ZOOMED_OUT_MODE " + std::to_string(zoomed_out_mode_value) + '\n' };
+
+			{
+				constexpr GLuint mode_value{ zoomed_out_mode_value };
+				std::string mode_definition{ "#define MODE " + std::to_string(mode_value) + '\n' };
+
+				::util::shader::set_shader_statically
+				(
+					vertex_shader,
+					util_shader_VERSION,
+					default_mode_definition,
+					zoomed_out_mode_definition,
+					mode_definition,
+					::util::shader::file_to_string("holographic_radiance_cascades/fluence/draw.vert")
+				);
+				::util::shader::set_shader_statically
+				(
+					fragment_shader,
+					util_shader_VERSION,
+					default_mode_definition,
+					zoomed_out_mode_definition,
+					mode_definition,
+					::util::shader::file_to_string("holographic_radiance_cascades/fluence/draw.frag")
+				);
+				environment.state.holographic_draw_fluence_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+				environment.state.holographic_draw_fluence_shader_source_uniform_location = glGetUniformLocation(environment.state.holographic_draw_fluence_shader, "source");
+				environment.state.holographic_draw_fluence_shader_fluence_uniform_location = glGetUniformLocation(environment.state.holographic_draw_fluence_shader, "fluence");
+				glProgramUniform1i(
+					environment.state.holographic_draw_fluence_shader,
+					environment.state.holographic_draw_fluence_shader_source_uniform_location, 1
+				);
+				glProgramUniform1i(
+					environment.state.holographic_draw_fluence_shader,
+					environment.state.holographic_draw_fluence_shader_fluence_uniform_location, 4
+				);
+				std::cout << "Holographic draw fluence shader compiled. Source uniform location: "
+					<< environment.state.holographic_draw_fluence_shader_source_uniform_location << ". Fluence uniform location: "
+					<< environment.state.holographic_draw_fluence_shader_fluence_uniform_location << std::endl;
+			}
+		}
 
 		::util::shader::delete_shader(vertex_shader);
 		::util::shader::delete_shader(fragment_shader);
@@ -9732,7 +9751,7 @@ namespace game_logic
 				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0u);
 				glViewport(0, 0, environment.state.framebuffer_width, environment.state.framebuffer_height);
 				glUseProgram(environment.state.holographic_draw_fluence_shader);
-				glDrawArrays(GL_TRIANGLES, 0, 3u);
+				glDrawArrays(GL_TRIANGLES, 0, 6u);
 			}
 		}
 
