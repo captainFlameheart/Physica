@@ -2230,7 +2230,7 @@ namespace game_logic
 			std::string zoomed_out_zoom_mode_definition{ "#define ZOOMED_OUT_ZOOM_MODE " + std::to_string(zoomed_out_zoom_mode_value) + '\n' };
 
 			{
-				constexpr GLuint zoom_mode_value{ zoomed_out_zoom_mode_value };
+				constexpr GLuint zoom_mode_value{ default_zoom_mode_value };
 				std::string zoom_mode_definition{ "#define ZOOM_MODE " + std::to_string(zoom_mode_value) + '\n' };
 				
 				::util::shader::set_shader_statically
@@ -2273,7 +2273,7 @@ namespace game_logic
 			std::string zoomed_out_zoom_mode_definition{ "#define ZOOMED_OUT_MODE " + std::to_string(zoomed_out_zoom_mode_value) + '\n' };
 
 			{
-				constexpr GLuint zoom_mode_value{ zoomed_out_zoom_mode_value };
+				constexpr GLuint zoom_mode_value{ default_zoom_mode_value };
 				std::string zoom_mode_definition{ "#define MODE " + std::to_string(zoom_mode_value) + '\n' };
 				::util::shader::set_shader_statically
 				(
@@ -2319,7 +2319,7 @@ namespace game_logic
 			{
 				std::string mode_definition{ "#define MODE " + std::to_string(showcase_cascade_value) + "\n" };
 
-				constexpr GLuint zoom_mode_value{ zoomed_out_zoom_mode_value };
+				constexpr GLuint zoom_mode_value{ default_zoom_mode_value };
 				std::string zoom_mode_definition{ "#define ZOOM_MODE " + std::to_string(zoom_mode_value) + '\n' };
 
 				::util::shader::set_shader_statically
@@ -2374,7 +2374,7 @@ namespace game_logic
 			{
 				std::string mode_definition{ "#define MODE " + std::to_string(showcase_single_cone_value) + "\n" };
 
-				constexpr GLuint zoom_mode_value{ zoomed_out_zoom_mode_value };
+				constexpr GLuint zoom_mode_value{ default_zoom_mode_value };
 				std::string zoom_mode_definition{ "#define ZOOM_MODE " + std::to_string(zoom_mode_value) + '\n' };
 
 				::util::shader::set_shader_statically
@@ -2442,7 +2442,7 @@ namespace game_logic
 			{
 				std::string mode_definition{ "#define MODE " + std::to_string(showcase_merge_to_value) + "\n" };
 
-				constexpr GLuint zoom_mode_value{ zoomed_out_zoom_mode_value };
+				constexpr GLuint zoom_mode_value{ default_zoom_mode_value };
 				std::string zoom_mode_definition{ "#define ZOOM_MODE " + std::to_string(zoom_mode_value) + '\n' };
 
 				::util::shader::set_shader_statically
@@ -2528,7 +2528,7 @@ namespace game_logic
 			{
 				std::string mode_definition{ "#define MODE " + std::to_string(showcase_cascade_value) + "\n" };
 
-				constexpr GLuint zoom_mode_value{ zoomed_out_zoom_mode_value };
+				constexpr GLuint zoom_mode_value{ default_zoom_mode_value };
 				std::string zoom_mode_definition{ "#define ZOOM_MODE " + std::to_string(zoom_mode_value) + '\n' };
 
 				::util::shader::set_shader_statically
@@ -2583,7 +2583,7 @@ namespace game_logic
 			{
 				std::string mode_definition{ "#define MODE " + std::to_string(showcase_single_ray_value) + "\n" };
 
-				constexpr GLuint zoom_mode_value{ zoomed_out_zoom_mode_value };
+				constexpr GLuint zoom_mode_value{ default_zoom_mode_value };
 				std::string zoom_mode_definition{ "#define ZOOM_MODE " + std::to_string(zoom_mode_value) + '\n' };
 
 				::util::shader::set_shader_statically
@@ -2649,7 +2649,8 @@ namespace game_logic
 			{
 				std::string mode_definition{ "#define MODE " + std::to_string(showcase_merge_to_cone_value) + "\n" };
 				
-				constexpr GLuint zoom_mode_value{ zoomed_out_zoom_mode_value };
+
+				constexpr GLuint zoom_mode_value{ default_zoom_mode_value };
 				std::string zoom_mode_definition{ "#define ZOOM_MODE " + std::to_string(zoom_mode_value) + '\n' };
 
 				::util::shader::set_shader_statically
@@ -2715,7 +2716,7 @@ namespace game_logic
 			{
 				std::string mode_definition{ "#define MODE " + std::to_string(showcase_merge_to_ray_value) + "\n" };
 
-				constexpr GLuint zoom_mode_value{ zoomed_out_zoom_mode_value };
+				constexpr GLuint zoom_mode_value{ default_zoom_mode_value };
 				std::string zoom_mode_definition{ "#define ZOOM_MODE " + std::to_string(zoom_mode_value) + '\n' };
 
 				::util::shader::set_shader_statically
@@ -2938,11 +2939,11 @@ namespace game_logic
 			constexpr GLuint default_zoom_mode_value{ 0u };
 			constexpr GLuint zoomed_out_zoom_mode_value{ 1u };
 
-			std::string default_zoom_mode_definition{ "#define DEFAULT_MODE " + std::to_string(default_zoom_mode_value) + '\n' };
-			std::string zoomed_out_zoom_mode_definition{ "#define ZOOMED_OUT_MODE " + std::to_string(zoomed_out_zoom_mode_value) + '\n' };
+			std::string default_zoom_mode_definition{ "#define DEFAULT_ZOOM_MODE " + std::to_string(default_zoom_mode_value) + '\n' };
+			std::string zoomed_out_zoom_mode_definition{ "#define ZOOMED_OUT_ZOOM_MODE " + std::to_string(zoomed_out_zoom_mode_value) + '\n' };
 
 			{
-				constexpr GLuint zoom_mode_value{ zoomed_out_zoom_mode_value };
+				constexpr GLuint zoom_mode_value{ default_zoom_mode_value };
 				std::string zoom_mode_definition{ "#define ZOOM_MODE " + std::to_string(zoom_mode_value) + '\n' };
 
 				::util::shader::set_shader_statically
