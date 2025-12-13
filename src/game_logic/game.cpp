@@ -807,6 +807,7 @@ namespace game_logic
 				std::cout << "Initializing ray extend buffer content:";
 
 				GLint const edge_width{ static_cast<GLint>(environment.state.holographic_probe_grid_width) - 1 };
+				GLint const edge_width_decremented{ edge_width - 1 };
 				GLint const edge_height{ static_cast<GLint>(environment.state.holographic_probe_grid_height) - 1 };
 
 				for (GLint cascade{ min_cascade }; cascade < environment.state.max_cascade_index; ++cascade)
@@ -834,6 +835,10 @@ namespace game_logic
 
 					GLint const g{ lower_cascade_rays_per_probe << 1 };
 					GLint const f{ lower_cascade_rays_per_probe << lower_cascade };
+
+					GLint const lower_cascade_min_outside_probe_x{ (edge_width_decremented + lower_cascade_power_of_two) >> lower_cascade };
+					GLint const lower_cascade_max_probe_column_texel_x{ (lower_cascade_min_outside_probe_x - 2) * lower_cascade_rays_per_probe };
+					GLint const lower_cascade_max_probe_row{ edge_height };
 
 					std::memcpy
 					(
@@ -875,6 +880,21 @@ namespace game_logic
 						base + environment.state.holographic_ray_extend_buffer_lower_cascade_max_ray_probe_row_offset,
 						&lower_cascade_max_ray_probe_row, sizeof(lower_cascade_max_ray_probe_row)
 					);
+					std::memcpy
+					(
+						base + environment.state.holographic_ray_extend_buffer_lower_cascade_power_of_two_offset,
+						&lower_cascade_power_of_two, sizeof(lower_cascade_power_of_two)
+					);
+					std::memcpy
+					(
+						base + environment.state.holographic_ray_extend_buffer_lower_cascade_max_probe_column_texel_x_offset,
+						&lower_cascade_max_probe_column_texel_x, sizeof(lower_cascade_max_probe_column_texel_x)
+					);
+					std::memcpy
+					(
+						base + environment.state.holographic_ray_extend_buffer_lower_cascade_max_probe_row_offset,
+						&lower_cascade_max_probe_row, sizeof(lower_cascade_max_probe_row)
+					);
 
 					std::cout << "\n	cascade = " << cascade << " at " << base_offset << ":"
 						<< "\n		skipped_rays_below_column = " << skipped_rays_below_column << " at " << base_offset + environment.state.holographic_ray_extend_buffer_skipped_rays_below_column_offset
@@ -885,6 +905,9 @@ namespace game_logic
 						<< "\n		lower_cascade_skipped_rays_below_column = " << lower_cascade_skipped_rays_below_column << " at " << base_offset + environment.state.holographic_ray_extend_buffer_lower_cascade_skipped_rays_below_column_offset
 						<< "\n		lower_cascade_max_ray_probe_column = " << lower_cascade_max_ray_probe_column << " at " << base_offset + environment.state.holographic_ray_extend_buffer_lower_cascade_max_ray_probe_column_offset
 						<< "\n		lower_cascade_max_ray_probe_row = " << lower_cascade_max_ray_probe_row << " at " << base_offset + environment.state.holographic_ray_extend_buffer_lower_cascade_max_ray_probe_row_offset
+						<< "\n		lower_cascade_power_of_two = " << lower_cascade_power_of_two << " at " << base_offset + environment.state.holographic_ray_extend_buffer_lower_cascade_power_of_two_offset
+						<< "\n		lower_cascade_max_probe_column_texel_x = " << lower_cascade_max_probe_column_texel_x << " at " << base_offset + environment.state.holographic_ray_extend_buffer_lower_cascade_max_probe_column_texel_x_offset
+						<< "\n		lower_cascade_max_probe_row = " << lower_cascade_max_probe_row << " at " << base_offset + environment.state.holographic_ray_extend_buffer_lower_cascade_max_probe_row_offset
 						<< "\n";
 				}
 				std::cout << std::endl;
@@ -1431,7 +1454,7 @@ namespace game_logic
 
 		environment.state.presentation_stage = 0u;
 		environment.state.use_holographic_radiance_cascades = true;
-		environment.state.use_row_ray_textures = true;
+		environment.state.use_row_ray_textures = false;
 		environment.state.holographic_probe_grid_width = 100u;//100u;//20u;//800u;
 		environment.state.holographic_probe_grid_height = 50u;//50u;//environment.state.holographic_probe_grid_width >> 1u;//10u;//400u;
 
@@ -7014,6 +7037,36 @@ namespace game_logic
 					environment.state.holographic_ray_extend_shader, GL_UNIFORM, lower_cascade_max_ray_probe_row_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.holographic_ray_extend_buffer_lower_cascade_max_ray_probe_row_offset
 				);
+
+				GLuint const lower_cascade_power_of_two_offset
+				{
+					glGetProgramResourceIndex(environment.state.holographic_ray_extend_shader, GL_UNIFORM, "Ray_Casting_Data.lower_cascade_power_of_two")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.holographic_ray_extend_shader, GL_UNIFORM, lower_cascade_power_of_two_offset,
+					1u, &offset_label, 1u, nullptr, &environment.state.holographic_ray_extend_buffer_lower_cascade_power_of_two_offset
+				);
+
+				GLuint const lower_cascade_max_probe_column_texel_x_offset
+				{
+					glGetProgramResourceIndex(environment.state.holographic_ray_extend_shader, GL_UNIFORM, "Ray_Casting_Data.lower_cascade_max_probe_column_texel_x")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.holographic_ray_extend_shader, GL_UNIFORM, lower_cascade_max_probe_column_texel_x_offset,
+					1u, &offset_label, 1u, nullptr, &environment.state.holographic_ray_extend_buffer_lower_cascade_max_probe_column_texel_x_offset
+				);
+
+				GLuint const lower_cascade_max_probe_row_offset
+				{
+					glGetProgramResourceIndex(environment.state.holographic_ray_extend_shader, GL_UNIFORM, "Ray_Casting_Data.lower_cascade_max_probe_row")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.holographic_ray_extend_shader, GL_UNIFORM, lower_cascade_max_probe_row_offset,
+					1u, &offset_label, 1u, nullptr, &environment.state.holographic_ray_extend_buffer_lower_cascade_max_probe_row_offset
+				);
 			}
 
 			GLuint const block_index
@@ -7445,6 +7498,9 @@ namespace game_logic
 		std::cout << "lower cascade skipped rays below column offset: " << environment.state.holographic_ray_extend_buffer_lower_cascade_skipped_rays_below_column_offset << std::endl;
 		std::cout << "lower cascade max ray probe column offset: " << environment.state.holographic_ray_extend_buffer_lower_cascade_max_ray_probe_column_offset << std::endl;
 		std::cout << "lower cascade max ray probe row offset: " << environment.state.holographic_ray_extend_buffer_lower_cascade_max_ray_probe_row_offset << std::endl;
+		std::cout << "lower cascade power of two offset: " << environment.state.holographic_ray_extend_buffer_lower_cascade_power_of_two_offset << std::endl;
+		std::cout << "lower cascade max probe column texel x offset: " << environment.state.holographic_ray_extend_buffer_lower_cascade_max_probe_column_texel_x_offset << std::endl;
+		std::cout << "lower cascade max probe row offset: " << environment.state.holographic_ray_extend_buffer_lower_cascade_max_probe_row_offset << std::endl;
 		std::cout << std::endl;
 
 		std::cout << "Holographic fluence gather buffer (" << environment.state.holographic_fluence_gather_buffer << "):" << std::endl;
