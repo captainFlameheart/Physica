@@ -2274,6 +2274,26 @@ namespace game_logic
 		environment.state.cursor_position_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
 		std::cout << "Cursor position draw shader compiled" << std::endl;
 
+		{
+			::util::shader::set_shader_statically
+			(
+				vertex_shader,
+				util_shader_VERSION,
+				util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
+				game_PROJECTION_SCALE_DEFINITION(environment),
+				::util::shader::file_to_string("sky_circle_elements/test/test.vert")
+			);
+			::util::shader::set_shader_statically
+			(
+				fragment_shader,
+				util_shader_VERSION,
+				util_shader_DEFINE("COLOR", "vec4(1.0, 1.0, 0.0, 1.0)"),
+				::util::shader::file_to_string("sky_circle_elements/test/test.frag")
+			);
+			environment.state.draw_sky_circle_test_element_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+			std::cout << "Draw sky circle test element shader compiled." << std::endl;
+		}
+
 		// TODO: This vertex shader compilation should be done ONCE
 		::util::shader::set_shader_statically
 		(
@@ -9652,12 +9672,15 @@ namespace game_logic
 
 	void draw_to_sky_circle(game_environment::Environment& environment)
 	{
-		GLfloat clear_fluence[4u]{ 1.0f, 0.0f, 0.0f, 0.0f };
+		GLfloat clear_fluence[4u]{ 0.0f, 0.0f, 0.0f, 0.0f };
 		glClearNamedFramebufferfv	// TODO: This is not the fastest, but we will replace it later with a shader anyways
 		(
 			environment.state.holographic_sky_circle_framebuffer,
 			GL_COLOR, 0, clear_fluence
 		);
+
+		glUseProgram(environment.state.draw_sky_circle_test_element_shader);
+		glDrawArrays(GL_LINES, 0, 4u);
 	}
 
 	// TODO: Rename to draw to not confuse with arbitrary OpenGL rendering commands 

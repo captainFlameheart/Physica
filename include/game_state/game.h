@@ -209,6 +209,8 @@ namespace game_state
 		
 		GLuint cursor_position_draw_shader;
 
+		GLuint draw_sky_circle_test_element_shader;
+
 		GLuint holographic_source_draw_shader;
 		GLint holographic_source_draw_shader_source_uniform_location;
 		GLint holographic_source_draw_shader_layer_uniform_location;
