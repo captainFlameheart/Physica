@@ -1,11 +1,24 @@
-const float end_points[2u] = float[2u](0.75f, 1.5f);
+const float pi = 3.14159265358979323846;
+const float angle_to_sky_circle_coordinate_factor = (0.5 / pi) * (RADIAN_INVERSE);
+
+const int end_points[2u] = int[2u](int(-0.5 * pi * RADIAN), int(1.0 * pi * RADIAN));
+
+layout(shared, binding = CAMERA_BINDING) uniform Camera
+{
+	ivec2 xy;
+	int angle;
+	float z;
+	mat2 view_rotation;
+} camera;
 
 void main()
 {
-	float start_point = end_points[0u];
-	float end_point = end_points[1u];
+	// TODO: Handle large angles in fixed point
+
+	float start_point = float(end_points[0u] - camera.angle) * angle_to_sky_circle_coordinate_factor;
+	float end_point = float(end_points[1u] - camera.angle) * angle_to_sky_circle_coordinate_factor;
 	
-	float start_cycle = float(int(start_point));
+	float start_cycle = float(floor(start_point));
 	start_point -= start_cycle;
 	end_point -= start_cycle;
 

@@ -1473,7 +1473,7 @@ namespace game_logic
 
 		environment.state.camera.xy.x = 100 * 1000000;
 		environment.state.camera.xy.y = 100 * 1000000;
-		environment.state.camera.angle = 10600000;
+		environment.state.camera.angle = 0;//10600000;
 		environment.state.camera.z = game_logic__util__spatial_FLOAT_FROM_METERS(environment, 2.0f);
 		environment.state.camera.view_rotation.column_0[0] = 1.0f;
 		environment.state.camera.view_rotation.column_0[1] = 0.0f;
@@ -2280,6 +2280,8 @@ namespace game_logic
 				vertex_shader,
 				util_shader_VERSION,
 				util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
+				util_shader_DEFINE("RADIAN", STRINGIFY(game_logic__util__spatial_RADIAN(environment))),
+				util_shader_DEFINE("RADIAN_INVERSE", STRINGIFY(game_logic__util__spatial_RADIAN_INVERSE(environment))),
 				game_PROJECTION_SCALE_DEFINITION(environment),
 				::util::shader::file_to_string("sky_circle_elements/test/test.vert")
 			);
@@ -2288,6 +2290,8 @@ namespace game_logic
 				fragment_shader,
 				util_shader_VERSION,
 				util_shader_DEFINE("COLOR", "vec4(1.0, 1.0, 0.0, 1.0)"),
+				util_shader_DEFINE("RADIAN", STRINGIFY(game_logic__util__spatial_RADIAN(environment))),
+				util_shader_DEFINE("RADIAN_INVERSE", STRINGIFY(game_logic__util__spatial_RADIAN_INVERSE(environment))),
 				::util::shader::file_to_string("sky_circle_elements/test/test.frag")
 			);
 			environment.state.draw_sky_circle_test_element_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
