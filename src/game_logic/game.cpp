@@ -2896,6 +2896,40 @@ namespace game_logic
 			}
 		}
 
+		{
+			constexpr GLfloat radius{ 0.5f };
+			constexpr GLfloat inner_radius{ radius - 0.1f };
+
+			std::string radius_definition{ "const float radius = " + std::to_string(radius) + ";\n" };
+			std::string inner_radius_definition{ "const float inner_radius = " + std::to_string(inner_radius) + ";\n" };
+
+			::util::shader::set_shader_statically
+			(
+				vertex_shader,
+				util_shader_VERSION,
+				radius_definition,
+				inner_radius_definition,
+				::util::shader::file_to_string("holographic_radiance_cascades/sky_circle/debug/draw.vert")
+			);
+			::util::shader::set_shader_statically
+			(
+				fragment_shader,
+				util_shader_VERSION,
+				radius_definition,
+				inner_radius_definition,
+				::util::shader::file_to_string("holographic_radiance_cascades/sky_circle/debug/draw.frag")
+			);
+			environment.state.holographic_sky_circle_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+			environment.state.holographic_sky_circle_draw_shader_sky_circle_uniform_location = glGetUniformLocation(environment.state.holographic_sky_circle_draw_shader, "sky_circle");
+			glProgramUniform1i(
+				environment.state.holographic_sky_circle_draw_shader,
+				environment.state.holographic_sky_circle_draw_shader_sky_circle_uniform_location,
+				5
+			);
+			std::cout << "Sky circle draw shader compiled. Sky circle uniform location: "
+				<< environment.state.holographic_sky_circle_draw_shader_sky_circle_uniform_location << std::endl;
+		}
+
 		environment.state.holographic_ray_trace_shader_count = game_state::initial_holographic_ray_trace_cascade_count;
 		environment.state.holographic_ray_trace_shaders = new GLuint[environment.state.holographic_ray_trace_shader_count];
 		environment.state.holographic_ray_trace_shader_source_uniform_locations = new GLint[environment.state.holographic_ray_trace_shader_count];

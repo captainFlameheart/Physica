@@ -291,6 +291,9 @@ namespace game_state
 		GLint holographic_cascade_rays_radiance_draw_shader_cascade_uniform_location;
 		GLint holographic_cascade_rays_radiance_draw_shader_rays_uniform_location;
 
+		GLint holographic_sky_circle_draw_shader;
+		GLint holographic_sky_circle_draw_shader_sky_circle_uniform_location;
+
 		GLuint holographic_ray_trace_shader_count;
 		GLuint* holographic_ray_trace_shaders;
 		GLint* holographic_ray_trace_shader_source_uniform_locations;
