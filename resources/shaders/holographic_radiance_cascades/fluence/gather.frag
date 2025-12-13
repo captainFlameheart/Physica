@@ -1,9 +1,13 @@
 /* Expected to be concatenated from CPU:
 
+#define COLUMN_RAY_TEXTURE_MODE ?
+#define ROW_RAY_TEXTURE_MODE ?
 
+#define RAY_TEXTURE_MODE ?
 
 */
 
+// IMPORTANT TODO: Only store data necessary for the particular ray texture mode.
 layout(shared, binding = FLUENCE_GATHERING_BINDING) uniform Fluence_Gathering_Data
 {
 	int direction_mask;

@@ -1431,7 +1431,7 @@ namespace game_logic
 
 		environment.state.presentation_stage = 0u;
 		environment.state.use_holographic_radiance_cascades = true;
-		environment.state.use_row_ray_textures = false;
+		environment.state.use_row_ray_textures = true;
 		environment.state.holographic_probe_grid_width = 100u;//100u;//20u;//800u;
 		environment.state.holographic_probe_grid_height = 50u;//50u;//environment.state.holographic_probe_grid_width >> 1u;//10u;//400u;
 
@@ -3198,11 +3198,15 @@ namespace game_logic
 			std::string row_ray_texture_mode_definition{ "#define ROW_RAY_TEXTURE_MODE " + std::to_string(row_ray_texture_mode_value) + '\n' };
 
 			GLuint ray_texture_mode_value{ environment.state.use_row_ray_textures ? row_ray_texture_mode_value : column_ray_texture_mode_value };
+			std::string ray_texture_mode_definition{ "#define RAY_TEXTURE_MODE " + std::to_string(ray_texture_mode_value) + '\n' };
 
 			::util::shader::set_shader_statically
 			(
 				vertex_shader,
 				util_shader_VERSION,
+				column_ray_texture_mode_definition,
+				row_ray_texture_mode_definition,
+				ray_texture_mode_definition,
 				::util::shader::file_to_string("util/plain_full_screen.vert")
 			);
 
@@ -3210,6 +3214,9 @@ namespace game_logic
 			(
 				fragment_shader,
 				util_shader_VERSION,
+				column_ray_texture_mode_definition,
+				row_ray_texture_mode_definition,
+				ray_texture_mode_definition,
 				util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
 				util_shader_DEFINE("RAY_CASTING_BINDING", STRINGIFY(game_logic__util_RAY_CASTING_BINDING)),
 				::util::shader::file_to_string("holographic_radiance_cascades/rays/extend.frag")
