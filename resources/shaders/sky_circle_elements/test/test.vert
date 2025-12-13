@@ -1,7 +1,7 @@
 const float pi = 3.14159265358979323846;
 const float angle_to_sky_circle_coordinate_factor = (0.5 / pi) * (RADIAN_INVERSE);
 
-const int end_points[2u] = int[2u](int(-0.02 * pi * RADIAN), int(0.02 * pi * RADIAN));
+const int end_points[2u] = int[2u](int(-0.05 * pi * RADIAN), int(0.05 * pi * RADIAN));
 
 layout(shared, binding = CAMERA_BINDING) uniform Camera
 {
@@ -11,12 +11,17 @@ layout(shared, binding = CAMERA_BINDING) uniform Camera
 	mat2 view_rotation;
 } camera;
 
+noperspective out float offset;
+
 void main()
 {
 	// TODO: Handle large angles in fixed point
 
-	float start_point = float(end_points[0u] - camera.angle) * angle_to_sky_circle_coordinate_factor;
-	float end_point = float(end_points[1u] - camera.angle) * angle_to_sky_circle_coordinate_factor;
+	const float base_angle = camera.angle;
+	float start_point = float(end_points[0u] - base_angle) * angle_to_sky_circle_coordinate_factor;
+	float end_point = float(end_points[1u] - base_angle) * angle_to_sky_circle_coordinate_factor;
+
+	float point_distance = end_point - start_point;
 	
 	float start_cycle = float(floor(start_point));
 	start_point -= start_cycle;
@@ -33,4 +38,8 @@ void main()
 	float point = points[gl_VertexID];
 	float normalized_point = point * 2.0 - 1.0;
 	gl_Position = vec4(normalized_point, 0.0, 0.0, 1.0);
+
+	float first_line_fraction = (first_line_end - start_point) / point_distance;
+	float offsets[4u] = float[4u](0.0, first_line_fraction, first_line_fraction, 1.0);
+	offset = offsets[gl_VertexID];
 }
