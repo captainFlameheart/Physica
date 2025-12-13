@@ -685,6 +685,7 @@ namespace game_logic
 		glCreateTextures(GL_TEXTURE_1D, std::size(environment.state.texture_1Ds), environment.state.texture_1Ds);
 		{
 			set_linear_sky_circle_interpolation(environment);
+			glTextureParameteri(environment.state.holographic_sky_circle_texture, GL_TEXTURE_WRAP_S, GL_REPEAT);
 			// IMPORTANT TODO: GL_RGBA32F might be overkill.
 			environment.state.sky_circle_texture_length = 256u;
 			glTextureStorage1D(environment.state.holographic_sky_circle_texture, 1u, GL_RGBA32F, environment.state.sky_circle_texture_length);
@@ -748,9 +749,43 @@ namespace game_logic
 			}
 		}
 
+		GLuint const vertex_shader{ ::util::shader::create_shader(GL_VERTEX_SHADER) };
+		GLuint const fragment_shader{ ::util::shader::create_shader(GL_FRAGMENT_SHADER) };
+		
 		{
+			constexpr GLint angular_step_count{ 1 };
 
+			std::string cascade_definition{ "const int cascade = " + std::to_string(environment.state.max_cascade_index) + ";\n"};
+			std::string angular_step_count_definition{ "const int angular_step_count = " + std::to_string(angular_step_count) + ";\n" };
+
+			::util::shader::set_shader_statically
+			(
+				vertex_shader,
+				util_shader_VERSION,
+				cascade_definition,
+				angular_step_count_definition,
+				::util::shader::file_to_string("holographic_radiance_cascades/sky_circle/gather/gather.vert")
+			);
+			::util::shader::set_shader_statically
+			(
+				fragment_shader,
+				util_shader_VERSION,
+				cascade_definition,
+				angular_step_count_definition,
+				::util::shader::file_to_string("holographic_radiance_cascades/sky_circle/gather/gather.frag")
+			);
+			environment.state.holographic_sky_circle_gather_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+			environment.state.holographic_sky_circle_gather_shader_sky_circle_uniform_location = glGetUniformLocation(environment.state.holographic_sky_circle_gather_shader, "sky_circle");
+			glProgramUniform1i(
+				environment.state.holographic_sky_circle_gather_shader,
+				environment.state.holographic_sky_circle_gather_shader_sky_circle_uniform_location, 5
+			);
+			std::cout << "Holographic sky circle gather shader compiled. Sky circle uniform location: "
+				<< environment.state.holographic_sky_circle_gather_shader_sky_circle_uniform_location << std::endl;
 		}
+
+		::util::shader::delete_shader(vertex_shader);
+		::util::shader::delete_shader(fragment_shader);
 
 		{
 			GLuint const min_cascade{ game_state::initial_holographic_ray_trace_cascade_count };
@@ -1356,6 +1391,8 @@ namespace game_logic
 	void free_some_default_framebuffer_size_dependent_data(game_environment::Environment& environment)
 	{
 		std::cout << "Free SOME default framebuffer size dependent data" << std::endl;
+
+		glDeleteProgram(environment.state.holographic_sky_circle_gather_shader);
 
 		glDeleteFramebuffers(std::size(environment.state.framebuffers), environment.state.framebuffers);
 		glDeleteFramebuffers(environment.state.max_cascade_index, environment.state.holographic_ray_framebuffers);
@@ -10403,6 +10440,7 @@ namespace game_logic
 		glUnmapNamedBuffer(environment.state.GPU_buffers.rigid_bodies.triangles.contacts.buffer);
 
 		::util::shader::delete_program(environment.state.shader);
+
 		delete[] environment.state.holographic_ray_trace_shaders;
 		delete[] environment.state.holographic_ray_trace_shader_source_uniform_locations;
 
