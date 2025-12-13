@@ -42,6 +42,15 @@ uniform uint cascade;
 	};
 #endif
 
+uvec2 convert_ray_logical_to_texel_position_in_row_ray_mode
+(
+	in uint rays_per_probe,
+	in uint probe_column, in uint probe_row, in uint direction_id
+)
+{
+	return uvec2(probe_column * rays_per_probe + direction_id, probe_row);
+}
+
 uvec2 convert_ray_logical_to_texel_position
 (
 	in uint rays_per_probe, in uint skipped_rays_below_column, 
@@ -49,6 +58,157 @@ uvec2 convert_ray_logical_to_texel_position
 )
 {
 	return uvec2(probe_column, probe_row * rays_per_probe + direction_id - skipped_rays_below_column);
+}
+
+vec4 pick_color_if_merging_to_ray_in_row_ray_mode
+(
+	in uvec2 merged_to_texel_position,
+	in uint query_rays_per_probe,
+	in uint query_probe_column, in uint query_probe_row, in uint query_direction_id
+)
+{
+	// IMPORTANT: ray_casting_data_lower_cascade_max_ray_probe_row should be renamed!
+
+	ivec2 query_texel_position = ivec2(convert_ray_logical_to_texel_position_in_row_ray_mode(
+		query_rays_per_probe, 
+		query_probe_column, query_probe_row, query_direction_id
+	));
+
+	int cascade_merging_from = int(cascade);
+	int cascade_merging_from_power_of_two = 1 << cascade_merging_from;
+	int merged_to_cascade = cascade_merging_from + 1;
+	int merged_to_cascade_power_of_two = 1 << merged_to_cascade;
+
+	int edge_width = int(probe_grid_size.x) - 1;
+	int edge_width_decremented = edge_width - 1;
+	int edge_height = int(probe_grid_size.y) - 1;
+
+	int ray_casting_data_rays_per_probe = merged_to_cascade_power_of_two + 1;
+	//int ray_casting_data_skipped_rays_below_column = (ray_casting_data_rays_per_probe + 1) >> 1;
+	int ray_casting_data_lower_cascade_rays_per_probe = cascade_merging_from_power_of_two + 1;
+	//int ray_casting_data_lower_cascade_skipped_rays_below_column = (ray_casting_data_lower_cascade_rays_per_probe + 1) >> 1;
+	//int ray_casting_data_lower_cascade_max_ray_probe_column = (edge_width - 1) / cascade_merging_from_power_of_two - 1;
+	//int ray_casting_data_lower_cascade_max_ray_probe_row = int(probe_grid_size.y) * ray_casting_data_lower_cascade_rays_per_probe - (ray_casting_data_lower_cascade_skipped_rays_below_column << 1) - 1;
+	//int ray_casting_data_g = ray_casting_data_lower_cascade_rays_per_probe << 1; //ray_casting_data_rays_per_probe << 1;
+	//int ray_casting_data_f = ray_casting_data_lower_cascade_rays_per_probe << cascade_merging_from; //ray_casting_data_rays_per_probe << merged_to_cascade;
+
+	int lower_cascade_min_outside_probe_x = (edge_width_decremented + cascade_merging_from_power_of_two) >> cascade_merging_from;
+	int ray_casting_data_lower_cascade_max_probe_column_texel_x = (lower_cascade_min_outside_probe_x - 2) * ray_casting_data_lower_cascade_rays_per_probe;
+	int ray_casting_data_lower_cascade_power_of_two = cascade_merging_from_power_of_two;
+	int ray_casting_data_lower_cascade_max_probe_row = edge_height;
+
+	ivec2 output_texel_position = ivec2(merged_to_texel_position);
+
+	// From here we replicate the ray merge logic.
+
+	//ivec2 output_texel_position = ivec2(gl_FragCoord.xy);
+	int probe_column = output_texel_position.x / ray_casting_data_rays_per_probe;
+	int probe_column_texel_x = probe_column * ray_casting_data_rays_per_probe;
+	int direction_id = output_texel_position.x - probe_column_texel_x;
+
+	int lower_cascade_near_probe_column_texel_x = 
+		((probe_column << 1) | 1) * ray_casting_data_lower_cascade_rays_per_probe;
+	
+	int lower_direction_id = direction_id >> 1;
+
+	// Lower near
+	int lower_near_texel_x = lower_cascade_near_probe_column_texel_x + lower_direction_id;	// Does not need clamping.
+	//radiance = texelFetch(shorter_rays, ivec3(lower_near_texel_x, output_texel_position.y, 0), 0);
+	//transmittance = texelFetch(shorter_rays, ivec3(lower_near_texel_x, output_texel_position.y, 1), 0);
+	
+	int upper_direction_id = (direction_id + 1) >> 1;
+
+	// Upper near
+	int upper_near_texel_x = lower_cascade_near_probe_column_texel_x + upper_direction_id;	// Does not need clamping.
+	//radiance += texelFetch(shorter_rays, ivec3(upper_near_texel_x, output_texel_position.y, 0), 0);
+	//vec4 upper_transmittance = texelFetch(shorter_rays, ivec3(upper_near_texel_x, output_texel_position.y, 1), 0);
+
+	int lower_cascade_far_probe_column_texel_x = 
+		lower_cascade_near_probe_column_texel_x + ray_casting_data_lower_cascade_rays_per_probe;
+	int clamped_lower_cascade_far_probe_column_texel_x = 
+		min(lower_cascade_far_probe_column_texel_x, ray_casting_data_lower_cascade_max_probe_column_texel_x);
+	float lower_cascade_far_probe_column_is_inside_bounds = float
+	(
+		lower_cascade_far_probe_column_texel_x <= ray_casting_data_lower_cascade_max_probe_column_texel_x
+	);
+	int far_base_y = output_texel_position.y - ray_casting_data_lower_cascade_power_of_two;
+
+	// Lower far
+	int clamped_lower_far_texel_x = clamped_lower_cascade_far_probe_column_texel_x + upper_direction_id;
+	int lower_far_texel_y = far_base_y + (lower_direction_id << 1);
+	int clamped_lower_far_texel_y = clamp(lower_far_texel_y, 0, ray_casting_data_lower_cascade_max_probe_row);
+	//radiance += transmittance * 
+	//	(lower_cascade_far_probe_column_is_inside_bounds * texelFetch(shorter_rays, ivec3(clamped_lower_far_texel_x, clamped_lower_far_texel_y, 0), 0));
+	//transmittance *= mix
+	//(
+	//	vec4(1.0),
+	//	texelFetch(shorter_rays, ivec3(clamped_lower_far_texel_x, clamped_lower_far_texel_y, 1), 0),
+	//	lower_cascade_far_probe_column_is_inside_bounds
+	//);
+
+	// Upper far
+	int clamped_upper_far_texel_x = clamped_lower_cascade_far_probe_column_texel_x + lower_direction_id;
+	int upper_far_texel_y = far_base_y + (upper_direction_id << 1);
+	int clamped_upper_far_texel_y = clamp(upper_far_texel_y, 0, ray_casting_data_lower_cascade_max_probe_row);
+	//radiance += upper_transmittance * 
+	//	(lower_cascade_far_probe_column_is_inside_bounds * texelFetch(shorter_rays, ivec3(clamped_upper_far_texel_x, clamped_upper_far_texel_y, 0), 0));
+	//upper_transmittance *= mix
+	//(
+	//	vec4(1.0),
+	//	texelFetch(shorter_rays, ivec3(clamped_upper_far_texel_x, clamped_upper_far_texel_y, 1), 0),
+	//	lower_cascade_far_probe_column_is_inside_bounds
+	//);
+
+	//transmittance += upper_transmittance;
+
+	//radiance *= 0.5;
+	//transmittance *= 0.5;
+
+	// End of merge replication.
+
+	int final_lower_near_texel_x = lower_near_texel_x;
+	int final_lower_near_texel_y = output_texel_position.y;
+	
+	int final_lower_far_texel_x = clamped_lower_far_texel_x;
+	int final_lower_far_texel_y = clamped_lower_far_texel_y;
+
+	int final_upper_near_texel_x = upper_near_texel_x;
+	int final_upper_near_texel_y = output_texel_position.y;
+
+	int final_upper_far_texel_x = clamped_upper_far_texel_x;
+	int final_upper_far_texel_y = clamped_upper_far_texel_y;
+
+	bool query_is_lower_near_ray = query_texel_position.x == final_lower_near_texel_x && query_texel_position.y == final_lower_near_texel_y;
+	bool query_is_lower_far_ray = query_texel_position.x == final_lower_far_texel_x && query_texel_position.y == final_lower_far_texel_y;
+
+	bool query_is_upper_near_ray = query_texel_position.x == final_upper_near_texel_x && query_texel_position.y == final_upper_near_texel_y;
+	bool query_is_upper_far_ray = query_texel_position.x == final_upper_far_texel_x && query_texel_position.y == final_upper_far_texel_y;
+
+	const float active_alpha = 1.0;
+
+	const float brightness = 0.2 + float(query_direction_id & 1u) * 0.8;
+	vec4 color = vec4(brightness, brightness, brightness, 0.2);
+	if (query_is_lower_near_ray || query_is_lower_far_ray || query_is_upper_near_ray || query_is_upper_far_ray)
+	{
+		color = vec4(0.0, 0.0, 0.0, active_alpha);
+	}
+	if (query_is_lower_near_ray)
+	{
+		color += vec4(1.0, 0.0, 0.0, active_alpha);
+	}
+	if (query_is_lower_far_ray)
+	{
+		color += vec4(1.0, 1.0, 0.0, active_alpha);
+	}
+	if (query_is_upper_near_ray)
+	{
+		color += vec4(0.0, 0.0, 1.0, active_alpha);
+	}
+	if (query_is_upper_far_ray)
+	{
+		color += vec4(0.0, 1.0, 1.0, active_alpha);
+	}
+	return color;
 }
 
 vec4 pick_color_if_merging_to_ray
@@ -339,18 +499,31 @@ void main()
 		line_color = cascade_colors[cascade % cascade_colors.length()];
 		line_color = vec4((1.0 - 2.0 * color_factor) * line_color.rgb + color_factor, 1.0);
 	#elif MODE == SHOWCASE_SINGLE_RAY
-		uint skipped_rays_below_column = (lines_per_probe + 1u) >> 1u;
-		uvec2 ray_texel_position = convert_ray_logical_to_texel_position
-		(
-			lines_per_probe, skipped_rays_below_column,
-			probe_column, probe_y, direction_index
-		);
-		const float brightness = 0.2 + float(direction_index & 1u) * 0.8;
-		line_color = mix(
-			vec4(brightness, 0.0, brightness, 0.2),
-			vec4(0.0, 1.0, 0.0, 1.0),
-			float(ray_texel_position == showcased_ray_texel_position)
-		);
+		#if RAY_TEXTURE_MODE == COLUMN_RAY_TEXTURE_MODE
+			uint skipped_rays_below_column = (lines_per_probe + 1u) >> 1u;
+			uvec2 ray_texel_position = convert_ray_logical_to_texel_position
+			(
+				lines_per_probe, skipped_rays_below_column,
+				probe_column, probe_y, direction_index
+			);
+			const float brightness = 0.2 + float(direction_index & 1u) * 0.8;
+			line_color = mix(
+				vec4(brightness, 0.0, brightness, 0.2),
+				vec4(0.0, 1.0, 0.0, 1.0),
+				float(ray_texel_position == showcased_ray_texel_position)
+			);
+		#elif RAY_TEXTURE_MODE == ROW_RAY_TEXTURE_MODE
+			uvec2 ray_texel_position = convert_ray_logical_to_texel_position_in_row_ray_mode(
+				lines_per_probe,
+				probe_column, probe_y, direction_index
+			);
+			const float brightness = 0.2 + float(direction_index & 1u) * 0.8;
+			line_color = mix(
+				vec4(brightness, 0.0, brightness, 0.2),
+				vec4(0.0, 1.0, 0.0, 1.0),
+				float(ray_texel_position == showcased_ray_texel_position)
+			);
+		#endif
 	#elif MODE == SHOWCASE_MERGE_TO_RAY
 		#if RAY_TEXTURE_MODE == COLUMN_RAY_TEXTURE_MODE
 			uint skipped_rays_below_column = (lines_per_probe + 1u) >> 1u;
@@ -360,7 +533,12 @@ void main()
 				lines_per_probe, skipped_rays_below_column, probe_column, probe_y, direction_index
 			);
 		#elif RAY_TEXTURE_MODE == ROW_RAY_TEXTURE_MODE
-			line_color = vec4(0.0, 1.0, 0.0, 1.0);
+			line_color = pick_color_if_merging_to_ray_in_row_ray_mode
+			(
+				merged_to_ray_texel_position,
+				lines_per_probe,
+				probe_column, probe_y, direction_index
+			);
 		#endif
 	#elif MODE == SHOWCASE_MERGE_TO_CONE
 		uint skipped_rays_below_column = (lines_per_probe + 1u) >> 1u;

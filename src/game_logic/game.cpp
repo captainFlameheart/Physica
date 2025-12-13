@@ -1431,7 +1431,7 @@ namespace game_logic
 
 		environment.state.presentation_stage = 0u;
 		environment.state.use_holographic_radiance_cascades = true;
-		environment.state.use_row_ray_textures = false;
+		environment.state.use_row_ray_textures = true;
 		environment.state.holographic_probe_grid_width = 20u;//100u;//20u;//800u;
 		environment.state.holographic_probe_grid_height = 10u;//50u;//environment.state.holographic_probe_grid_width >> 1u;//10u;//400u;
 
@@ -9612,7 +9612,45 @@ namespace game_logic
 		cursor_y = environment.state.framebuffer_height - static_cast<GLfloat>(cursor_y_double);
 	}
 
-	void find_ray_closest_to_cursor
+	void find_ray_closest_to_cursor_in_row_ray_mode
+	(
+		game_environment::Environment const& environment,
+		GLuint const cascade, GLuint const cascade_power_of_two, GLfloat const cascade_power_of_two_float,
+		GLuint const rays_per_probe, GLuint const skipped_rays_below_column,
+		GLuint& closest_ray_texel_x, GLuint& closest_ray_texel_y
+	)
+	{
+		GLfloat cursor_x;
+		GLfloat cursor_y;
+		get_cursor_position(environment, cursor_x, cursor_y);
+
+		GLfloat const normalized_cursor_x{ cursor_x / environment.state.framebuffer_width };
+		GLfloat const normalized_cursor_y{ cursor_y / environment.state.framebuffer_height };
+
+		GLuint const edge_width{ environment.state.holographic_probe_grid_width - 1u };
+		GLuint const edge_height{ environment.state.holographic_probe_grid_height - 1u };
+
+		GLfloat const probe_grid_cursor_x{ normalized_cursor_x * static_cast<GLfloat>(edge_width) };
+		GLfloat const probe_grid_cursor_y{ normalized_cursor_y * static_cast<GLfloat>(edge_height) };
+
+		GLuint const max_column_texel_x{ (((environment.state.holographic_probe_grid_width) - 2u) >> cascade) - 1u };
+		closest_ray_texel_x = static_cast<GLuint>(std::clamp
+		(
+			static_cast<GLint>(std::roundf(probe_grid_cursor_x / cascade_power_of_two_float - 1.0f)),
+			0, static_cast<GLint>(max_column_texel_x)
+		));
+		closest_ray_texel_x *= rays_per_probe;
+		closest_ray_texel_y = std::clamp(static_cast<GLint>(std::roundf(probe_grid_cursor_y)), 0, static_cast<GLint>(edge_height));
+
+		GLfloat const y_offset{ probe_grid_cursor_y - closest_ray_texel_y };
+		GLuint const direction_id{ static_cast<GLuint>(
+			std::clamp(static_cast<GLint>((0.5f + y_offset) * (cascade_power_of_two_float + 1.0f)), 0, static_cast<GLint>(cascade_power_of_two))
+		) };
+		closest_ray_texel_x += direction_id;
+		//closest_ray_texel_y = static_cast<GLuint>(std::clamp(static_cast<GLint>(closest_ray_texel_y * rays_per_probe) + static_cast<GLint>(direction_id) - static_cast<GLint>(skipped_rays_below_column), 0, static_cast<GLint>(environment.state.holographic_probe_grid_height * (cascade_power_of_two + 1u) - (skipped_rays_below_column << 1u) - 1u)));
+	}
+
+	void find_ray_closest_to_cursor_in_column_ray_mode
 	(
 		game_environment::Environment const& environment,
 		GLuint const cascade, GLuint const cascade_power_of_two, GLfloat const cascade_power_of_two_float,
@@ -9646,6 +9684,36 @@ namespace game_logic
 			std::clamp(static_cast<GLint>((0.5f + y_offset) * (cascade_power_of_two_float + 1.0f)), 0, static_cast<GLint>(cascade_power_of_two))
 		) };
 		closest_ray_texel_y = static_cast<GLuint>(std::clamp(static_cast<GLint>(closest_ray_texel_y * rays_per_probe) + static_cast<GLint>(direction_id) - static_cast<GLint>(skipped_rays_below_column), 0, static_cast<GLint>(environment.state.holographic_probe_grid_height * (cascade_power_of_two + 1u) - (skipped_rays_below_column << 1u) - 1u)));
+	}
+
+	void find_ray_closest_to_cursor
+	(
+		game_environment::Environment const& environment,
+		GLuint const cascade, GLuint const cascade_power_of_two, GLfloat const cascade_power_of_two_float,
+		GLuint const rays_per_probe, GLuint const skipped_rays_below_column,
+		GLuint& closest_ray_texel_x, GLuint& closest_ray_texel_y
+	)
+	{
+		if (environment.state.use_row_ray_textures)
+		{
+			find_ray_closest_to_cursor_in_row_ray_mode
+			(
+				environment,
+				cascade, cascade_power_of_two, cascade_power_of_two_float,
+				rays_per_probe, skipped_rays_below_column,
+				closest_ray_texel_x, closest_ray_texel_y
+			);
+		}
+		else
+		{
+			find_ray_closest_to_cursor_in_column_ray_mode
+			(
+				environment,
+				cascade, cascade_power_of_two, cascade_power_of_two_float,
+				rays_per_probe, skipped_rays_below_column,
+				closest_ray_texel_x, closest_ray_texel_y
+			);
+		}
 	}
 
 	void find_fluence_cone_closest_to_cursor
