@@ -18,6 +18,24 @@ struct Model
 
 namespace game_state
 {
+	namespace presentation_state_0
+	{
+		enum Presentation_State_0
+		{
+			DEFAULT,
+			SHOW_INNER_WORKINGS,
+		};
+	}
+
+	namespace sky_circle_state
+	{
+		enum Sky_Circle_State
+		{
+			DEFAULT,
+			SHOW_INNER_WORKINGS,
+		};
+	}
+
 	constexpr GLuint initial_holographic_ray_trace_cascade_count{ 1u };
 
 	// TODO: Organize based on access patterns 
@@ -348,11 +366,8 @@ namespace game_state
 
 		GLuint presentation_stage;
 		
-		enum Presentation_State_0
-		{
-			DEFAULT,
-			SHOW_INNER_WORKINGS,
-		};
-		Presentation_State_0 presentation_state_0;
+		presentation_state_0::Presentation_State_0 presentation_state_0;
+
+		sky_circle_state::Sky_Circle_State sky_circle_state;
 	};
 }

@@ -707,6 +707,8 @@ namespace game_logic
 		glBindTextures(1u, 1u, &environment.state.holographic_source_array_texture);
 		glBindTextures(3u, 1u, &environment.state.angular_fluence_texture);
 		glBindTextures(4u, 1u, &environment.state.fluence_texture);
+		glBindTextures(5u, 1u, &environment.state.holographic_sky_circle_texture);
+
 		{
 			glNamedFramebufferTextureLayer
 			(
@@ -1051,7 +1053,8 @@ namespace game_logic
 
 	void start_presentation_stage(game_environment::Environment& environment)
 	{
-		environment.state.presentation_state_0 = game_state::Game::Presentation_State_0::DEFAULT;
+		environment.state.presentation_state_0 = game_state::presentation_state_0::DEFAULT;
+		environment.state.sky_circle_state = game_state::sky_circle_state::SHOW_INNER_WORKINGS;
 
 		GLuint stage{ environment.state.presentation_stage };
 		std::cout << "Start stage " << stage << std::endl;
@@ -1093,8 +1096,8 @@ namespace game_logic
 			environment.state.holographic_cascade_rays_draw_shader_cascade = 0u;
 			glProgramUniform1ui
 			(
-				environment.state.holographic_cascade_rays_draw_shader, 
-				environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_location, 
+				environment.state.holographic_cascade_rays_draw_shader,
+				environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_location,
 				environment.state.holographic_cascade_rays_draw_shader_cascade
 			);
 			environment.state.holographic_cascade_fluence_draw_shader_cascade = environment.state.holographic_cascade_rays_draw_shader_cascade;
@@ -2937,8 +2940,8 @@ namespace game_logic
 		}
 
 		{
-			constexpr GLfloat radius{ 0.5f };
-			constexpr GLfloat inner_radius{ radius - 0.1f };
+			constexpr GLfloat radius{ 1.0f };
+			constexpr GLfloat inner_radius{ radius - 0.05f };
 
 			std::string radius_definition{ "const float radius = " + std::to_string(radius) + ";\n" };
 			std::string inner_radius_definition{ "const float inner_radius = " + std::to_string(inner_radius) + ";\n" };
@@ -2947,6 +2950,7 @@ namespace game_logic
 			(
 				vertex_shader,
 				util_shader_VERSION,
+				game_PROJECTION_SCALE_DEFINITION(environment),
 				radius_definition,
 				inner_radius_definition,
 				::util::shader::file_to_string("holographic_radiance_cascades/sky_circle/debug/draw.vert")
@@ -2955,6 +2959,7 @@ namespace game_logic
 			(
 				fragment_shader,
 				util_shader_VERSION,
+				game_PROJECTION_SCALE_DEFINITION(environment),
 				radius_definition,
 				inner_radius_definition,
 				::util::shader::file_to_string("holographic_radiance_cascades/sky_circle/debug/draw.frag")
@@ -9645,6 +9650,16 @@ namespace game_logic
 		);
 	}
 
+	void draw_to_sky_circle(game_environment::Environment& environment)
+	{
+		GLfloat clear_fluence[4u]{ 1.0f, 0.0f, 0.0f, 0.0f };
+		glClearNamedFramebufferfv	// TODO: This is not the fastest, but we will replace it later with a shader anyways
+		(
+			environment.state.holographic_sky_circle_framebuffer,
+			GL_COLOR, 0, clear_fluence
+		);
+	}
+
 	// TODO: Rename to draw to not confuse with arbitrary OpenGL rendering commands 
 	// which includes compute shaders
 	void render(game_environment::Environment& environment)
@@ -9976,8 +9991,9 @@ namespace game_logic
 					glDrawArrays(GL_TRIANGLES, 0, 3u);
 				}
 
-				// TODO: Implement distant lights
-				//glBindFramebuffer
+				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, environment.state.holographic_sky_circle_framebuffer);
+				glViewport(0, 0, environment.state.sky_circle_texture_length, 1u);
+				draw_to_sky_circle(environment);
 
 				glUseProgram(environment.state.holographic_fluence_gather_shader);
 
@@ -10058,7 +10074,7 @@ namespace game_logic
 
 				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0u);
 				glViewport(0, 0, environment.state.framebuffer_width, environment.state.framebuffer_height);
-				if (environment.state.presentation_state_0 == game_state::Game::Presentation_State_0::SHOW_INNER_WORKINGS)
+				if (environment.state.presentation_state_0 == game_state::presentation_state_0::SHOW_INNER_WORKINGS)
 				{	// TODO: This if check be if we are zoomed out
 					GLfloat clear_color[4u]{ 0.0f, 0.0f, 0.0f, 1.0f };
 					glClearNamedFramebufferfv(0, GL_COLOR, 0, clear_color);
@@ -10068,7 +10084,7 @@ namespace game_logic
 			}
 		}
 
-		if (environment.state.presentation_state_0 == game_state::Game::Presentation_State_0::SHOW_INNER_WORKINGS)
+		if (environment.state.presentation_state_0 == game_state::presentation_state_0::SHOW_INNER_WORKINGS)
 		{
 			glUseProgram(environment.state.holographic_probe_grid_draw_shader);
 			glDrawArrays(GL_LINES, 0, (environment.state.holographic_probe_grid_size[0u] + environment.state.holographic_probe_grid_size[1u] + 2u) << 1u);
@@ -10342,6 +10358,12 @@ namespace game_logic
 
 				glDisablei(GL_BLEND, 0);
 			}
+		}
+
+		if (environment.state.sky_circle_state == game_state::sky_circle_state::SHOW_INNER_WORKINGS)
+		{
+			glUseProgram(environment.state.holographic_sky_circle_draw_shader);
+			glDrawArrays(GL_TRIANGLES, 0, 6u);
 		}
 	}
 

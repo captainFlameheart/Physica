@@ -1,5 +1,7 @@
 /* Expected to be concatenated from the CPU:
 
+#define PROJECTION_SCALE vec2(?, ?)
+
 const float radius = ?;
 
 */
@@ -20,5 +22,5 @@ noperspective out vec2 offset;
 void main()
 {
 	offset = vertices[gl_VertexID];
-	gl_Position = vec4(offset, 0.0, 1.0);
+	gl_Position = vec4(offset * PROJECTION_SCALE, 0.0, 1.0);
 }
