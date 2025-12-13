@@ -687,7 +687,7 @@ namespace game_logic
 			set_linear_sky_circle_interpolation(environment);
 			glTextureParameteri(environment.state.holographic_sky_circle_texture, GL_TEXTURE_WRAP_S, GL_REPEAT);
 			// IMPORTANT TODO: GL_RGBA32F might be overkill.
-			environment.state.sky_circle_texture_length = 256u;
+			environment.state.sky_circle_texture_length = 1024u;
 			glTextureStorage1D(environment.state.holographic_sky_circle_texture, 1u, GL_RGBA32F, environment.state.sky_circle_texture_length);
 
 			glNamedFramebufferTexture
@@ -9714,7 +9714,7 @@ namespace game_logic
 	void draw_to_sky_circle(game_environment::Environment& environment)
 	{
 		GLfloat clear_fluence[4u]{ 0.0f, 0.0f, 0.0f, 0.0f };
-		glClearNamedFramebufferfv	// TODO: This is not the fastest, but we will replace it later with a shader anyways
+		glClearNamedFramebufferfv	// TODO: This is not the fastest way to clear
 		(
 			environment.state.holographic_sky_circle_framebuffer,
 			GL_COLOR, 0, clear_fluence
@@ -10059,8 +10059,6 @@ namespace game_logic
 				glViewport(0, 0, environment.state.sky_circle_texture_length, 1u);
 				draw_to_sky_circle(environment);
 
-				glUseProgram(environment.state.holographic_fluence_gather_shader);
-
 				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, environment.state.angular_fluence_framebuffer);
 				
 				glNamedFramebufferDrawBuffer(environment.state.angular_fluence_framebuffer, GL_COLOR_ATTACHMENT0);
@@ -10074,13 +10072,16 @@ namespace game_logic
 				GLint const height{ static_cast<GLint>(environment.state.holographic_probe_grid_height) };
 				glViewport(0, 0, width, height);
 
-				GLfloat const clear_fluence[]{ 0.0f, 0.0f, 0.0f, 0.0f };
+				/*GLfloat const clear_fluence[]{0.0f, 0.0f, 0.0f, 0.0f};
 				glClearNamedFramebufferfv	// TODO: This is not the fastest, but we will replace it later with a shader anyways
 				(
 					environment.state.angular_fluence_framebuffer,
 					GL_COLOR, 0, clear_fluence
-				);
+				);*/
+				glUseProgram(environment.state.holographic_sky_circle_gather_shader);
+				glDrawArrays(GL_TRIANGLES, 0, 3u);
 
+				glUseProgram(environment.state.holographic_fluence_gather_shader);
 				GLint const max_fluence_gather_cascade{ max_cascade - 1 };
 				for (GLint cascade{ max_fluence_gather_cascade }; cascade > 0; --cascade)
 				{

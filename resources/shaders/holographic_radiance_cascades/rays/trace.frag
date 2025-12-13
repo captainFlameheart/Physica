@@ -61,7 +61,7 @@ void main()
 
 		vec4 clamped_absorption = max(absorption, 1e-4);	// TODO: Maybe handle negative absorptions
 
-		vec4 scaled_attenuation = clamped_absorption * world_step_distance;
+		vec4 scaled_attenuation = absorption * world_step_distance;
 		vec4 transmittance_factor = exp(-scaled_attenuation);
 
 		vec4 small_emission_factor = world_step_distance * (1.0 - 0.5 * scaled_attenuation); // Second order taylor approximation for small attenuation.

@@ -1,7 +1,7 @@
 const float pi = 3.14159265358979323846;
 const float angle_to_sky_circle_coordinate_factor = (0.5 / pi) * (RADIAN_INVERSE);
 
-const int end_points[2u] = int[2u](int(-0.5 * pi * RADIAN), int(1.0 * pi * RADIAN));
+const int end_points[2u] = int[2u](int(-0.02 * pi * RADIAN), int(0.02 * pi * RADIAN));
 
 layout(shared, binding = CAMERA_BINDING) uniform Camera
 {
