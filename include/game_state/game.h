@@ -80,8 +80,9 @@ namespace game_state
 				GLuint holographic_source_framebuffer;
 				GLuint angular_fluence_framebuffer;
 				GLuint fluence_framebuffer;
+				GLuint holographic_sky_circle_framebuffer;	// TODO: Order this based on use.
 			};
-			GLuint framebuffers[4u];
+			GLuint framebuffers[5u];
 		};
 		GLuint* holographic_ray_framebuffers;
 
@@ -107,9 +108,19 @@ namespace game_state
 					};
 					GLuint texture_2d_arrays[2u];
 				};
+				union
+				{	// TODO: order this based on use
+					struct
+					{
+						GLuint holographic_sky_circle_texture;
+					};
+					GLuint texture_1Ds[1u];
+				};
 			};
-			GLuint framebuffer_textures[4u];
+			GLuint framebuffer_textures[5u];
 		};
+
+		GLuint sky_circle_texture_length;
 
 		GLuint max_cascade_index;
 		GLuint* ray_textures;

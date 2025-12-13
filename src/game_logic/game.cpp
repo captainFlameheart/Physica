@@ -513,6 +513,22 @@ namespace game_logic
 		std::cout << std::endl;
 	}
 
+	void set_sky_circle_interpolation(game_environment::Environment& environment, GLint interpolation_mode)
+	{
+		glTextureParameteri(environment.state.holographic_sky_circle_texture, GL_TEXTURE_MIN_FILTER, interpolation_mode);
+		glTextureParameteri(environment.state.holographic_sky_circle_texture, GL_TEXTURE_MAG_FILTER, interpolation_mode);
+	}
+
+	void set_linear_sky_circle_interpolation(game_environment::Environment& environment)
+	{
+		set_sky_circle_interpolation(environment, GL_LINEAR);
+	}
+
+	void set_nearest_sky_circle_interpolation(game_environment::Environment& environment)
+	{
+		set_sky_circle_interpolation(environment, GL_NEAREST);
+	}
+
 	void set_fluence_interpolation(game_environment::Environment& environment, GLint interpolation_mode)
 	{
 		glTextureParameteri(environment.state.fluence_texture, GL_TEXTURE_MIN_FILTER, interpolation_mode);
@@ -666,6 +682,26 @@ namespace game_logic
 			}
 		}
 
+		glCreateTextures(GL_TEXTURE_1D, std::size(environment.state.texture_1Ds), environment.state.texture_1Ds);
+		{
+			set_linear_sky_circle_interpolation(environment);
+			// IMPORTANT TODO: GL_RGBA32F might be overkill.
+			environment.state.sky_circle_texture_length = 256u;
+			glTextureStorage1D(environment.state.holographic_sky_circle_texture, 1u, GL_RGBA32F, environment.state.sky_circle_texture_length);
+
+			glNamedFramebufferTexture
+			(
+				environment.state.holographic_sky_circle_framebuffer, GL_COLOR_ATTACHMENT0,
+				environment.state.holographic_sky_circle_texture, 0
+			);
+			glNamedFramebufferDrawBuffer(environment.state.holographic_sky_circle_framebuffer, GL_COLOR_ATTACHMENT0);
+			GLenum const framebuffer_status{ glCheckNamedFramebufferStatus(environment.state.holographic_sky_circle_framebuffer, GL_DRAW_FRAMEBUFFER) };
+			if (framebuffer_status != GL_FRAMEBUFFER_COMPLETE)
+			{
+				std::cerr << "Holographic sky circle framebuffer not completed, status code : " << framebuffer_status << std::endl;
+			}
+		}
+
 		//glBindTextures(0u, std::size(environment.state.framebuffer_textures), environment.state.framebuffer_textures);
 		glBindTextures(0u, 1u, &environment.state.fluid_texture);
 		glBindTextures(1u, 1u, &environment.state.holographic_source_array_texture);
@@ -708,6 +744,10 @@ namespace game_logic
 			{
 				std::cerr << "Holographic source framebuffer not completed, status code: " << framebuffer_status << std::endl;
 			}
+		}
+
+		{
+
 		}
 
 		{
@@ -9936,6 +9976,9 @@ namespace game_logic
 					glDrawArrays(GL_TRIANGLES, 0, 3u);
 				}
 
+				// TODO: Implement distant lights
+				//glBindFramebuffer
+
 				glUseProgram(environment.state.holographic_fluence_gather_shader);
 
 				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, environment.state.angular_fluence_framebuffer);
@@ -9951,7 +9994,6 @@ namespace game_logic
 				GLint const height{ static_cast<GLint>(environment.state.holographic_probe_grid_height) };
 				glViewport(0, 0, width, height);
 
-				// TODO: Implement distant lights
 				GLfloat const clear_fluence[]{ 0.0f, 0.0f, 0.0f, 0.0f };
 				glClearNamedFramebufferfv	// TODO: This is not the fastest, but we will replace it later with a shader anyways
 				(
