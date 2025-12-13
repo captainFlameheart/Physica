@@ -1088,7 +1088,7 @@ namespace game_logic
 
 	void start_presentation_stage(game_environment::Environment& environment)
 	{
-		environment.state.presentation_state_0 = game_state::presentation_state_0::SHOW_INNER_WORKINGS;
+		environment.state.presentation_state_0 = game_state::presentation_state_0::DEFAULT;
 		environment.state.sky_circle_state = game_state::sky_circle_state::SHOW_INNER_WORKINGS;
 
 		GLuint stage{ environment.state.presentation_stage };
@@ -1431,9 +1431,9 @@ namespace game_logic
 
 		environment.state.presentation_stage = 0u;
 		environment.state.use_holographic_radiance_cascades = true;
-		environment.state.use_row_ray_textures = true;
-		environment.state.holographic_probe_grid_width = 20u;//100u;//20u;//800u;
-		environment.state.holographic_probe_grid_height = 10u;//50u;//environment.state.holographic_probe_grid_width >> 1u;//10u;//400u;
+		environment.state.use_row_ray_textures = false;
+		environment.state.holographic_probe_grid_width = 100u;//100u;//20u;//800u;
+		environment.state.holographic_probe_grid_height = 50u;//50u;//environment.state.holographic_probe_grid_width >> 1u;//10u;//400u;
 
 		glEnable(GL_FRAMEBUFFER_SRGB);
 		environment.state.framebuffer_sRGB_enabled = true;
@@ -3081,11 +3081,23 @@ namespace game_logic
 		environment.state.holographic_ray_trace_shader_source_uniform_locations = new GLint[environment.state.holographic_ray_trace_shader_count];
 		for (GLuint cascade{ 0u }; cascade < environment.state.holographic_ray_trace_shader_count; ++cascade)
 		{
+			constexpr GLuint column_ray_texture_mode_value{ 0u };
+			constexpr GLuint row_ray_texture_mode_value{ 1u };
+
+			std::string column_ray_texture_mode_definition{ "#define COLUMN_RAY_TEXTURE_MODE " + std::to_string(column_ray_texture_mode_value) + '\n' };
+			std::string row_ray_texture_mode_definition{ "#define ROW_RAY_TEXTURE_MODE " + std::to_string(row_ray_texture_mode_value) + '\n' };
+
+			GLuint ray_texture_mode_value{ environment.state.use_row_ray_textures ? row_ray_texture_mode_value : column_ray_texture_mode_value };
+			std::string ray_texture_mode_definition{ "#define RAY_TEXTURE_MODE " + std::to_string(ray_texture_mode_value) + '\n' };
+
 			// TODO: This vertex shader compilation should be done ONCE
 			::util::shader::set_shader_statically
 			(
 				vertex_shader,
 				util_shader_VERSION,
+				column_ray_texture_mode_definition,
+				row_ray_texture_mode_definition,
+				ray_texture_mode_definition,
 				::util::shader::file_to_string("util/plain_full_screen.vert")
 			);
 
@@ -3144,6 +3156,9 @@ namespace game_logic
 			(
 				fragment_shader,
 				util_shader_VERSION,
+				column_ray_texture_mode_definition,
+				row_ray_texture_mode_definition,
+				ray_texture_mode_definition,
 				skipped_rays_below_column_declaration,
 				rays_per_probe_declaration,
 				cascade_power_of_two_declaration,
@@ -3182,7 +3197,7 @@ namespace game_logic
 			std::string column_ray_texture_mode_definition{ "#define COLUMN_RAY_TEXTURE_MODE " + std::to_string(column_ray_texture_mode_value) + '\n' };
 			std::string row_ray_texture_mode_definition{ "#define ROW_RAY_TEXTURE_MODE " + std::to_string(row_ray_texture_mode_value) + '\n' };
 
-			GLuint texture_mode_value{ environment.state.use_row_ray_textures ? row_ray_texture_mode_value : column_ray_texture_mode_value };
+			GLuint ray_texture_mode_value{ environment.state.use_row_ray_textures ? row_ray_texture_mode_value : column_ray_texture_mode_value };
 
 			::util::shader::set_shader_statically
 			(

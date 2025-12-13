@@ -16,7 +16,7 @@
 #define COLUMN_RAY_TEXTURE_MODE ?
 #define ROW_RAY_TEXTURE_MODE ?
 
-#define RAY_TEXTURE_MODE ? 
+#define RAY_TEXTURE_MODE ?
 
 */
 
