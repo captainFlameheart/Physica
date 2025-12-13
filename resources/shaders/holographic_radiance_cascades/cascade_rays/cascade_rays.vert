@@ -13,6 +13,11 @@
 
 #define ZOOM_MODE ?
 
+#define COLUMN_RAY_TEXTURE_MODE ?
+#define ROW_RAY_TEXTURE_MODE ?
+
+#define RAY_TEXTURE_MODE ? 
+
 */
 
 uniform uvec2 probe_grid_size;
@@ -347,12 +352,16 @@ void main()
 			float(ray_texel_position == showcased_ray_texel_position)
 		);
 	#elif MODE == SHOWCASE_MERGE_TO_RAY
-		uint skipped_rays_below_column = (lines_per_probe + 1u) >> 1u;
-		line_color = pick_color_if_merging_to_ray
-		(
-			merged_to_ray_texel_position, 
-			lines_per_probe, skipped_rays_below_column, probe_column, probe_y, direction_index
-		);
+		#if RAY_TEXTURE_MODE == COLUMN_RAY_TEXTURE_MODE
+			uint skipped_rays_below_column = (lines_per_probe + 1u) >> 1u;
+			line_color = pick_color_if_merging_to_ray
+			(
+				merged_to_ray_texel_position, 
+				lines_per_probe, skipped_rays_below_column, probe_column, probe_y, direction_index
+			);
+		#elif RAY_TEXTURE_MODE == ROW_RAY_TEXTURE_MODE
+			line_color = vec4(0.0, 1.0, 0.0, 1.0);
+		#endif
 	#elif MODE == SHOWCASE_MERGE_TO_CONE
 		uint skipped_rays_below_column = (lines_per_probe + 1u) >> 1u;
 		line_color = pick_color_if_merging_to_cone

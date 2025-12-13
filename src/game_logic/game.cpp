@@ -1088,7 +1088,7 @@ namespace game_logic
 
 	void start_presentation_stage(game_environment::Environment& environment)
 	{
-		environment.state.presentation_state_0 = game_state::presentation_state_0::DEFAULT;
+		environment.state.presentation_state_0 = game_state::presentation_state_0::SHOW_INNER_WORKINGS;
 		environment.state.sky_circle_state = game_state::sky_circle_state::SHOW_INNER_WORKINGS;
 
 		GLuint stage{ environment.state.presentation_stage };
@@ -1431,8 +1431,9 @@ namespace game_logic
 
 		environment.state.presentation_stage = 0u;
 		environment.state.use_holographic_radiance_cascades = true;
-		environment.state.holographic_probe_grid_width = 100u;//20u;//800u;
-		environment.state.holographic_probe_grid_height = 50u;//environment.state.holographic_probe_grid_width >> 1u;//10u;//400u;
+		environment.state.use_row_ray_textures = false;
+		environment.state.holographic_probe_grid_width = 20u;//100u;//20u;//800u;
+		environment.state.holographic_probe_grid_height = 10u;//50u;//environment.state.holographic_probe_grid_width >> 1u;//10u;//400u;
 
 		glEnable(GL_FRAMEBUFFER_SRGB);
 		environment.state.framebuffer_sRGB_enabled = true;
@@ -2672,6 +2673,15 @@ namespace game_logic
 			std::string default_zoom_mode_definition{ "#define DEFAULT_ZOOM_MODE " + std::to_string(default_zoom_mode_value) + '\n' };
 			std::string zoomed_out_zoom_mode_definition{ "#define ZOOMED_OUT_ZOOM_MODE " + std::to_string(zoomed_out_zoom_mode_value) + '\n' };
 
+			constexpr GLuint column_ray_texture_mode_value{ 0u };
+			constexpr GLuint row_ray_texture_mode_value{ 1u };
+
+			std::string column_ray_texture_mode_definition{ "#define COLUMN_RAY_TEXTURE_MODE " + std::to_string(column_ray_texture_mode_value) + '\n' };
+			std::string row_ray_texture_mode_definition{ "#define ROW_RAY_TEXTURE_MODE " + std::to_string(row_ray_texture_mode_value) + '\n' };
+
+			GLuint ray_texture_mode_value{ environment.state.use_row_ray_textures ? row_ray_texture_mode_value : column_ray_texture_mode_value };
+			std::string ray_texture_mode_definition{ "#define RAY_TEXTURE_MODE " + std::to_string(ray_texture_mode_value) + '\n' };
+
 			{
 				std::string mode_definition{ "#define MODE " + std::to_string(showcase_cascade_value) + "\n" };
 
@@ -2691,6 +2701,9 @@ namespace game_logic
 					default_zoom_mode_definition,
 					zoomed_out_zoom_mode_definition,
 					zoom_mode_definition,
+					column_ray_texture_mode_definition,
+					row_ray_texture_mode_definition,
+					ray_texture_mode_definition,
 					::util::shader::file_to_string("holographic_radiance_cascades/cascade_rays/cascade_rays.vert")
 				);
 				::util::shader::set_shader_statically
@@ -2706,6 +2719,9 @@ namespace game_logic
 					default_zoom_mode_definition,
 					zoomed_out_zoom_mode_definition,
 					zoom_mode_definition,
+					column_ray_texture_mode_definition,
+					row_ray_texture_mode_definition,
+					ray_texture_mode_definition,
 					::util::shader::file_to_string("holographic_radiance_cascades/cascade_rays/cascade_rays.frag")
 				);
 				environment.state.holographic_cascade_rays_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
@@ -2748,6 +2764,9 @@ namespace game_logic
 					default_zoom_mode_definition,
 					zoomed_out_zoom_mode_definition,
 					zoom_mode_definition,
+					column_ray_texture_mode_definition,
+					row_ray_texture_mode_definition,
+					ray_texture_mode_definition,
 					::util::shader::file_to_string("holographic_radiance_cascades/cascade_rays/cascade_rays.vert")
 				);
 				::util::shader::set_shader_statically
@@ -2763,6 +2782,9 @@ namespace game_logic
 					default_zoom_mode_definition,
 					zoomed_out_zoom_mode_definition,
 					zoom_mode_definition,
+					column_ray_texture_mode_definition,
+					row_ray_texture_mode_definition,
+					ray_texture_mode_definition,
 					::util::shader::file_to_string("holographic_radiance_cascades/cascade_rays/cascade_rays.frag")
 				);
 				environment.state.holographic_cascade_rays_single_ray_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
@@ -2817,6 +2839,9 @@ namespace game_logic
 					default_zoom_mode_definition,
 					zoomed_out_zoom_mode_definition,
 					zoom_mode_definition,
+					column_ray_texture_mode_definition,
+					row_ray_texture_mode_definition,
+					ray_texture_mode_definition,
 					::util::shader::file_to_string("holographic_radiance_cascades/cascade_rays/cascade_rays.vert")
 				);
 				::util::shader::set_shader_statically
@@ -2832,6 +2857,9 @@ namespace game_logic
 					default_zoom_mode_definition,
 					zoomed_out_zoom_mode_definition,
 					zoom_mode_definition,
+					column_ray_texture_mode_definition,
+					row_ray_texture_mode_definition,
+					ray_texture_mode_definition,
 					::util::shader::file_to_string("holographic_radiance_cascades/cascade_rays/cascade_rays.frag")
 				);
 				environment.state.holographic_cascade_rays_merge_to_cone_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
@@ -2885,6 +2913,9 @@ namespace game_logic
 					default_zoom_mode_definition,
 					zoomed_out_zoom_mode_definition,
 					zoom_mode_definition,
+					column_ray_texture_mode_definition,
+					row_ray_texture_mode_definition,
+					ray_texture_mode_definition,
 					::util::shader::file_to_string("holographic_radiance_cascades/cascade_rays/cascade_rays.vert")
 				);
 				::util::shader::set_shader_statically
@@ -2900,6 +2931,9 @@ namespace game_logic
 					default_zoom_mode_definition,
 					zoomed_out_zoom_mode_definition,
 					zoom_mode_definition,
+					column_ray_texture_mode_definition,
+					row_ray_texture_mode_definition,
+					ray_texture_mode_definition,
 					::util::shader::file_to_string("holographic_radiance_cascades/cascade_rays/cascade_rays.frag")
 				);
 				environment.state.holographic_cascade_rays_merge_to_ray_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
@@ -2953,6 +2987,9 @@ namespace game_logic
 					default_zoom_mode_definition,
 					zoomed_out_zoom_mode_definition,
 					zoom_mode_definition,
+					column_ray_texture_mode_definition,
+					row_ray_texture_mode_definition,
+					ray_texture_mode_definition,
 					::util::shader::file_to_string("holographic_radiance_cascades/cascade_rays/cascade_rays.vert")
 				);
 				::util::shader::set_shader_statically
@@ -2968,6 +3005,9 @@ namespace game_logic
 					default_zoom_mode_definition,
 					zoomed_out_zoom_mode_definition,
 					zoom_mode_definition,
+					column_ray_texture_mode_definition,
+					row_ray_texture_mode_definition,
+					ray_texture_mode_definition,
 					::util::shader::file_to_string("holographic_radiance_cascades/cascade_rays/cascade_rays.frag")
 				);
 				environment.state.holographic_cascade_rays_radiance_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
@@ -3134,34 +3174,44 @@ namespace game_logic
 				<< "\n	step_count = " << step_count
 				<< std::endl;
 		}
+		
+		{
+			constexpr GLuint column_ray_texture_mode_value{ 0u };
+			constexpr GLuint row_ray_texture_mode_value{ 1u };
 
-		::util::shader::set_shader_statically
-		(
-			vertex_shader,
-			util_shader_VERSION,
-			::util::shader::file_to_string("util/plain_full_screen.vert")
-		);
+			std::string column_ray_texture_mode_definition{ "#define COLUMN_RAY_TEXTURE_MODE " + std::to_string(column_ray_texture_mode_value) + '\n' };
+			std::string row_ray_texture_mode_definition{ "#define ROW_RAY_TEXTURE_MODE " + std::to_string(row_ray_texture_mode_value) + '\n' };
 
-		::util::shader::set_shader_statically
-		(
-			fragment_shader,
-			util_shader_VERSION,
-			util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
-			util_shader_DEFINE("RAY_CASTING_BINDING", STRINGIFY(game_logic__util_RAY_CASTING_BINDING)),
-			::util::shader::file_to_string("holographic_radiance_cascades/rays/extend.frag")
-		);
-		environment.state.holographic_ray_extend_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
-		environment.state.holographic_ray_extend_shader_shorter_rays_uniform_location = glGetUniformLocation
-		(
-			environment.state.holographic_ray_extend_shader, "shorter_rays"
-		);
-		glProgramUniform1i
-		(
-			environment.state.holographic_ray_extend_shader,
-			environment.state.holographic_ray_extend_shader_shorter_rays_uniform_location, 2
-		);
-		std::cout << "Holographic ray extend shader compiled. Shorter rays uniform location: "
-			<< environment.state.holographic_ray_extend_shader_shorter_rays_uniform_location << std::endl;
+			GLuint texture_mode_value{ environment.state.use_row_ray_textures ? row_ray_texture_mode_value : column_ray_texture_mode_value };
+
+			::util::shader::set_shader_statically
+			(
+				vertex_shader,
+				util_shader_VERSION,
+				::util::shader::file_to_string("util/plain_full_screen.vert")
+			);
+
+			::util::shader::set_shader_statically
+			(
+				fragment_shader,
+				util_shader_VERSION,
+				util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
+				util_shader_DEFINE("RAY_CASTING_BINDING", STRINGIFY(game_logic__util_RAY_CASTING_BINDING)),
+				::util::shader::file_to_string("holographic_radiance_cascades/rays/extend.frag")
+			);
+			environment.state.holographic_ray_extend_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+			environment.state.holographic_ray_extend_shader_shorter_rays_uniform_location = glGetUniformLocation
+			(
+				environment.state.holographic_ray_extend_shader, "shorter_rays"
+			);
+			glProgramUniform1i
+			(
+				environment.state.holographic_ray_extend_shader,
+				environment.state.holographic_ray_extend_shader_shorter_rays_uniform_location, 2
+			);
+			std::cout << "Holographic ray extend shader compiled. Shorter rays uniform location: "
+				<< environment.state.holographic_ray_extend_shader_shorter_rays_uniform_location << std::endl;
+		}
 
 		::util::shader::set_shader_statically
 		(

@@ -211,6 +211,8 @@ namespace game_state
 
 		GLuint draw_sky_circle_test_element_shader;
 
+		bool use_row_ray_textures;
+
 		GLuint holographic_source_draw_shader;
 		GLint holographic_source_draw_shader_source_uniform_location;
 		GLint holographic_source_draw_shader_layer_uniform_location;
