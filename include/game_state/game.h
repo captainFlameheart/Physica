@@ -212,6 +212,15 @@ namespace game_state
 		GLuint draw_sky_circle_test_element_shader;
 
 		bool use_row_ray_textures;
+		union
+		{
+			struct
+			{
+				GLfloat probe_padding_factor_x;
+				GLfloat probe_padding_factor_y;
+			};
+			GLfloat probe_padding_factor[2u];
+		};
 
 		GLuint holographic_source_draw_shader;
 		GLint holographic_source_draw_shader_source_uniform_location;
@@ -232,6 +241,8 @@ namespace game_state
 
 		GLuint holographic_probe_points_draw_shader;
 		GLuint holographic_probe_points_draw_shader_probe_grid_size_uniform_location;
+		GLuint holographic_probe_points_draw_shader_source_size_uniform_location;
+		GLuint holographic_probe_points_draw_shader_probe_padding_factor_uniform_location;
 
 		GLuint holographic_cascade_fluence_draw_shader;
 		GLint holographic_cascade_fluence_draw_shader_probe_grid_size_uniform_location;

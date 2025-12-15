@@ -14,6 +14,7 @@ layout (location = 0) out vec4 color;
 void main()
 {
 	//vec2 sample_point = gl_FragCoord.xy / vec2(textureSize(source, 0).xy);
+	// VERY IMPORTANT TODO: Use texel fetch for source sampling when not zoomed out
 	color = texture(source, vec3(sample_point, 0.0));
 
 	// IMPORTANT TODO: Store inverse size to avoid division

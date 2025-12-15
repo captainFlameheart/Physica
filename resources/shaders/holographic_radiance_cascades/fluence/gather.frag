@@ -31,6 +31,8 @@ layout (location = 0) out vec4 fluence;
 
 void main()
 {
+	// IMPORTANT TODO: Angles should depend on probe grid dimensions and whatnot.
+
 	#if RAY_TEXTURE_MODE == ROW_RAY_TEXTURE_MODE
 
 		// IMPORTANT TODO: REORDER TEXTURE FETCHES BASED ON CHACHE LOCALITY

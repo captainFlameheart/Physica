@@ -1129,7 +1129,7 @@ namespace game_logic
 
 	void start_presentation_stage(game_environment::Environment& environment)
 	{
-		environment.state.presentation_state_0 = game_state::presentation_state_0::DEFAULT;
+		environment.state.presentation_state_0 = game_state::presentation_state_0::SHOW_INNER_WORKINGS;
 		environment.state.sky_circle_state = game_state::sky_circle_state::SHOW_INNER_WORKINGS;
 
 		GLuint stage{ environment.state.presentation_stage };
@@ -1473,8 +1473,10 @@ namespace game_logic
 		environment.state.presentation_stage = 0u;
 		environment.state.use_holographic_radiance_cascades = true;
 		environment.state.use_row_ray_textures = true;
-		environment.state.holographic_probe_grid_width = 150u;//150u;//100u;//20u;//800u;
-		environment.state.holographic_probe_grid_height = 75u;//75u;//50u;//environment.state.holographic_probe_grid_width >> 1u;//10u;//400u;
+		environment.state.holographic_probe_grid_width = 20u;//150u;//100u;//20u;//800u;
+		environment.state.holographic_probe_grid_height = 10u;//75u;//50u;//environment.state.holographic_probe_grid_width >> 1u;//10u;//400u;
+		environment.state.probe_padding_factor_x = 1.0f;
+		environment.state.probe_padding_factor_y = 1.0f;
 
 		glEnable(GL_FRAMEBUFFER_SRGB);
 		environment.state.framebuffer_sRGB_enabled = true;
@@ -2482,8 +2484,14 @@ namespace game_logic
 				);
 				environment.state.holographic_probe_points_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
 				environment.state.holographic_probe_points_draw_shader_probe_grid_size_uniform_location = glGetUniformLocation(environment.state.holographic_probe_points_draw_shader, "probe_grid_size");
+				environment.state.holographic_probe_points_draw_shader_source_size_uniform_location = glGetUniformLocation(environment.state.holographic_probe_points_draw_shader, "source_size");
+				environment.state.holographic_probe_points_draw_shader_probe_padding_factor_uniform_location = glGetUniformLocation(environment.state.holographic_probe_points_draw_shader, "probe_padding_factor");
+
 				std::cout << "Holographic probe points draw shader compiled. Probe grid size uniform location: "
-					<< environment.state.holographic_probe_points_draw_shader_probe_grid_size_uniform_location << std::endl;
+					<< environment.state.holographic_probe_points_draw_shader_probe_grid_size_uniform_location << "Source size uniform location"
+					<< environment.state.holographic_probe_points_draw_shader_source_size_uniform_location << "Probe padding factor uniform location"
+					<< environment.state.holographic_probe_points_draw_shader_probe_padding_factor_uniform_location 
+					<< std::endl;
 			}
 		}
 
@@ -10428,6 +10436,18 @@ namespace game_logic
 				environment.state.holographic_probe_points_draw_shader,
 				environment.state.holographic_probe_points_draw_shader_probe_grid_size_uniform_location,
 				environment.state.holographic_probe_grid_width, environment.state.holographic_probe_grid_height
+			);
+			glProgramUniform2ui
+			(
+				environment.state.holographic_probe_points_draw_shader,
+				environment.state.holographic_probe_points_draw_shader_source_size_uniform_location,
+				environment.state.framebuffer_width, environment.state.framebuffer_height
+			);
+			glProgramUniform2f
+			(
+				environment.state.holographic_probe_points_draw_shader,
+				environment.state.holographic_probe_points_draw_shader_probe_padding_factor_uniform_location,
+				environment.state.probe_padding_factor_x, environment.state.probe_padding_factor_y
 			);
 			glPointSize(10.0f);
 			glDrawArrays(GL_POINTS, 0, environment.state.holographic_probe_grid_width * environment.state.holographic_probe_grid_height);
