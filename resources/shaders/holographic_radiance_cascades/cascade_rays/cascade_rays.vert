@@ -21,6 +21,8 @@
 */
 
 uniform uvec2 probe_grid_size;
+uniform uvec2 source_size;
+uniform vec2 probe_padding_factor;
 uniform uint cascade;
 #if MODE == SHOWCASE_SINGLE_RAY
 	uniform uvec2 showcased_ray_texel_position;
@@ -660,8 +662,9 @@ void main()
 		float direction_length = length(direction);
 		vec2 normalized_direction = direction / direction_length;
 		vec2 position = vec2(probe_x, probe_y) + float(gl_VertexID & 1u) * (normalized_direction * (direction_length - removed_length));
-		vec2 normalized_probe_distance = 2.0 / vec2(probe_grid_size - 1u);
-		vec2 normalized_position = position * normalized_probe_distance - 1.0;
+		vec2 padding = probe_padding_factor / vec2(source_size);
+		vec2 normalized_probe_distance = (2.0 + 2.0 * padding) / vec2(probe_grid_size - 1u);
+		vec2 normalized_position = position * normalized_probe_distance - 1.0 - padding;
 
 		gl_Position = vec4
 		(
@@ -672,10 +675,11 @@ void main()
 		ivec2 direction = ivec2(cascade_power_of_two, int(direction_index << 1u) - int(cascade_power_of_two));
 		ivec2 position = ivec2(probe_x, probe_y) + int(gl_VertexID & 1u) * direction;
 
+		vec2 padding = probe_padding_factor / vec2(source_size);
 		gl_Position = vec4
 		(
-			float(position.x << 1u) / float(probe_grid_size.x - 1u) - 1.0, 
-			float(position.y << 1u) / float(probe_grid_size.y - 1u) - 1.0, 
+			(float(position.x << 1u) + 2.0 * padding.x) / float(probe_grid_size.x - 1u) - 1.0 - padding,
+			(float(position.y << 1u) + 2.0 * padding.y) / float(probe_grid_size.y - 1u) - 1.0 - padding,
 			0.0, 1.0
 		);
 	#endif

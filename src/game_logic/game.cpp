@@ -2780,6 +2780,8 @@ namespace game_logic
 				);
 				environment.state.holographic_cascade_rays_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
 				environment.state.holographic_cascade_rays_draw_shader_probe_grid_size_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_draw_shader, "probe_grid_size");
+				environment.state.holographic_cascade_rays_draw_shader_source_size_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_draw_shader, "source_size");
+				environment.state.holographic_cascade_rays_draw_shader_probe_padding_factor_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_draw_shader, "probe_padding_factor");
 				environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_draw_shader, "cascade");
 				glProgramUniform2ui
 				(
@@ -2795,7 +2797,9 @@ namespace game_logic
 					environment.state.holographic_cascade_rays_draw_shader_cascade
 				);
 				std::cout << "Holographic cascade rays draw shader compiled. Probe grid size uniform location: "
-					<< environment.state.holographic_cascade_rays_draw_shader_probe_grid_size_uniform_location << ". Cascade uniform location: "
+					<< environment.state.holographic_cascade_rays_draw_shader_probe_grid_size_uniform_location << ". Source size uniform location: "
+					<< environment.state.holographic_cascade_rays_draw_shader_source_size_uniform_location << ". Probe padding factor uniform location: "
+					<< environment.state.holographic_cascade_rays_draw_shader_probe_padding_factor_uniform_location << ". Cascade uniform location: "
 					<< environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_location << std::endl;
 			}
 
@@ -2843,6 +2847,8 @@ namespace game_logic
 				);
 				environment.state.holographic_cascade_rays_single_ray_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
 				environment.state.holographic_cascade_rays_single_ray_draw_shader_probe_grid_size_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_single_ray_draw_shader, "probe_grid_size");
+				environment.state.holographic_cascade_rays_single_ray_draw_shader_source_size_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_single_ray_draw_shader, "source_size");
+				environment.state.holographic_cascade_rays_single_ray_draw_shader_probe_padding_factor_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_single_ray_draw_shader, "probe_padding_factor");
 				environment.state.holographic_cascade_rays_single_ray_draw_shader_cascade_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_single_ray_draw_shader, "cascade");
 				environment.state.holographic_cascade_rays_single_ray_draw_shader_showcased_ray_texel_position_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_single_ray_draw_shader, "showcased_ray_texel_position");
 				glProgramUniform2ui
@@ -2868,7 +2874,9 @@ namespace game_logic
 					environment.state.holographic_cascade_rays_single_ray_draw_shader_showcased_ray_texel_y
 				);
 				std::cout << "Holographic cascade rays single ray draw shader compiled. Probe grid size uniform location: "
-					<< environment.state.holographic_cascade_rays_single_ray_draw_shader_probe_grid_size_uniform_location << ". Cascade uniform location: "
+					<< environment.state.holographic_cascade_rays_single_ray_draw_shader_probe_grid_size_uniform_location << ". Source size uniform location: "
+					<< environment.state.holographic_cascade_rays_single_ray_draw_shader_source_size_uniform_location << ". Probe padding factor uniform location: "
+					<< environment.state.holographic_cascade_rays_single_ray_draw_shader_probe_padding_factor_uniform_location << ". Cascade uniform location: "
 					<< environment.state.holographic_cascade_rays_single_ray_draw_shader_cascade_uniform_location << ". Showcased ray texel position uniform location: "
 					<< environment.state.holographic_cascade_rays_single_ray_draw_shader_showcased_ray_texel_position_uniform_location << std::endl;
 			}
@@ -2918,6 +2926,8 @@ namespace game_logic
 				);
 				environment.state.holographic_cascade_rays_merge_to_cone_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
 				environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_probe_grid_size_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_merge_to_cone_draw_shader, "probe_grid_size");
+				environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_source_size_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_merge_to_cone_draw_shader, "source_size");
+				environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_probe_padding_factor_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_merge_to_cone_draw_shader, "probe_padding_factor");
 				environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_cascade_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_merge_to_cone_draw_shader, "cascade");
 				environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_merged_to_cone_texel_position_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_merge_to_cone_draw_shader, "merged_to_cone_texel_position");
 				glProgramUniform2ui
@@ -2943,7 +2953,9 @@ namespace game_logic
 					environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_merged_to_cone_texel_y
 				);
 				std::cout << "Holographic cascade merge to cone draw shader compiled. Probe grid size uniform location: "
-					<< environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_probe_grid_size_uniform_location << ". Cascade uniform location: "
+					<< environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_probe_grid_size_uniform_location << ". Source size uniform location: "
+					<< environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_source_size_uniform_location << ". Probe padding factor uniform location: "
+					<< environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_probe_padding_factor_uniform_location << ". Cascade uniform location: "
 					<< environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_cascade_uniform_location << ". Merged to cone texel position uniform location: "
 					<< environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_merged_to_cone_texel_position_uniform_location << std::endl;
 			}
@@ -2992,6 +3004,8 @@ namespace game_logic
 				);
 				environment.state.holographic_cascade_rays_merge_to_ray_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
 				environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_probe_grid_size_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_merge_to_ray_draw_shader, "probe_grid_size");
+				environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_source_size_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_merge_to_ray_draw_shader, "source_size");
+				environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_probe_padding_factor_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_merge_to_ray_draw_shader, "probe_padding_factor");
 				environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_cascade_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_merge_to_ray_draw_shader, "cascade");
 				environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_merged_to_ray_texel_position_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_merge_to_ray_draw_shader, "merged_to_ray_texel_position");
 				glProgramUniform2ui
@@ -3017,7 +3031,9 @@ namespace game_logic
 					environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_merged_to_ray_texel_y
 				);
 				std::cout << "Holographic cascade rays merge to ray draw shader compiled. Probe grid size uniform location: "
-					<< environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_probe_grid_size_uniform_location << ". Cascade uniform location: "
+					<< environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_probe_grid_size_uniform_location << ". Source size uniform location: "
+					<< environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_source_size_uniform_location << ". Probe padding factor uniform location: "
+					<< environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_probe_padding_factor_uniform_location << ". Cascade uniform location: "
 					<< environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_cascade_uniform_location << ". Merged to ray texel position uniform location: "
 					<< environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_merged_to_ray_texel_position_uniform_location << std::endl;
 			}
@@ -3066,6 +3082,8 @@ namespace game_logic
 				);
 				environment.state.holographic_cascade_rays_radiance_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
 				environment.state.holographic_cascade_rays_radiance_draw_shader_probe_grid_size_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_radiance_draw_shader, "probe_grid_size");
+				environment.state.holographic_cascade_rays_radiance_draw_shader_source_size_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_radiance_draw_shader, "source_size");
+				environment.state.holographic_cascade_rays_radiance_draw_shader_probe_padding_factor_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_radiance_draw_shader, "probe_padding_factor");
 				environment.state.holographic_cascade_rays_radiance_draw_shader_cascade_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_radiance_draw_shader, "cascade");
 				environment.state.holographic_cascade_rays_radiance_draw_shader_rays_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_radiance_draw_shader, "rays");
 				glProgramUniform2ui
@@ -3088,7 +3106,9 @@ namespace game_logic
 					2
 				);
 				std::cout << "Holographic cascade rays radiance draw shader compiled. Probe grid size uniform location: "
-					<< environment.state.holographic_cascade_rays_radiance_draw_shader_probe_grid_size_uniform_location << ". Cascade uniform location: "
+					<< environment.state.holographic_cascade_rays_radiance_draw_shader_probe_grid_size_uniform_location << ". Source size uniform location: "
+					<< environment.state.holographic_cascade_rays_radiance_draw_shader_source_size_uniform_location << ". Probe padding factor uniform location: "
+					<< environment.state.holographic_cascade_rays_radiance_draw_shader_probe_padding_factor_uniform_location << ". Cascade uniform location: "
 					<< environment.state.holographic_cascade_rays_radiance_draw_shader_cascade_uniform_location << ". Rays uniform location: "
 					<< environment.state.holographic_cascade_rays_radiance_draw_shader_rays_uniform_location << std::endl;
 			}
@@ -10507,6 +10527,18 @@ namespace game_logic
 							(environment.state.holographic_probe_grid_size[1u] << 1u) * (cascade_power_of_two + 1u) *
 							static_cast<GLuint>(std::ceilf(environment.state.holographic_probe_grid_size[0u] / static_cast<GLfloat>(cascade_power_of_two)))
 						};
+						glProgramUniform2ui
+						(
+							environment.state.holographic_cascade_rays_draw_shader,
+							environment.state.holographic_cascade_rays_draw_shader_source_size_uniform_location,
+							environment.state.framebuffer_width, environment.state.framebuffer_height
+						);
+						glProgramUniform2f
+						(
+							environment.state.holographic_cascade_rays_draw_shader,
+							environment.state.holographic_cascade_rays_draw_shader_probe_padding_factor_uniform_location,
+							environment.state.probe_padding_factor_x, environment.state.probe_padding_factor_y
+						);
 						glDrawArrays(GL_LINES, 0, vertex_count);
 					}
 				}
@@ -10584,6 +10616,18 @@ namespace game_logic
 							(environment.state.holographic_probe_grid_size[1u] << 1u) * (cascade_power_of_two + 1u) *
 							static_cast<GLuint>(std::ceilf(environment.state.holographic_probe_grid_size[0u] / static_cast<GLfloat>(cascade_power_of_two)))
 						};
+						glProgramUniform2ui
+						(
+							environment.state.holographic_cascade_rays_merge_to_cone_draw_shader,
+							environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_source_size_uniform_location,
+							environment.state.framebuffer_width, environment.state.framebuffer_height
+						);
+						glProgramUniform2f
+						(
+							environment.state.holographic_cascade_rays_merge_to_cone_draw_shader,
+							environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_probe_padding_factor_uniform_location,
+							environment.state.probe_padding_factor_x, environment.state.probe_padding_factor_y
+						);
 						glDrawArrays(GL_LINES, 0, vertex_count);
 					}
 				}
@@ -10617,6 +10661,18 @@ namespace game_logic
 							(environment.state.holographic_probe_grid_size[1u] << 1u) * (cascade_power_of_two + 1u) *
 							static_cast<GLuint>(std::ceilf(environment.state.holographic_probe_grid_size[0u] / static_cast<GLfloat>(cascade_power_of_two)))
 						};
+						glProgramUniform2ui
+						(
+							environment.state.holographic_cascade_rays_single_ray_draw_shader,
+							environment.state.holographic_cascade_rays_single_ray_draw_shader_source_size_uniform_location,
+							environment.state.framebuffer_width, environment.state.framebuffer_height
+						);
+						glProgramUniform2f
+						(
+							environment.state.holographic_cascade_rays_single_ray_draw_shader,
+							environment.state.holographic_cascade_rays_single_ray_draw_shader_probe_padding_factor_uniform_location,
+							environment.state.probe_padding_factor_x, environment.state.probe_padding_factor_y
+						);
 						glDrawArrays(GL_LINES, 0, vertex_count);
 					}
 				}
@@ -10651,6 +10707,18 @@ namespace game_logic
 							(environment.state.holographic_probe_grid_size[1u] << 1u) * (merged_to_cascade_power_of_two + 1u) *
 							static_cast<GLuint>(std::ceilf(environment.state.holographic_probe_grid_size[0u] / static_cast<GLfloat>(merged_to_cascade_power_of_two)))
 						};
+						glProgramUniform2ui
+						(
+							environment.state.holographic_cascade_rays_single_ray_draw_shader,
+							environment.state.holographic_cascade_rays_single_ray_draw_shader_source_size_uniform_location,
+							environment.state.framebuffer_width, environment.state.framebuffer_height
+						);
+						glProgramUniform2f
+						(
+							environment.state.holographic_cascade_rays_single_ray_draw_shader,
+							environment.state.holographic_cascade_rays_single_ray_draw_shader_probe_padding_factor_uniform_location,
+							environment.state.probe_padding_factor_x, environment.state.probe_padding_factor_y
+						);
 						glDrawArrays(GL_LINES, 0, vertex_count);
 					}
 
@@ -10677,6 +10745,18 @@ namespace game_logic
 							(environment.state.holographic_probe_grid_size[1u] << 1u) * (merged_from_cascade_power_of_two + 1u) *
 							static_cast<GLuint>(std::ceilf(environment.state.holographic_probe_grid_size[0u] / static_cast<GLfloat>(merged_from_cascade_power_of_two)))
 						};
+						glProgramUniform2ui
+						(
+							environment.state.holographic_cascade_rays_merge_to_ray_draw_shader,
+							environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_source_size_uniform_location,
+							environment.state.framebuffer_width, environment.state.framebuffer_height
+						);
+						glProgramUniform2f
+						(
+							environment.state.holographic_cascade_rays_merge_to_ray_draw_shader,
+							environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_probe_padding_factor_uniform_location,
+							environment.state.probe_padding_factor_x, environment.state.probe_padding_factor_y
+						);
 						glDrawArrays(GL_LINES, 0, vertex_count);
 					}
 				}
@@ -10696,6 +10776,18 @@ namespace game_logic
 						(environment.state.holographic_probe_grid_size[1u] << 1u) * (cascade_power_of_two + 1u) *
 						(ceil_div(static_cast<GLuint>(environment.state.holographic_probe_grid_width) - 1u - cascade_power_of_two, cascade_power_of_two) + 1u)
 					};
+					glProgramUniform2ui
+					(
+						environment.state.holographic_cascade_rays_radiance_draw_shader,
+						environment.state.holographic_cascade_rays_radiance_draw_shader_source_size_uniform_location,
+						environment.state.framebuffer_width, environment.state.framebuffer_height
+					);
+					glProgramUniform2f
+					(
+						environment.state.holographic_cascade_rays_radiance_draw_shader,
+						environment.state.holographic_cascade_rays_radiance_draw_shader_probe_padding_factor_uniform_location,
+						environment.state.probe_padding_factor_x, environment.state.probe_padding_factor_y
+					);
 					glDrawArrays(GL_LINES, 0, vertex_count);
 				}
 				else
@@ -10720,6 +10812,18 @@ namespace game_logic
 							(environment.state.holographic_probe_grid_size[1u] << 1u) * (cascade_power_of_two + 1u) *
 							static_cast<GLuint>(std::ceilf(environment.state.holographic_probe_grid_size[0u] / static_cast<GLfloat>(cascade_power_of_two)))
 						};
+						glProgramUniform2ui
+						(
+							environment.state.holographic_cascade_rays_draw_shader,
+							environment.state.holographic_cascade_rays_draw_shader_source_size_uniform_location,
+							environment.state.framebuffer_width, environment.state.framebuffer_height
+						);
+						glProgramUniform2f
+						(
+							environment.state.holographic_cascade_rays_draw_shader,
+							environment.state.holographic_cascade_rays_draw_shader_probe_padding_factor_uniform_location,
+							environment.state.probe_padding_factor_x, environment.state.probe_padding_factor_y
+						);
 						glDrawArrays(GL_LINES, 0, vertex_count);
 					}
 				}
