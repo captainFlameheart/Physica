@@ -1129,7 +1129,7 @@ namespace game_logic
 
 	void start_presentation_stage(game_environment::Environment& environment)
 	{
-		environment.state.presentation_state_0 = game_state::presentation_state_0::DEFAULT;
+		environment.state.presentation_state_0 = game_state::presentation_state_0::SHOW_INNER_WORKINGS;
 		environment.state.sky_circle_state = game_state::sky_circle_state::SHOW_INNER_WORKINGS;
 
 		GLuint stage{ environment.state.presentation_stage };
@@ -1473,8 +1473,8 @@ namespace game_logic
 		environment.state.presentation_stage = 0u;
 		environment.state.use_holographic_radiance_cascades = true;
 		environment.state.use_row_ray_textures = true;
-		environment.state.holographic_probe_grid_width = 150u;//100u;//20u;//800u;
-		environment.state.holographic_probe_grid_height = 75u;//50u;//environment.state.holographic_probe_grid_width >> 1u;//10u;//400u;
+		environment.state.holographic_probe_grid_width = 20u;//150u;//100u;//20u;//800u;
+		environment.state.holographic_probe_grid_height = 10u;//75u;//50u;//environment.state.holographic_probe_grid_width >> 1u;//10u;//400u;
 
 		glEnable(GL_FRAMEBUFFER_SRGB);
 		environment.state.framebuffer_sRGB_enabled = true;
@@ -10226,15 +10226,33 @@ namespace game_logic
 			}
 			else
 			{
+				GLuint const edge_width{ environment.state.holographic_probe_grid_width - 1u };
+				GLuint const edge_width_decremented{ edge_width - 1u };
+				GLuint const edge_height{ environment.state.holographic_probe_grid_height - 1u };
+
 				GLuint ray_trace_cascade_count{ std::min(game_state::initial_holographic_ray_trace_cascade_count, environment.state.max_cascade_index) };
 				for (GLuint cascade{ 0u }; cascade < ray_trace_cascade_count; ++cascade)
 				{
 					glBindFramebuffer(GL_DRAW_FRAMEBUFFER, environment.state.holographic_ray_framebuffers[cascade]);
 
-					GLuint const cascade_power_of_two{ 1u << cascade };
-					GLuint const width{ ceil_div(environment.state.holographic_probe_grid_width - 1u - cascade_power_of_two, cascade_power_of_two) };
-					GLuint const rays_in_vacuum_per_column{ ceil_div(cascade_power_of_two + 1u, 2u) << 1u };
-					GLuint const height{ environment.state.holographic_probe_grid_height * (cascade_power_of_two + 1u) - rays_in_vacuum_per_column };
+					GLuint width;
+					GLuint height;
+					if (environment.state.use_row_ray_textures)
+					{
+						GLuint const cascade_power_of_two{ 1u << cascade };
+						GLuint const rays_per_probe{ cascade_power_of_two + 1u };
+
+						GLuint const min_outside_probe_x{ (edge_width_decremented + cascade_power_of_two) >> cascade };
+						width = (min_outside_probe_x - 1u) * rays_per_probe;
+						height = environment.state.holographic_probe_grid_height;
+					}
+					else
+					{
+						GLuint const cascade_power_of_two{ 1u << cascade };
+						width = ceil_div(environment.state.holographic_probe_grid_width - 1u - cascade_power_of_two, cascade_power_of_two);
+						GLuint const rays_in_vacuum_per_column{ ceil_div(cascade_power_of_two + 1u, 2u) << 1u };
+						height = environment.state.holographic_probe_grid_height * (cascade_power_of_two + 1u) - rays_in_vacuum_per_column;
+					}
 					glViewport(0, 0, width, height);
 
 					glUseProgram(environment.state.holographic_ray_trace_shaders[cascade]);

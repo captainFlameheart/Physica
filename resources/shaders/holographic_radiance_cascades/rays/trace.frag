@@ -52,7 +52,7 @@ void main()
 		vec2 probe_grid_full_step = vec2(cascade_power_of_two, (direction_id << 1) - cascade_power_of_two);
 
 		vec2 sample_step = probe_grid_full_step * probe_grid_full_step_to_sample_step_factor;
-		vec2 sample_point = vec2(output_texel_position.x + 1, output_texel_position.y) * probe_grid_point_to_sample_point_factor + sample_step * 0.5;
+		vec2 sample_point = vec2(probe_column + 1, output_texel_position.y) * probe_grid_point_to_sample_point_factor + sample_step * 0.5;
 	
 		float world_step_distance = length(probe_grid_full_step * probe_grid_full_step_to_sample_step_projection) * camera.z * METER_INVERSE;
 

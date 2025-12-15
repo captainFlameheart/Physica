@@ -548,12 +548,19 @@ void main()
 			lines_per_probe, skipped_rays_below_column, probe_column, probe_y, direction_index
 		);
 	#elif MODE == SHOWCASE_RADIANCE
-		uint skipped_rays_below_column = (lines_per_probe + 1u) >> 1u;
-		uvec2 ray_texel_position = convert_ray_logical_to_texel_position
-		(
-			lines_per_probe, skipped_rays_below_column,
-			probe_column, probe_y, direction_index
-		);
+		#if RAY_TEXTURE_MODE == COLUMN_RAY_TEXTURE_MODE
+			uint skipped_rays_below_column = (lines_per_probe + 1u) >> 1u;
+			uvec2 ray_texel_position = convert_ray_logical_to_texel_position
+			(
+				lines_per_probe, skipped_rays_below_column,
+				probe_column, probe_y, direction_index
+			);
+		#elif RAY_TEXTURE_MODE == ROW_RAY_TEXTURE_MODE
+			uvec2 ray_texel_position = convert_ray_logical_to_texel_position_in_row_ray_mode(
+				lines_per_probe,
+				probe_column, probe_y, direction_index
+			);
+		#endif
 		if
 		(
 			0 <= ray_texel_position.x && ray_texel_position.x < textureSize(rays, 0).x &&
