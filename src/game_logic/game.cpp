@@ -632,12 +632,30 @@ namespace game_logic
 			glCreateTextures(GL_TEXTURE_2D_ARRAY, environment.state.max_cascade_index, environment.state.ray_textures);
 			glCreateFramebuffers(environment.state.max_cascade_index, environment.state.holographic_ray_framebuffers);
 
+			GLuint const edge_width{ environment.state.holographic_probe_grid_width - 1u };
+			GLuint const edge_width_decremented{ edge_width - 1u };
+			GLuint const edge_height{ environment.state.holographic_probe_grid_height - 1u };
+
 			for (GLuint cascade{ 0u }; cascade < environment.state.max_cascade_index; ++cascade)
 			{
-				GLuint const cascade_power_of_two{ 1u << cascade };
-				GLuint const width{ ceil_div(environment.state.holographic_probe_grid_width - 1u - cascade_power_of_two, cascade_power_of_two) };
-				GLuint const rays_in_vacuum_per_column{ ceil_div(cascade_power_of_two + 1u, 2u) << 1u };
-				GLuint const height{ environment.state.holographic_probe_grid_height * (cascade_power_of_two + 1u) - rays_in_vacuum_per_column };
+				GLuint width;
+				GLuint height;
+				if (environment.state.use_row_ray_textures)
+				{
+					GLuint const cascade_power_of_two{ 1u << cascade };
+					GLuint const rays_per_probe{ cascade_power_of_two + 1u };
+
+					GLuint const min_outside_probe_x{ (edge_width_decremented + cascade_power_of_two) >> cascade };
+					width = (min_outside_probe_x - 1u) * rays_per_probe;
+					height = environment.state.holographic_probe_grid_height;
+				}
+				else
+				{
+					GLuint const cascade_power_of_two{ 1u << cascade };
+					width = ceil_div(environment.state.holographic_probe_grid_width - 1u - cascade_power_of_two, cascade_power_of_two);
+					GLuint const rays_in_vacuum_per_column{ ceil_div(cascade_power_of_two + 1u, 2u) << 1u };
+					height = environment.state.holographic_probe_grid_height * (cascade_power_of_two + 1u) - rays_in_vacuum_per_column;
+				}
 				glTextureStorage3D(environment.state.ray_textures[cascade], 1u, GL_RGBA32F, width, height, 2u);
 
 				glNamedFramebufferTextureLayer
@@ -1454,9 +1472,9 @@ namespace game_logic
 
 		environment.state.presentation_stage = 0u;
 		environment.state.use_holographic_radiance_cascades = true;
-		environment.state.use_row_ray_textures = false;
-		environment.state.holographic_probe_grid_width = 100u;//100u;//20u;//800u;
-		environment.state.holographic_probe_grid_height = 50u;//50u;//environment.state.holographic_probe_grid_width >> 1u;//10u;//400u;
+		environment.state.use_row_ray_textures = true;
+		environment.state.holographic_probe_grid_width = 150u;//100u;//20u;//800u;
+		environment.state.holographic_probe_grid_height = 75u;//50u;//environment.state.holographic_probe_grid_width >> 1u;//10u;//400u;
 
 		glEnable(GL_FRAMEBUFFER_SRGB);
 		environment.state.framebuffer_sRGB_enabled = true;
