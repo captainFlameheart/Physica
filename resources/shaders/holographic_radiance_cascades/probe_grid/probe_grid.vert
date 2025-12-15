@@ -8,6 +8,8 @@
 */
 
 uniform uvec2 probe_grid_size;
+uniform uvec2 source_size;
+uniform vec2 probe_padding_factor;
 
 out vec4 line_color;
 
@@ -24,12 +26,14 @@ void main()
 	vec2 spacing_direction_vector = vec2(line_direction_float, spacing_direction_float);
 	vec2 line_direction_vector = vec2(spacing_direction_float, line_direction_float);
 
-	const vec2 normalized_cell_half_size = 1.0 / (probe_grid_size - 1u);
+	vec2 padding = probe_padding_factor / vec2(source_size);
+
+	const vec2 normalized_cell_half_size = (1.0 + padding) / (probe_grid_size - 1u);
 	//const vec2 normalized_cell_size = 2.0 / (probe_grid_size - 1u);
-	const float normalized_line_radius = 1.0 + normalized_cell_half_size[line_direction];
+	const float normalized_line_radius = 1.0 + padding[line_direction] + normalized_cell_half_size[line_direction];
 	gl_Position = vec4
 	(
-		((float(local_line_id << 1u) - 1.0) * normalized_cell_half_size[spacing_direction] - 1.0) * spacing_direction_vector 
+		((float(local_line_id << 1u) - 1.0) * normalized_cell_half_size[spacing_direction] - 1.0 - padding[spacing_direction]) * spacing_direction_vector 
 		+ ((float(is_endpoint << 1u) - 1.0) * normalized_line_radius) * line_direction_vector,
 		0.0, 1.0
 	);
