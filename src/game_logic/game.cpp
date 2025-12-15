@@ -1129,7 +1129,7 @@ namespace game_logic
 
 	void start_presentation_stage(game_environment::Environment& environment)
 	{
-		environment.state.presentation_state_0 = game_state::presentation_state_0::SHOW_INNER_WORKINGS;
+		environment.state.presentation_state_0 = game_state::presentation_state_0::DEFAULT;
 		environment.state.sky_circle_state = game_state::sky_circle_state::SHOW_INNER_WORKINGS;
 
 		GLuint stage{ environment.state.presentation_stage };
@@ -1352,7 +1352,7 @@ namespace game_logic
 			);
 			break;
 		case 15u:
-			environment.state.holographic_cascade_rays_single_ray_draw_shader_cascade = 2u;
+			environment.state.holographic_cascade_rays_single_ray_draw_shader_cascade = 3u;
 			glProgramUniform1ui
 			(
 				environment.state.holographic_cascade_rays_single_ray_draw_shader,
@@ -1473,8 +1473,8 @@ namespace game_logic
 		environment.state.presentation_stage = 0u;
 		environment.state.use_holographic_radiance_cascades = true;
 		environment.state.use_row_ray_textures = true;
-		environment.state.holographic_probe_grid_width = 20u;//150u;//100u;//20u;//800u;
-		environment.state.holographic_probe_grid_height = 10u;//75u;//50u;//environment.state.holographic_probe_grid_width >> 1u;//10u;//400u;
+		environment.state.holographic_probe_grid_width = 150u;//150u;//100u;//20u;//800u;
+		environment.state.holographic_probe_grid_height = 75u;//75u;//50u;//environment.state.holographic_probe_grid_width >> 1u;//10u;//400u;
 
 		glEnable(GL_FRAMEBUFFER_SRGB);
 		environment.state.framebuffer_sRGB_enabled = true;
@@ -3276,33 +3276,50 @@ namespace game_logic
 				<< environment.state.holographic_ray_extend_shader_shorter_rays_uniform_location << std::endl;
 		}
 
-		::util::shader::set_shader_statically
-		(
-			vertex_shader,
-			util_shader_VERSION,
-			::util::shader::file_to_string("util/plain_full_screen.vert")
-		);
-		::util::shader::set_shader_statically
-		(
-			fragment_shader,
-			util_shader_VERSION,
-			util_shader_DEFINE("FLUENCE_GATHERING_BINDING", STRINGIFY(game_logic__util_FLUENCE_GATHERING_BINDING)),
-			::util::shader::file_to_string("holographic_radiance_cascades/fluence/gather.frag")
-		);
-		environment.state.holographic_fluence_gather_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
-		environment.state.holographic_fluence_gather_shader_rays_uniform_location = glGetUniformLocation(environment.state.holographic_fluence_gather_shader, "rays");
-		environment.state.holographic_fluence_gather_shader_upper_cascade_fluence_uniform_location = glGetUniformLocation(environment.state.holographic_fluence_gather_shader, "upper_cascade_fluence");
-		glProgramUniform1i(
-			environment.state.holographic_fluence_gather_shader,
-			environment.state.holographic_fluence_gather_shader_rays_uniform_location, 2
-		);
-		glProgramUniform1i(
-			environment.state.holographic_fluence_gather_shader,
-			environment.state.holographic_fluence_gather_shader_upper_cascade_fluence_uniform_location, 3
-		);
-		std::cout << "Holographic fluence gather shader compiled. Rays uniform location: "
-			<< environment.state.holographic_fluence_gather_shader_rays_uniform_location << ". Upper cascade fluence uniform location: "
-			<< environment.state.holographic_fluence_gather_shader_upper_cascade_fluence_uniform_location << std::endl;
+		{
+			constexpr GLuint column_ray_texture_mode_value{ 0u };
+			constexpr GLuint row_ray_texture_mode_value{ 1u };
+
+			std::string column_ray_texture_mode_definition{ "#define COLUMN_RAY_TEXTURE_MODE " + std::to_string(column_ray_texture_mode_value) + '\n' };
+			std::string row_ray_texture_mode_definition{ "#define ROW_RAY_TEXTURE_MODE " + std::to_string(row_ray_texture_mode_value) + '\n' };
+
+			GLuint ray_texture_mode_value{ environment.state.use_row_ray_textures ? row_ray_texture_mode_value : column_ray_texture_mode_value };
+			std::string ray_texture_mode_definition{ "#define RAY_TEXTURE_MODE " + std::to_string(ray_texture_mode_value) + '\n' };
+
+			::util::shader::set_shader_statically
+			(
+				vertex_shader,
+				util_shader_VERSION,
+				column_ray_texture_mode_definition,
+				row_ray_texture_mode_definition,
+				ray_texture_mode_definition,
+				::util::shader::file_to_string("util/plain_full_screen.vert")
+			);
+			::util::shader::set_shader_statically
+			(
+				fragment_shader,
+				util_shader_VERSION,
+				util_shader_DEFINE("FLUENCE_GATHERING_BINDING", STRINGIFY(game_logic__util_FLUENCE_GATHERING_BINDING)),
+				column_ray_texture_mode_definition,
+				row_ray_texture_mode_definition,
+				ray_texture_mode_definition,
+				::util::shader::file_to_string("holographic_radiance_cascades/fluence/gather.frag")
+			);
+			environment.state.holographic_fluence_gather_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+			environment.state.holographic_fluence_gather_shader_rays_uniform_location = glGetUniformLocation(environment.state.holographic_fluence_gather_shader, "rays");
+			environment.state.holographic_fluence_gather_shader_upper_cascade_fluence_uniform_location = glGetUniformLocation(environment.state.holographic_fluence_gather_shader, "upper_cascade_fluence");
+			glProgramUniform1i(
+				environment.state.holographic_fluence_gather_shader,
+				environment.state.holographic_fluence_gather_shader_rays_uniform_location, 2
+			);
+			glProgramUniform1i(
+				environment.state.holographic_fluence_gather_shader,
+				environment.state.holographic_fluence_gather_shader_upper_cascade_fluence_uniform_location, 3
+			);
+			std::cout << "Holographic fluence gather shader compiled. Rays uniform location: "
+				<< environment.state.holographic_fluence_gather_shader_rays_uniform_location << ". Upper cascade fluence uniform location: "
+				<< environment.state.holographic_fluence_gather_shader_upper_cascade_fluence_uniform_location << std::endl;
+		}
 
 		{
 			constexpr GLuint default_zoom_mode_value{ 0u };
@@ -10278,10 +10295,29 @@ namespace game_logic
 
 					glBindFramebuffer(GL_DRAW_FRAMEBUFFER, environment.state.holographic_ray_framebuffers[cascade]);
 
-					GLint const cascade_power_of_two{ 1 << cascade };
-					GLint const width{ ceil_div(static_cast<GLint>(environment.state.holographic_probe_grid_width) - 1 - cascade_power_of_two, cascade_power_of_two) };
-					GLint const rays_in_vacuum_per_column{ ceil_div(cascade_power_of_two + 1, 2) << 1 };
-					GLint const height{ static_cast<GLint>(environment.state.holographic_probe_grid_height) * (cascade_power_of_two + 1) - rays_in_vacuum_per_column };
+					GLint width;
+					GLint height;
+					if (environment.state.use_row_ray_textures)
+					{
+						GLint const cascade_power_of_two{ 1 << cascade };
+						GLint const rays_per_probe{ cascade_power_of_two + 1 };
+
+						GLint const min_outside_probe_x{ (static_cast<GLint>(edge_width_decremented) + cascade_power_of_two) >> cascade };
+						width = (min_outside_probe_x - 1) * rays_per_probe;
+						height = static_cast<GLint>(environment.state.holographic_probe_grid_height);
+					}
+					else
+					{
+						GLint const cascade_power_of_two{ 1 << cascade };
+						width = ceil_div(static_cast<GLint>(environment.state.holographic_probe_grid_width) - 1 - cascade_power_of_two, cascade_power_of_two);
+						GLint const rays_in_vacuum_per_column{ ceil_div(cascade_power_of_two + 1, 2) << 1 };
+						height = environment.state.holographic_probe_grid_height * (cascade_power_of_two + 1) - rays_in_vacuum_per_column;
+					}
+
+					//GLint const cascade_power_of_two{ 1 << cascade };
+					//GLint const width{ ceil_div(static_cast<GLint>(environment.state.holographic_probe_grid_width) - 1 - cascade_power_of_two, cascade_power_of_two) };
+					//GLint const rays_in_vacuum_per_column{ ceil_div(cascade_power_of_two + 1, 2) << 1 };
+					//GLint const height{ static_cast<GLint>(environment.state.holographic_probe_grid_height) * (cascade_power_of_two + 1) - rays_in_vacuum_per_column };
 					glViewport(0, 0, width, height);
 
 					glDrawArrays(GL_TRIANGLES, 0, 3u);
