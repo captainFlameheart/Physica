@@ -16,6 +16,8 @@ const float cone_radius = ?;
 */
 
 uniform uvec2 probe_grid_size;
+uniform uvec2 source_size;
+uniform vec2 probe_padding_factor;
 uniform uint cascade;
 #if MODE == SHOWCASE_SINGLE_CONE
 	uniform uvec2 showcased_cone_texel_position;
@@ -177,8 +179,9 @@ void main()
 		at_lower_end * lower_direction_y_float + at_upper_end * upper_direction_y_float
 	);
 	vec2 position = vec2(probe_x, probe_y) + offset;
-	vec2 normalized_probe_distance = 2.0 / vec2(probe_grid_size - 1u);
-	vec2 normalized_position = position * normalized_probe_distance - 1.0;
+	vec2 padding = probe_padding_factor / vec2(source_size);
+	vec2 normalized_probe_distance = (2.0 + 2.0 * padding) / vec2(probe_grid_size - 1u);
+	vec2 normalized_position = position * normalized_probe_distance - 1.0 - padding;
 
 	gl_Position = vec4
 	(
