@@ -656,6 +656,10 @@ namespace game_logic
 					GLuint const rays_in_vacuum_per_column{ ceil_div(cascade_power_of_two + 1u, 2u) << 1u };
 					height = environment.state.holographic_probe_grid_height * (cascade_power_of_two + 1u) - rays_in_vacuum_per_column;
 				}
+
+				glTextureParameteri(environment.state.ray_textures[cascade], GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+				glTextureParameteri(environment.state.ray_textures[cascade], GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
 				glTextureStorage3D(environment.state.ray_textures[cascade], 1u, GL_RGBA32F, width, height, 2u);
 
 				glNamedFramebufferTextureLayer
@@ -800,6 +804,237 @@ namespace game_logic
 			);
 			std::cout << "Holographic sky circle gather shader compiled. Sky circle uniform location: "
 				<< environment.state.holographic_sky_circle_gather_shader_sky_circle_uniform_location << std::endl;
+		}
+
+		environment.state.holographic_ray_trace_shader_count = game_state::initial_holographic_ray_trace_cascade_count;
+		environment.state.holographic_ray_trace_shaders = new GLuint[environment.state.holographic_ray_trace_shader_count];
+		environment.state.holographic_ray_trace_shader_source_uniform_locations = new GLint[environment.state.holographic_ray_trace_shader_count];
+		for (GLuint cascade{ 0u }; cascade < environment.state.holographic_ray_trace_shader_count; ++cascade)
+		{
+			constexpr GLuint column_ray_texture_mode_value{ 0u };
+			constexpr GLuint row_ray_texture_mode_value{ 1u };
+
+			std::string column_ray_texture_mode_definition{ "#define COLUMN_RAY_TEXTURE_MODE " + std::to_string(column_ray_texture_mode_value) + '\n' };
+			std::string row_ray_texture_mode_definition{ "#define ROW_RAY_TEXTURE_MODE " + std::to_string(row_ray_texture_mode_value) + '\n' };
+
+			GLuint ray_texture_mode_value{ environment.state.use_row_ray_textures ? row_ray_texture_mode_value : column_ray_texture_mode_value };
+			std::string ray_texture_mode_definition{ "#define RAY_TEXTURE_MODE " + std::to_string(ray_texture_mode_value) + '\n' };
+
+			// TODO: This vertex shader compilation should be done ONCE
+			::util::shader::set_shader_statically
+			(
+				vertex_shader,
+				util_shader_VERSION,
+				column_ray_texture_mode_definition,
+				row_ray_texture_mode_definition,
+				ray_texture_mode_definition,
+				::util::shader::file_to_string("util/plain_full_screen.vert")
+			);
+
+			GLuint const cascade_power_of_two{ 1u << cascade };
+			GLuint const width{ ceil_div(environment.state.holographic_probe_grid_width - 1u - cascade_power_of_two, cascade_power_of_two) };
+			GLuint const rays_per_probe{ cascade_power_of_two + 1u };
+			GLuint const skipped_rays_below_column{ ceil_div(rays_per_probe, 2u) };
+			GLuint const rays_in_vacuum_per_column{ skipped_rays_below_column << 1u };
+			GLuint const height{ environment.state.holographic_probe_grid_height * (cascade_power_of_two + 1u) - rays_in_vacuum_per_column };
+
+			GLuint const edge_width{ environment.state.holographic_probe_grid_width - 1u };
+			GLuint const edge_height{ environment.state.holographic_probe_grid_height - 1u };
+
+			GLfloat const inverse_edge_width{ 1.0f / static_cast<GLfloat>(edge_width) };
+			GLfloat const inverse_edge_height{ 1.0f / static_cast<GLfloat>(edge_height) };
+
+			GLuint const step_count{ 4u * cascade_power_of_two };
+			GLfloat const step_count_inverse{ 1.0f / static_cast<GLfloat>(step_count) };
+
+			GLfloat const padding_x{ 0.5f * environment.state.probe_padding_factor_x / environment.state.framebuffer_width };
+			GLfloat const padding_y{ 0.5f * environment.state.probe_padding_factor_y / environment.state.framebuffer_height };
+
+			GLfloat const double_padding_x{ environment.state.probe_padding_factor_x / environment.state.framebuffer_width };
+			GLfloat const double_padding_y{ environment.state.probe_padding_factor_y / environment.state.framebuffer_height };
+
+			GLfloat const probe_grid_to_sample_factor_x{ (1.0f + double_padding_x) * inverse_edge_width };
+			GLfloat const probe_grid_to_sample_factor_y{ (1.0f + double_padding_y) * inverse_edge_height };
+
+			GLfloat const probe_grid_full_step_to_sample_step_factor_x{ probe_grid_to_sample_factor_x * step_count_inverse };
+			GLfloat const probe_grid_full_step_to_sample_step_factor_y{ probe_grid_to_sample_factor_y * step_count_inverse };
+
+			GLfloat const probe_grid_point_to_sample_point_factor_x{ static_cast<GLfloat>(cascade_power_of_two) * probe_grid_to_sample_factor_x };
+			GLfloat const probe_grid_point_to_sample_point_factor_y{ probe_grid_to_sample_factor_y };
+
+			GLfloat const probe_grid_point_to_sample_point_bias_x{ padding_x };
+			GLfloat const probe_grid_point_to_sample_point_bias_y{ padding_y };
+
+			GLfloat const probe_grid_full_step_to_sample_step_projection_x{
+				(probe_grid_full_step_to_sample_step_factor_x * 2.0f) * game_logic__util__projection_INVERSE_SCALE_X(environment)
+			};
+			GLfloat const probe_grid_full_step_to_sample_step_projection_y{
+				(probe_grid_full_step_to_sample_step_factor_y * 2.0f) * game_logic__util__projection_INVERSE_SCALE_Y(environment)
+			};
+
+			std::string skipped_rays_below_column_declaration{ "const int skipped_rays_below_column = " + std::to_string(skipped_rays_below_column) + ";\n" };
+			std::string rays_per_probe_declaration{ "const int rays_per_probe = " + std::to_string(rays_per_probe) + ";\n" };
+			std::string cascade_power_of_two_declaration{ "const int cascade_power_of_two = " + std::to_string(cascade_power_of_two) + ";\n" };
+			std::string probe_grid_full_step_to_sample_step_factor_declaration{
+				"const vec2 probe_grid_full_step_to_sample_step_factor = vec2("
+				+ std::to_string(probe_grid_full_step_to_sample_step_factor_x) + ", " + std::to_string(probe_grid_full_step_to_sample_step_factor_y)
+				+ ");\n"
+			};
+			std::string probe_grid_point_to_sample_point_factor_declaration
+			{
+				"const vec2 probe_grid_point_to_sample_point_factor = vec2("
+				+ std::to_string(probe_grid_point_to_sample_point_factor_x) + ", " + std::to_string(probe_grid_point_to_sample_point_factor_y)
+				+ ");\n"
+			};
+			std::string probe_grid_point_to_sample_point_bias_declaration
+			{
+				"const vec2 probe_grid_point_to_sample_point_bias = vec2("
+				+ std::to_string(probe_grid_point_to_sample_point_bias_x) + ", " + std::to_string(probe_grid_point_to_sample_point_bias_y)
+				+ ");\n"
+			};
+			std::string probe_grid_full_step_to_sample_step_projection_declaration
+			{
+				"const vec2 probe_grid_full_step_to_sample_step_projection = vec2("
+				+ std::to_string(probe_grid_full_step_to_sample_step_projection_x) + ", " + std::to_string(probe_grid_full_step_to_sample_step_projection_y)
+				+ ");\n"
+			};
+			std::string step_count_declaration{ "const uint step_count = " + std::to_string(step_count) + "u;\n" };
+
+			::util::shader::set_shader_statically
+			(
+				fragment_shader,
+				util_shader_VERSION,
+				column_ray_texture_mode_definition,
+				row_ray_texture_mode_definition,
+				ray_texture_mode_definition,
+				skipped_rays_below_column_declaration,
+				rays_per_probe_declaration,
+				cascade_power_of_two_declaration,
+				probe_grid_full_step_to_sample_step_factor_declaration,
+				probe_grid_point_to_sample_point_factor_declaration,
+				probe_grid_point_to_sample_point_bias_declaration,
+				probe_grid_full_step_to_sample_step_projection_declaration,
+				step_count_declaration,
+				util_shader_DEFINE("METER_INVERSE", STRINGIFY(game_logic__util__spatial_METER_INVERSE(environment))),
+				util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
+				::util::shader::file_to_string("holographic_radiance_cascades/rays/trace.frag")
+			);
+			environment.state.holographic_ray_trace_shaders[cascade] = ::util::shader::create_program(vertex_shader, fragment_shader);
+			environment.state.holographic_ray_trace_shader_source_uniform_locations[cascade] = glGetUniformLocation(environment.state.holographic_ray_trace_shaders[cascade], "source");
+			glProgramUniform1i
+			(
+				environment.state.holographic_ray_trace_shaders[cascade],
+				environment.state.holographic_ray_trace_shader_source_uniform_locations[cascade], 1
+			);
+
+			std::cout << "Holographic ray trace shader " << cascade << " compiled:"
+				<< "\n	Source uniform location: " << environment.state.holographic_ray_trace_shader_source_uniform_locations[cascade]
+				<< "\n	skipped_rays_below_column = " << skipped_rays_below_column
+				<< "\n	rays_per_probe = " << rays_per_probe
+				<< "\n	cascade_power_of_two = " << cascade_power_of_two
+				<< "\n	probe_grid_full_step_to_sample_step_factor = (" << probe_grid_full_step_to_sample_step_factor_x << ", " << probe_grid_full_step_to_sample_step_factor_y << ")"
+				<< "\n	probe_grid_point_to_sample_point_factor = (" << probe_grid_point_to_sample_point_factor_x << ", " << probe_grid_point_to_sample_point_factor_y << ")"
+				<< "\n	probe_grid_full_step_to_sample_step_projection = (" << probe_grid_full_step_to_sample_step_projection_x << ", " << probe_grid_full_step_to_sample_step_projection_y << ")"
+				<< "\n	step_count = " << step_count
+				<< std::endl;
+		}
+
+		{
+			constexpr GLuint default_zoom_mode_value{ 0u };
+			constexpr GLuint zoomed_out_zoom_mode_value{ 1u };
+
+			std::string default_zoom_mode_definition{ "#define DEFAULT_ZOOM_MODE " + std::to_string(default_zoom_mode_value) + '\n' };
+			std::string zoomed_out_zoom_mode_definition{ "#define ZOOMED_OUT_ZOOM_MODE " + std::to_string(zoomed_out_zoom_mode_value) + '\n' };
+
+			{
+				constexpr GLuint zoom_mode_value{ zoomed_out_zoom_mode_value };
+				std::string zoom_mode_definition{ "#define ZOOM_MODE " + std::to_string(zoom_mode_value) + '\n' };
+
+				GLfloat const double_padding_x{ environment.state.probe_padding_factor_x / environment.state.framebuffer_width };
+				GLfloat const double_padding_y{ environment.state.probe_padding_factor_y / environment.state.framebuffer_height };
+
+				GLfloat const source_sample_point_to_probe_grid_point_factor_x{ 1.0f - double_padding_x };
+				GLfloat const source_sample_point_to_probe_grid_point_factor_y{ 1.0f - double_padding_y };
+
+				GLfloat const source_sample_point_to_probe_grid_point_bias_x{ 0.5f * double_padding_x };
+				GLfloat const source_sample_point_to_probe_grid_point_bias_y{ 0.5f * double_padding_y };
+
+				GLfloat const inverse_fluence_width{ 1.0f / static_cast<GLfloat>(environment.state.holographic_probe_grid_width) };
+				GLfloat const inverse_fluence_height{ 1.0f / static_cast<GLfloat>(environment.state.holographic_probe_grid_height) };
+
+				GLfloat const probe_grid_point_to_fluence_sample_point_factor_x{ 1.0f - inverse_fluence_width };
+				GLfloat const probe_grid_point_to_fluence_sample_point_factor_y{ 1.0f - inverse_fluence_height };
+
+				GLfloat const probe_grid_point_to_fluence_sample_point_bias_x{ 0.5f * inverse_fluence_width };
+				GLfloat const probe_grid_point_to_fluence_sample_point_bias_y{ 0.5f * inverse_fluence_height };
+
+				std::string source_sample_point_to_probe_grid_point_factor_definition
+				{
+					"const vec2 source_sample_point_to_probe_grid_point_factor = vec2(" +
+					std::to_string(source_sample_point_to_probe_grid_point_factor_x) + ", " +
+					std::to_string(source_sample_point_to_probe_grid_point_factor_y) + ");\n"
+				};
+				std::string source_sample_point_to_probe_grid_point_bias_definition
+				{
+					"const vec2 source_sample_point_to_probe_grid_point_bias = vec2(" +
+					std::to_string(source_sample_point_to_probe_grid_point_bias_x) + ", " +
+					std::to_string(source_sample_point_to_probe_grid_point_bias_y) + ");\n"
+				};
+
+				std::string probe_grid_point_to_fluence_sample_point_factor_definition
+				{
+					"const vec2 probe_grid_point_to_fluence_sample_point_factor = vec2(" +
+					std::to_string(probe_grid_point_to_fluence_sample_point_factor_x) + ", " +
+					std::to_string(probe_grid_point_to_fluence_sample_point_factor_y) + ");\n"
+				};
+				std::string probe_grid_point_to_fluence_sample_point_bias_definition
+				{
+					"const vec2 probe_grid_point_to_fluence_sample_point_bias = vec2(" +
+					std::to_string(probe_grid_point_to_fluence_sample_point_bias_x) + ", " +
+					std::to_string(probe_grid_point_to_fluence_sample_point_bias_y) + ");\n"
+				};
+
+				::util::shader::set_shader_statically
+				(
+					vertex_shader,
+					util_shader_VERSION,
+					default_zoom_mode_definition,
+					zoomed_out_zoom_mode_definition,
+					zoom_mode_definition,
+					source_sample_point_to_probe_grid_point_factor_definition,
+					source_sample_point_to_probe_grid_point_bias_definition,
+					probe_grid_point_to_fluence_sample_point_factor_definition,
+					probe_grid_point_to_fluence_sample_point_bias_definition,
+					::util::shader::file_to_string("holographic_radiance_cascades/fluence/draw.vert")
+				);
+				::util::shader::set_shader_statically
+				(
+					fragment_shader,
+					util_shader_VERSION,
+					default_zoom_mode_definition,
+					zoomed_out_zoom_mode_definition,
+					zoom_mode_definition,
+					source_sample_point_to_probe_grid_point_factor_definition,
+					source_sample_point_to_probe_grid_point_bias_definition,
+					probe_grid_point_to_fluence_sample_point_factor_definition,
+					probe_grid_point_to_fluence_sample_point_bias_definition,
+					::util::shader::file_to_string("holographic_radiance_cascades/fluence/draw.frag")
+				);
+				environment.state.holographic_draw_fluence_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+				environment.state.holographic_draw_fluence_shader_source_uniform_location = glGetUniformLocation(environment.state.holographic_draw_fluence_shader, "source");
+				environment.state.holographic_draw_fluence_shader_fluence_uniform_location = glGetUniformLocation(environment.state.holographic_draw_fluence_shader, "fluence");
+				glProgramUniform1i(
+					environment.state.holographic_draw_fluence_shader,
+					environment.state.holographic_draw_fluence_shader_source_uniform_location, 1
+				);
+				glProgramUniform1i(
+					environment.state.holographic_draw_fluence_shader,
+					environment.state.holographic_draw_fluence_shader_fluence_uniform_location, 4
+				);
+				std::cout << "Holographic draw fluence shader compiled. Source uniform location: "
+					<< environment.state.holographic_draw_fluence_shader_source_uniform_location << ". Fluence uniform location: "
+					<< environment.state.holographic_draw_fluence_shader_fluence_uniform_location << std::endl;
+			}
 		}
 
 		::util::shader::delete_shader(vertex_shader);
@@ -1434,6 +1669,12 @@ namespace game_logic
 		std::cout << "Free SOME default framebuffer size dependent data" << std::endl;
 
 		glDeleteProgram(environment.state.holographic_sky_circle_gather_shader);
+		glDeleteProgram(environment.state.holographic_draw_fluence_shader);
+		for (GLuint i{ 0u }; i < environment.state.holographic_ray_trace_shader_count; ++i)
+		{
+			glDeleteProgram(environment.state.holographic_ray_trace_shaders[i]);
+		}
+		delete[] environment.state.holographic_ray_trace_shaders;
 
 		glDeleteFramebuffers(std::size(environment.state.framebuffers), environment.state.framebuffers);
 		glDeleteFramebuffers(environment.state.max_cascade_index, environment.state.holographic_ray_framebuffers);
@@ -1458,6 +1699,8 @@ namespace game_logic
 
 	void initialize(game_environment::Environment& environment)
 	{
+		glfwGetFramebufferSize(environment.window, &environment.state.framebuffer_width, &environment.state.framebuffer_height);
+
 		std::cout << "Initializing...\n" << std::endl;
 
 		std::cout << "Max fluid particle count: " << game_logic_MAX_FLUID_PARTICLE_COUNT(environment) << '\n';
@@ -3161,120 +3404,6 @@ namespace game_logic
 			std::cout << "Sky circle draw shader compiled. Sky circle uniform location: "
 				<< environment.state.holographic_sky_circle_draw_shader_sky_circle_uniform_location << std::endl;
 		}
-
-		environment.state.holographic_ray_trace_shader_count = game_state::initial_holographic_ray_trace_cascade_count;
-		environment.state.holographic_ray_trace_shaders = new GLuint[environment.state.holographic_ray_trace_shader_count];
-		environment.state.holographic_ray_trace_shader_source_uniform_locations = new GLint[environment.state.holographic_ray_trace_shader_count];
-		for (GLuint cascade{ 0u }; cascade < environment.state.holographic_ray_trace_shader_count; ++cascade)
-		{
-			constexpr GLuint column_ray_texture_mode_value{ 0u };
-			constexpr GLuint row_ray_texture_mode_value{ 1u };
-
-			std::string column_ray_texture_mode_definition{ "#define COLUMN_RAY_TEXTURE_MODE " + std::to_string(column_ray_texture_mode_value) + '\n' };
-			std::string row_ray_texture_mode_definition{ "#define ROW_RAY_TEXTURE_MODE " + std::to_string(row_ray_texture_mode_value) + '\n' };
-
-			GLuint ray_texture_mode_value{ environment.state.use_row_ray_textures ? row_ray_texture_mode_value : column_ray_texture_mode_value };
-			std::string ray_texture_mode_definition{ "#define RAY_TEXTURE_MODE " + std::to_string(ray_texture_mode_value) + '\n' };
-
-			// TODO: This vertex shader compilation should be done ONCE
-			::util::shader::set_shader_statically
-			(
-				vertex_shader,
-				util_shader_VERSION,
-				column_ray_texture_mode_definition,
-				row_ray_texture_mode_definition,
-				ray_texture_mode_definition,
-				::util::shader::file_to_string("util/plain_full_screen.vert")
-			);
-
-			GLuint const cascade_power_of_two{ 1u << cascade };
-			GLuint const width{ ceil_div(environment.state.holographic_probe_grid_width - 1u - cascade_power_of_two, cascade_power_of_two) };
-			GLuint const rays_per_probe{ cascade_power_of_two + 1u };
-			GLuint const skipped_rays_below_column{ ceil_div(rays_per_probe, 2u) };
-			GLuint const rays_in_vacuum_per_column{ skipped_rays_below_column << 1u };
-			GLuint const height{ environment.state.holographic_probe_grid_height * (cascade_power_of_two + 1u) - rays_in_vacuum_per_column };
-			
-			GLuint const edge_width{ environment.state.holographic_probe_grid_width - 1u };
-			GLuint const edge_height{ environment.state.holographic_probe_grid_height - 1u };
-			
-			GLfloat const inverse_edge_width{ 1.0f / static_cast<GLfloat>(edge_width) };
-			GLfloat const inverse_edge_height{ 1.0f / static_cast<GLfloat>(edge_height) };
-
-			GLuint const step_count{ 4u * cascade_power_of_two };
-			GLfloat const step_count_inverse{ 1.0f / static_cast<GLfloat>(step_count) };
-
-			GLfloat const probe_grid_full_step_to_sample_step_factor_x{ inverse_edge_width * step_count_inverse };
-			GLfloat const probe_grid_full_step_to_sample_step_factor_y{ inverse_edge_height * step_count_inverse };
-
-			GLfloat const probe_grid_point_to_sample_point_factor_x{ static_cast<GLfloat>(cascade_power_of_two) * inverse_edge_width };
-			GLfloat const probe_grid_point_to_sample_point_factor_y{ inverse_edge_height };
-
-			GLfloat const probe_grid_full_step_to_sample_step_projection_x{
-				(probe_grid_full_step_to_sample_step_factor_x * 2.0f) * game_logic__util__projection_INVERSE_SCALE_X(environment)
-			};
-			GLfloat const probe_grid_full_step_to_sample_step_projection_y{
-				(probe_grid_full_step_to_sample_step_factor_y * 2.0f) * game_logic__util__projection_INVERSE_SCALE_Y(environment)
-			};
-
-			std::string skipped_rays_below_column_declaration{ "const int skipped_rays_below_column = " + std::to_string(skipped_rays_below_column) + ";\n" };
-			std::string rays_per_probe_declaration{ "const int rays_per_probe = " + std::to_string(rays_per_probe) + ";\n" };
-			std::string cascade_power_of_two_declaration{ "const int cascade_power_of_two = " + std::to_string(cascade_power_of_two) + ";\n"};
-			std::string probe_grid_full_step_to_sample_step_factor_declaration{
-				"const vec2 probe_grid_full_step_to_sample_step_factor = vec2("
-				+ std::to_string(probe_grid_full_step_to_sample_step_factor_x) + ", " + std::to_string(probe_grid_full_step_to_sample_step_factor_y)
-				+ ");\n"
-			};
-			std::string probe_grid_point_to_sample_point_factor_declaration
-			{ 
-				"const vec2 probe_grid_point_to_sample_point_factor = vec2(" 
-				+ std::to_string(probe_grid_point_to_sample_point_factor_x) + ", " + std::to_string(probe_grid_point_to_sample_point_factor_y) 
-				+ ");\n"
-			};
-			std::string probe_grid_full_step_to_sample_step_projection_declaration
-			{
-				"const vec2 probe_grid_full_step_to_sample_step_projection = vec2("
-				+ std::to_string(probe_grid_full_step_to_sample_step_projection_x) + ", " + std::to_string(probe_grid_full_step_to_sample_step_projection_y) 
-				+ ");\n"
-			};
-			std::string step_count_declaration{ "const uint step_count = " + std::to_string(step_count) + "u;\n" };
-
-			::util::shader::set_shader_statically
-			(
-				fragment_shader,
-				util_shader_VERSION,
-				column_ray_texture_mode_definition,
-				row_ray_texture_mode_definition,
-				ray_texture_mode_definition,
-				skipped_rays_below_column_declaration,
-				rays_per_probe_declaration,
-				cascade_power_of_two_declaration,
-				probe_grid_full_step_to_sample_step_factor_declaration,
-				probe_grid_point_to_sample_point_factor_declaration,
-				probe_grid_full_step_to_sample_step_projection_declaration,
-				step_count_declaration,
-				util_shader_DEFINE("METER_INVERSE", STRINGIFY(game_logic__util__spatial_METER_INVERSE(environment))),
-				util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
-				::util::shader::file_to_string("holographic_radiance_cascades/rays/trace.frag")
-			);
-			environment.state.holographic_ray_trace_shaders[cascade] = ::util::shader::create_program(vertex_shader, fragment_shader);
-			environment.state.holographic_ray_trace_shader_source_uniform_locations[cascade] = glGetUniformLocation(environment.state.holographic_ray_trace_shaders[cascade], "source");
-			glProgramUniform1i
-			(
-				environment.state.holographic_ray_trace_shaders[cascade], 
-				environment.state.holographic_ray_trace_shader_source_uniform_locations[cascade], 1
-			);
-
-			std::cout << "Holographic ray trace shader " << cascade << " compiled:"
-				<< "\n	Source uniform location: " << environment.state.holographic_ray_trace_shader_source_uniform_locations[cascade]
-				<< "\n	skipped_rays_below_column = " << skipped_rays_below_column
-				<< "\n	rays_per_probe = " << rays_per_probe
-				<< "\n	cascade_power_of_two = " << cascade_power_of_two
-				<< "\n	probe_grid_full_step_to_sample_step_factor = (" << probe_grid_full_step_to_sample_step_factor_x << ", " << probe_grid_full_step_to_sample_step_factor_y << ")"
-				<< "\n	probe_grid_point_to_sample_point_factor = (" << probe_grid_point_to_sample_point_factor_x << ", " << probe_grid_point_to_sample_point_factor_y << ")"
-				<< "\n	probe_grid_full_step_to_sample_step_projection = (" << probe_grid_full_step_to_sample_step_projection_x << ", " << probe_grid_full_step_to_sample_step_projection_y << ")"
-				<< "\n	step_count = " << step_count
-				<< std::endl;
-		}
 		
 		{
 			constexpr GLuint column_ray_texture_mode_value{ 0u };
@@ -3364,52 +3493,6 @@ namespace game_logic
 			std::cout << "Holographic fluence gather shader compiled. Rays uniform location: "
 				<< environment.state.holographic_fluence_gather_shader_rays_uniform_location << ". Upper cascade fluence uniform location: "
 				<< environment.state.holographic_fluence_gather_shader_upper_cascade_fluence_uniform_location << std::endl;
-		}
-
-		{
-			constexpr GLuint default_zoom_mode_value{ 0u };
-			constexpr GLuint zoomed_out_zoom_mode_value{ 1u };
-
-			std::string default_zoom_mode_definition{ "#define DEFAULT_ZOOM_MODE " + std::to_string(default_zoom_mode_value) + '\n' };
-			std::string zoomed_out_zoom_mode_definition{ "#define ZOOMED_OUT_ZOOM_MODE " + std::to_string(zoomed_out_zoom_mode_value) + '\n' };
-
-			{
-				constexpr GLuint zoom_mode_value{ zoomed_out_zoom_mode_value };
-				std::string zoom_mode_definition{ "#define ZOOM_MODE " + std::to_string(zoom_mode_value) + '\n' };
-
-				::util::shader::set_shader_statically
-				(
-					vertex_shader,
-					util_shader_VERSION,
-					default_zoom_mode_definition,
-					zoomed_out_zoom_mode_definition,
-					zoom_mode_definition,
-					::util::shader::file_to_string("holographic_radiance_cascades/fluence/draw.vert")
-				);
-				::util::shader::set_shader_statically
-				(
-					fragment_shader,
-					util_shader_VERSION,
-					default_zoom_mode_definition,
-					zoomed_out_zoom_mode_definition,
-					zoom_mode_definition,
-					::util::shader::file_to_string("holographic_radiance_cascades/fluence/draw.frag")
-				);
-				environment.state.holographic_draw_fluence_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
-				environment.state.holographic_draw_fluence_shader_source_uniform_location = glGetUniformLocation(environment.state.holographic_draw_fluence_shader, "source");
-				environment.state.holographic_draw_fluence_shader_fluence_uniform_location = glGetUniformLocation(environment.state.holographic_draw_fluence_shader, "fluence");
-				glProgramUniform1i(
-					environment.state.holographic_draw_fluence_shader,
-					environment.state.holographic_draw_fluence_shader_source_uniform_location, 1
-				);
-				glProgramUniform1i(
-					environment.state.holographic_draw_fluence_shader,
-					environment.state.holographic_draw_fluence_shader_fluence_uniform_location, 4
-				);
-				std::cout << "Holographic draw fluence shader compiled. Source uniform location: "
-					<< environment.state.holographic_draw_fluence_shader_source_uniform_location << ". Fluence uniform location: "
-					<< environment.state.holographic_draw_fluence_shader_fluence_uniform_location << std::endl;
-			}
 		}
 
 		::util::shader::delete_shader(vertex_shader);
@@ -10909,7 +10992,6 @@ namespace game_logic
 
 		::util::shader::delete_program(environment.state.shader);
 
-		delete[] environment.state.holographic_ray_trace_shaders;
 		delete[] environment.state.holographic_ray_trace_shader_source_uniform_locations;
 
 		delete[] environment.state.camera_send_buffer;

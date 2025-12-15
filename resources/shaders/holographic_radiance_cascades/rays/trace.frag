@@ -10,12 +10,14 @@ const int rays_per_probe = ?;
 const int cascade_power_of_two = ?;
 
 const vec2 probe_grid_full_step_to_sample_step_factor = ?;	// TODO: Only store y component, see below
+const vec2 probe_grid_point_to_sample_point_bias = ?;
 const vec2 probe_grid_point_to_sample_point_factor = ?;
 const vec2 probe_grid_full_step_to_sample_step_projection = ?;
 
 const uint step_count = ?u;
 
 #define METER_INVERSE ?	// TODO: Remove
+
 */
 
 layout(shared, binding = CAMERA_BINDING) uniform Camera
@@ -51,8 +53,10 @@ void main()
 		// (sample_step * 0.5).x can then also be precomputed. world_step_distance can also be optimized.
 		vec2 probe_grid_full_step = vec2(cascade_power_of_two, (direction_id << 1) - cascade_power_of_two);
 
+		// MUST TODO: Update probe_grid_point_to_sample_point_factor and probe_grid_full_step_to_sample_step_factor
+
 		vec2 sample_step = probe_grid_full_step * probe_grid_full_step_to_sample_step_factor;
-		vec2 sample_point = vec2(probe_column + 1, output_texel_position.y) * probe_grid_point_to_sample_point_factor + sample_step * 0.5;
+		vec2 sample_point = vec2(probe_column + 1, output_texel_position.y) * probe_grid_point_to_sample_point_factor - probe_grid_point_to_sample_point_bias + sample_step * 0.5;
 	
 		float world_step_distance = length(probe_grid_full_step * probe_grid_full_step_to_sample_step_projection) * camera.z * METER_INVERSE;
 
