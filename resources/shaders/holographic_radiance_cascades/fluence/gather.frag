@@ -7,12 +7,12 @@
 
 #define DIRECTION ?
 
+const ivec2 max_fluence_texture_xy;
+
 #define COLUMN_RAY_TEXTURE_MODE ?
 #define ROW_RAY_TEXTURE_MODE ?
 
 #define RAY_TEXTURE_MODE ?
-
-const uvec2 max_fluence_texture_xy;
 
 */
 
@@ -32,7 +32,7 @@ layout(shared, binding = FLUENCE_GATHERING_BINDING) uniform Fluence_Gathering_Da
 	int upper_cascade;
 	int upper_cascade_fluence_layer;
 	
-	uvec2 max_ray_texture_xy;
+	ivec2 max_ray_texture_xy;
 } fluence_gathering_data;
 
 uniform sampler2DArray rays;

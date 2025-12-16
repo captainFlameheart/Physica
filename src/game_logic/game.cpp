@@ -805,6 +805,10 @@ namespace game_logic
 
 			std::string direction_definition{ "#define DIRECTION " + std::to_string(game_state::temporary_direction) + '\n' };
 			
+			GLint const angular_fluence_width{ std::max(1 << static_cast<GLint>(environment.state.max_horizontal_cascade_index), static_cast<GLint>(environment.state.holographic_probe_grid_width)) };
+			GLint const angular_fluence_height{ std::max(1 << static_cast<GLint>(environment.state.max_vertical_cascade_index), static_cast<GLint>(environment.state.holographic_probe_grid_height)) };
+			std::string max_fluence_texture_xy_definition{ "const ivec2 max_fluence_texture_xy = ivec2(" + std::to_string(angular_fluence_width - 1) + ", " + std::to_string(angular_fluence_height - 1) + ");\n" };
+
 			constexpr GLint angular_step_count{ 1 };
 
 			std::string cascade_definition{ "const int cascade = " + std::to_string(environment.state.max_cascade_index) + ";\n"};
@@ -819,6 +823,7 @@ namespace game_logic
 				west_direction_definition,
 				south_direction_definition,
 				direction_definition,
+				max_fluence_texture_xy_definition,
 				cascade_definition,
 				angular_step_count_definition,
 				::util::shader::file_to_string("holographic_radiance_cascades/sky_circle/gather/gather.vert")
@@ -827,11 +832,12 @@ namespace game_logic
 			(
 				fragment_shader,
 				util_shader_VERSION,
-				direction_definition,
 				east_direction_definition,
 				north_direction_definition,
 				west_direction_definition,
 				south_direction_definition,
+				direction_definition,
+				max_fluence_texture_xy_definition,
 				cascade_definition,
 				angular_step_count_definition,
 				::util::shader::file_to_string("holographic_radiance_cascades/sky_circle/gather/gather.frag")
@@ -3653,6 +3659,13 @@ namespace game_logic
 		}
 		
 		{
+			std::string east_direction_definition{ "#define EAST_DIRECTION " + std::to_string(game_state::holographic_east_direction) + '\n' };
+			std::string north_direction_definition{ "#define NORTH_DIRECTION " + std::to_string(game_state::holographic_north_direction) + '\n' };
+			std::string west_direction_definition{ "#define WEST_DIRECTION " + std::to_string(game_state::holographic_west_direction) + '\n' };
+			std::string south_direction_definition{ "#define SOUTH_DIRECTION " + std::to_string(game_state::holographic_south_direction) + '\n' };
+
+			std::string direction_definition{ "#define DIRECTION " + std::to_string(game_state::temporary_direction) + '\n' };
+
 			constexpr GLuint column_ray_texture_mode_value{ 0u };
 			constexpr GLuint row_ray_texture_mode_value{ 1u };
 
@@ -3666,6 +3679,11 @@ namespace game_logic
 			(
 				vertex_shader,
 				util_shader_VERSION,
+				east_direction_definition,
+				north_direction_definition,
+				west_direction_definition,
+				south_direction_definition,
+				direction_definition,
 				column_ray_texture_mode_definition,
 				row_ray_texture_mode_definition,
 				ray_texture_mode_definition,
@@ -3676,6 +3694,11 @@ namespace game_logic
 			(
 				fragment_shader,
 				util_shader_VERSION,
+				east_direction_definition,
+				north_direction_definition,
+				west_direction_definition,
+				south_direction_definition,
+				direction_definition,
 				column_ray_texture_mode_definition,
 				row_ray_texture_mode_definition,
 				ray_texture_mode_definition,
@@ -3698,6 +3721,17 @@ namespace game_logic
 		}
 
 		{
+			std::string east_direction_definition{ "#define EAST_DIRECTION " + std::to_string(game_state::holographic_east_direction) + '\n' };
+			std::string north_direction_definition{ "#define NORTH_DIRECTION " + std::to_string(game_state::holographic_north_direction) + '\n' };
+			std::string west_direction_definition{ "#define WEST_DIRECTION " + std::to_string(game_state::holographic_west_direction) + '\n' };
+			std::string south_direction_definition{ "#define SOUTH_DIRECTION " + std::to_string(game_state::holographic_south_direction) + '\n' };
+
+			std::string direction_definition{ "#define DIRECTION " + std::to_string(game_state::temporary_direction) + '\n' };
+
+			GLint const angular_fluence_width{ std::max(1 << static_cast<GLint>(environment.state.max_horizontal_cascade_index), static_cast<GLint>(environment.state.holographic_probe_grid_width)) };
+			GLint const angular_fluence_height{ std::max(1 << static_cast<GLint>(environment.state.max_vertical_cascade_index), static_cast<GLint>(environment.state.holographic_probe_grid_height)) };
+			std::string max_fluence_texture_xy_definition{ "const ivec2 max_fluence_texture_xy = ivec2(" + std::to_string(angular_fluence_width - 1) + ", " + std::to_string(angular_fluence_height - 1) + ");\n" };
+
 			constexpr GLuint column_ray_texture_mode_value{ 0u };
 			constexpr GLuint row_ray_texture_mode_value{ 1u };
 
@@ -3711,6 +3745,12 @@ namespace game_logic
 			(
 				vertex_shader,
 				util_shader_VERSION,
+				east_direction_definition,
+				north_direction_definition,
+				west_direction_definition,
+				south_direction_definition,
+				direction_definition,
+				max_fluence_texture_xy_definition,
 				column_ray_texture_mode_definition,
 				row_ray_texture_mode_definition,
 				ray_texture_mode_definition,
@@ -3720,6 +3760,12 @@ namespace game_logic
 			(
 				fragment_shader,
 				util_shader_VERSION,
+				east_direction_definition,
+				north_direction_definition,
+				west_direction_definition,
+				south_direction_definition,
+				direction_definition,
+				max_fluence_texture_xy_definition,
 				util_shader_DEFINE("FLUENCE_GATHERING_BINDING", STRINGIFY(game_logic__util_FLUENCE_GATHERING_BINDING)),
 				column_ray_texture_mode_definition,
 				row_ray_texture_mode_definition,

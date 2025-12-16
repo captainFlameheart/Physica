@@ -1,18 +1,18 @@
 /* Expected to be concatenated from CPU:
 
+#define EAST_DIRECTION ?
+#define NORTH_DIRECTION ?
+#define WEST_DIRECTION ?
+#define SOUTH_DIRECTION ?
+
+#define DIRECTION ?
+
 #define COLUMN_RAY_TEXTURE_MODE ?
 #define ROW_RAY_TEXTURE_MODE ?
 
 #define RAY_TEXTURE_MODE ?
 
 */
-
-#define EAST_DIRECTION 0
-#define NORTH_DIRECTION 1
-#define WEST_DIRECTION 2
-#define SOUTH_DIRECTION 3
-
-#define DIRECTION EAST_DIRECTION
 
 layout(shared, binding = CAMERA_BINDING) uniform Camera
 {
