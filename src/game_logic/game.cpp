@@ -944,6 +944,20 @@ namespace game_logic
 				inverse_projection_scale_x = game_logic__util__projection_INVERSE_SCALE_X(environment);
 				inverse_projection_scale_y = game_logic__util__projection_INVERSE_SCALE_Y(environment);
 			}
+			else if (game_state::temporary_direction == game_state::holographic_north_direction)
+			{
+				probe_grid_width = environment.state.holographic_probe_grid_height;
+				probe_grid_height = environment.state.holographic_probe_grid_width;
+
+				probe_padding_factor_x = environment.state.probe_padding_factor_y;
+				probe_padding_factor_y = environment.state.probe_padding_factor_x;
+
+				framebuffer_width = environment.state.framebuffer_height;
+				framebuffer_height = environment.state.framebuffer_width;
+
+				inverse_projection_scale_x = game_logic__util__projection_INVERSE_SCALE_Y(environment);
+				inverse_projection_scale_y = game_logic__util__projection_INVERSE_SCALE_X(environment);
+			}
 
 			GLuint const edge_width{ probe_grid_width - 1u };
 			GLuint const edge_height{ probe_grid_height - 1u };
@@ -1161,6 +1175,10 @@ namespace game_logic
 			{
 				max_cascade = environment.state.max_horizontal_cascade_index;
 			}
+			else if (game_state::temporary_direction == game_state::holographic_north_direction)
+			{
+				max_cascade = environment.state.max_vertical_cascade_index;
+			}
 			if (min_cascade < max_cascade)
 			{
 				GLint const padded_block_count{ static_cast<GLint>(max_cascade - min_cascade - 1u) };
@@ -1185,6 +1203,11 @@ namespace game_logic
 				{
 					probe_grid_width = static_cast<GLint>(environment.state.holographic_probe_grid_width);
 					probe_grid_height = static_cast<GLint>(environment.state.holographic_probe_grid_height);
+				}
+				else if (game_state::temporary_direction == game_state::holographic_north_direction)
+				{
+					probe_grid_width = static_cast<GLint>(environment.state.holographic_probe_grid_height);
+					probe_grid_height = static_cast<GLint>(environment.state.holographic_probe_grid_width);
 				}
 
 				GLint const edge_width{ probe_grid_width - 1 };
@@ -1380,6 +1403,10 @@ namespace game_logic
 			{
 				max_cascade = static_cast<GLint>(environment.state.max_horizontal_cascade_index);
 			}
+			else if (game_state::temporary_direction == game_state::holographic_north_direction)
+			{
+				max_cascade = static_cast<GLint>(environment.state.max_vertical_cascade_index);
+			}
 
 			GLint const padded_block_count{ max_cascade - 1 };
 			GLint const padded_block_size
@@ -1402,6 +1429,11 @@ namespace game_logic
 			{
 				width = static_cast<GLint>(environment.state.holographic_probe_grid_width);
 				height = static_cast<GLint>(environment.state.holographic_probe_grid_height);
+			}
+			else if (game_state::temporary_direction == game_state::holographic_north_direction)
+			{
+				width = static_cast<GLint>(environment.state.holographic_probe_grid_height);
+				height = static_cast<GLint>(environment.state.holographic_probe_grid_width);
 			}
 
 			GLint const edge_width{ width - 1 };
@@ -1612,7 +1644,7 @@ namespace game_logic
 
 	void start_presentation_stage(game_environment::Environment& environment)
 	{
-		environment.state.presentation_state_0 = game_state::presentation_state_0::DEFAULT;
+		environment.state.presentation_state_0 = game_state::presentation_state_0::SHOW_INNER_WORKINGS;
 		environment.state.sky_circle_state = game_state::sky_circle_state::SHOW_INNER_WORKINGS;
 
 		GLuint stage{ environment.state.presentation_stage };
@@ -1965,8 +1997,8 @@ namespace game_logic
 		environment.state.presentation_stage = 0u;
 		environment.state.use_holographic_radiance_cascades = true;
 		environment.state.use_row_ray_textures = true;
-		environment.state.holographic_probe_grid_width = 1024u;//150u;//100u;//20u;//800u;
-		environment.state.holographic_probe_grid_height = 512u;//75u;//50u;//environment.state.holographic_probe_grid_width >> 1u;//10u;//400u;
+		environment.state.holographic_probe_grid_width = 20u;//1024u;//150u;//100u;//20u;//800u;
+		environment.state.holographic_probe_grid_height = 10u;//512u;//75u;//50u;//environment.state.holographic_probe_grid_width >> 1u;//10u;//400u;
 		environment.state.probe_padding_factor_x = 1.0f;
 		environment.state.probe_padding_factor_y = 1.0f;
 
@@ -3013,6 +3045,13 @@ namespace game_logic
 			std::string zoomed_out_zoom_mode_definition{ "#define ZOOMED_OUT_ZOOM_MODE " + std::to_string(zoomed_out_zoom_mode_value) + '\n' };
 
 			{
+				std::string east_direction_definition{ "#define EAST_DIRECTION " + std::to_string(game_state::holographic_east_direction) + '\n' };
+				std::string north_direction_definition{ "#define NORTH_DIRECTION " + std::to_string(game_state::holographic_north_direction) + '\n' };
+				std::string west_direction_definition{ "#define WEST_DIRECTION " + std::to_string(game_state::holographic_west_direction) + '\n' };
+				std::string south_direction_definition{ "#define SOUTH_DIRECTION " + std::to_string(game_state::holographic_south_direction) + '\n' };
+
+				std::string direction_definition{ "#define DIRECTION " + std::to_string(game_state::temporary_direction) + '\n' };
+
 				std::string mode_definition{ "#define MODE " + std::to_string(showcase_cascade_value) + "\n" };
 
 				constexpr GLuint zoom_mode_value{ default_zoom_mode_value };;
@@ -3022,6 +3061,11 @@ namespace game_logic
 				(
 					vertex_shader,
 					util_shader_VERSION,
+					east_direction_definition,
+					north_direction_definition,
+					west_direction_definition,
+					south_direction_definition,
+					direction_definition,
 					cone_radius_definition.c_str(),
 					showcase_cascade_mode_definition,
 					showcase_single_cone_definition,
@@ -3036,6 +3080,11 @@ namespace game_logic
 				(
 					fragment_shader,
 					util_shader_VERSION,
+					east_direction_definition,
+					north_direction_definition,
+					west_direction_definition,
+					south_direction_definition,
+					direction_definition,
 					cone_radius_definition.c_str(),
 					showcase_cascade_mode_definition,
 					showcase_single_cone_definition,
@@ -3072,6 +3121,13 @@ namespace game_logic
 			}
 
 			{
+				std::string east_direction_definition{ "#define EAST_DIRECTION " + std::to_string(game_state::holographic_east_direction) + '\n' };
+				std::string north_direction_definition{ "#define NORTH_DIRECTION " + std::to_string(game_state::holographic_north_direction) + '\n' };
+				std::string west_direction_definition{ "#define WEST_DIRECTION " + std::to_string(game_state::holographic_west_direction) + '\n' };
+				std::string south_direction_definition{ "#define SOUTH_DIRECTION " + std::to_string(game_state::holographic_south_direction) + '\n' };
+
+				std::string direction_definition{ "#define DIRECTION " + std::to_string(game_state::temporary_direction) + '\n' };
+
 				std::string mode_definition{ "#define MODE " + std::to_string(showcase_single_cone_value) + "\n" };
 
 				constexpr GLuint zoom_mode_value{ default_zoom_mode_value };;
@@ -3081,6 +3137,11 @@ namespace game_logic
 				(
 					vertex_shader,
 					util_shader_VERSION,
+					east_direction_definition,
+					north_direction_definition,
+					west_direction_definition,
+					south_direction_definition,
+					direction_definition,
 					cone_radius_definition.c_str(),
 					showcase_cascade_mode_definition,
 					showcase_single_cone_definition,
@@ -3095,6 +3156,11 @@ namespace game_logic
 				(
 					fragment_shader,
 					util_shader_VERSION,
+					east_direction_definition,
+					north_direction_definition,
+					west_direction_definition,
+					south_direction_definition,
+					direction_definition,
 					showcase_cascade_mode_definition,
 					showcase_single_cone_definition,
 					showcase_merge_to_definition,
@@ -3144,6 +3210,13 @@ namespace game_logic
 			}
 
 			{
+				std::string east_direction_definition{ "#define EAST_DIRECTION " + std::to_string(game_state::holographic_east_direction) + '\n' };
+				std::string north_direction_definition{ "#define NORTH_DIRECTION " + std::to_string(game_state::holographic_north_direction) + '\n' };
+				std::string west_direction_definition{ "#define WEST_DIRECTION " + std::to_string(game_state::holographic_west_direction) + '\n' };
+				std::string south_direction_definition{ "#define SOUTH_DIRECTION " + std::to_string(game_state::holographic_south_direction) + '\n' };
+
+				std::string direction_definition{ "#define DIRECTION " + std::to_string(game_state::temporary_direction) + '\n' };
+
 				std::string mode_definition{ "#define MODE " + std::to_string(showcase_merge_to_value) + "\n" };
 
 				constexpr GLuint zoom_mode_value{ default_zoom_mode_value };;
@@ -3153,6 +3226,11 @@ namespace game_logic
 				(
 					vertex_shader,
 					util_shader_VERSION,
+					east_direction_definition,
+					north_direction_definition,
+					west_direction_definition,
+					south_direction_definition,
+					direction_definition,
 					cone_radius_definition.c_str(),
 					showcase_cascade_mode_definition,
 					showcase_single_cone_definition,
@@ -3167,6 +3245,11 @@ namespace game_logic
 				(
 					fragment_shader,
 					util_shader_VERSION,
+					east_direction_definition,
+					north_direction_definition,
+					west_direction_definition,
+					south_direction_definition,
+					direction_definition,
 					showcase_cascade_mode_definition,
 					showcase_single_cone_definition,
 					showcase_merge_to_definition,
@@ -3245,6 +3328,13 @@ namespace game_logic
 			std::string ray_texture_mode_definition{ "#define RAY_TEXTURE_MODE " + std::to_string(ray_texture_mode_value) + '\n' };
 
 			{
+				std::string east_direction_definition{ "#define EAST_DIRECTION " + std::to_string(game_state::holographic_east_direction) + '\n' };
+				std::string north_direction_definition{ "#define NORTH_DIRECTION " + std::to_string(game_state::holographic_north_direction) + '\n' };
+				std::string west_direction_definition{ "#define WEST_DIRECTION " + std::to_string(game_state::holographic_west_direction) + '\n' };
+				std::string south_direction_definition{ "#define SOUTH_DIRECTION " + std::to_string(game_state::holographic_south_direction) + '\n' };
+
+				std::string direction_definition{ "#define DIRECTION " + std::to_string(game_state::temporary_direction) + '\n' };
+
 				std::string mode_definition{ "#define MODE " + std::to_string(showcase_cascade_value) + "\n" };
 
 				constexpr GLuint zoom_mode_value{ default_zoom_mode_value };;
@@ -3254,6 +3344,11 @@ namespace game_logic
 				(
 					vertex_shader,
 					util_shader_VERSION,
+					east_direction_definition,
+					north_direction_definition,
+					west_direction_definition,
+					south_direction_definition,
+					direction_definition,
 					showcase_cascade_mode_definition,
 					showcase_single_ray_definition,
 					showcase_merge_to_ray_definition,
@@ -3272,6 +3367,11 @@ namespace game_logic
 				(
 					fragment_shader,
 					util_shader_VERSION,
+					east_direction_definition,
+					north_direction_definition,
+					west_direction_definition,
+					south_direction_definition,
+					direction_definition,
 					showcase_cascade_mode_definition,
 					showcase_single_ray_definition,
 					showcase_merge_to_ray_definition,
@@ -3312,6 +3412,13 @@ namespace game_logic
 			}
 
 			{
+				std::string east_direction_definition{ "#define EAST_DIRECTION " + std::to_string(game_state::holographic_east_direction) + '\n' };
+				std::string north_direction_definition{ "#define NORTH_DIRECTION " + std::to_string(game_state::holographic_north_direction) + '\n' };
+				std::string west_direction_definition{ "#define WEST_DIRECTION " + std::to_string(game_state::holographic_west_direction) + '\n' };
+				std::string south_direction_definition{ "#define SOUTH_DIRECTION " + std::to_string(game_state::holographic_south_direction) + '\n' };
+
+				std::string direction_definition{ "#define DIRECTION " + std::to_string(game_state::temporary_direction) + '\n' };
+
 				std::string mode_definition{ "#define MODE " + std::to_string(showcase_single_ray_value) + "\n" };
 
 				constexpr GLuint zoom_mode_value{ default_zoom_mode_value };;
@@ -3321,6 +3428,11 @@ namespace game_logic
 				(
 					vertex_shader,
 					util_shader_VERSION,
+					east_direction_definition,
+					north_direction_definition,
+					west_direction_definition,
+					south_direction_definition,
+					direction_definition,
 					showcase_cascade_mode_definition,
 					showcase_single_ray_definition,
 					showcase_merge_to_ray_definition,
@@ -3339,6 +3451,11 @@ namespace game_logic
 				(
 					fragment_shader,
 					util_shader_VERSION,
+					east_direction_definition,
+					north_direction_definition,
+					west_direction_definition,
+					south_direction_definition,
+					direction_definition,
 					showcase_cascade_mode_definition,
 					showcase_single_ray_definition,
 					showcase_merge_to_ray_definition,
@@ -3390,8 +3507,14 @@ namespace game_logic
 			}
 
 			{
+				std::string east_direction_definition{ "#define EAST_DIRECTION " + std::to_string(game_state::holographic_east_direction) + '\n' };
+				std::string north_direction_definition{ "#define NORTH_DIRECTION " + std::to_string(game_state::holographic_north_direction) + '\n' };
+				std::string west_direction_definition{ "#define WEST_DIRECTION " + std::to_string(game_state::holographic_west_direction) + '\n' };
+				std::string south_direction_definition{ "#define SOUTH_DIRECTION " + std::to_string(game_state::holographic_south_direction) + '\n' };
+
+				std::string direction_definition{ "#define DIRECTION " + std::to_string(game_state::temporary_direction) + '\n' };
+
 				std::string mode_definition{ "#define MODE " + std::to_string(showcase_merge_to_cone_value) + "\n" };
-				
 
 				constexpr GLuint zoom_mode_value{ default_zoom_mode_value };;
 				std::string zoom_mode_definition{ "#define ZOOM_MODE " + std::to_string(zoom_mode_value) + '\n' };
@@ -3400,6 +3523,11 @@ namespace game_logic
 				(
 					vertex_shader,
 					util_shader_VERSION,
+					east_direction_definition,
+					north_direction_definition,
+					west_direction_definition,
+					south_direction_definition,
+					direction_definition,
 					showcase_cascade_mode_definition,
 					showcase_single_ray_definition,
 					showcase_merge_to_ray_definition,
@@ -3418,6 +3546,11 @@ namespace game_logic
 				(
 					fragment_shader,
 					util_shader_VERSION,
+					east_direction_definition,
+					north_direction_definition,
+					west_direction_definition,
+					south_direction_definition,
+					direction_definition,
 					showcase_cascade_mode_definition,
 					showcase_single_ray_definition,
 					showcase_merge_to_ray_definition,
@@ -3469,6 +3602,13 @@ namespace game_logic
 			}
 
 			{
+				std::string east_direction_definition{ "#define EAST_DIRECTION " + std::to_string(game_state::holographic_east_direction) + '\n' };
+				std::string north_direction_definition{ "#define NORTH_DIRECTION " + std::to_string(game_state::holographic_north_direction) + '\n' };
+				std::string west_direction_definition{ "#define WEST_DIRECTION " + std::to_string(game_state::holographic_west_direction) + '\n' };
+				std::string south_direction_definition{ "#define SOUTH_DIRECTION " + std::to_string(game_state::holographic_south_direction) + '\n' };
+
+				std::string direction_definition{ "#define DIRECTION " + std::to_string(game_state::temporary_direction) + '\n' };
+
 				std::string mode_definition{ "#define MODE " + std::to_string(showcase_merge_to_ray_value) + "\n" };
 
 				constexpr GLuint zoom_mode_value{ default_zoom_mode_value };;
@@ -3478,6 +3618,11 @@ namespace game_logic
 				(
 					vertex_shader,
 					util_shader_VERSION,
+					east_direction_definition,
+					north_direction_definition,
+					west_direction_definition,
+					south_direction_definition,
+					direction_definition,
 					showcase_cascade_mode_definition,
 					showcase_single_ray_definition,
 					showcase_merge_to_ray_definition,
@@ -3496,6 +3641,11 @@ namespace game_logic
 				(
 					fragment_shader,
 					util_shader_VERSION,
+					east_direction_definition,
+					north_direction_definition,
+					west_direction_definition,
+					south_direction_definition,
+					direction_definition,
 					showcase_cascade_mode_definition,
 					showcase_single_ray_definition,
 					showcase_merge_to_ray_definition,
@@ -3547,6 +3697,13 @@ namespace game_logic
 			}
 
 			{
+				std::string east_direction_definition{ "#define EAST_DIRECTION " + std::to_string(game_state::holographic_east_direction) + '\n' };
+				std::string north_direction_definition{ "#define NORTH_DIRECTION " + std::to_string(game_state::holographic_north_direction) + '\n' };
+				std::string west_direction_definition{ "#define WEST_DIRECTION " + std::to_string(game_state::holographic_west_direction) + '\n' };
+				std::string south_direction_definition{ "#define SOUTH_DIRECTION " + std::to_string(game_state::holographic_south_direction) + '\n' };
+
+				std::string direction_definition{ "#define DIRECTION " + std::to_string(game_state::temporary_direction) + '\n' };
+
 				std::string mode_definition{ "#define MODE " + std::to_string(showcase_radiance_value) + "\n" };
 
 				constexpr GLuint zoom_mode_value{ default_zoom_mode_value };
@@ -3556,6 +3713,11 @@ namespace game_logic
 				(
 					vertex_shader,
 					util_shader_VERSION,
+					east_direction_definition,
+					north_direction_definition,
+					west_direction_definition,
+					south_direction_definition,
+					direction_definition,
 					showcase_cascade_mode_definition,
 					showcase_single_ray_definition,
 					showcase_merge_to_ray_definition,
@@ -3574,6 +3736,11 @@ namespace game_logic
 				(
 					fragment_shader,
 					util_shader_VERSION,
+					east_direction_definition,
+					north_direction_definition,
+					west_direction_definition,
+					south_direction_definition,
+					direction_definition,
 					showcase_cascade_mode_definition,
 					showcase_single_ray_definition,
 					showcase_merge_to_ray_definition,

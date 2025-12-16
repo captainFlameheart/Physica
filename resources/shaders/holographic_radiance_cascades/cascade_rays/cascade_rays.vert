@@ -1,5 +1,12 @@
 /* Expected to be concatenated from the CPU:
 
+#define EAST_DIRECTION ?
+#define NORTH_DIRECTION ?
+#define WEST_DIRECTION ?
+#define SOUTH_DIRECTION ?
+
+#define DIRECTION ?
+
 #define SHOWCASE_CASCADE ?
 #define SHOWCASE_SINGLE_RAY ?
 #define SHOWCASE_MERGE_TO_RAY ?
@@ -19,13 +26,6 @@
 #define RAY_TEXTURE_MODE ?
 
 */
-
-#define EAST_DIRECTION 0
-#define NORTH_DIRECTION 1
-#define WEST_DIRECTION 2
-#define SOUTH_DIRECTION 3
-
-#define DIRECTION EAST_DIRECTION
 
 uniform uvec2 probe_grid_size;
 uniform uvec2 source_size;
