@@ -640,35 +640,42 @@ namespace game_logic
 			glCreateFramebuffers(environment.state.max_cascade_index, environment.state.holographic_ray_framebuffers);
 
 			{
-				GLuint edge_width;
-				GLuint edge_height;
-				GLuint height;
-				if (game_state::temporary_direction == game_state::holographic_east_direction)
-				{
-					edge_width = environment.state.holographic_probe_grid_width - 1u;
-					edge_height = environment.state.holographic_probe_grid_height - 1u;
-					height = environment.state.holographic_probe_grid_height;
-				}
+				GLuint const edge_width{ environment.state.holographic_probe_grid_width - 1u };
+				GLuint const edge_height{ environment.state.holographic_probe_grid_height - 1u };
 
 				GLuint const edge_width_decremented{ edge_width - 1u };
+				GLuint const edge_height_decremented{ edge_height - 1u };
 
 				for (GLuint cascade{ 0u }; cascade < environment.state.max_cascade_index; ++cascade)
 				{
 					GLuint width;
+					GLuint height;
 					if (environment.state.use_row_ray_textures)
 					{
 						GLuint const cascade_power_of_two{ 1u << cascade };
 						GLuint const rays_per_probe{ cascade_power_of_two + 1u };
 
-						GLuint const min_outside_probe_x{ (edge_width_decremented + cascade_power_of_two) >> cascade };
-						width = (min_outside_probe_x - 1u) * rays_per_probe;
+						GLuint const min_horizontal_outside_probe_x{ (edge_width_decremented + cascade_power_of_two) >> cascade };
+						GLuint const min_vertical_outside_probe_x{ (edge_height_decremented + cascade_power_of_two) >> cascade };
+						
+						width = (min_horizontal_outside_probe_x - 1u) * rays_per_probe;
+						if (cascade <= environment.state.max_vertical_cascade_index)
+						{
+							width = std::max(width, environment.state.holographic_probe_grid_width);
+						}
+						
+						height = (min_vertical_outside_probe_x - 1u) * rays_per_probe;
+						if (cascade <= environment.state.max_horizontal_cascade_index)
+						{
+							height = std::max(height, environment.state.holographic_probe_grid_height);
+						}
 					}
 					else
 					{
 						GLuint const cascade_power_of_two{ 1u << cascade };
 						width = ceil_div(environment.state.holographic_probe_grid_width - 1u - cascade_power_of_two, cascade_power_of_two);
 						GLuint const rays_in_vacuum_per_column{ ceil_div(cascade_power_of_two + 1u, 2u) << 1u };
-						height = height * (cascade_power_of_two + 1u) - rays_in_vacuum_per_column;
+						height = environment.state.holographic_probe_grid_height * (cascade_power_of_two + 1u) - rays_in_vacuum_per_column;
 					}
 
 					glTextureParameteri(environment.state.ray_textures[cascade], GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -807,6 +814,10 @@ namespace game_logic
 			(
 				vertex_shader,
 				util_shader_VERSION,
+				east_direction_definition,
+				north_direction_definition,
+				west_direction_definition,
+				south_direction_definition,
 				direction_definition,
 				cascade_definition,
 				angular_step_count_definition,
@@ -817,6 +828,10 @@ namespace game_logic
 				fragment_shader,
 				util_shader_VERSION,
 				direction_definition,
+				east_direction_definition,
+				north_direction_definition,
+				west_direction_definition,
+				south_direction_definition,
 				cascade_definition,
 				angular_step_count_definition,
 				::util::shader::file_to_string("holographic_radiance_cascades/sky_circle/gather/gather.frag")
@@ -842,6 +857,9 @@ namespace game_logic
 			std::string south_direction_definition{ "#define SOUTH_DIRECTION " + std::to_string(game_state::holographic_south_direction) + '\n' };
 
 			std::string direction_definition{ "#define DIRECTION " + std::to_string(game_state::temporary_direction) + '\n' };
+
+			GLuint max_ray_texture_x{};
+			std::string max_ray_texture_xy_definition{ "" };
 
 			constexpr GLuint column_ray_texture_mode_value{ 0u };
 			constexpr GLuint row_ray_texture_mode_value{ 1u };
