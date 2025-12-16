@@ -1365,7 +1365,7 @@ namespace game_logic
 	void start_presentation_stage(game_environment::Environment& environment)
 	{
 		environment.state.presentation_state_0 = game_state::presentation_state_0::DEFAULT;
-		environment.state.sky_circle_state = game_state::sky_circle_state::DEFAULT;
+		environment.state.sky_circle_state = game_state::sky_circle_state::SHOW_INNER_WORKINGS;
 
 		GLuint stage{ environment.state.presentation_stage };
 		std::cout << "Start stage " << stage << std::endl;
@@ -2619,7 +2619,9 @@ namespace game_logic
 				::util::shader::file_to_string("sky_circle_elements/test/test.frag")
 			);
 			environment.state.draw_sky_circle_test_element_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
-			std::cout << "Draw sky circle test element shader compiled." << std::endl;
+			environment.state.draw_sky_circle_test_element_shader_end_points_uniform_location = glGetUniformLocation(environment.state.draw_sky_circle_test_element_shader, "end_points");
+			std::cout << "Draw sky circle test element shader compiled. End points uniform location: " << 
+				environment.state.draw_sky_circle_test_element_shader_end_points_uniform_location << std::endl;
 		}
 
 		// TODO: This vertex shader compilation should be done ONCE
@@ -10070,6 +10072,17 @@ namespace game_logic
 		);
 	}
 
+	GLint compute_sky_circle_element_angle
+	(
+		game_environment::Environment& environment, 
+		GLfloat start_angle,  GLfloat angular_velocity
+	)
+	{
+		GLint const start_angle_in_radians{ game_logic__util__spatial_FROM_RADIANS(environment, start_angle) };
+		GLint const angular_velocity_in_radians_per_tick{ game_RADIANS_PER_SECOND_TO_ANGLE_PER_TICK(environment, angular_velocity) };
+		return start_angle_in_radians + environment.state.tick * angular_velocity_in_radians_per_tick;
+	}
+
 	void draw_to_sky_circle(game_environment::Environment& environment)
 	{
 		GLfloat clear_fluence[4u]{ 0.0f, 0.0f, 0.0f, 0.0f };
@@ -10079,7 +10092,16 @@ namespace game_logic
 			GL_COLOR, 0, clear_fluence
 		);
 
+		constexpr GLfloat pi{ 3.14159265358979323846f };
+
 		glUseProgram(environment.state.draw_sky_circle_test_element_shader);
+		glProgramUniform2i
+		(
+			environment.state.draw_sky_circle_test_element_shader,
+			environment.state.draw_sky_circle_test_element_shader_end_points_uniform_location,
+			compute_sky_circle_element_angle(environment, -0.05f * pi, 0.1f * pi),
+			compute_sky_circle_element_angle(environment, 0.05f * pi, 0.1f * pi)
+		);
 		glDrawArrays(GL_LINES, 0, 4u);
 	}
 
