@@ -791,6 +791,13 @@ namespace game_logic
 		GLuint const fragment_shader{ ::util::shader::create_shader(GL_FRAGMENT_SHADER) };
 		
 		{	// MUST TODO: Add directions to sky circle gather.
+			std::string east_direction_definition{ "#define EAST_DIRECTION " + std::to_string(game_state::holographic_east_direction) + '\n' };
+			std::string north_direction_definition{ "#define NORTH_DIRECTION " + std::to_string(game_state::holographic_north_direction) + '\n' };
+			std::string west_direction_definition{ "#define WEST_DIRECTION " + std::to_string(game_state::holographic_west_direction) + '\n' };
+			std::string south_direction_definition{ "#define SOUTH_DIRECTION " + std::to_string(game_state::holographic_south_direction) + '\n' };
+
+			std::string direction_definition{ "#define DIRECTION " + std::to_string(game_state::temporary_direction) + '\n' };
+			
 			constexpr GLint angular_step_count{ 1 };
 
 			std::string cascade_definition{ "const int cascade = " + std::to_string(environment.state.max_cascade_index) + ";\n"};
@@ -800,6 +807,7 @@ namespace game_logic
 			(
 				vertex_shader,
 				util_shader_VERSION,
+				direction_definition,
 				cascade_definition,
 				angular_step_count_definition,
 				::util::shader::file_to_string("holographic_radiance_cascades/sky_circle/gather/gather.vert")
@@ -808,6 +816,7 @@ namespace game_logic
 			(
 				fragment_shader,
 				util_shader_VERSION,
+				direction_definition,
 				cascade_definition,
 				angular_step_count_definition,
 				::util::shader::file_to_string("holographic_radiance_cascades/sky_circle/gather/gather.frag")

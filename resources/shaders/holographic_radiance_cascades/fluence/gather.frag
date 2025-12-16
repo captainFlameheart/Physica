@@ -1,5 +1,12 @@
 /* Expected to be concatenated from CPU:
 
+#define EAST_DIRECTION ?
+#define NORTH_DIRECTION ?
+#define WEST_DIRECTION ?
+#define SOUTH_DIRECTION ?
+
+#define DIRECTION ?
+
 #define COLUMN_RAY_TEXTURE_MODE ?
 #define ROW_RAY_TEXTURE_MODE ?
 
@@ -10,13 +17,6 @@ const uvec2 max_ray_texture_xy;
 const uvec2 max_upper_cascade_fluence_texture_xy;
 
 */
-
-#define EAST_DIRECTION 0
-#define NORTH_DIRECTION 1
-#define WEST_DIRECTION 2
-#define SOUTH_DIRECTION 3
-
-#define DIRECTION EAST_DIRECTION
 
 // IMPORTANT TODO: Only store data necessary for the particular ray texture mode.
 layout(shared, binding = FLUENCE_GATHERING_BINDING) uniform Fluence_Gathering_Data
