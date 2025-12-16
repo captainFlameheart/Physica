@@ -211,6 +211,7 @@ namespace game_state
 
 		GLuint draw_sky_circle_test_element_shader;
 		GLuint draw_sky_circle_test_element_shader_end_points_uniform_location;
+		GLuint draw_sky_circle_test_element_shader_color_uniform_location;
 
 		bool use_row_ray_textures;
 		union

@@ -2620,8 +2620,10 @@ namespace game_logic
 			);
 			environment.state.draw_sky_circle_test_element_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
 			environment.state.draw_sky_circle_test_element_shader_end_points_uniform_location = glGetUniformLocation(environment.state.draw_sky_circle_test_element_shader, "end_points");
+			environment.state.draw_sky_circle_test_element_shader_color_uniform_location = glGetUniformLocation(environment.state.draw_sky_circle_test_element_shader, "color");
 			std::cout << "Draw sky circle test element shader compiled. End points uniform location: " << 
-				environment.state.draw_sky_circle_test_element_shader_end_points_uniform_location << std::endl;
+				environment.state.draw_sky_circle_test_element_shader_end_points_uniform_location << ". Color uniform location: " <<
+				environment.state.draw_sky_circle_test_element_shader_color_uniform_location << std::endl;
 		}
 
 		// TODO: This vertex shader compilation should be done ONCE
@@ -10095,14 +10097,81 @@ namespace game_logic
 		constexpr GLfloat pi{ 3.14159265358979323846f };
 
 		glUseProgram(environment.state.draw_sky_circle_test_element_shader);
-		glProgramUniform2i
-		(
-			environment.state.draw_sky_circle_test_element_shader,
-			environment.state.draw_sky_circle_test_element_shader_end_points_uniform_location,
-			compute_sky_circle_element_angle(environment, -0.05f * pi, 0.1f * pi),
-			compute_sky_circle_element_angle(environment, 0.05f * pi, 0.1f * pi)
-		);
-		glDrawArrays(GL_LINES, 0, 4u);
+
+		{	// Sun 1
+			constexpr GLfloat start_angle{ 1.0f * pi };
+			constexpr GLfloat angular_half_size{ 0.05f * pi };
+			constexpr GLfloat initial_start_angle{ start_angle - angular_half_size };
+			constexpr GLfloat initial_end_angle{ start_angle + angular_half_size };
+			constexpr GLfloat angular_velocity{ -0.1f * pi };
+			constexpr GLfloat start_angular_velocity{ angular_velocity };
+			constexpr GLfloat end_angular_velocity{ angular_velocity };
+
+			glProgramUniform2i
+			(
+				environment.state.draw_sky_circle_test_element_shader,
+				environment.state.draw_sky_circle_test_element_shader_end_points_uniform_location,
+				compute_sky_circle_element_angle(environment, initial_start_angle, start_angular_velocity),
+				compute_sky_circle_element_angle(environment, initial_end_angle, end_angular_velocity)
+			);
+			glProgramUniform4f
+			(
+				environment.state.draw_sky_circle_test_element_shader,
+				environment.state.draw_sky_circle_test_element_shader_color_uniform_location,
+				1.0f, 1.0f, 0.5f, 0.0f
+			);
+			glDrawArrays(GL_LINES, 0, 4u);
+		}
+
+		{	// Sun 2
+			constexpr GLfloat start_angle{ 0.0f * pi };
+			constexpr GLfloat angular_half_size{ 0.05f * pi };
+			constexpr GLfloat initial_start_angle{ start_angle - angular_half_size };
+			constexpr GLfloat initial_end_angle{ start_angle + angular_half_size };
+			constexpr GLfloat angular_velocity{ 0.07f * pi };
+			constexpr GLfloat start_angular_velocity{ angular_velocity };
+			constexpr GLfloat end_angular_velocity{ angular_velocity };
+
+			glProgramUniform2i
+			(
+				environment.state.draw_sky_circle_test_element_shader,
+				environment.state.draw_sky_circle_test_element_shader_end_points_uniform_location,
+				compute_sky_circle_element_angle(environment, initial_start_angle, start_angular_velocity),
+				compute_sky_circle_element_angle(environment, initial_end_angle, end_angular_velocity)
+			);
+			glProgramUniform4f
+			(
+				environment.state.draw_sky_circle_test_element_shader,
+				environment.state.draw_sky_circle_test_element_shader_color_uniform_location,
+				1.0f, 0.1f, 0.1f, 0.0f
+			);
+			glDrawArrays(GL_LINES, 0, 4u);
+		}
+
+		{	// Moon
+			constexpr GLfloat start_angle{ 0.0f * pi };
+			constexpr GLfloat angular_half_size{ 0.01f * pi };
+			constexpr GLfloat initial_start_angle{ start_angle - angular_half_size };
+			constexpr GLfloat initial_end_angle{ start_angle + angular_half_size };
+			constexpr GLfloat angular_velocity{ 0.01f * pi };
+			constexpr GLfloat start_angular_velocity{ angular_velocity };
+			constexpr GLfloat end_angular_velocity{ angular_velocity };
+
+			glProgramUniform2i
+			(
+				environment.state.draw_sky_circle_test_element_shader,
+				environment.state.draw_sky_circle_test_element_shader_end_points_uniform_location,
+				compute_sky_circle_element_angle(environment, initial_start_angle, start_angular_velocity),
+				compute_sky_circle_element_angle(environment, initial_end_angle, end_angular_velocity)
+			);
+			glProgramUniform4f
+			(
+				environment.state.draw_sky_circle_test_element_shader,
+				environment.state.draw_sky_circle_test_element_shader_color_uniform_location,
+				0.0f, 0.0f, 0.0f, 0.0f
+			);
+			glDrawArrays(GL_LINES, 0, 4u);
+		}
 	}
 
 	// TODO: Rename to draw to not confuse with arbitrary OpenGL rendering commands 
