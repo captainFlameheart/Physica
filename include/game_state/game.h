@@ -36,7 +36,7 @@ namespace game_state
 		};
 	}
 
-	constexpr GLuint initial_holographic_ray_trace_cascade_count{ 1u };
+	constexpr GLuint initial_holographic_ray_trace_cascade_count{ 2u };
 
 	// TODO: Organize based on access patterns 
 	// (initialize -> render -> events -> tick * n -> render -> events -> tick * n -> render -> ...)
