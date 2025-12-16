@@ -387,6 +387,8 @@ namespace game_state
 		GLint holographic_ray_extend_buffer_lower_cascade_power_of_two_offset;
 		GLint holographic_ray_extend_buffer_lower_cascade_max_probe_column_texel_x_offset;
 		GLint holographic_ray_extend_buffer_lower_cascade_max_probe_row_offset;
+		GLint holographic_ray_extend_buffer_max_ray_texture_xy_offset;
+		GLint holographic_ray_extend_buffer_max_lower_cascade_ray_texture_xy_offset;
 
 		GLuint holographic_sky_circle_gather_shader;
 		GLint holographic_sky_circle_gather_shader_sky_circle_uniform_location;

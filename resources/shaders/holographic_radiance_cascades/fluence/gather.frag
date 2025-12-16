@@ -13,8 +13,6 @@
 #define RAY_TEXTURE_MODE ?
 
 const uvec2 max_fluence_texture_xy;
-const uvec2 max_ray_texture_xy;
-const uvec2 max_upper_cascade_fluence_texture_xy;
 
 */
 
@@ -33,6 +31,8 @@ layout(shared, binding = FLUENCE_GATHERING_BINDING) uniform Fluence_Gathering_Da
 	int upper_cascade_probe_column_texel_x_mask;
 	int upper_cascade;
 	int upper_cascade_fluence_layer;
+	
+	uvec2 max_ray_texture_xy;
 } fluence_gathering_data;
 
 uniform sampler2DArray rays;
@@ -45,11 +45,11 @@ ivec2 logical_to_physical_ray_texel_position(in ivec2 logical_position)
 	#if DIRECTION == EAST_DIRECTION
 		return logical_position;
 	#elif DIRECTION == NORTH_DIRECTION
-		return ivec2(max_ray_texture_xy.x - logical_position.y, logical_position.x);
+		return ivec2(fluence_gathering_data.max_ray_texture_xy.x - logical_position.y, logical_position.x);
 	#elif DIRECTION == WEST_DIRECTION
-		return ivec2(max_ray_texture_xy.x - logical_position.x, max_ray_texture_xy.y - logical_position.y);
+		return ivec2(fluence_gathering_data.max_ray_texture_xy.x - logical_position.x, fluence_gathering_data.max_ray_texture_xy.y - logical_position.y);
 	#elif DIRECTION == SOUTH_DIRECTION
-		return ivec2(logical_position.y, max_ray_texture_xy.y - logical_position.x);
+		return ivec2(logical_position.y, fluence_gathering_data.max_ray_texture_xy.y - logical_position.x);
 	#endif
 }
 
@@ -58,11 +58,11 @@ ivec2 logical_to_physical_upper_cascade_fluence_texel_position(in ivec2 logical_
 	#if DIRECTION == EAST_DIRECTION
 		return logical_position;
 	#elif DIRECTION == NORTH_DIRECTION
-		return ivec2(max_upper_cascade_fluence_texture_xy.x - logical_position.y, logical_position.x);
+		return ivec2(max_fluence_texture_xy.x - logical_position.y, logical_position.x);
 	#elif DIRECTION == WEST_DIRECTION
-		return ivec2(max_upper_cascade_fluence_texture_xy.x - logical_position.x, max_upper_cascade_fluence_texture_xy.y - logical_position.y);
+		return ivec2(max_fluence_texture_xy.x - logical_position.x, max_fluence_texture_xy.y - logical_position.y);
 	#elif DIRECTION == SOUTH_DIRECTION
-		return ivec2(logical_position.y, max_upper_cascade_fluence_texture_xy.y - logical_position.x);
+		return ivec2(logical_position.y, max_fluence_texture_xy.y - logical_position.x);
 	#endif
 }
 

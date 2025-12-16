@@ -5,9 +5,6 @@
 
 #define RAY_TEXTURE_MODE ?
 
-const uvec2 max_ray_texture_xy;
-const uvec2 max_lower_cascade_ray_texture_xy;
-
 */
 
 #define EAST_DIRECTION 0
@@ -41,6 +38,8 @@ layout(shared, binding = RAY_CASTING_BINDING) uniform Ray_Casting_Data
 	int lower_cascade_max_probe_column_texel_x;
 	int lower_cascade_max_probe_row;
 
+	ivec2 max_ray_texture_xy;
+	ivec2 max_lower_cascade_ray_texture_xy;
 } ray_casting_data;
 
 uniform sampler2DArray shorter_rays;
@@ -53,11 +52,11 @@ ivec2 logical_to_physical_lower_cascade_ray_texel_position(in ivec2 logical_posi
 	#if DIRECTION == EAST_DIRECTION
 		return logical_position;
 	#elif DIRECTION == NORTH_DIRECTION
-		return ivec2(max_lower_cascade_ray_texture_xy.x - logical_position.y, logical_position.x);
+		return ivec2(ray_casting_data.max_lower_cascade_ray_texture_xy.x - logical_position.y, logical_position.x);
 	#elif DIRECTION == WEST_DIRECTION
-		return ivec2(max_lower_cascade_ray_texture_xy.x - logical_position.x, max_lower_cascade_ray_texture_xy.y - logical_position.y);
+		return ivec2(ray_casting_data.max_lower_cascade_ray_texture_xy.x - logical_position.x, ray_casting_data.max_lower_cascade_ray_texture_xy.y - logical_position.y);
 	#elif DIRECTION == SOUTH_DIRECTION
-		return ivec2(logical_position.y, max_lower_cascade_ray_texture_xy.y - logical_position.x);
+		return ivec2(logical_position.y, ray_casting_data.max_lower_cascade_ray_texture_xy.y - logical_position.x);
 	#endif
 }
 
@@ -68,11 +67,11 @@ void main()
 		ivec2 output_texel_position = ivec2(gl_FragCoord.xy);
 		#if DIRECTION == EAST_DIRECTION
 		#elif DIRECTION == NORTH_DIRECTION
-			output_texel_position = ivec2(output_texel_position.y, max_ray_texture_xy.x - output_texel_position.x);
+			output_texel_position = ivec2(output_texel_position.y, ray_casting_data.max_ray_texture_xy.x - output_texel_position.x);
 		#elif DIRECTION == WEST_DIRECTION
-			output_texel_position = ivec2(max_ray_texture_xy.x - output_texel_position.x, max_ray_texture_xy.y - output_texel_position.y);
+			output_texel_position = ivec2(ray_casting_data.max_ray_texture_xy.x - output_texel_position.x, ray_casting_data.max_ray_texture_xy.y - output_texel_position.y);
 		#elif DIRECTION == SOUTH_DIRECTION
-			output_texel_position = ivec2(max_ray_texture_xy.y - output_texel_position.y, output_texel_position.x);
+			output_texel_position = ivec2(ray_casting_data.max_ray_texture_xy.y - output_texel_position.y, output_texel_position.x);
 		#endif
 
 		int probe_column = output_texel_position.x / ray_casting_data.rays_per_probe;
