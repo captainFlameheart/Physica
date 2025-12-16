@@ -10172,6 +10172,33 @@ namespace game_logic
 			);
 			glDrawArrays(GL_LINES, 0, 4u);
 		}
+
+		#if 0
+		{	// Full size sun
+			constexpr GLfloat start_angle{ 1.0f * pi };
+			constexpr GLfloat angular_half_size{ 1.0f * pi };
+			constexpr GLfloat initial_start_angle{ start_angle - angular_half_size };
+			constexpr GLfloat initial_end_angle{ start_angle + angular_half_size };
+			constexpr GLfloat angular_velocity{ -0.1f * pi };
+			constexpr GLfloat start_angular_velocity{ angular_velocity };
+			constexpr GLfloat end_angular_velocity{ angular_velocity };
+
+			glProgramUniform2i
+			(
+				environment.state.draw_sky_circle_test_element_shader,
+				environment.state.draw_sky_circle_test_element_shader_end_points_uniform_location,
+				compute_sky_circle_element_angle(environment, initial_start_angle, start_angular_velocity),
+				compute_sky_circle_element_angle(environment, initial_end_angle, end_angular_velocity)
+			);
+			glProgramUniform4f
+			(
+				environment.state.draw_sky_circle_test_element_shader,
+				environment.state.draw_sky_circle_test_element_shader_color_uniform_location,
+				1.0f, 1.0f, 0.5f, 0.0f
+			);
+			glDrawArrays(GL_LINES, 0, 4u);
+		}
+	#endif
 	}
 
 	// TODO: Rename to draw to not confuse with arbitrary OpenGL rendering commands 
