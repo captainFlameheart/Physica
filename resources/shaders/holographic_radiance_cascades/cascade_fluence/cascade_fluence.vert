@@ -20,7 +20,7 @@ const float cone_radius = ?;
 #define WEST_DIRECTION 2
 #define SOUTH_DIRECTION 3
 
-#define DIRECTION NORTH_DIRECTION
+#define DIRECTION EAST_DIRECTION
 
 uniform uvec2 probe_grid_size;
 uniform uvec2 source_size;

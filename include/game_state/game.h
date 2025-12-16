@@ -38,6 +38,13 @@ namespace game_state
 
 	constexpr GLuint initial_holographic_ray_trace_cascade_count{ 2u };
 
+	constexpr GLuint holographic_east_direction{ 0u };
+	constexpr GLuint holographic_north_direction{ 1u };
+	constexpr GLuint holographic_west_direction{ 2u };
+	constexpr GLuint holographic_south_direction{ 3u };
+
+	constexpr GLuint temporary_direction{ holographic_east_direction };
+
 	// TODO: Organize based on access patterns 
 	// (initialize -> render -> events -> tick * n -> render -> events -> tick * n -> render -> ...)
 	struct Game
@@ -140,6 +147,8 @@ namespace game_state
 
 		GLuint sky_circle_texture_length;
 
+		GLuint max_horizontal_cascade_index;
+		GLuint max_vertical_cascade_index;
 		GLuint max_cascade_index;
 		GLuint* ray_textures;
 

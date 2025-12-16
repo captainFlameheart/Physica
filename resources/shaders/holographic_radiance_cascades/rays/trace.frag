@@ -1,5 +1,14 @@
 /* Expected to be concatenated from CPU:
 
+#define EAST_DIRECTION ?
+#define NORTH_DIRECTION ?
+#define WEST_DIRECTION ?
+#define SOUTH_DIRECTION ?
+
+#define DIRECTION ?
+
+const uvec2 max_ray_texture_xy;
+
 #define COLUMN_RAY_TEXTURE_MODE ?
 #define ROW_RAY_TEXTURE_MODE ?
 
@@ -14,20 +23,11 @@ const vec2 probe_grid_point_to_sample_point_bias = ?;
 const vec2 probe_grid_point_to_sample_point_factor = ?;
 const vec2 probe_grid_full_step_to_sample_step_projection = ?;
 
-const uvec2 max_ray_texture_xy;
-
 const uint step_count = ?u;
 
 #define METER_INVERSE ?	// TODO: Remove
 
 */
-
-#define EAST_DIRECTION 0
-#define NORTH_DIRECTION 1
-#define WEST_DIRECTION 2
-#define SOUTH_DIRECTION 3
-
-#define DIRECTION EAST_DIRECTION
 
 layout(shared, binding = CAMERA_BINDING) uniform Camera
 {
