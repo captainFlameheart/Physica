@@ -1364,7 +1364,7 @@ namespace game_logic
 
 	void start_presentation_stage(game_environment::Environment& environment)
 	{
-		environment.state.presentation_state_0 = game_state::presentation_state_0::DEFAULT;
+		environment.state.presentation_state_0 = game_state::presentation_state_0::SHOW_INNER_WORKINGS;
 		environment.state.sky_circle_state = game_state::sky_circle_state::SHOW_INNER_WORKINGS;
 
 		GLuint stage{ environment.state.presentation_stage };
@@ -1716,8 +1716,8 @@ namespace game_logic
 		environment.state.presentation_stage = 0u;
 		environment.state.use_holographic_radiance_cascades = true;
 		environment.state.use_row_ray_textures = true;
-		environment.state.holographic_probe_grid_width = 1024u;//150u;//100u;//20u;//800u;
-		environment.state.holographic_probe_grid_height = 512u;//75u;//50u;//environment.state.holographic_probe_grid_width >> 1u;//10u;//400u;
+		environment.state.holographic_probe_grid_width = 20u;//1024u;//150u;//100u;//20u;//800u;
+		environment.state.holographic_probe_grid_height = 10u;//512u;//75u;//50u;//environment.state.holographic_probe_grid_width >> 1u;//10u;//400u;
 		environment.state.probe_padding_factor_x = 1.0f;
 		environment.state.probe_padding_factor_y = 1.0f;
 

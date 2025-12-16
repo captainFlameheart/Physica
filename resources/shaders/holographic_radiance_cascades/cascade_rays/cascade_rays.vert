@@ -20,6 +20,13 @@
 
 */
 
+#define EAST_DIRECTION 0
+#define NORTH_DIRECTION 1
+#define WEST_DIRECTION 2
+#define SOUTH_DIRECTION 3
+
+#define DIRECTION NORTH_DIRECTION
+
 uniform uvec2 probe_grid_size;
 uniform uvec2 source_size;
 uniform vec2 probe_padding_factor;
@@ -642,10 +649,21 @@ out vec4 line_color;
 
 void main()
 {
+	uvec2 rotated_probe_grid_size;
+	#if DIRECTION == EAST_DIRECTION
+		rotated_probe_grid_size = probe_grid_size;
+	#elif DIRECTION == NORTH_DIRECTION
+		rotated_probe_grid_size = uvec2(probe_grid_size.y, probe_grid_size.x);
+	#elif DIRECTION == WEST_DIRECTION
+		rotated_probe_grid_size = probe_grid_size;
+	#elif DIRECTION == SOUTH_DIRECTION
+		rotated_probe_grid_size = uvec2(probe_grid_size.y, probe_grid_size.x);
+	#endif
+
 	uint cascade_power_of_two = 1u << cascade;
 	uint lines_per_probe = cascade_power_of_two + 1u;
 	uint vertices_per_probe = lines_per_probe << 1u;
-	uint vertices_per_probe_column = probe_grid_size.y * vertices_per_probe;
+	uint vertices_per_probe_column = rotated_probe_grid_size.y * vertices_per_probe;
 	uint probe_column = gl_VertexID / vertices_per_probe_column;
 	uint id_in_probe_column = gl_VertexID - probe_column * vertices_per_probe_column;
 
@@ -663,7 +681,7 @@ void main()
 		vec2 normalized_direction = direction / direction_length;
 		vec2 position = vec2(probe_x, probe_y) + float(gl_VertexID & 1u) * (normalized_direction * (direction_length - removed_length));
 		vec2 padding = probe_padding_factor / vec2(source_size);
-		vec2 normalized_probe_distance = (2.0 + 2.0 * padding) / vec2(probe_grid_size - 1u);
+		vec2 normalized_probe_distance = (2.0 + 2.0 * padding) / vec2(rotated_probe_grid_size - 1u);
 		vec2 normalized_position = position * normalized_probe_distance - 1.0 - padding;
 
 		gl_Position = vec4
@@ -678,14 +696,23 @@ void main()
 		vec2 padding = probe_padding_factor / vec2(source_size);
 		gl_Position = vec4
 		(
-			(float(position.x << 1u) + 2.0 * padding.x) / float(probe_grid_size.x - 1u) - 1.0 - padding,
-			(float(position.y << 1u) + 2.0 * padding.y) / float(probe_grid_size.y - 1u) - 1.0 - padding,
+			(float(position.x << 1u) + 2.0 * padding.x) / float(rotated_probe_grid_size.x - 1u) - 1.0 - padding,
+			(float(position.y << 1u) + 2.0 * padding.y) / float(rotated_probe_grid_size.y - 1u) - 1.0 - padding,
 			0.0, 1.0
 		);
 	#endif
 
 	#if ZOOM_MODE == ZOOMED_OUT_ZOOM_MODE
 		gl_Position.xy *= 0.5;
+	#endif
+
+	#if DIRECTION == EAST_DIRECTION
+	#elif DIRECTION == NORTH_DIRECTION
+		gl_Position.xy = vec2(-gl_Position.y, gl_Position.x);
+	#elif DIRECTION == WEST_DIRECTION
+		gl_Position.xy = vec2(-gl_Position.x, -gl_Position.y);
+	#elif DIRECTION == SOUTH_DIRECTION
+		gl_Position.xy = vec2(-gl_Position.x, gl_Position.y);
 	#endif
 
 	#if MODE == SHOWCASE_CASCADE
