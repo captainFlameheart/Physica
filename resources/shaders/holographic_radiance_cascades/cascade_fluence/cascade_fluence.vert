@@ -217,7 +217,7 @@ void main()
 	#elif DIRECTION == WEST_DIRECTION
 		gl_Position.xy = vec2(-gl_Position.x, -gl_Position.y);
 	#elif DIRECTION == SOUTH_DIRECTION
-		gl_Position.xy = vec2(-gl_Position.x, gl_Position.y);
+		gl_Position.xy = vec2(gl_Position.y, -gl_Position.x);
 	#endif
 
 	#if MODE == SHOWCASE_CASCADE

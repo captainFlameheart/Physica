@@ -5,7 +5,18 @@
 
 #define RAY_TEXTURE_MODE ?
 
+const uvec2 max_fluence_texture_xy;
+const uvec2 max_ray_texture_xy;
+const uvec2 max_upper_cascade_fluence_texture_xy;
+
 */
+
+#define EAST_DIRECTION 0
+#define NORTH_DIRECTION 1
+#define WEST_DIRECTION 2
+#define SOUTH_DIRECTION 3
+
+#define DIRECTION EAST_DIRECTION
 
 // IMPORTANT TODO: Only store data necessary for the particular ray texture mode.
 layout(shared, binding = FLUENCE_GATHERING_BINDING) uniform Fluence_Gathering_Data
@@ -29,6 +40,32 @@ uniform sampler2DArray upper_cascade_fluence;
 
 layout (location = 0) out vec4 fluence;
 
+ivec2 logical_to_physical_ray_texel_position(in ivec2 logical_position)
+{
+	#if DIRECTION == EAST_DIRECTION
+		return logical_position;
+	#elif DIRECTION == NORTH_DIRECTION
+		return ivec2(max_ray_texture_xy.x - logical_position.y, logical_position.x);
+	#elif DIRECTION == WEST_DIRECTION
+		return ivec2(max_ray_texture_xy.x - logical_position.x, max_ray_texture_xy.y - logical_position.y);
+	#elif DIRECTION == SOUTH_DIRECTION
+		return ivec2(logical_position.y, max_ray_texture_xy.y - logical_position.x);
+	#endif
+}
+
+ivec2 logical_to_physical_upper_cascade_fluence_texel_position(in ivec2 logical_position)
+{
+	#if DIRECTION == EAST_DIRECTION
+		return logical_position;
+	#elif DIRECTION == NORTH_DIRECTION
+		return ivec2(max_upper_cascade_fluence_texture_xy.x - logical_position.y, logical_position.x);
+	#elif DIRECTION == WEST_DIRECTION
+		return ivec2(max_upper_cascade_fluence_texture_xy.x - logical_position.x, max_upper_cascade_fluence_texture_xy.y - logical_position.y);
+	#elif DIRECTION == SOUTH_DIRECTION
+		return ivec2(logical_position.y, max_upper_cascade_fluence_texture_xy.y - logical_position.x);
+	#endif
+}
+
 void main()
 {
 	// IMPORTANT TODO: Angles should depend on probe grid dimensions and whatnot.
@@ -37,6 +74,15 @@ void main()
 
 		// IMPORTANT TODO: REORDER TEXTURE FETCHES BASED ON CHACHE LOCALITY
 		ivec2 output_texel_position = ivec2(gl_FragCoord.xy);
+		#if DIRECTION == EAST_DIRECTION
+		#elif DIRECTION == NORTH_DIRECTION
+			output_texel_position = ivec2(output_texel_position.y, max_fluence_texture_xy.x - output_texel_position.x);
+		#elif DIRECTION == WEST_DIRECTION
+			output_texel_position = ivec2(max_fluence_texture_xy.x - output_texel_position.x, max_fluence_texture_xy.y - output_texel_position.y);
+		#elif DIRECTION == SOUTH_DIRECTION
+			output_texel_position = ivec2(max_fluence_texture_xy.y - output_texel_position.y, output_texel_position.x);
+		#endif
+
 		int direction_id = output_texel_position.x & fluence_gathering_data.direction_mask;
 		int lower_direction_id = direction_id << 1;
 		int probe_column = output_texel_position.x >> fluence_gathering_data.cascade;
@@ -51,10 +97,11 @@ void main()
 
 		// Lower near ray
 		int clamped_lower_near_ray_texel_x = clamped_near_ray_column_texel_x + direction_id;
-		fluence = (lower_angle * near_ray_is_inside) * texelFetch(rays, ivec3(clamped_lower_near_ray_texel_x, output_texel_position.y, 0), 0);
+		ivec2 physical_lower_near_ray_texel_position = logical_to_physical_ray_texel_position(ivec2(clamped_lower_near_ray_texel_x, output_texel_position.y));
+		fluence = (lower_angle * near_ray_is_inside) * texelFetch(rays, ivec3(physical_lower_near_ray_texel_position, 0), 0);
 		vec4 lower_near_transmittance = mix
 		(
-			vec4(1.0), texelFetch(rays, ivec3(clamped_lower_near_ray_texel_x, output_texel_position.y, 1), 0),
+			vec4(1.0), texelFetch(rays, ivec3(physical_lower_near_ray_texel_position, 1), 0),
 			near_ray_is_inside
 		);
 	
@@ -71,9 +118,10 @@ void main()
 		// Lower far ray
 		int clamped_lower_far_ray_texel_x = clamped_far_ray_column_texel_x + direction_id;
 		int clamped_lower_far_ray_texel_y = clamp(output_texel_position.y + interpolating * lower_y_offset, 0, fluence_gathering_data.max_fluence_probe_y);
-		vec4 lower_far_fluence = (lower_angle * far_ray_x_is_inside) * texelFetch(rays, ivec3(clamped_lower_far_ray_texel_x, clamped_lower_far_ray_texel_y, 0), 0);
+		ivec2 physical_lower_far_ray_texel_position = logical_to_physical_ray_texel_position(ivec2(clamped_lower_far_ray_texel_x, clamped_lower_far_ray_texel_y));
+		vec4 lower_far_fluence = (lower_angle * far_ray_x_is_inside) * texelFetch(rays, ivec3(physical_lower_far_ray_texel_position, 0), 0);
 		vec4 lower_far_transmittance = mix(
-			vec4(1.0), texelFetch(rays, ivec3(clamped_lower_far_ray_texel_x, clamped_lower_far_ray_texel_y, 1), 0), 
+			vec4(1.0), texelFetch(rays, ivec3(physical_lower_far_ray_texel_position, 1), 0), 
 			far_ray_x_is_inside
 		);
 
@@ -90,7 +138,8 @@ void main()
 		int lower_near_fluence_sample_y = clamp(output_texel_position.y + not_interpolating * lower_y_offset, 0, fluence_gathering_data.max_fluence_probe_y);
 
 		// Lower near fluence
-		fluence += lower_near_transmit_factor * texelFetch(upper_cascade_fluence, ivec3(lower_near_fluence_sample_x, lower_near_fluence_sample_y, fluence_gathering_data.upper_cascade_fluence_layer), 0);
+		ivec2 lower_near_fluence_texel_position = logical_to_physical_upper_cascade_fluence_texel_position(ivec2(lower_near_fluence_sample_x, lower_near_fluence_sample_y));
+		fluence += lower_near_transmit_factor * texelFetch(upper_cascade_fluence, ivec3(lower_near_fluence_texel_position, fluence_gathering_data.upper_cascade_fluence_layer), 0);
 
 		int lower_far_fluence_sample_x = min(
 			near_sample_probe_column_texel_x + (interpolating << fluence_gathering_data.upper_cascade), fluence_gathering_data.max_fluence_probe_column_texel_x
@@ -98,7 +147,8 @@ void main()
 		int lower_far_fluence_sample_y = clamp(output_texel_position.y + (interpolating + 1) * lower_y_offset, 0, fluence_gathering_data.max_fluence_probe_y);
 
 		// Lower far fluence
-		lower_far_fluence += lower_far_transmittance * texelFetch(upper_cascade_fluence, ivec3(lower_far_fluence_sample_x, lower_far_fluence_sample_y, fluence_gathering_data.upper_cascade_fluence_layer), 0);
+		ivec2 lower_far_fluence_texel_position = logical_to_physical_upper_cascade_fluence_texel_position(ivec2(lower_far_fluence_sample_x, lower_far_fluence_sample_y));
+		lower_far_fluence += lower_far_transmittance * texelFetch(upper_cascade_fluence, ivec3(lower_far_fluence_texel_position, fluence_gathering_data.upper_cascade_fluence_layer), 0);
 
 		float interpolating_float = float(interpolating);
 		vec4 lower_far_transmit_factor = 1.0 + interpolating_float * shifted_lower_near_transmittance;
@@ -111,9 +161,10 @@ void main()
 
 		// Upper near ray
 		int clamped_upper_near_ray_texel_x = clamped_lower_near_ray_texel_x + 1;
-		fluence += (upper_angle * near_ray_is_inside) * texelFetch(rays, ivec3(clamped_upper_near_ray_texel_x, output_texel_position.y, 0), 0);
+		ivec2 physical_upper_near_ray_texel_position = logical_to_physical_ray_texel_position(ivec2(clamped_upper_near_ray_texel_x, output_texel_position.y));
+		fluence += (upper_angle * near_ray_is_inside) * texelFetch(rays, ivec3(physical_upper_near_ray_texel_position, 0), 0);
 		vec4 upper_near_transmittance = mix(
-			vec4(1.0), texelFetch(rays, ivec3(clamped_upper_near_ray_texel_x, output_texel_position.y, 1), 0), 
+			vec4(1.0), texelFetch(rays, ivec3(physical_upper_near_ray_texel_position, 1), 0), 
 			near_ray_is_inside
 		);
 
@@ -122,9 +173,10 @@ void main()
 		// Upper far ray
 		int clamped_upper_far_ray_texel_x = clamped_lower_far_ray_texel_x + 1;
 		int clamped_upper_far_ray_texel_y = clamp(output_texel_position.y + interpolating * upper_y_offset, 0, fluence_gathering_data.max_fluence_probe_y);
-		vec4 upper_far_fluence = (upper_angle * far_ray_x_is_inside) * texelFetch(rays, ivec3(clamped_upper_far_ray_texel_x, clamped_upper_far_ray_texel_y, 0), 0);
+		ivec2 physical_upper_far_ray_texel_position = logical_to_physical_ray_texel_position(ivec2(clamped_upper_far_ray_texel_x, clamped_upper_far_ray_texel_y));
+		vec4 upper_far_fluence = (upper_angle * far_ray_x_is_inside) * texelFetch(rays, ivec3(physical_upper_far_ray_texel_position, 0), 0);
 		vec4 upper_far_transmittance = mix(
-			vec4(1.0), texelFetch(rays, ivec3(clamped_upper_far_ray_texel_x, clamped_upper_far_ray_texel_y, 1), 0), 
+			vec4(1.0), texelFetch(rays, ivec3(physical_upper_far_ray_texel_position, 1), 0), 
 			far_ray_x_is_inside
 		);
 
@@ -134,7 +186,8 @@ void main()
 		int upper_near_fluence_sample_y = clamp(output_texel_position.y + not_interpolating * upper_y_offset, 0, fluence_gathering_data.max_fluence_probe_y);
 
 		// Upper near fluence
-		fluence += upper_near_transmit_factor * texelFetch(upper_cascade_fluence, ivec3(upper_near_fluence_sample_x, upper_near_fluence_sample_y, fluence_gathering_data.upper_cascade_fluence_layer), 0);
+		ivec2 upper_near_fluence_texel_position = logical_to_physical_upper_cascade_fluence_texel_position(ivec2(upper_near_fluence_sample_x, upper_near_fluence_sample_y));
+		fluence += upper_near_transmit_factor * texelFetch(upper_cascade_fluence, ivec3(upper_near_fluence_texel_position, fluence_gathering_data.upper_cascade_fluence_layer), 0);
 
 		int upper_far_fluence_sample_x = min(
 			near_sample_probe_column_texel_x + (interpolating << fluence_gathering_data.upper_cascade), fluence_gathering_data.max_fluence_probe_column_texel_x
@@ -142,7 +195,8 @@ void main()
 		int upper_far_fluence_sample_y = clamp(output_texel_position.y + (interpolating + 1) * upper_y_offset, 0, fluence_gathering_data.max_fluence_probe_y);
 	
 		// Upper far fluence
-		upper_far_fluence += upper_far_transmittance * texelFetch(upper_cascade_fluence, ivec3(upper_far_fluence_sample_x, upper_far_fluence_sample_y, fluence_gathering_data.upper_cascade_fluence_layer), 0);
+		ivec2 upper_far_fluence_texel_position = logical_to_physical_upper_cascade_fluence_texel_position(ivec2(upper_far_fluence_sample_x, upper_far_fluence_sample_y));
+		upper_far_fluence += upper_far_transmittance * texelFetch(upper_cascade_fluence, ivec3(upper_far_fluence_texel_position, fluence_gathering_data.upper_cascade_fluence_layer), 0);
 
 		vec4 upper_far_transmit_factor = 1.0 + interpolating_float * shifted_upper_near_transmittance;
 		fluence += upper_far_transmit_factor * upper_far_fluence;

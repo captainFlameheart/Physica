@@ -14,11 +14,20 @@ const vec2 probe_grid_point_to_sample_point_bias = ?;
 const vec2 probe_grid_point_to_sample_point_factor = ?;
 const vec2 probe_grid_full_step_to_sample_step_projection = ?;
 
+const uvec2 max_ray_texture_xy;
+
 const uint step_count = ?u;
 
 #define METER_INVERSE ?	// TODO: Remove
 
 */
+
+#define EAST_DIRECTION 0
+#define NORTH_DIRECTION 1
+#define WEST_DIRECTION 2
+#define SOUTH_DIRECTION 3
+
+#define DIRECTION EAST_DIRECTION
 
 layout(shared, binding = CAMERA_BINDING) uniform Camera
 {
@@ -37,10 +46,21 @@ void main()
 {
 	#if RAY_TEXTURE_MODE == ROW_RAY_TEXTURE_MODE
 		
+		// TODOs: 
+
 		radiance = vec4(0.0);
 		transmittance = vec4(1.0);
 	
 		ivec2 output_texel_position = ivec2(gl_FragCoord.xy);
+		#if DIRECTION == EAST_DIRECTION
+		#elif DIRECTION == NORTH_DIRECTION
+			output_texel_position = ivec2(output_texel_position.y, max_ray_texture_xy.x - output_texel_position.x);
+		#elif DIRECTION == WEST_DIRECTION
+			output_texel_position = ivec2(max_ray_texture_xy.x - output_texel_position.x, max_ray_texture_xy.y - output_texel_position.y);
+		#elif DIRECTION == SOUTH_DIRECTION
+			output_texel_position = ivec2(max_ray_texture_xy.y - output_texel_position.y, output_texel_position.x);
+		#endif
+
 		int probe_column = output_texel_position.x / rays_per_probe;
 		int probe_column_texel_x = probe_column * rays_per_probe;
 		int direction_id = output_texel_position.x - probe_column_texel_x;
@@ -58,6 +78,18 @@ void main()
 		vec2 sample_step = probe_grid_full_step * probe_grid_full_step_to_sample_step_factor;
 		vec2 sample_point = vec2(probe_column + 1, output_texel_position.y) * probe_grid_point_to_sample_point_factor - probe_grid_point_to_sample_point_bias + sample_step * 0.5;
 	
+		#if DIRECTION == EAST_DIRECTION
+		#elif DIRECTION == NORTH_DIRECTION
+			sample_step = vec2(-sample_step.y, sample_step.x);
+			sample_point = vec2(1.0 - sample_point.y, sample_point.x);
+		#elif DIRECTION == WEST_DIRECTION
+			sample_step = vec2(-sample_step.y, -sample_step.x);
+			sample_point = vec2(1.0 - sample_point.y, 1.0 - sample_point.x);
+		#elif DIRECTION == SOUTH_DIRECTION
+			sample_step = vec2(sample_step.y, -sample_step.x);
+			sample_point = vec2(sample_step.y, 1.0 - sample_step.x);
+		#endif
+
 		float world_step_distance = length(probe_grid_full_step * probe_grid_full_step_to_sample_step_projection) * camera.z * METER_INVERSE;
 
 		// VERY IMPORTANT TODO: The source texture should be considered to cover more than [0.0, 1.0] in s- and t-directions due to 
