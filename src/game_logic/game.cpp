@@ -8814,18 +8814,18 @@ namespace game_logic
 
 	void tick_physics(game_environment::Environment& environment)
 	{
-		GLint time_elapsed_query_done;
+		/*GLint time_elapsed_query_done;
 		glGetQueryObjectiv(environment.state.time_elapsed_query, GL_QUERY_RESULT_AVAILABLE, &time_elapsed_query_done);
 		if (time_elapsed_query_done == GL_TRUE)
 		{
 			glBeginQuery(GL_TIME_ELAPSED, environment.state.time_elapsed_query);
-		}
+		}*/
 		tick_velocities(environment);
-
+		/*
 		if (time_elapsed_query_done == GL_TRUE)
 		{
 			glEndQuery(GL_TIME_ELAPSED);
-		}
+		}*/
 
 		tick_positions(environment);
 
@@ -10371,6 +10371,13 @@ namespace game_logic
 			}
 			else
 			{
+				GLint time_elapsed_query_done;
+				glGetQueryObjectiv(environment.state.time_elapsed_query, GL_QUERY_RESULT_AVAILABLE, &time_elapsed_query_done);
+				if (time_elapsed_query_done == GL_TRUE)
+				{
+					glBeginQuery(GL_TIME_ELAPSED, environment.state.time_elapsed_query);
+				}
+
 				GLuint const edge_width{ environment.state.holographic_probe_grid_width - 1u };
 				GLuint const edge_width_decremented{ edge_width - 1u };
 				GLuint const edge_height{ environment.state.holographic_probe_grid_height - 1u };
@@ -10542,6 +10549,11 @@ namespace game_logic
 				}
 				glUseProgram(environment.state.holographic_draw_fluence_shader);
 				glDrawArrays(GL_TRIANGLES, 0, 6u);
+
+				if (time_elapsed_query_done == GL_TRUE)
+				{
+					glEndQuery(GL_TIME_ELAPSED);
+				}
 			}
 		}
 
