@@ -32,6 +32,9 @@ layout (location = 0) out vec4 fluence;
 
 void main()
 {
+	fluence = vec4(0.0);
+	return;
+
 	ivec2 output_texel_position = ivec2(gl_FragCoord.xy);
 	#if DIRECTION == EAST_DIRECTION
 	#elif DIRECTION == NORTH_DIRECTION

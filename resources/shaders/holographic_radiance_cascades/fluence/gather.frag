@@ -7,7 +7,7 @@
 
 #define DIRECTION ?
 
-const ivec2 max_fluence_texture_xy;
+//const ivec2 max_fluence_texture_xy;
 
 #define COLUMN_RAY_TEXTURE_MODE ?
 #define ROW_RAY_TEXTURE_MODE ?

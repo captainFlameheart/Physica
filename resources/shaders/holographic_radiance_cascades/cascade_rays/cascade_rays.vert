@@ -58,14 +58,14 @@ uvec2 convert_ray_logical_to_texel_position_in_row_ray_mode
 )
 {
 	uvec2 texel_position = uvec2(probe_column * rays_per_probe + direction_id, probe_row);
-	#if DIRECTION == EAST_DIRECTION
+	/*#if DIRECTION == EAST_DIRECTION
 	#elif DIRECTION == NORTH_DIRECTION
 		texel_position = uvec2((probe_grid_size.x - 1u) - texel_position.y, texel_position.x);
 	#elif DIRECTION == WEST_DIRECTION
 		texel_position = uvec2((probe_grid_size.x - 1u) - texel_position.x, (probe_grid_size.y - 1u) - texel_position.y);
 	#elif DIRECTION == SOUTH_DIRECTION
 		texel_position = uvec2(texel_position.y, (probe_grid_size.y - 1u) - texel_position.x);
-	#endif
+	#endif*/
 	return texel_position;
 }
 
@@ -719,7 +719,8 @@ void main()
 	#elif DIRECTION == NORTH_DIRECTION
 		gl_Position.xy = vec2(-gl_Position.y, gl_Position.x);
 	#elif DIRECTION == WEST_DIRECTION
-		gl_Position.xy = vec2(-gl_Position.x, -gl_Position.y);
+		gl_Position.x = -gl_Position.x;
+		//gl_Position.xy = vec2(-gl_Position.x, -gl_Position.y);
 	#elif DIRECTION == SOUTH_DIRECTION
 		gl_Position.xy = vec2(-gl_Position.x, gl_Position.y);
 	#endif
