@@ -20,6 +20,7 @@
 	#define Y(v) ((v).y)
 
 	#define IVEC2(X, Y) ivec2(X, Y)
+	#define IVEC3(X, Y, Z) ivec3(X, Y, Z)
 	#define VEC2(X, Y) vec2(X, Y)
 
 #elif DIRECTION == NORTH_DIRECTION || DIRECTION == SOUTH_DIRECTION
@@ -28,6 +29,7 @@
 	#define Y(v) ((v).x)
 
 	#define IVEC2(X, Y) ivec2(Y, X)
+	#define IVEC3(X, Y, Z) ivec3(Y, X, Z)
 	#define VEC2(X, Y) vec2(Y, X)
 
 #endif
@@ -89,10 +91,10 @@ void main()
 
 		// Lower near ray
 		int clamped_lower_near_ray_texel_x = clamped_near_ray_column_texel_x + direction_id;
-		fluence = (lower_angle * near_ray_is_inside) * texelFetch(rays, ivec3(clamped_lower_near_ray_texel_x, Y(output_texel_position), 0), 0);
+		fluence = (lower_angle * near_ray_is_inside) * texelFetch(rays, IVEC3(clamped_lower_near_ray_texel_x, Y(output_texel_position), 0), 0);
 		vec4 lower_near_transmittance = mix
 		(
-			vec4(1.0), texelFetch(rays, ivec3(clamped_lower_near_ray_texel_x, Y(output_texel_position), 1), 0),
+			vec4(1.0), texelFetch(rays, IVEC3(clamped_lower_near_ray_texel_x, Y(output_texel_position), 1), 0),
 			near_ray_is_inside
 		);
 	
@@ -109,9 +111,9 @@ void main()
 		// Lower far ray
 		int clamped_lower_far_ray_texel_x = clamped_far_ray_column_texel_x + direction_id;
 		int clamped_lower_far_ray_texel_y = clamp(Y(output_texel_position) + interpolating * lower_y_offset, 0, fluence_gathering_data.max_fluence_probe_y);
-		vec4 lower_far_fluence = (lower_angle * far_ray_x_is_inside) * texelFetch(rays, ivec3(clamped_lower_far_ray_texel_x, clamped_lower_far_ray_texel_y, 0), 0);
+		vec4 lower_far_fluence = (lower_angle * far_ray_x_is_inside) * texelFetch(rays, IVEC3(clamped_lower_far_ray_texel_x, clamped_lower_far_ray_texel_y, 0), 0);
 		vec4 lower_far_transmittance = mix(
-			vec4(1.0), texelFetch(rays, ivec3(clamped_lower_far_ray_texel_x, clamped_lower_far_ray_texel_y, 1), 0), 
+			vec4(1.0), texelFetch(rays, IVEC3(clamped_lower_far_ray_texel_x, clamped_lower_far_ray_texel_y, 1), 0), 
 			far_ray_x_is_inside
 		);
 
@@ -128,7 +130,7 @@ void main()
 		int lower_near_fluence_sample_y = clamp(Y(output_texel_position) + not_interpolating * lower_y_offset, 0, fluence_gathering_data.max_fluence_probe_y);
 
 		// Lower near fluence
-		fluence += lower_near_transmit_factor * texelFetch(upper_cascade_fluence, ivec3(lower_near_fluence_sample_x, lower_near_fluence_sample_y, fluence_gathering_data.upper_cascade_fluence_layer), 0);
+		fluence += lower_near_transmit_factor * texelFetch(upper_cascade_fluence, IVEC3(lower_near_fluence_sample_x, lower_near_fluence_sample_y, fluence_gathering_data.upper_cascade_fluence_layer), 0);
 
 		int lower_far_fluence_sample_x = min(
 			near_sample_probe_column_texel_x + (interpolating << fluence_gathering_data.upper_cascade), fluence_gathering_data.max_fluence_probe_column_texel_x
@@ -136,7 +138,7 @@ void main()
 		int lower_far_fluence_sample_y = clamp(Y(output_texel_position) + (interpolating + 1) * lower_y_offset, 0, fluence_gathering_data.max_fluence_probe_y);
 
 		// Lower far fluence
-		lower_far_fluence += lower_far_transmittance * texelFetch(upper_cascade_fluence, ivec3(lower_far_fluence_sample_x, lower_far_fluence_sample_y, fluence_gathering_data.upper_cascade_fluence_layer), 0);
+		lower_far_fluence += lower_far_transmittance * texelFetch(upper_cascade_fluence, IVEC3(lower_far_fluence_sample_x, lower_far_fluence_sample_y, fluence_gathering_data.upper_cascade_fluence_layer), 0);
 
 		float interpolating_float = float(interpolating);
 		vec4 lower_far_transmit_factor = 1.0 + interpolating_float * shifted_lower_near_transmittance;
@@ -149,9 +151,9 @@ void main()
 
 		// Upper near ray
 		int clamped_upper_near_ray_texel_x = clamped_lower_near_ray_texel_x + 1;
-		fluence += (upper_angle * near_ray_is_inside) * texelFetch(rays, ivec3(clamped_upper_near_ray_texel_x, Y(output_texel_position), 0), 0);
+		fluence += (upper_angle * near_ray_is_inside) * texelFetch(rays, IVEC3(clamped_upper_near_ray_texel_x, Y(output_texel_position), 0), 0);
 		vec4 upper_near_transmittance = mix(
-			vec4(1.0), texelFetch(rays, ivec3(clamped_upper_near_ray_texel_x, Y(output_texel_position), 1), 0), 
+			vec4(1.0), texelFetch(rays, IVEC3(clamped_upper_near_ray_texel_x, Y(output_texel_position), 1), 0), 
 			near_ray_is_inside
 		);
 
@@ -160,9 +162,9 @@ void main()
 		// Upper far ray
 		int clamped_upper_far_ray_texel_x = clamped_lower_far_ray_texel_x + 1;
 		int clamped_upper_far_ray_texel_y = clamp(Y(output_texel_position) + interpolating * upper_y_offset, 0, fluence_gathering_data.max_fluence_probe_y);
-		vec4 upper_far_fluence = (upper_angle * far_ray_x_is_inside) * texelFetch(rays, ivec3(clamped_upper_far_ray_texel_x, clamped_upper_far_ray_texel_y, 0), 0);
+		vec4 upper_far_fluence = (upper_angle * far_ray_x_is_inside) * texelFetch(rays, IVEC3(clamped_upper_far_ray_texel_x, clamped_upper_far_ray_texel_y, 0), 0);
 		vec4 upper_far_transmittance = mix(
-			vec4(1.0), texelFetch(rays, ivec3(clamped_upper_far_ray_texel_x, clamped_upper_far_ray_texel_y, 1), 0), 
+			vec4(1.0), texelFetch(rays, IVEC3(clamped_upper_far_ray_texel_x, clamped_upper_far_ray_texel_y, 1), 0), 
 			far_ray_x_is_inside
 		);
 
@@ -172,7 +174,7 @@ void main()
 		int upper_near_fluence_sample_y = clamp(Y(output_texel_position) + not_interpolating * upper_y_offset, 0, fluence_gathering_data.max_fluence_probe_y);
 
 		// Upper near fluence
-		fluence += upper_near_transmit_factor * texelFetch(upper_cascade_fluence, ivec3(upper_near_fluence_sample_x, upper_near_fluence_sample_y, fluence_gathering_data.upper_cascade_fluence_layer), 0);
+		fluence += upper_near_transmit_factor * texelFetch(upper_cascade_fluence, IVEC3(upper_near_fluence_sample_x, upper_near_fluence_sample_y, fluence_gathering_data.upper_cascade_fluence_layer), 0);
 
 		int upper_far_fluence_sample_x = min(
 			near_sample_probe_column_texel_x + (interpolating << fluence_gathering_data.upper_cascade), fluence_gathering_data.max_fluence_probe_column_texel_x
@@ -180,7 +182,7 @@ void main()
 		int upper_far_fluence_sample_y = clamp(Y(output_texel_position) + (interpolating + 1) * upper_y_offset, 0, fluence_gathering_data.max_fluence_probe_y);
 	
 		// Upper far fluence
-		upper_far_fluence += upper_far_transmittance * texelFetch(upper_cascade_fluence, ivec3(upper_far_fluence_sample_x, upper_far_fluence_sample_y, fluence_gathering_data.upper_cascade_fluence_layer), 0);
+		upper_far_fluence += upper_far_transmittance * texelFetch(upper_cascade_fluence, IVEC3(upper_far_fluence_sample_x, upper_far_fluence_sample_y, fluence_gathering_data.upper_cascade_fluence_layer), 0);
 
 		vec4 upper_far_transmit_factor = 1.0 + interpolating_float * shifted_upper_near_transmittance;
 		fluence += upper_far_transmit_factor * upper_far_fluence;
