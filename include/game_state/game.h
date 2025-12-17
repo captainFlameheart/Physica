@@ -43,7 +43,7 @@ namespace game_state
 	constexpr GLuint holographic_west_direction{ 2u };
 	constexpr GLuint holographic_south_direction{ 3u };
 
-	constexpr GLuint temporary_direction{ holographic_west_direction };
+	constexpr GLuint temporary_direction{ holographic_east_direction };
 
 	// TODO: Organize based on access patterns 
 	// (initialize -> render -> events -> tick * n -> render -> events -> tick * n -> render -> ...)
