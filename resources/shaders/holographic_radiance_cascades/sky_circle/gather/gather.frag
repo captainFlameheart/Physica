@@ -7,8 +7,6 @@
 
 #define DIRECTION ?
 
-const ivec2 max_fluence_texture_xy;
-
 const int cascade = ?;
 const int angular_step_count = ?;
 
@@ -32,18 +30,7 @@ layout (location = 0) out vec4 fluence;
 
 void main()
 {
-	fluence = vec4(0.0);
-	return;
-
 	ivec2 output_texel_position = ivec2(gl_FragCoord.xy);
-	#if DIRECTION == EAST_DIRECTION
-	#elif DIRECTION == NORTH_DIRECTION
-		output_texel_position = ivec2(output_texel_position.y, max_fluence_texture_xy.x - output_texel_position.x);
-	#elif DIRECTION == WEST_DIRECTION
-		output_texel_position = ivec2(max_fluence_texture_xy.x - output_texel_position.x, max_fluence_texture_xy.y - output_texel_position.y);
-	#elif DIRECTION == SOUTH_DIRECTION
-		output_texel_position = ivec2(max_fluence_texture_xy.y - output_texel_position.y, output_texel_position.x);
-	#endif
 
 	int direction_id = output_texel_position.x & direction_mask;
 	float lower_direction_y = float((direction_id << 1) - cascade_power_of_two);
@@ -56,11 +43,11 @@ void main()
 	float angle = lower_angle + step_angular_size * 0.5;
 	#if DIRECTION == EAST_DIRECTION
 	#elif DIRECTION == NORTH_DIRECTION
-		angle += half_pi;
+		angle = half_pi + angle;
 	#elif DIRECTION == WEST_DIRECTION
-		angle += pi;
+		angle = pi - angle;
 	#elif DIRECTION == SOUTH_DIRECTION
-		angle += one_and_a_half_pi;
+		angle = one_and_a_half_pi - angle;
 	#endif
 	fluence = vec4(0.0);
 	for (int i = 0; i < angular_step_count; ++i)
