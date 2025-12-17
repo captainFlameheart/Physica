@@ -7,7 +7,7 @@
 
 #define DIRECTION ?
 
-const uvec2 max_ray_texture_xy;
+//const uvec2 max_ray_texture_xy;
 
 #define COLUMN_RAY_TEXTURE_MODE ?
 #define ROW_RAY_TEXTURE_MODE ?
@@ -42,6 +42,16 @@ uniform sampler2DArray source;
 layout (location = 0) out vec4 radiance;
 layout (location = 1) out vec4 transmittance;
 
+/*	TODO:
+#if DIRECTION == DIRECTION_EAST || DIRECTION == DIRECTION_WEST
+	#define X x
+	#define Y y
+#elif DIRECTION == DIRECTION_NORTH || DIRECTION == DIRECTION_SOUTH
+	#define X y
+	#define Y x
+#endif
+*/
+
 void main()
 {
 	#if RAY_TEXTURE_MODE == ROW_RAY_TEXTURE_MODE
@@ -52,14 +62,14 @@ void main()
 		transmittance = vec4(1.0);
 	
 		ivec2 output_texel_position = ivec2(gl_FragCoord.xy);
-		#if DIRECTION == EAST_DIRECTION
+		/*#if DIRECTION == EAST_DIRECTION
 		#elif DIRECTION == NORTH_DIRECTION
 			output_texel_position = ivec2(output_texel_position.y, max_ray_texture_xy.x - output_texel_position.x);
 		#elif DIRECTION == WEST_DIRECTION
 			output_texel_position = ivec2(max_ray_texture_xy.x - output_texel_position.x, max_ray_texture_xy.y - output_texel_position.y);
 		#elif DIRECTION == SOUTH_DIRECTION
 			output_texel_position = ivec2(max_ray_texture_xy.y - output_texel_position.y, output_texel_position.x);
-		#endif
+		#endif*/
 
 		int probe_column = output_texel_position.x / rays_per_probe;
 		int probe_column_texel_x = probe_column * rays_per_probe;
@@ -76,9 +86,20 @@ void main()
 		// MUST TODO: Update probe_grid_point_to_sample_point_factor and probe_grid_full_step_to_sample_step_factor
 
 		vec2 sample_step = probe_grid_full_step * probe_grid_full_step_to_sample_step_factor;
+		// TODO: Check that we have accounted for the negative sign before the bias on the CPU.
 		vec2 sample_point = vec2(probe_column + 1, output_texel_position.y) * probe_grid_point_to_sample_point_factor - probe_grid_point_to_sample_point_bias + sample_step * 0.5;
-	
+
 		#if DIRECTION == EAST_DIRECTION
+		#elif DIRECTION == NORTH_DIRECTION
+			// TODO
+		#elif DIRECTION == WEST_DIRECTION
+			sample_step.x = -sample_step.x;
+			sample_point.x = 1.0 - sample_point.x;
+		#elif DIRECTION == SOUTH_DIRECTION
+			// TODO
+		#endif
+
+		/*#if DIRECTION == EAST_DIRECTION
 		#elif DIRECTION == NORTH_DIRECTION
 			sample_step = vec2(-sample_step.y, sample_step.x);
 			sample_point = vec2(1.0 - sample_point.y, sample_point.x);
@@ -88,7 +109,7 @@ void main()
 		#elif DIRECTION == SOUTH_DIRECTION
 			sample_step = vec2(sample_step.y, -sample_step.x);
 			sample_point = vec2(sample_step.y, 1.0 - sample_step.x);
-		#endif
+		#endif*/
 
 		float world_step_distance = length(probe_grid_full_step * probe_grid_full_step_to_sample_step_projection) * camera.z * METER_INVERSE;
 
