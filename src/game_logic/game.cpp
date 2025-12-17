@@ -1172,11 +1172,11 @@ namespace game_logic
 		{
 			GLuint const min_cascade{ game_state::initial_holographic_ray_trace_cascade_count };
 			GLuint max_cascade;
-			if (game_state::temporary_direction == game_state::holographic_east_direction)
+			if (game_state::temporary_direction == game_state::holographic_east_direction || game_state::temporary_direction == game_state::holographic_west_direction)
 			{
 				max_cascade = environment.state.max_horizontal_cascade_index;
 			}
-			else if (game_state::temporary_direction == game_state::holographic_north_direction)
+			else if (game_state::temporary_direction == game_state::holographic_north_direction || game_state::temporary_direction == game_state::holographic_south_direction)
 			{
 				max_cascade = environment.state.max_vertical_cascade_index;
 			}
@@ -1200,12 +1200,12 @@ namespace game_logic
 				GLint probe_grid_width;
 				GLint probe_grid_height;
 
-				if (game_state::temporary_direction == game_state::holographic_east_direction)
+				if (game_state::temporary_direction == game_state::holographic_east_direction || game_state::temporary_direction == game_state::holographic_west_direction)
 				{
 					probe_grid_width = static_cast<GLint>(environment.state.holographic_probe_grid_width);
 					probe_grid_height = static_cast<GLint>(environment.state.holographic_probe_grid_height);
 				}
-				else if (game_state::temporary_direction == game_state::holographic_north_direction)
+				else if (game_state::temporary_direction == game_state::holographic_north_direction || game_state::temporary_direction == game_state::holographic_south_direction)
 				{
 					probe_grid_width = static_cast<GLint>(environment.state.holographic_probe_grid_height);
 					probe_grid_height = static_cast<GLint>(environment.state.holographic_probe_grid_width);
@@ -1400,11 +1400,11 @@ namespace game_logic
 
 		{	// Fluence gather buffer
 			GLint max_cascade;
-			if (game_state::temporary_direction == game_state::holographic_east_direction)
+			if (game_state::temporary_direction == game_state::holographic_east_direction || game_state::temporary_direction == game_state::holographic_west_direction)
 			{
 				max_cascade = static_cast<GLint>(environment.state.max_horizontal_cascade_index);
 			}
-			else if (game_state::temporary_direction == game_state::holographic_north_direction)
+			else if (game_state::temporary_direction == game_state::holographic_north_direction || game_state::temporary_direction == game_state::holographic_south_direction)
 			{
 				max_cascade = static_cast<GLint>(environment.state.max_vertical_cascade_index);
 			}
@@ -1426,12 +1426,12 @@ namespace game_logic
 
 			GLint width;
 			GLint height;
-			if (game_state::temporary_direction == game_state::holographic_east_direction)
+			if (game_state::temporary_direction == game_state::holographic_east_direction || game_state::temporary_direction == game_state::holographic_west_direction)
 			{
 				width = static_cast<GLint>(environment.state.holographic_probe_grid_width);
 				height = static_cast<GLint>(environment.state.holographic_probe_grid_height);
 			}
-			else if (game_state::temporary_direction == game_state::holographic_north_direction)
+			else if (game_state::temporary_direction == game_state::holographic_north_direction || game_state::temporary_direction == game_state::holographic_south_direction)
 			{
 				width = static_cast<GLint>(environment.state.holographic_probe_grid_height);
 				height = static_cast<GLint>(environment.state.holographic_probe_grid_width);
