@@ -33,6 +33,7 @@ const uint step_count = ?u;
 	#define Y(v) ((v).y)
 
 	#define IVEC2(X, Y) ivec2(X, Y)
+	#define IVEC3(X, Y, Z) ivec3(X, Y, Z)
 	#define VEC2(X, Y) vec2(X, Y)
 
 #elif DIRECTION == NORTH_DIRECTION || DIRECTION == SOUTH_DIRECTION
@@ -41,6 +42,7 @@ const uint step_count = ?u;
 	#define Y(v) ((v).x)
 
 	#define IVEC2(X, Y) ivec2(Y, X)
+	#define IVEC3(X, Y, Z) ivec3(Y, X, Z)
 	#define VEC2(X, Y) vec2(Y, X)
 
 #endif
