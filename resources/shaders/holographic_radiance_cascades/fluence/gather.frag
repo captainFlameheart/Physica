@@ -68,13 +68,10 @@ void main()
 
 		// IMPORTANT TODO: REORDER TEXTURE FETCHES BASED ON CHACHE LOCALITY
 		ivec2 output_texel_position = ivec2(gl_FragCoord.xy);
-		#if DIRECTION == EAST_DIRECTION
-		#elif DIRECTION == NORTH_DIRECTION
-			// TODO
-		#elif DIRECTION == WEST_DIRECTION
+		#if DIRECTION == WEST_DIRECTION
 			output_texel_position.x = fluence_gathering_data.output_factor * output_texel_position.x + fluence_gathering_data.output_shift;
 		#elif DIRECTION == SOUTH_DIRECTION
-			// TODO
+			output_texel_position.y = fluence_gathering_data.output_factor * output_texel_position.y + fluence_gathering_data.output_shift;
 		#endif
 
 		int direction_id = X(output_texel_position) & fluence_gathering_data.direction_mask;
