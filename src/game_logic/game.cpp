@@ -11103,12 +11103,16 @@ namespace game_logic
 			}
 			else
 			{
+				glDisablei(GL_BLEND, 0u);
+				glBlendEquationi(0u, GL_ADD);
+				glBlendFunci(0u, GL_ONE, GL_ONE);
+				bool add_fluence{ false };
 				for (GLuint direction{ 0u }; direction < 4u; ++direction)
 				{
-					if (direction != 3u)
+					/*if (direction != 0u && direction != 1u)
 					{
 						continue;
-					}
+					}*/
 
 					GLuint max_cascade_index
 					{
@@ -11322,8 +11326,17 @@ namespace game_logic
 
 					glBindFramebuffer(GL_DRAW_FRAMEBUFFER, environment.state.fluence_framebuffer);
 					glViewport(0, 0, environment.state.holographic_probe_grid_width, environment.state.holographic_probe_grid_height);
-					// IMPORTANT TODO: Additive blending!!!
+
+					if (add_fluence)
+					{
+						glEnablei(GL_BLEND, 0u);
+					}
 					glDrawArrays(GL_TRIANGLES, 0, 3u);
+					if (add_fluence)
+					{
+						glDisablei(GL_BLEND, 0u);
+					}
+					add_fluence = true;
 
 					glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0u);
 					glViewport(0, 0, environment.state.framebuffer_width, environment.state.framebuffer_height);
