@@ -1414,22 +1414,24 @@ namespace game_logic
 
 			GLint width;
 			GLint height;
-			if (game_state::temporary_direction == game_state::holographic_east_direction || game_state::temporary_direction == game_state::holographic_west_direction)
-			{
-				width = static_cast<GLint>(environment.state.holographic_probe_grid_width);
-				height = static_cast<GLint>(environment.state.holographic_probe_grid_height);
-			}
-			else if (game_state::temporary_direction == game_state::holographic_north_direction || game_state::temporary_direction == game_state::holographic_south_direction)
+			//if (game_state::temporary_direction == game_state::holographic_east_direction || game_state::temporary_direction == game_state::holographic_west_direction)
+			//{
+			width = static_cast<GLint>(environment.state.holographic_probe_grid_width);
+			height = static_cast<GLint>(environment.state.holographic_probe_grid_height);
+			//}
+			/*else if (game_state::temporary_direction == game_state::holographic_north_direction || game_state::temporary_direction == game_state::holographic_south_direction)
 			{
 				width = static_cast<GLint>(environment.state.holographic_probe_grid_height);
 				height = static_cast<GLint>(environment.state.holographic_probe_grid_width);
-			}
+			}*/
 
 			GLint const edge_width{ width - 1 };
 			GLint const edge_height{ height - 1 };
 
 			GLint const edge_width_decremented{ edge_width - 1 };
-			GLint const max_fluence_probe_y{ edge_height };
+			GLint const edge_height_decremented{ edge_height - 1 };
+			
+			GLint const max_fluence_probe_y{ Y(game_state::holographic_east_direction, edge_width, edge_height) };
 
 			GLint const max_fluence_gather_cascade{ padded_block_count };
 
@@ -1457,52 +1459,30 @@ namespace game_logic
 							output_factor = -1;
 							output_shift = static_cast<GLint>(environment.state.holographic_probe_grid_width) - 1;
 						}
+						else if (game_state::temporary_direction == game_state::holographic_south_direction)
+						{
+							output_factor = -1;
+							output_shift = static_cast<GLint>(environment.state.holographic_probe_grid_height) - 1;
+						}
 					}
 				}
-
-				/* {
-					GLint const edge_width_decremented{ static_cast<GLint>(environment.state.holographic_probe_grid_width) - 2 };
-					GLint const edge_height_decremented{ static_cast<GLint>(environment.state.holographic_probe_grid_height) - 2 };
-
-					{
-						GLint const min_horizontal_outside_probe_x{ (edge_width_decremented + cascade_power_of_two) >> cascade };
-						GLint const min_vertical_outside_probe_x{ (edge_height_decremented + cascade_power_of_two) >> cascade };
-
-						GLint ray_texture_width = (min_horizontal_outside_probe_x - 1u) * rays_per_probe;
-						if (cascade < environment.state.max_vertical_cascade_index)
-						{
-							ray_texture_width = std::max(ray_texture_width, static_cast<GLint>(environment.state.holographic_probe_grid_width));
-						}
-
-						GLint ray_texture_height = (min_vertical_outside_probe_x - 1u) * rays_per_probe;
-						if (cascade < environment.state.max_horizontal_cascade_index)
-						{
-							ray_texture_height = std::max(ray_texture_height, static_cast<GLint>(environment.state.holographic_probe_grid_height));
-						}
-
-						max_ray_texture_x = ray_texture_width - 1u;
-						max_ray_texture_y = ray_texture_height - 1u;
-					}
-				}*/
-				
-				//GLint const max_ray_texture_xy[2u]{ max_ray_texture_x, max_ray_texture_y };
 
 				GLint const direction_mask{ (1 << cascade) - 1 };
 				GLint const max_ray_probe_column
 				{
-					ceil_div(edge_width - cascade_power_of_two, cascade_power_of_two) - 1
+					ceil_div(X(game_state::temporary_direction, edge_width, edge_height) - cascade_power_of_two, cascade_power_of_two) - 1
 				};
 				GLint const skipped_rays_below_column{ ceil_div(rays_per_probe, 2) };
 				GLint const rays_in_vacuum_per_column{ skipped_rays_below_column << 1 };
 				GLint const max_ray_probe_row
 				{
-					height * rays_per_probe - rays_in_vacuum_per_column - 1
+					Y(game_state::temporary_direction, width, height) * rays_per_probe - rays_in_vacuum_per_column - 1
 				};
 
 				GLuint const upper_cascade{ cascade + 1u };
 				GLint const max_fluence_probe_column_texel_x
 				{
-					(edge_width_decremented >> upper_cascade) << upper_cascade
+					(X(game_state::temporary_direction, edge_width_decremented, edge_height_decremented) >> upper_cascade) << upper_cascade
 				};
 				GLint const upper_cascade_probe_column_texel_x_mask
 				{
@@ -1512,19 +1492,6 @@ namespace game_logic
 				GLint const g{ rays_per_probe << 1 };
 				GLint const f{ rays_per_probe << cascade };
 
-				GLint const lower_cascade{ cascade - 1 };
-				GLint const lower_cascade_power_of_two{ 1 << lower_cascade };
-				GLint const lower_cascade_rays_per_probe{ lower_cascade_power_of_two + 1 };
-				GLint const lower_cascade_skipped_rays_below_column{ ceil_div(lower_cascade_rays_per_probe, 2) };
-				GLint const lower_cascade_rays_in_vacuum_per_column{ lower_cascade_skipped_rays_below_column << 1 };
-				GLint const lower_cascade_max_ray_probe_column
-				{
-					ceil_div(edge_width - lower_cascade_power_of_two, lower_cascade_power_of_two) - 1
-				};
-				GLint const lower_cascade_max_ray_probe_row
-				{
-					height * lower_cascade_rays_per_probe - lower_cascade_rays_in_vacuum_per_column - 1
-				};
 				GLint const upper_cascade_fluence_layer
 				{
 					(max_fluence_gather_cascade - cascade) & 1
