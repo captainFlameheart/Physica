@@ -11178,12 +11178,25 @@ namespace game_logic
 					GLint const destination_layer{ upper_cascade_fluence_layer ^ 1 };
 					glNamedFramebufferDrawBuffer(environment.state.angular_fluence_framebuffer, GL_COLOR_ATTACHMENT0 + destination_layer);
 
-					// IMPORTANT TODO: Check that the width is correct
-					GLint const width
+					GLint width;
+					GLint height;
+					if (game_state::temporary_direction == game_state::holographic_east_direction || game_state::temporary_direction == game_state::holographic_west_direction)
 					{
-						((static_cast<GLint>(environment.state.holographic_probe_grid_width) + (1 << cascade) - 2) >> cascade) << cascade
-					};
-					GLint const height{ static_cast<GLint>(environment.state.holographic_probe_grid_height) };
+						// IMPORTANT TODO: Check that the width is correct
+						width = 
+						{
+							((static_cast<GLint>(environment.state.holographic_probe_grid_width) + (1 << cascade) - 2) >> cascade) << cascade
+						};
+						height = static_cast<GLint>(environment.state.holographic_probe_grid_height);
+					}
+					else if (game_state::temporary_direction == game_state::holographic_north_direction || game_state::temporary_direction == game_state::holographic_south_direction)
+					{
+						width = static_cast<GLint>(environment.state.holographic_probe_grid_width);
+						height = {
+							((static_cast<GLint>(environment.state.holographic_probe_grid_height) + (1 << cascade) - 2) >> cascade) << cascade
+						};
+					}
+
 					glViewport(0, 0, width, height);
 
 					glDrawArrays(GL_TRIANGLES, 0, 3u);
