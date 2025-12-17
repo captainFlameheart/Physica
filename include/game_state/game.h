@@ -43,7 +43,7 @@ namespace game_state
 	constexpr GLuint holographic_west_direction{ 2u };
 	constexpr GLuint holographic_south_direction{ 3u };
 
-	constexpr GLuint temporary_direction{ holographic_south_direction };
+	//constexpr GLuint temporary_direction{ holographic_south_direction };
 
 	// TODO: Organize based on access patterns 
 	// (initialize -> render -> events -> tick * n -> render -> events -> tick * n -> render -> ...)
@@ -257,19 +257,19 @@ namespace game_state
 		GLint holographic_probe_points_draw_shader_source_size_uniform_location;
 		GLint holographic_probe_points_draw_shader_probe_padding_factor_uniform_location;
 
-		GLuint holographic_cascade_fluence_draw_shader;
-		GLint holographic_cascade_fluence_draw_shader_probe_grid_size_uniform_location;
-		GLint holographic_cascade_fluence_draw_shader_source_size_uniform_location;
-		GLint holographic_cascade_fluence_draw_shader_probe_padding_factor_uniform_location;
-		GLuint holographic_cascade_fluence_draw_shader_cascade;
-		GLint holographic_cascade_fluence_draw_shader_cascade_uniform_location;
+		GLuint holographic_cascade_fluence_draw_shaders[4u];
+		GLint holographic_cascade_fluence_draw_shader_probe_grid_size_uniform_locations[4u];
+		GLint holographic_cascade_fluence_draw_shader_source_size_uniform_locations[4u];
+		GLint holographic_cascade_fluence_draw_shader_probe_padding_factor_uniform_locations[4u];
+		GLuint holographic_cascade_fluence_draw_shader_cascades[4u];
+		GLint holographic_cascade_fluence_draw_shader_cascade_uniform_locations[4u];
 
-		GLuint holographic_cascade_fluence_single_cone_draw_shader;
-		GLint holographic_cascade_fluence_single_cone_draw_shader_probe_grid_size_uniform_location;
-		GLint holographic_cascade_fluence_single_cone_draw_shader_source_size_uniform_location;
-		GLint holographic_cascade_fluence_single_cone_draw_shader_probe_padding_factor_uniform_location;
-		GLuint holographic_cascade_fluence_single_cone_draw_shader_cascade;
-		GLint holographic_cascade_fluence_single_cone_draw_shader_cascade_uniform_location;
+		GLuint holographic_cascade_fluence_single_cone_draw_shaders[4u];
+		GLint holographic_cascade_fluence_single_cone_draw_shader_probe_grid_size_uniform_locations[4u];
+		GLint holographic_cascade_fluence_single_cone_draw_shader_source_size_uniform_locations[4u];
+		GLint holographic_cascade_fluence_single_cone_draw_shader_probe_padding_factor_uniform_locations[4u];
+		GLuint holographic_cascade_fluence_single_cone_draw_shader_cascades[4u];
+		GLint holographic_cascade_fluence_single_cone_draw_shader_cascade_uniform_locations[4u];
 		union
 		{
 			struct
@@ -279,14 +279,14 @@ namespace game_state
 			};
 			GLuint holographic_cascade_fluence_single_cone_draw_shader_showcased_cone_texel_position[2u];
 		};
-		GLint holographic_cascade_fluence_single_cone_draw_shader_showcased_cone_texel_position_uniform_location;
+		GLint holographic_cascade_fluence_single_cone_draw_shader_showcased_cone_texel_position_uniform_locations[4u];
 
-		GLuint holographic_cascade_fluence_merge_to_draw_shader;
-		GLint holographic_cascade_fluence_merge_to_draw_shader_probe_grid_size_uniform_location;
-		GLint holographic_cascade_fluence_merge_to_draw_shader_source_size_uniform_location;
-		GLint holographic_cascade_fluence_merge_to_draw_shader_probe_padding_factor_uniform_location;
-		GLuint holographic_cascade_fluence_merge_to_draw_shader_cascade;
-		GLint holographic_cascade_fluence_merge_to_draw_shader_cascade_uniform_location;
+		GLuint holographic_cascade_fluence_merge_to_draw_shaders[4u];
+		GLint holographic_cascade_fluence_merge_to_draw_shader_probe_grid_size_uniform_locations[4u];
+		GLint holographic_cascade_fluence_merge_to_draw_shader_source_size_uniform_locations[4u];
+		GLint holographic_cascade_fluence_merge_to_draw_shader_probe_padding_factor_uniform_locations[4u];
+		GLuint holographic_cascade_fluence_merge_to_draw_shader_cascades[4u];
+		GLint holographic_cascade_fluence_merge_to_draw_shader_cascade_uniform_locations[4u];
 		union
 		{
 			struct
@@ -296,21 +296,21 @@ namespace game_state
 			};
 			GLuint holographic_cascade_fluence_merge_to_draw_shader_merged_to_cone_texel_position[2u];
 		};
-		GLint holographic_cascade_fluence_merge_to_draw_shader_merged_to_cone_texel_position_uniform_location;
+		GLint holographic_cascade_fluence_merge_to_draw_shader_merged_to_cone_texel_position_uniform_locations[4u];
 
-		GLuint holographic_cascade_rays_draw_shader;
-		GLint holographic_cascade_rays_draw_shader_probe_grid_size_uniform_location;
-		GLint holographic_cascade_rays_draw_shader_source_size_uniform_location;
-		GLint holographic_cascade_rays_draw_shader_probe_padding_factor_uniform_location;
-		GLuint holographic_cascade_rays_draw_shader_cascade;
-		GLint holographic_cascade_rays_draw_shader_cascade_uniform_location;
+		GLuint holographic_cascade_rays_draw_shaders[4u];
+		GLint holographic_cascade_rays_draw_shader_probe_grid_size_uniform_locations[4u];
+		GLint holographic_cascade_rays_draw_shader_source_size_uniform_locations[4u];
+		GLint holographic_cascade_rays_draw_shader_probe_padding_factor_uniform_locations[4u];
+		GLuint holographic_cascade_rays_draw_shader_cascades[4u];
+		GLint holographic_cascade_rays_draw_shader_cascade_uniform_locations[4u];
 
-		GLuint holographic_cascade_rays_single_ray_draw_shader;
-		GLint holographic_cascade_rays_single_ray_draw_shader_probe_grid_size_uniform_location;
-		GLint holographic_cascade_rays_single_ray_draw_shader_source_size_uniform_location;
-		GLint holographic_cascade_rays_single_ray_draw_shader_probe_padding_factor_uniform_location;
-		GLuint holographic_cascade_rays_single_ray_draw_shader_cascade;
-		GLint holographic_cascade_rays_single_ray_draw_shader_cascade_uniform_location;
+		GLuint holographic_cascade_rays_single_ray_draw_shaders[4u];
+		GLint holographic_cascade_rays_single_ray_draw_shader_probe_grid_size_uniform_locations[4u];
+		GLint holographic_cascade_rays_single_ray_draw_shader_source_size_uniform_locations[4u];
+		GLint holographic_cascade_rays_single_ray_draw_shader_probe_padding_factor_uniform_locations[4u];
+		GLuint holographic_cascade_rays_single_ray_draw_shader_cascades[4u];
+		GLint holographic_cascade_rays_single_ray_draw_shader_cascade_uniform_locations[4u];
 		union
 		{
 			struct
@@ -320,14 +320,14 @@ namespace game_state
 			};
 			GLuint holographic_cascade_rays_single_ray_draw_shader_showcased_ray_texel_position[2u];
 		};
-		GLint holographic_cascade_rays_single_ray_draw_shader_showcased_ray_texel_position_uniform_location;
+		GLint holographic_cascade_rays_single_ray_draw_shader_showcased_ray_texel_position_uniform_locations[4u];
 
-		GLuint holographic_cascade_rays_merge_to_cone_draw_shader;
-		GLint holographic_cascade_rays_merge_to_cone_draw_shader_probe_grid_size_uniform_location;
-		GLint holographic_cascade_rays_merge_to_cone_draw_shader_source_size_uniform_location;
-		GLint holographic_cascade_rays_merge_to_cone_draw_shader_probe_padding_factor_uniform_location;
-		GLuint holographic_cascade_rays_merge_to_cone_draw_shader_cascade;
-		GLint holographic_cascade_rays_merge_to_cone_draw_shader_cascade_uniform_location;
+		GLuint holographic_cascade_rays_merge_to_cone_draw_shaders[4u];
+		GLint holographic_cascade_rays_merge_to_cone_draw_shader_probe_grid_size_uniform_locations[4u];
+		GLint holographic_cascade_rays_merge_to_cone_draw_shader_source_size_uniform_locations[4u];
+		GLint holographic_cascade_rays_merge_to_cone_draw_shader_probe_padding_factor_uniform_locations[4u];
+		GLuint holographic_cascade_rays_merge_to_cone_draw_shader_cascades[4u];
+		GLint holographic_cascade_rays_merge_to_cone_draw_shader_cascade_uniform_locations[4u];
 		union
 		{
 			struct
@@ -337,14 +337,14 @@ namespace game_state
 			};
 			GLuint holographic_cascade_rays_merge_to_cone_draw_shader_merged_to_cone_texel_position[2u];
 		};
-		GLint holographic_cascade_rays_merge_to_cone_draw_shader_merged_to_cone_texel_position_uniform_location;
+		GLint holographic_cascade_rays_merge_to_cone_draw_shader_merged_to_cone_texel_position_uniform_locations[4u];
 
-		GLuint holographic_cascade_rays_merge_to_ray_draw_shader;
-		GLint holographic_cascade_rays_merge_to_ray_draw_shader_probe_grid_size_uniform_location;
-		GLint holographic_cascade_rays_merge_to_ray_draw_shader_source_size_uniform_location;
-		GLint holographic_cascade_rays_merge_to_ray_draw_shader_probe_padding_factor_uniform_location;
-		GLuint holographic_cascade_rays_merge_to_ray_draw_shader_cascade;
-		GLint holographic_cascade_rays_merge_to_ray_draw_shader_cascade_uniform_location;
+		GLuint holographic_cascade_rays_merge_to_ray_draw_shaders[4u];
+		GLint holographic_cascade_rays_merge_to_ray_draw_shader_probe_grid_size_uniform_locations[4u];
+		GLint holographic_cascade_rays_merge_to_ray_draw_shader_source_size_uniform_locations[4u];
+		GLint holographic_cascade_rays_merge_to_ray_draw_shader_probe_padding_factor_uniform_locations[4u];
+		GLuint holographic_cascade_rays_merge_to_ray_draw_shader_cascades[4u];
+		GLint holographic_cascade_rays_merge_to_ray_draw_shader_cascade_uniform_locations[4u];
 		union
 		{
 			struct
@@ -354,27 +354,27 @@ namespace game_state
 			};
 			GLuint holographic_cascade_rays_merge_to_ray_draw_shader_merged_to_ray_texel_position[2u];
 		};
-		GLint holographic_cascade_rays_merge_to_ray_draw_shader_merged_to_ray_texel_position_uniform_location;
+		GLint holographic_cascade_rays_merge_to_ray_draw_shader_merged_to_ray_texel_position_uniform_locations[4u];
 
-		GLuint holographic_cascade_rays_radiance_draw_shader;
-		GLint holographic_cascade_rays_radiance_draw_shader_probe_grid_size_uniform_location;
-		GLint holographic_cascade_rays_radiance_draw_shader_source_size_uniform_location;
-		GLint holographic_cascade_rays_radiance_draw_shader_probe_padding_factor_uniform_location;
-		GLuint holographic_cascade_rays_radiance_draw_shader_cascade;
-		GLint holographic_cascade_rays_radiance_draw_shader_cascade_uniform_location;
-		GLint holographic_cascade_rays_radiance_draw_shader_rays_uniform_location;
+		GLuint holographic_cascade_rays_radiance_draw_shaders[4u];
+		GLint holographic_cascade_rays_radiance_draw_shader_probe_grid_size_uniform_locations[4u];
+		GLint holographic_cascade_rays_radiance_draw_shader_source_size_uniform_locations[4u];
+		GLint holographic_cascade_rays_radiance_draw_shader_probe_padding_factor_uniform_locations[4u];
+		GLuint holographic_cascade_rays_radiance_draw_shader_cascades[4u];
+		GLint holographic_cascade_rays_radiance_draw_shader_cascade_uniform_locations[4u];
+		GLint holographic_cascade_rays_radiance_draw_shader_rays_uniform_locations[4u];
 
 		GLint holographic_sky_circle_draw_shader;
 		GLint holographic_sky_circle_draw_shader_sky_circle_uniform_location;
 
-		GLuint holographic_ray_trace_shader_count;
-		GLuint* holographic_ray_trace_shaders;
-		GLint* holographic_ray_trace_shader_source_uniform_locations;
+		GLuint holographic_ray_trace_shader_counts[4u];
+		GLuint* holographic_ray_trace_shaders[4u];
+		GLint* holographic_ray_trace_shader_source_uniform_locations[4u];
 
-		GLuint holographic_ray_extend_shader;
-		GLint holographic_ray_extend_shader_shorter_rays_uniform_location;
+		GLuint holographic_ray_extend_shaders[4u];
+		GLint holographic_ray_extend_shader_shorter_rays_uniform_locations[4u];
 
-		GLuint holographic_ray_extend_buffer;
+		GLuint holographic_ray_extend_buffers[4u];
 		GLint holographic_ray_extend_buffer_block_size;
 		GLint holographic_ray_extend_buffer_skipped_rays_below_column_offset;
 		GLint holographic_ray_extend_buffer_rays_per_probe_offset;
@@ -390,14 +390,14 @@ namespace game_state
 		//GLint holographic_ray_extend_buffer_max_ray_texture_xy_offset;
 		GLint holographic_ray_extend_buffer_max_lower_cascade_ray_texture_xy_offset;
 
-		GLuint holographic_sky_circle_gather_shader;
-		GLint holographic_sky_circle_gather_shader_sky_circle_uniform_location;
+		GLuint holographic_sky_circle_gather_shaders[4u];
+		GLint holographic_sky_circle_gather_shader_sky_circle_uniform_locations[4u];
 
-		GLuint holographic_fluence_gather_shader;
-		GLint holographic_fluence_gather_shader_rays_uniform_location;
-		GLint holographic_fluence_gather_shader_upper_cascade_fluence_uniform_location;
+		GLuint holographic_fluence_gather_shaders[4u];
+		GLint holographic_fluence_gather_shader_rays_uniform_locations[4u];
+		GLint holographic_fluence_gather_shader_upper_cascade_fluence_uniform_locations[4u];
 
-		GLuint holographic_fluence_gather_buffer;
+		GLuint holographic_fluence_gather_buffers[4u];
 		GLint holographic_fluence_gather_buffer_block_size;
 		GLint holographic_fluence_gather_buffer_direction_mask_offset;
 		GLint holographic_fluence_gather_buffer_cascade_offset;

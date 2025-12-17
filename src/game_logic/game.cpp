@@ -897,17 +897,17 @@ namespace game_logic
 		GLuint const vertex_shader{ ::util::shader::create_shader(GL_VERTEX_SHADER) };
 		GLuint const fragment_shader{ ::util::shader::create_shader(GL_FRAGMENT_SHADER) };
 		
-		{
+		for (GLuint direction{ 0u }; direction < 4u; ++direction) {
 			std::string east_direction_definition{ "#define EAST_DIRECTION " + std::to_string(game_state::holographic_east_direction) + '\n' };
 			std::string north_direction_definition{ "#define NORTH_DIRECTION " + std::to_string(game_state::holographic_north_direction) + '\n' };
 			std::string west_direction_definition{ "#define WEST_DIRECTION " + std::to_string(game_state::holographic_west_direction) + '\n' };
 			std::string south_direction_definition{ "#define SOUTH_DIRECTION " + std::to_string(game_state::holographic_south_direction) + '\n' };
 
-			std::string direction_definition{ "#define DIRECTION " + std::to_string(game_state::temporary_direction) + '\n' };
+			std::string direction_definition{ "#define DIRECTION " + std::to_string(direction) + '\n' };
 			
 			constexpr GLint angular_step_count{ 1 };
 
-			GLuint max_cascade{ X(game_state::temporary_direction, environment.state.max_horizontal_cascade_index, environment.state.max_vertical_cascade_index) };
+			GLuint max_cascade{ X(direction, environment.state.max_horizontal_cascade_index, environment.state.max_vertical_cascade_index) };
 			std::string cascade_definition{ "const int cascade = " + std::to_string(max_cascade) + ";\n"};
 			// TODO: Make angular step count depend on max horizontal/vertical cascade angle.
 			std::string angular_step_count_definition{ "const int angular_step_count = " + std::to_string(angular_step_count) + ";\n" };
@@ -938,213 +938,216 @@ namespace game_logic
 				angular_step_count_definition,
 				::util::shader::file_to_string("holographic_radiance_cascades/sky_circle/gather/gather.frag")
 			);
-			environment.state.holographic_sky_circle_gather_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
-			environment.state.holographic_sky_circle_gather_shader_sky_circle_uniform_location = glGetUniformLocation(environment.state.holographic_sky_circle_gather_shader, "sky_circle");
+			environment.state.holographic_sky_circle_gather_shaders[direction] = ::util::shader::create_program(vertex_shader, fragment_shader);
+			environment.state.holographic_sky_circle_gather_shader_sky_circle_uniform_locations[direction] = glGetUniformLocation(environment.state.holographic_sky_circle_gather_shaders[direction], "sky_circle");
 			glProgramUniform1i(
-				environment.state.holographic_sky_circle_gather_shader,
-				environment.state.holographic_sky_circle_gather_shader_sky_circle_uniform_location, 5
+				environment.state.holographic_sky_circle_gather_shaders[direction],
+				environment.state.holographic_sky_circle_gather_shader_sky_circle_uniform_locations[direction], 5
 			);
 			std::cout << "Holographic sky circle gather shader compiled. Sky circle uniform location: "
-				<< environment.state.holographic_sky_circle_gather_shader_sky_circle_uniform_location << std::endl;
+				<< environment.state.holographic_sky_circle_gather_shader_sky_circle_uniform_locations[direction] << std::endl;
 		}
 
-		environment.state.holographic_ray_trace_shader_count = game_state::initial_holographic_ray_trace_cascade_count;
-		environment.state.holographic_ray_trace_shaders = new GLuint[environment.state.holographic_ray_trace_shader_count];
-		environment.state.holographic_ray_trace_shader_source_uniform_locations = new GLint[environment.state.holographic_ray_trace_shader_count];
-		for (GLuint cascade{ 0u }; cascade < environment.state.holographic_ray_trace_shader_count; ++cascade)
+		for (GLuint direction{ 0u }; direction < 4u; ++direction)
 		{
-			GLuint const cascade_power_of_two{ 1u << cascade };
-
-			GLuint const rays_per_probe{ cascade_power_of_two + 1u };
-			GLuint const skipped_rays_below_column{ ceil_div(rays_per_probe, 2u) };
-			GLuint const rays_in_vacuum_per_column{ skipped_rays_below_column << 1u };
-
-			std::string east_direction_definition{ "#define EAST_DIRECTION " + std::to_string(game_state::holographic_east_direction) + '\n' };
-			std::string north_direction_definition{ "#define NORTH_DIRECTION " + std::to_string(game_state::holographic_north_direction) + '\n' };
-			std::string west_direction_definition{ "#define WEST_DIRECTION " + std::to_string(game_state::holographic_west_direction) + '\n' };
-			std::string south_direction_definition{ "#define SOUTH_DIRECTION " + std::to_string(game_state::holographic_south_direction) + '\n' };
-
-			std::string direction_definition{ "#define DIRECTION " + std::to_string(game_state::temporary_direction) + '\n' };
-
-			constexpr GLuint column_ray_texture_mode_value{ 0u };
-			constexpr GLuint row_ray_texture_mode_value{ 1u };
-
-			std::string column_ray_texture_mode_definition{ "#define COLUMN_RAY_TEXTURE_MODE " + std::to_string(column_ray_texture_mode_value) + '\n' };
-			std::string row_ray_texture_mode_definition{ "#define ROW_RAY_TEXTURE_MODE " + std::to_string(row_ray_texture_mode_value) + '\n' };
-
-			GLuint ray_texture_mode_value{ environment.state.use_row_ray_textures ? row_ray_texture_mode_value : column_ray_texture_mode_value };
-			std::string ray_texture_mode_definition{ "#define RAY_TEXTURE_MODE " + std::to_string(ray_texture_mode_value) + '\n' };
-
-			// TODO: This vertex shader compilation should be done ONCE
-			::util::shader::set_shader_statically
-			(
-				vertex_shader,
-				util_shader_VERSION,
-				east_direction_definition,
-				north_direction_definition,
-				west_direction_definition,
-				south_direction_definition,
-				direction_definition,
-				column_ray_texture_mode_definition,
-				row_ray_texture_mode_definition,
-				ray_texture_mode_definition,
-				::util::shader::file_to_string("util/plain_full_screen.vert")
-			);
-
-			GLuint probe_grid_width;
-			GLuint probe_grid_height;
-			
-			GLfloat probe_padding_factor_x;
-			GLfloat probe_padding_factor_y;
-
-			GLuint framebuffer_width;
-			GLuint framebuffer_height;
-			
-			GLuint inverse_projection_scale_x;
-			GLuint inverse_projection_scale_y;
-
-			//if (game_state::temporary_direction == game_state::holographic_east_direction || game_state::temporary_direction == game_state::holographic_west_direction)
-			//{
-			probe_grid_width = environment.state.holographic_probe_grid_width;
-			probe_grid_height = environment.state.holographic_probe_grid_height;
-
-			probe_padding_factor_x = environment.state.probe_padding_factor_x;
-			probe_padding_factor_y = environment.state.probe_padding_factor_y;
-
-			framebuffer_width = environment.state.framebuffer_width;
-			framebuffer_height = environment.state.framebuffer_height;
-
-			inverse_projection_scale_x = game_logic__util__projection_INVERSE_SCALE_X(environment);
-			inverse_projection_scale_y = game_logic__util__projection_INVERSE_SCALE_Y(environment);
-			/* }
-			else if (game_state::temporary_direction == game_state::holographic_north_direction || game_state::temporary_direction == game_state::holographic_south_direction)
+			environment.state.holographic_ray_trace_shader_counts[direction] = game_state::initial_holographic_ray_trace_cascade_count;
+			environment.state.holographic_ray_trace_shaders[direction] = new GLuint[environment.state.holographic_ray_trace_shader_counts[direction]];
+			environment.state.holographic_ray_trace_shader_source_uniform_locations[direction] = new GLint[environment.state.holographic_ray_trace_shader_counts[direction]];
+			for (GLuint cascade{ 0u }; cascade < environment.state.holographic_ray_trace_shader_counts[direction]; ++cascade)
 			{
-				probe_grid_width = environment.state.holographic_probe_grid_height;
-				probe_grid_height = environment.state.holographic_probe_grid_width;
+				GLuint const cascade_power_of_two{ 1u << cascade };
 
-				probe_padding_factor_x = environment.state.probe_padding_factor_y;
-				probe_padding_factor_y = environment.state.probe_padding_factor_x;
+				GLuint const rays_per_probe{ cascade_power_of_two + 1u };
+				GLuint const skipped_rays_below_column{ ceil_div(rays_per_probe, 2u) };
+				GLuint const rays_in_vacuum_per_column{ skipped_rays_below_column << 1u };
 
-				framebuffer_width = environment.state.framebuffer_height;
-				framebuffer_height = environment.state.framebuffer_width;
+				std::string east_direction_definition{ "#define EAST_DIRECTION " + std::to_string(game_state::holographic_east_direction) + '\n' };
+				std::string north_direction_definition{ "#define NORTH_DIRECTION " + std::to_string(game_state::holographic_north_direction) + '\n' };
+				std::string west_direction_definition{ "#define WEST_DIRECTION " + std::to_string(game_state::holographic_west_direction) + '\n' };
+				std::string south_direction_definition{ "#define SOUTH_DIRECTION " + std::to_string(game_state::holographic_south_direction) + '\n' };
 
-				inverse_projection_scale_x = game_logic__util__projection_INVERSE_SCALE_Y(environment);
-				inverse_projection_scale_y = game_logic__util__projection_INVERSE_SCALE_X(environment);
-			}*/
+				std::string direction_definition{ "#define DIRECTION " + std::to_string(direction) + '\n' };
 
-			GLuint const edge_width{ probe_grid_width - 1u };
-			GLuint const edge_height{ probe_grid_height - 1u };
+				constexpr GLuint column_ray_texture_mode_value{ 0u };
+				constexpr GLuint row_ray_texture_mode_value{ 1u };
 
-			GLfloat const inverse_edge_width{ 1.0f / static_cast<GLfloat>(edge_width) };
-			GLfloat const inverse_edge_height{ 1.0f / static_cast<GLfloat>(edge_height) };
+				std::string column_ray_texture_mode_definition{ "#define COLUMN_RAY_TEXTURE_MODE " + std::to_string(column_ray_texture_mode_value) + '\n' };
+				std::string row_ray_texture_mode_definition{ "#define ROW_RAY_TEXTURE_MODE " + std::to_string(row_ray_texture_mode_value) + '\n' };
 
-			GLuint const step_count{ 1u * cascade_power_of_two };
-			GLfloat const step_count_inverse{ 1.0f / static_cast<GLfloat>(step_count) };
+				GLuint ray_texture_mode_value{ environment.state.use_row_ray_textures ? row_ray_texture_mode_value : column_ray_texture_mode_value };
+				std::string ray_texture_mode_definition{ "#define RAY_TEXTURE_MODE " + std::to_string(ray_texture_mode_value) + '\n' };
 
-			GLfloat const padding_x{ 0.5f * probe_padding_factor_x / framebuffer_width };
-			GLfloat const padding_y{ 0.5f * probe_padding_factor_y / framebuffer_height };
+				// TODO: This vertex shader compilation should be done ONCE
+				::util::shader::set_shader_statically
+				(
+					vertex_shader,
+					util_shader_VERSION,
+					east_direction_definition,
+					north_direction_definition,
+					west_direction_definition,
+					south_direction_definition,
+					direction_definition,
+					column_ray_texture_mode_definition,
+					row_ray_texture_mode_definition,
+					ray_texture_mode_definition,
+					::util::shader::file_to_string("util/plain_full_screen.vert")
+				);
 
-			GLfloat const double_padding_x{ probe_padding_factor_x / framebuffer_width };
-			GLfloat const double_padding_y{ probe_padding_factor_y / framebuffer_height };
+				GLuint probe_grid_width;
+				GLuint probe_grid_height;
 
-			GLfloat const probe_grid_to_sample_factor_x{ (1.0f + double_padding_x) * inverse_edge_width };
-			GLfloat const probe_grid_to_sample_factor_y{ (1.0f + double_padding_y) * inverse_edge_height };
+				GLfloat probe_padding_factor_x;
+				GLfloat probe_padding_factor_y;
 
-			GLfloat const probe_grid_full_step_to_sample_step_factor_x{ probe_grid_to_sample_factor_x * step_count_inverse };
-			GLfloat const probe_grid_full_step_to_sample_step_factor_y{ probe_grid_to_sample_factor_y * step_count_inverse };
+				GLuint framebuffer_width;
+				GLuint framebuffer_height;
 
-			GLfloat probe_grid_point_to_sample_point_factor_x;
-			GLfloat probe_grid_point_to_sample_point_factor_y;
-			VEC2(game_state::temporary_direction, 
-				static_cast<GLfloat>(cascade_power_of_two) * X(game_state::temporary_direction, probe_grid_to_sample_factor_x, probe_grid_to_sample_factor_y),
-				Y(game_state::temporary_direction, probe_grid_to_sample_factor_x, probe_grid_to_sample_factor_y),
-				probe_grid_point_to_sample_point_factor_x, probe_grid_point_to_sample_point_factor_y
-			);
+				GLuint inverse_projection_scale_x;
+				GLuint inverse_projection_scale_y;
 
-			//GLfloat const probe_grid_point_to_sample_point_factor_x{ static_cast<GLfloat>(cascade_power_of_two) * probe_grid_to_sample_factor_x };
-			//GLfloat const probe_grid_point_to_sample_point_factor_y{ probe_grid_to_sample_factor_y };
+				//if (game_state::temporary_direction == game_state::holographic_east_direction || game_state::temporary_direction == game_state::holographic_west_direction)
+				//{
+				probe_grid_width = environment.state.holographic_probe_grid_width;
+				probe_grid_height = environment.state.holographic_probe_grid_height;
 
-			GLfloat const probe_grid_point_to_sample_point_bias_x{ padding_x };
-			GLfloat const probe_grid_point_to_sample_point_bias_y{ padding_y };
+				probe_padding_factor_x = environment.state.probe_padding_factor_x;
+				probe_padding_factor_y = environment.state.probe_padding_factor_y;
 
-			GLfloat const probe_grid_full_step_to_sample_step_projection_x{
-				(probe_grid_full_step_to_sample_step_factor_x * 2.0f) * inverse_projection_scale_x
-			};
-			GLfloat const probe_grid_full_step_to_sample_step_projection_y{
-				(probe_grid_full_step_to_sample_step_factor_y * 2.0f) * inverse_projection_scale_y
-			};
+				framebuffer_width = environment.state.framebuffer_width;
+				framebuffer_height = environment.state.framebuffer_height;
 
-			//std::string max_ray_texture_xy_definition{};
-			std::string skipped_rays_below_column_declaration{ "const int skipped_rays_below_column = " + std::to_string(skipped_rays_below_column) + ";\n" };
-			std::string rays_per_probe_declaration{ "const int rays_per_probe = " + std::to_string(rays_per_probe) + ";\n" };
-			std::string cascade_power_of_two_declaration{ "const int cascade_power_of_two = " + std::to_string(cascade_power_of_two) + ";\n" };
-			std::string probe_grid_full_step_to_sample_step_factor_declaration{
-				"const vec2 probe_grid_full_step_to_sample_step_factor = vec2("
-				+ std::to_string(probe_grid_full_step_to_sample_step_factor_x) + ", " + std::to_string(probe_grid_full_step_to_sample_step_factor_y)
-				+ ");\n"
-			};
-			std::string probe_grid_point_to_sample_point_factor_declaration
-			{
-				"const vec2 probe_grid_point_to_sample_point_factor = vec2("
-				+ std::to_string(probe_grid_point_to_sample_point_factor_x) + ", " + std::to_string(probe_grid_point_to_sample_point_factor_y)
-				+ ");\n"
-			};
-			std::string probe_grid_point_to_sample_point_bias_declaration
-			{
-				"const vec2 probe_grid_point_to_sample_point_bias = vec2("
-				+ std::to_string(probe_grid_point_to_sample_point_bias_x) + ", " + std::to_string(probe_grid_point_to_sample_point_bias_y)
-				+ ");\n"
-			};
-			std::string probe_grid_full_step_to_sample_step_projection_declaration
-			{
-				"const vec2 probe_grid_full_step_to_sample_step_projection = vec2("
-				+ std::to_string(probe_grid_full_step_to_sample_step_projection_x) + ", " + std::to_string(probe_grid_full_step_to_sample_step_projection_y)
-				+ ");\n"
-			};
-			std::string step_count_declaration{ "const uint step_count = " + std::to_string(step_count) + "u;\n" };
+				inverse_projection_scale_x = game_logic__util__projection_INVERSE_SCALE_X(environment);
+				inverse_projection_scale_y = game_logic__util__projection_INVERSE_SCALE_Y(environment);
+				/* }
+				else if (game_state::temporary_direction == game_state::holographic_north_direction || game_state::temporary_direction == game_state::holographic_south_direction)
+				{
+					probe_grid_width = environment.state.holographic_probe_grid_height;
+					probe_grid_height = environment.state.holographic_probe_grid_width;
 
-			::util::shader::set_shader_statically
-			(
-				fragment_shader,
-				util_shader_VERSION,
-				east_direction_definition,
-				north_direction_definition,
-				west_direction_definition,
-				south_direction_definition,
-				direction_definition,
-				column_ray_texture_mode_definition,
-				row_ray_texture_mode_definition,
-				ray_texture_mode_definition,
-				skipped_rays_below_column_declaration,
-				rays_per_probe_declaration,
-				cascade_power_of_two_declaration,
-				probe_grid_full_step_to_sample_step_factor_declaration,
-				probe_grid_point_to_sample_point_factor_declaration,
-				probe_grid_point_to_sample_point_bias_declaration,
-				probe_grid_full_step_to_sample_step_projection_declaration,
-				step_count_declaration,
-				util_shader_DEFINE("METER_INVERSE", STRINGIFY(game_logic__util__spatial_METER_INVERSE(environment))),
-				util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
-				::util::shader::file_to_string("holographic_radiance_cascades/rays/trace.frag")
-			);
-			environment.state.holographic_ray_trace_shaders[cascade] = ::util::shader::create_program(vertex_shader, fragment_shader);
-			environment.state.holographic_ray_trace_shader_source_uniform_locations[cascade] = glGetUniformLocation(environment.state.holographic_ray_trace_shaders[cascade], "source");
-			glProgramUniform1i
-			(
-				environment.state.holographic_ray_trace_shaders[cascade],
-				environment.state.holographic_ray_trace_shader_source_uniform_locations[cascade], 1
-			);
+					probe_padding_factor_x = environment.state.probe_padding_factor_y;
+					probe_padding_factor_y = environment.state.probe_padding_factor_x;
 
-			std::cout << "Holographic ray trace shader " << cascade << " compiled:"
-				<< "\n	Source uniform location: " << environment.state.holographic_ray_trace_shader_source_uniform_locations[cascade]
-				<< "\n	skipped_rays_below_column = " << skipped_rays_below_column
-				<< "\n	rays_per_probe = " << rays_per_probe
-				<< "\n	cascade_power_of_two = " << cascade_power_of_two
-				<< "\n	probe_grid_full_step_to_sample_step_factor = (" << probe_grid_full_step_to_sample_step_factor_x << ", " << probe_grid_full_step_to_sample_step_factor_y << ")"
-				<< "\n	probe_grid_point_to_sample_point_factor = (" << probe_grid_point_to_sample_point_factor_x << ", " << probe_grid_point_to_sample_point_factor_y << ")"
-				<< "\n	probe_grid_full_step_to_sample_step_projection = (" << probe_grid_full_step_to_sample_step_projection_x << ", " << probe_grid_full_step_to_sample_step_projection_y << ")"
-				<< "\n	step_count = " << step_count
-				<< std::endl;
+					framebuffer_width = environment.state.framebuffer_height;
+					framebuffer_height = environment.state.framebuffer_width;
+
+					inverse_projection_scale_x = game_logic__util__projection_INVERSE_SCALE_Y(environment);
+					inverse_projection_scale_y = game_logic__util__projection_INVERSE_SCALE_X(environment);
+				}*/
+
+				GLuint const edge_width{ probe_grid_width - 1u };
+				GLuint const edge_height{ probe_grid_height - 1u };
+
+				GLfloat const inverse_edge_width{ 1.0f / static_cast<GLfloat>(edge_width) };
+				GLfloat const inverse_edge_height{ 1.0f / static_cast<GLfloat>(edge_height) };
+
+				GLuint const step_count{ 1u * cascade_power_of_two };
+				GLfloat const step_count_inverse{ 1.0f / static_cast<GLfloat>(step_count) };
+
+				GLfloat const padding_x{ 0.5f * probe_padding_factor_x / framebuffer_width };
+				GLfloat const padding_y{ 0.5f * probe_padding_factor_y / framebuffer_height };
+
+				GLfloat const double_padding_x{ probe_padding_factor_x / framebuffer_width };
+				GLfloat const double_padding_y{ probe_padding_factor_y / framebuffer_height };
+
+				GLfloat const probe_grid_to_sample_factor_x{ (1.0f + double_padding_x) * inverse_edge_width };
+				GLfloat const probe_grid_to_sample_factor_y{ (1.0f + double_padding_y) * inverse_edge_height };
+
+				GLfloat const probe_grid_full_step_to_sample_step_factor_x{ probe_grid_to_sample_factor_x * step_count_inverse };
+				GLfloat const probe_grid_full_step_to_sample_step_factor_y{ probe_grid_to_sample_factor_y * step_count_inverse };
+
+				GLfloat probe_grid_point_to_sample_point_factor_x;
+				GLfloat probe_grid_point_to_sample_point_factor_y;
+				VEC2(direction,
+					static_cast<GLfloat>(cascade_power_of_two) * X(direction, probe_grid_to_sample_factor_x, probe_grid_to_sample_factor_y),
+					Y(direction, probe_grid_to_sample_factor_x, probe_grid_to_sample_factor_y),
+					probe_grid_point_to_sample_point_factor_x, probe_grid_point_to_sample_point_factor_y
+				);
+
+				//GLfloat const probe_grid_point_to_sample_point_factor_x{ static_cast<GLfloat>(cascade_power_of_two) * probe_grid_to_sample_factor_x };
+				//GLfloat const probe_grid_point_to_sample_point_factor_y{ probe_grid_to_sample_factor_y };
+
+				GLfloat const probe_grid_point_to_sample_point_bias_x{ padding_x };
+				GLfloat const probe_grid_point_to_sample_point_bias_y{ padding_y };
+
+				GLfloat const probe_grid_full_step_to_sample_step_projection_x{
+					(probe_grid_full_step_to_sample_step_factor_x * 2.0f) * inverse_projection_scale_x
+				};
+				GLfloat const probe_grid_full_step_to_sample_step_projection_y{
+					(probe_grid_full_step_to_sample_step_factor_y * 2.0f) * inverse_projection_scale_y
+				};
+
+				//std::string max_ray_texture_xy_definition{};
+				std::string skipped_rays_below_column_declaration{ "const int skipped_rays_below_column = " + std::to_string(skipped_rays_below_column) + ";\n" };
+				std::string rays_per_probe_declaration{ "const int rays_per_probe = " + std::to_string(rays_per_probe) + ";\n" };
+				std::string cascade_power_of_two_declaration{ "const int cascade_power_of_two = " + std::to_string(cascade_power_of_two) + ";\n" };
+				std::string probe_grid_full_step_to_sample_step_factor_declaration{
+					"const vec2 probe_grid_full_step_to_sample_step_factor = vec2("
+					+ std::to_string(probe_grid_full_step_to_sample_step_factor_x) + ", " + std::to_string(probe_grid_full_step_to_sample_step_factor_y)
+					+ ");\n"
+				};
+				std::string probe_grid_point_to_sample_point_factor_declaration
+				{
+					"const vec2 probe_grid_point_to_sample_point_factor = vec2("
+					+ std::to_string(probe_grid_point_to_sample_point_factor_x) + ", " + std::to_string(probe_grid_point_to_sample_point_factor_y)
+					+ ");\n"
+				};
+				std::string probe_grid_point_to_sample_point_bias_declaration
+				{
+					"const vec2 probe_grid_point_to_sample_point_bias = vec2("
+					+ std::to_string(probe_grid_point_to_sample_point_bias_x) + ", " + std::to_string(probe_grid_point_to_sample_point_bias_y)
+					+ ");\n"
+				};
+				std::string probe_grid_full_step_to_sample_step_projection_declaration
+				{
+					"const vec2 probe_grid_full_step_to_sample_step_projection = vec2("
+					+ std::to_string(probe_grid_full_step_to_sample_step_projection_x) + ", " + std::to_string(probe_grid_full_step_to_sample_step_projection_y)
+					+ ");\n"
+				};
+				std::string step_count_declaration{ "const uint step_count = " + std::to_string(step_count) + "u;\n" };
+
+				::util::shader::set_shader_statically
+				(
+					fragment_shader,
+					util_shader_VERSION,
+					east_direction_definition,
+					north_direction_definition,
+					west_direction_definition,
+					south_direction_definition,
+					direction_definition,
+					column_ray_texture_mode_definition,
+					row_ray_texture_mode_definition,
+					ray_texture_mode_definition,
+					skipped_rays_below_column_declaration,
+					rays_per_probe_declaration,
+					cascade_power_of_two_declaration,
+					probe_grid_full_step_to_sample_step_factor_declaration,
+					probe_grid_point_to_sample_point_factor_declaration,
+					probe_grid_point_to_sample_point_bias_declaration,
+					probe_grid_full_step_to_sample_step_projection_declaration,
+					step_count_declaration,
+					util_shader_DEFINE("METER_INVERSE", STRINGIFY(game_logic__util__spatial_METER_INVERSE(environment))),
+					util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
+					::util::shader::file_to_string("holographic_radiance_cascades/rays/trace.frag")
+				);
+				environment.state.holographic_ray_trace_shaders[direction][cascade] = ::util::shader::create_program(vertex_shader, fragment_shader);
+				environment.state.holographic_ray_trace_shader_source_uniform_locations[direction][cascade] = glGetUniformLocation(environment.state.holographic_ray_trace_shaders[direction][cascade], "source");
+				glProgramUniform1i
+				(
+					environment.state.holographic_ray_trace_shaders[direction][cascade],
+					environment.state.holographic_ray_trace_shader_source_uniform_locations[direction][cascade], 1
+				);
+
+				std::cout << "Holographic ray trace shader " << cascade << " compiled:"
+					<< "\n	Source uniform location: " << environment.state.holographic_ray_trace_shader_source_uniform_locations[cascade]
+					<< "\n	skipped_rays_below_column = " << skipped_rays_below_column
+					<< "\n	rays_per_probe = " << rays_per_probe
+					<< "\n	cascade_power_of_two = " << cascade_power_of_two
+					<< "\n	probe_grid_full_step_to_sample_step_factor = (" << probe_grid_full_step_to_sample_step_factor_x << ", " << probe_grid_full_step_to_sample_step_factor_y << ")"
+					<< "\n	probe_grid_point_to_sample_point_factor = (" << probe_grid_point_to_sample_point_factor_x << ", " << probe_grid_point_to_sample_point_factor_y << ")"
+					<< "\n	probe_grid_full_step_to_sample_step_projection = (" << probe_grid_full_step_to_sample_step_projection_x << ", " << probe_grid_full_step_to_sample_step_projection_y << ")"
+					<< "\n	step_count = " << step_count
+					<< std::endl;
+			}
 		}
 
 		{
@@ -1248,14 +1251,15 @@ namespace game_logic
 		::util::shader::delete_shader(vertex_shader);
 		::util::shader::delete_shader(fragment_shader);
 
+		for (GLuint direction{ 0u }; direction < 4u; ++direction)
 		{
 			GLuint const min_cascade{ game_state::initial_holographic_ray_trace_cascade_count };
 			GLuint max_cascade;
-			if (game_state::temporary_direction == game_state::holographic_east_direction || game_state::temporary_direction == game_state::holographic_west_direction)
+			if (direction == game_state::holographic_east_direction || direction == game_state::holographic_west_direction)
 			{
 				max_cascade = environment.state.max_horizontal_cascade_index;
 			}
-			else if (game_state::temporary_direction == game_state::holographic_north_direction || game_state::temporary_direction == game_state::holographic_south_direction)
+			else if (direction == game_state::holographic_north_direction || direction == game_state::holographic_south_direction)
 			{
 				max_cascade = environment.state.max_vertical_cascade_index;
 			}
@@ -1312,19 +1316,19 @@ namespace game_logic
 					GLint const lower_cascade_rays_in_vacuum_per_column{ lower_cascade_skipped_rays_below_column << 1 };
 					GLint const lower_cascade_max_ray_probe_column
 					{
-						(X(game_state::temporary_direction, edge_width, edge_height) - 1) / lower_cascade_power_of_two - 1//ceil_div(edge_width - lower_cascade_power_of_two, lower_cascade_power_of_two) - 1
+						(X(direction, edge_width, edge_height) - 1) / lower_cascade_power_of_two - 1//ceil_div(edge_width - lower_cascade_power_of_two, lower_cascade_power_of_two) - 1
 					};
 					GLint const lower_cascade_max_ray_probe_row
 					{
-						Y(game_state::temporary_direction, probe_grid_width, probe_grid_height) * lower_cascade_rays_per_probe - lower_cascade_rays_in_vacuum_per_column - 1
+						Y(direction, probe_grid_width, probe_grid_height) * lower_cascade_rays_per_probe - lower_cascade_rays_in_vacuum_per_column - 1
 					};
 
 					GLint const g{ lower_cascade_rays_per_probe << 1 };
 					GLint const f{ lower_cascade_rays_per_probe << lower_cascade };
 
-					GLint const lower_cascade_min_outside_probe_x{ (X(game_state::temporary_direction, edge_width_decremented, edge_height_decremented) + lower_cascade_power_of_two) >> lower_cascade };
+					GLint const lower_cascade_min_outside_probe_x{ (X(direction, edge_width_decremented, edge_height_decremented) + lower_cascade_power_of_two) >> lower_cascade };
 					GLint const lower_cascade_max_probe_column_texel_x{ (lower_cascade_min_outside_probe_x - 2) * lower_cascade_rays_per_probe };
-					GLint const lower_cascade_max_probe_row{ Y(game_state::temporary_direction, edge_width, edge_height) };
+					GLint const lower_cascade_max_probe_row{ Y(direction, edge_width, edge_height) };
 
 					std::memcpy
 					(
@@ -1401,7 +1405,7 @@ namespace game_logic
 
 				glNamedBufferStorage
 				(
-					environment.state.holographic_ray_extend_buffer, buffer_size, ray_extend_data_buffer_content,
+					environment.state.holographic_ray_extend_buffers[direction], buffer_size, ray_extend_data_buffer_content,
 					0u
 				);
 
@@ -1411,13 +1415,14 @@ namespace game_logic
 			}
 		}
 
+		for (GLuint direction{ 0u }; direction < 4u; ++direction)
 		{	// Fluence gather buffer
 			GLint max_cascade;
-			if (game_state::temporary_direction == game_state::holographic_east_direction || game_state::temporary_direction == game_state::holographic_west_direction)
+			if (direction == game_state::holographic_east_direction || direction == game_state::holographic_west_direction)
 			{
 				max_cascade = static_cast<GLint>(environment.state.max_horizontal_cascade_index);
 			}
-			else if (game_state::temporary_direction == game_state::holographic_north_direction || game_state::temporary_direction == game_state::holographic_south_direction)
+			else if (direction == game_state::holographic_north_direction || direction == game_state::holographic_south_direction)
 			{
 				max_cascade = static_cast<GLint>(environment.state.max_vertical_cascade_index);
 			}
@@ -1456,7 +1461,7 @@ namespace game_logic
 			GLint const edge_width_decremented{ edge_width - 1 };
 			GLint const edge_height_decremented{ edge_height - 1 };
 			
-			GLint const max_fluence_probe_y{ Y(game_state::temporary_direction, edge_width, edge_height) };
+			GLint const max_fluence_probe_y{ Y(direction, edge_width, edge_height) };
 
 			GLint const max_fluence_gather_cascade{ padded_block_count };
 
@@ -1479,12 +1484,12 @@ namespace game_logic
 				{
 					if (cascade == 0)
 					{
-						if (game_state::temporary_direction == game_state::holographic_west_direction)
+						if (direction == game_state::holographic_west_direction)
 						{
 							output_factor = -1;
 							output_shift = static_cast<GLint>(environment.state.holographic_probe_grid_width) - 1;
 						}
-						else if (game_state::temporary_direction == game_state::holographic_south_direction)
+						else if (direction == game_state::holographic_south_direction)
 						{
 							output_factor = -1;
 							output_shift = static_cast<GLint>(environment.state.holographic_probe_grid_height) - 1;
@@ -1495,19 +1500,19 @@ namespace game_logic
 				GLint const direction_mask{ (1 << cascade) - 1 };
 				GLint const max_ray_probe_column
 				{
-					ceil_div(X(game_state::temporary_direction, edge_width, edge_height) - cascade_power_of_two, cascade_power_of_two) - 1
+					ceil_div(X(direction, edge_width, edge_height) - cascade_power_of_two, cascade_power_of_two) - 1
 				};
 				GLint const skipped_rays_below_column{ ceil_div(rays_per_probe, 2) };
 				GLint const rays_in_vacuum_per_column{ skipped_rays_below_column << 1 };
 				GLint const max_ray_probe_row
 				{
-					Y(game_state::temporary_direction, width, height) * rays_per_probe - rays_in_vacuum_per_column - 1
+					Y(direction, width, height) * rays_per_probe - rays_in_vacuum_per_column - 1
 				};
 
 				GLuint const upper_cascade{ cascade + 1u };
 				GLint const max_fluence_probe_column_texel_x
 				{
-					(X(game_state::temporary_direction, edge_width_decremented, edge_height_decremented) >> upper_cascade) << upper_cascade
+					(X(direction, edge_width_decremented, edge_height_decremented) >> upper_cascade) << upper_cascade
 				};
 				GLint const upper_cascade_probe_column_texel_x_mask
 				{
@@ -1620,7 +1625,7 @@ namespace game_logic
 
 			glNamedBufferStorage
 			(
-				environment.state.holographic_fluence_gather_buffer, buffer_size, fluence_gather_data_buffer_content,
+				environment.state.holographic_fluence_gather_buffers[direction], buffer_size, fluence_gather_data_buffer_content,
 				0u
 			);
 
@@ -1640,12 +1645,24 @@ namespace game_logic
 
 		GLuint buffers[]
 		{
-			environment.state.holographic_ray_extend_buffer,
-			environment.state.holographic_fluence_gather_buffer,
+			environment.state.holographic_ray_extend_buffers[0u],
+			environment.state.holographic_ray_extend_buffers[1u],
+			environment.state.holographic_ray_extend_buffers[2u],
+			environment.state.holographic_ray_extend_buffers[3u],
+			environment.state.holographic_fluence_gather_buffers[0u],
+			environment.state.holographic_fluence_gather_buffers[1u],
+			environment.state.holographic_fluence_gather_buffers[2u],
+			environment.state.holographic_fluence_gather_buffers[3u],
 		};
 		glCreateBuffers(std::size(buffers), buffers);
-		environment.state.holographic_ray_extend_buffer = buffers[0u];
-		environment.state.holographic_fluence_gather_buffer = buffers[1u];
+		environment.state.holographic_ray_extend_buffers[0u] = buffers[0u];
+		environment.state.holographic_ray_extend_buffers[1u] = buffers[1u];
+		environment.state.holographic_ray_extend_buffers[2u] = buffers[2u];
+		environment.state.holographic_ray_extend_buffers[3u] = buffers[3u];
+		environment.state.holographic_fluence_gather_buffers[0u] = buffers[4u];
+		environment.state.holographic_fluence_gather_buffers[1u] = buffers[5u];
+		environment.state.holographic_fluence_gather_buffers[2u] = buffers[6u];
+		environment.state.holographic_fluence_gather_buffers[3u] = buffers[7u];
 		somewhat_adapt_to_default_framebuffer_size(environment, width, height);
 	}
 
@@ -1691,203 +1708,239 @@ namespace game_logic
 			);
 			break;
 		case 4u:
-			environment.state.holographic_cascade_rays_draw_shader_cascade = 0u;
-			glProgramUniform1ui
-			(
-				environment.state.holographic_cascade_rays_draw_shader,
-				environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_location,
-				environment.state.holographic_cascade_rays_draw_shader_cascade
-			);
-			environment.state.holographic_cascade_fluence_draw_shader_cascade = environment.state.holographic_cascade_rays_draw_shader_cascade;
-			glProgramUniform1ui
-			(
-				environment.state.holographic_cascade_fluence_draw_shader,
-				environment.state.holographic_cascade_fluence_draw_shader_cascade_uniform_location,
-				environment.state.holographic_cascade_fluence_draw_shader_cascade
-			);
+			for (GLuint direction{ 0u }; direction < 4u; ++direction)
+			{
+				environment.state.holographic_cascade_rays_draw_shader_cascades[direction] = 0u;
+				glProgramUniform1ui
+				(
+					environment.state.holographic_cascade_rays_draw_shaders[direction],
+					environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_locations[direction],
+					environment.state.holographic_cascade_rays_draw_shader_cascades[direction]
+				);
+				environment.state.holographic_cascade_fluence_draw_shader_cascades[direction] = environment.state.holographic_cascade_rays_draw_shader_cascades[direction];
+				glProgramUniform1ui
+				(
+					environment.state.holographic_cascade_fluence_draw_shaders[direction],
+					environment.state.holographic_cascade_fluence_draw_shader_cascade_uniform_locations[direction],
+					environment.state.holographic_cascade_fluence_draw_shader_cascades[direction]
+				);
+			}
 			break;
 		case 5u:
-			environment.state.holographic_cascade_rays_draw_shader_cascade = 1u;
-			glProgramUniform1ui
-			(
-				environment.state.holographic_cascade_rays_draw_shader,
-				environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_location,
-				environment.state.holographic_cascade_rays_draw_shader_cascade
-			);
-			environment.state.holographic_cascade_fluence_draw_shader_cascade = environment.state.holographic_cascade_rays_draw_shader_cascade;
-			glProgramUniform1ui
-			(
-				environment.state.holographic_cascade_fluence_draw_shader,
-				environment.state.holographic_cascade_fluence_draw_shader_cascade_uniform_location,
-				environment.state.holographic_cascade_fluence_draw_shader_cascade
-			);
+			for (GLuint direction{ 0u }; direction < 4u; ++direction)
+			{
+				environment.state.holographic_cascade_rays_draw_shader_cascades[direction] = 1u;
+				glProgramUniform1ui
+				(
+					environment.state.holographic_cascade_rays_draw_shaders[direction],
+					environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_locations[direction],
+					environment.state.holographic_cascade_rays_draw_shader_cascades[direction]
+				);
+				environment.state.holographic_cascade_fluence_draw_shader_cascades[direction] = environment.state.holographic_cascade_rays_draw_shader_cascades[direction];
+				glProgramUniform1ui
+				(
+					environment.state.holographic_cascade_fluence_draw_shaders[direction],
+					environment.state.holographic_cascade_fluence_draw_shader_cascade_uniform_locations[direction],
+					environment.state.holographic_cascade_fluence_draw_shader_cascades[direction]
+				);
+			}
 			break;
 		case 6u:
-			environment.state.holographic_cascade_rays_draw_shader_cascade = 2u;
-			glProgramUniform1ui
-			(
-				environment.state.holographic_cascade_rays_draw_shader,
-				environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_location,
-				environment.state.holographic_cascade_rays_draw_shader_cascade
-			);
-			environment.state.holographic_cascade_fluence_draw_shader_cascade = environment.state.holographic_cascade_rays_draw_shader_cascade;
-			glProgramUniform1ui
-			(
-				environment.state.holographic_cascade_fluence_draw_shader,
-				environment.state.holographic_cascade_fluence_draw_shader_cascade_uniform_location,
-				environment.state.holographic_cascade_fluence_draw_shader_cascade
-			);
+			for (GLuint direction{ 0u }; direction < 4u; ++direction)
+			{
+				environment.state.holographic_cascade_rays_draw_shader_cascades[direction] = 2u;
+				glProgramUniform1ui
+				(
+					environment.state.holographic_cascade_rays_draw_shaders[direction],
+					environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_locations[direction],
+					environment.state.holographic_cascade_rays_draw_shader_cascades[direction]
+				);
+				environment.state.holographic_cascade_fluence_draw_shader_cascades[direction] = environment.state.holographic_cascade_rays_draw_shader_cascades[direction];
+				glProgramUniform1ui
+				(
+					environment.state.holographic_cascade_fluence_draw_shaders[direction],
+					environment.state.holographic_cascade_fluence_draw_shader_cascade_uniform_locations[direction],
+					environment.state.holographic_cascade_fluence_draw_shader_cascades[direction]
+				);
+			}
 			break;
 		case 7u:
-			environment.state.holographic_cascade_rays_draw_shader_cascade = 3u;
-			glProgramUniform1ui
-			(
-				environment.state.holographic_cascade_rays_draw_shader,
-				environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_location,
-				environment.state.holographic_cascade_rays_draw_shader_cascade
-			);
-			environment.state.holographic_cascade_fluence_draw_shader_cascade = environment.state.holographic_cascade_rays_draw_shader_cascade;
-			glProgramUniform1ui
-			(
-				environment.state.holographic_cascade_fluence_draw_shader,
-				environment.state.holographic_cascade_fluence_draw_shader_cascade_uniform_location,
-				environment.state.holographic_cascade_fluence_draw_shader_cascade
-			);
+			for (GLuint direction{ 0u }; direction < 4u; ++direction)
+			{
+				environment.state.holographic_cascade_rays_draw_shader_cascades[direction] = 3u;
+				glProgramUniform1ui
+				(
+					environment.state.holographic_cascade_rays_draw_shaders[direction],
+					environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_locations[direction],
+					environment.state.holographic_cascade_rays_draw_shader_cascades[direction]
+				);
+				environment.state.holographic_cascade_fluence_draw_shader_cascades[direction] = environment.state.holographic_cascade_rays_draw_shader_cascades[direction];
+				glProgramUniform1ui
+				(
+					environment.state.holographic_cascade_fluence_draw_shaders[direction],
+					environment.state.holographic_cascade_fluence_draw_shader_cascade_uniform_locations[direction],
+					environment.state.holographic_cascade_fluence_draw_shader_cascades[direction]
+				);
+			}
 			break;
 		case 8u:
-			environment.state.holographic_cascade_rays_draw_shader_cascade = 4u;
-			glProgramUniform1ui
-			(
-				environment.state.holographic_cascade_rays_draw_shader,
-				environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_location,
-				environment.state.holographic_cascade_rays_draw_shader_cascade
-			);
-			environment.state.holographic_cascade_fluence_draw_shader_cascade = environment.state.holographic_cascade_rays_draw_shader_cascade;
-			glProgramUniform1ui
-			(
-				environment.state.holographic_cascade_fluence_draw_shader,
-				environment.state.holographic_cascade_fluence_draw_shader_cascade_uniform_location,
-				environment.state.holographic_cascade_fluence_draw_shader_cascade
-			);
+			for (GLuint direction{ 0u }; direction < 4u; ++direction)
+			{
+				environment.state.holographic_cascade_rays_draw_shader_cascades[direction] = 4u;
+				glProgramUniform1ui
+				(
+					environment.state.holographic_cascade_rays_draw_shaders[direction],
+					environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_locations[direction],
+					environment.state.holographic_cascade_rays_draw_shader_cascades[direction]
+				);
+				environment.state.holographic_cascade_fluence_draw_shader_cascades[direction] = environment.state.holographic_cascade_rays_draw_shader_cascades[direction];
+				glProgramUniform1ui
+				(
+					environment.state.holographic_cascade_fluence_draw_shaders[direction],
+					environment.state.holographic_cascade_fluence_draw_shader_cascade_uniform_locations[direction],
+					environment.state.holographic_cascade_fluence_draw_shader_cascades[direction]
+				);
+			}
 			break;
 		case 9u:
-			environment.state.holographic_cascade_rays_draw_shader_cascade = 5u;
-			glProgramUniform1ui
-			(
-				environment.state.holographic_cascade_rays_draw_shader,
-				environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_location,
-				environment.state.holographic_cascade_rays_draw_shader_cascade
-			);
-			environment.state.holographic_cascade_fluence_draw_shader_cascade = environment.state.holographic_cascade_rays_draw_shader_cascade;
-			glProgramUniform1ui
-			(
-				environment.state.holographic_cascade_fluence_draw_shader,
-				environment.state.holographic_cascade_fluence_draw_shader_cascade_uniform_location,
-				environment.state.holographic_cascade_fluence_draw_shader_cascade
-			);
+			for (GLuint direction{ 0u }; direction < 4u; ++direction)
+			{
+				environment.state.holographic_cascade_rays_draw_shader_cascades[direction] = 5u;
+				glProgramUniform1ui
+				(
+					environment.state.holographic_cascade_rays_draw_shaders[direction],
+					environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_locations[direction],
+					environment.state.holographic_cascade_rays_draw_shader_cascades[direction]
+				);
+				environment.state.holographic_cascade_fluence_draw_shader_cascades[direction] = environment.state.holographic_cascade_rays_draw_shader_cascades[direction];
+				glProgramUniform1ui
+				(
+					environment.state.holographic_cascade_fluence_draw_shaders[direction],
+					environment.state.holographic_cascade_fluence_draw_shader_cascade_uniform_locations[direction],
+					environment.state.holographic_cascade_fluence_draw_shader_cascades[direction]
+				);
+			}
 			break;
 		case 10u:
-			environment.state.holographic_cascade_rays_draw_shader_cascade = 6u;
-			glProgramUniform1ui
-			(
-				environment.state.holographic_cascade_rays_draw_shader,
-				environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_location,
-				environment.state.holographic_cascade_rays_draw_shader_cascade
-			);
-			environment.state.holographic_cascade_fluence_draw_shader_cascade = environment.state.holographic_cascade_rays_draw_shader_cascade;
-			glProgramUniform1ui
-			(
-				environment.state.holographic_cascade_fluence_draw_shader,
-				environment.state.holographic_cascade_fluence_draw_shader_cascade_uniform_location,
-				environment.state.holographic_cascade_fluence_draw_shader_cascade
-			);
+			for (GLuint direction{ 0u }; direction < 4u; ++direction)
+			{
+				environment.state.holographic_cascade_rays_draw_shader_cascades[direction] = 6u;
+				glProgramUniform1ui
+				(
+					environment.state.holographic_cascade_rays_draw_shaders[direction],
+					environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_locations[direction],
+					environment.state.holographic_cascade_rays_draw_shader_cascades[direction]
+				);
+				environment.state.holographic_cascade_fluence_draw_shader_cascades[direction] = environment.state.holographic_cascade_rays_draw_shader_cascades[direction];
+				glProgramUniform1ui
+				(
+					environment.state.holographic_cascade_fluence_draw_shaders[direction],
+					environment.state.holographic_cascade_fluence_draw_shader_cascade_uniform_locations[direction],
+					environment.state.holographic_cascade_fluence_draw_shader_cascades[direction]
+				);
+			}
 			break;
 		case 11u:
-			environment.state.holographic_cascade_rays_draw_shader_cascade = 7u;
-			glProgramUniform1ui
-			(
-				environment.state.holographic_cascade_rays_draw_shader,
-				environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_location,
-				environment.state.holographic_cascade_rays_draw_shader_cascade
-			);
-			environment.state.holographic_cascade_fluence_draw_shader_cascade = environment.state.holographic_cascade_rays_draw_shader_cascade;
-			glProgramUniform1ui
-			(
-				environment.state.holographic_cascade_fluence_draw_shader,
-				environment.state.holographic_cascade_fluence_draw_shader_cascade_uniform_location,
-				environment.state.holographic_cascade_fluence_draw_shader_cascade
-			);
+			for (GLuint direction{ 0u }; direction < 4u; ++direction)
+			{
+				environment.state.holographic_cascade_rays_draw_shader_cascades[direction] = 7u;
+				glProgramUniform1ui
+				(
+					environment.state.holographic_cascade_rays_draw_shaders[direction],
+					environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_locations[direction],
+					environment.state.holographic_cascade_rays_draw_shader_cascades[direction]
+				);
+				environment.state.holographic_cascade_fluence_draw_shader_cascades[direction] = environment.state.holographic_cascade_rays_draw_shader_cascades[direction];
+				glProgramUniform1ui
+				(
+					environment.state.holographic_cascade_fluence_draw_shaders[direction],
+					environment.state.holographic_cascade_fluence_draw_shader_cascade_uniform_locations[direction],
+					environment.state.holographic_cascade_fluence_draw_shader_cascades[direction]
+				);
+			}
 			break;
 		case 12u:
-			environment.state.holographic_cascade_rays_draw_shader_cascade = 1u;
-			glProgramUniform1ui
-			(
-				environment.state.holographic_cascade_rays_draw_shader,
-				environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_location,
-				environment.state.holographic_cascade_rays_draw_shader_cascade
-			);
-			environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascade = environment.state.holographic_cascade_rays_draw_shader_cascade;
-			glProgramUniform1ui
-			(
-				environment.state.holographic_cascade_fluence_single_cone_draw_shader,
-				environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascade_uniform_location,
-				environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascade
-			);
+			for (GLuint direction{ 0u }; direction < 4u; ++direction)
+			{
+				environment.state.holographic_cascade_rays_draw_shader_cascades[direction] = 1u;
+				glProgramUniform1ui
+				(
+					environment.state.holographic_cascade_rays_draw_shaders[direction],
+					environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_locations[direction],
+					environment.state.holographic_cascade_rays_draw_shader_cascades[direction]
+				);
+				environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascades[direction] = environment.state.holographic_cascade_rays_draw_shader_cascades[direction];
+				glProgramUniform1ui
+				(
+					environment.state.holographic_cascade_fluence_single_cone_draw_shaders[direction],
+					environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascade_uniform_locations[direction],
+					environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascades[direction]
+				);
+			}
 			break;
 		case 13u:
-			environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_cascade = 2u;
-			glProgramUniform1ui
-			(
-				environment.state.holographic_cascade_rays_merge_to_cone_draw_shader,
-				environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_cascade_uniform_location,
-				environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_cascade
-			);
-			environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascade = environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_cascade;
-			glProgramUniform1ui
-			(
-				environment.state.holographic_cascade_fluence_single_cone_draw_shader,
-				environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascade_uniform_location,
-				environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascade
-			);
-			environment.state.holographic_cascade_fluence_merge_to_draw_shader_cascade = environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_cascade + 1u;
-			glProgramUniform1ui
-			(
-				environment.state.holographic_cascade_fluence_merge_to_draw_shader,
-				environment.state.holographic_cascade_fluence_merge_to_draw_shader_cascade_uniform_location,
-				environment.state.holographic_cascade_fluence_merge_to_draw_shader_cascade
-			);
+			for (GLuint direction{ 0u }; direction < 4u; ++direction)
+			{
+				environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_cascades[direction] = 2u;
+				glProgramUniform1ui
+				(
+					environment.state.holographic_cascade_rays_merge_to_cone_draw_shaders[direction],
+					environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_cascade_uniform_locations[direction],
+					environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_cascades[direction]
+				);
+				environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascades[direction] = environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_cascades[direction];
+				glProgramUniform1ui
+				(
+					environment.state.holographic_cascade_fluence_single_cone_draw_shaders[direction],
+					environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascade_uniform_locations[direction],
+					environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascades[direction]
+				);
+				environment.state.holographic_cascade_fluence_merge_to_draw_shader_cascades[direction] = environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_cascades[direction] + 1u;
+				glProgramUniform1ui
+				(
+					environment.state.holographic_cascade_fluence_merge_to_draw_shaders[direction],
+					environment.state.holographic_cascade_fluence_merge_to_draw_shader_cascade_uniform_locations[direction],
+					environment.state.holographic_cascade_fluence_merge_to_draw_shader_cascades[direction]
+				);
+			}
 			break;
 		case 14u:
-			environment.state.holographic_cascade_rays_single_ray_draw_shader_cascade = 1u;
-			glProgramUniform1ui
-			(
-				environment.state.holographic_cascade_rays_single_ray_draw_shader,
-				environment.state.holographic_cascade_rays_single_ray_draw_shader_cascade_uniform_location,
-				environment.state.holographic_cascade_rays_single_ray_draw_shader_cascade
-			);
-			environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascade = environment.state.holographic_cascade_rays_draw_shader_cascade;
-			glProgramUniform1ui
-			(
-				environment.state.holographic_cascade_fluence_single_cone_draw_shader,
-				environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascade_uniform_location,
-				environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascade
-			);
+			for (GLuint direction{ 0u }; direction < 4u; ++direction)
+			{
+				environment.state.holographic_cascade_rays_single_ray_draw_shader_cascades[direction] = 1u;
+				glProgramUniform1ui
+				(
+					environment.state.holographic_cascade_rays_single_ray_draw_shaders[direction],
+					environment.state.holographic_cascade_rays_single_ray_draw_shader_cascade_uniform_locations[direction],
+					environment.state.holographic_cascade_rays_single_ray_draw_shader_cascades[direction]
+				);
+				environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascades[direction] = environment.state.holographic_cascade_rays_draw_shader_cascades[direction];
+				glProgramUniform1ui
+				(
+					environment.state.holographic_cascade_fluence_single_cone_draw_shaders[direction],
+					environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascade_uniform_locations[direction],
+					environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascades[direction]
+				);
+			}
 			break;
 		case 15u:
-			environment.state.holographic_cascade_rays_single_ray_draw_shader_cascade = 3u;
-			glProgramUniform1ui
-			(
-				environment.state.holographic_cascade_rays_single_ray_draw_shader,
-				environment.state.holographic_cascade_rays_single_ray_draw_shader_cascade_uniform_location,
-				environment.state.holographic_cascade_rays_single_ray_draw_shader_cascade
-			);
-			environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_cascade = environment.state.holographic_cascade_rays_single_ray_draw_shader_cascade - 1u;
-			glProgramUniform1ui
-			(
-				environment.state.holographic_cascade_rays_merge_to_ray_draw_shader,
-				environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_cascade_uniform_location,
-				environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_cascade
-			);
+			for (GLuint direction{ 0u }; direction < 4u; ++direction)
+			{
+				environment.state.holographic_cascade_rays_single_ray_draw_shader_cascades[direction] = 3u;
+				glProgramUniform1ui
+				(
+					environment.state.holographic_cascade_rays_single_ray_draw_shaders[direction],
+					environment.state.holographic_cascade_rays_single_ray_draw_shader_cascade_uniform_locations[direction],
+					environment.state.holographic_cascade_rays_single_ray_draw_shader_cascades[direction]
+				);
+				environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_cascades[direction] = environment.state.holographic_cascade_rays_single_ray_draw_shader_cascades[direction] - 1u;
+				glProgramUniform1ui
+				(
+					environment.state.holographic_cascade_rays_merge_to_ray_draw_shaders[direction],
+					environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_cascade_uniform_locations[direction],
+					environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_cascades[direction]
+				);
+			}
 			break;
 		case 16u:
 			set_nearest_fluence_interpolation(environment);
@@ -1896,40 +1949,52 @@ namespace game_logic
 			set_linear_fluence_interpolation(environment);
 			break;
 		case 18u:
-			environment.state.holographic_cascade_rays_radiance_draw_shader_cascade = 0u;
-			glProgramUniform1ui
-			(
-				environment.state.holographic_cascade_rays_radiance_draw_shader,
-				environment.state.holographic_cascade_rays_radiance_draw_shader_cascade_uniform_location,
-				environment.state.holographic_cascade_rays_radiance_draw_shader_cascade
-			);
+			for (GLuint direction{ 0u }; direction < 4u; ++direction)
+			{
+				environment.state.holographic_cascade_rays_radiance_draw_shader_cascades[direction] = 0u;
+				glProgramUniform1ui
+				(
+					environment.state.holographic_cascade_rays_radiance_draw_shaders[direction],
+					environment.state.holographic_cascade_rays_radiance_draw_shader_cascade_uniform_locations[direction],
+					environment.state.holographic_cascade_rays_radiance_draw_shader_cascades[direction]
+				);
+			}
 			break;
 		case 19u:
-			environment.state.holographic_cascade_rays_radiance_draw_shader_cascade = 1u;
-			glProgramUniform1ui
-			(
-				environment.state.holographic_cascade_rays_radiance_draw_shader,
-				environment.state.holographic_cascade_rays_radiance_draw_shader_cascade_uniform_location,
-				environment.state.holographic_cascade_rays_radiance_draw_shader_cascade
-			);
+			for (GLuint direction{ 0u }; direction < 4u; ++direction)
+			{
+				environment.state.holographic_cascade_rays_radiance_draw_shader_cascades[direction] = 1u;
+				glProgramUniform1ui
+				(
+					environment.state.holographic_cascade_rays_radiance_draw_shaders[direction],
+					environment.state.holographic_cascade_rays_radiance_draw_shader_cascade_uniform_locations[direction],
+					environment.state.holographic_cascade_rays_radiance_draw_shader_cascades[direction]
+				);
+			}
 			break;
 		case 20u:
-			environment.state.holographic_cascade_rays_radiance_draw_shader_cascade = 2u;
-			glProgramUniform1ui
-			(
-				environment.state.holographic_cascade_rays_radiance_draw_shader,
-				environment.state.holographic_cascade_rays_radiance_draw_shader_cascade_uniform_location,
-				environment.state.holographic_cascade_rays_radiance_draw_shader_cascade
-			);
+			for (GLuint direction{ 0u }; direction < 4u; ++direction)
+			{
+				environment.state.holographic_cascade_rays_radiance_draw_shader_cascades[direction] = 2u;
+				glProgramUniform1ui
+				(
+					environment.state.holographic_cascade_rays_radiance_draw_shaders[direction],
+					environment.state.holographic_cascade_rays_radiance_draw_shader_cascade_uniform_locations[direction],
+					environment.state.holographic_cascade_rays_radiance_draw_shader_cascades[direction]
+				);
+			}
 			break;
 		case 21u:
-			environment.state.holographic_cascade_rays_radiance_draw_shader_cascade = 3u;
-			glProgramUniform1ui
-			(
-				environment.state.holographic_cascade_rays_radiance_draw_shader,
-				environment.state.holographic_cascade_rays_radiance_draw_shader_cascade_uniform_location,
-				environment.state.holographic_cascade_rays_radiance_draw_shader_cascade
-			);
+			for (GLuint direction{ 0u }; direction < 4u; ++direction)
+			{
+				environment.state.holographic_cascade_rays_radiance_draw_shader_cascades[direction] = 3u;
+				glProgramUniform1ui
+				(
+					environment.state.holographic_cascade_rays_radiance_draw_shaders[direction],
+					environment.state.holographic_cascade_rays_radiance_draw_shader_cascade_uniform_locations[direction],
+					environment.state.holographic_cascade_rays_radiance_draw_shader_cascades[direction]
+				);
+			}
 			break;
 		}
 	}
@@ -1955,14 +2020,17 @@ namespace game_logic
 	{
 		std::cout << "Free SOME default framebuffer size dependent data" << std::endl;
 
-		glDeleteProgram(environment.state.holographic_sky_circle_gather_shader);
 		glDeleteProgram(environment.state.holographic_draw_fluence_shader);
-		for (GLuint i{ 0u }; i < environment.state.holographic_ray_trace_shader_count; ++i)
+		for (GLuint direction{ 0u }; direction < 4u; ++direction)
 		{
-			glDeleteProgram(environment.state.holographic_ray_trace_shaders[i]);
+			glDeleteProgram(environment.state.holographic_sky_circle_gather_shaders[direction]);
+			for (GLuint i{ 0u }; i < environment.state.holographic_ray_trace_shader_counts[direction]; ++i)
+			{
+				glDeleteProgram(environment.state.holographic_ray_trace_shaders[direction][i]);
+			}
+			delete[] environment.state.holographic_ray_trace_shaders[direction];
+			delete[] environment.state.holographic_ray_trace_shader_source_uniform_locations[direction];
 		}
-		delete[] environment.state.holographic_ray_trace_shaders;
-		delete[] environment.state.holographic_ray_trace_shader_source_uniform_locations;
 
 		glDeleteFramebuffers(std::size(environment.state.framebuffers), environment.state.framebuffers);
 		glDeleteFramebuffers(environment.state.max_cascade_index, environment.state.holographic_ray_framebuffers);
@@ -1979,8 +2047,14 @@ namespace game_logic
 		free_some_default_framebuffer_size_dependent_data(environment);
 		GLuint buffers[]
 		{
-			environment.state.holographic_ray_extend_buffer,
-			environment.state.holographic_fluence_gather_buffer,
+			environment.state.holographic_ray_extend_buffers[0u],
+			environment.state.holographic_ray_extend_buffers[1u],
+			environment.state.holographic_ray_extend_buffers[2u],
+			environment.state.holographic_ray_extend_buffers[3u],
+			environment.state.holographic_fluence_gather_buffers[0u],
+			environment.state.holographic_fluence_gather_buffers[1u],
+			environment.state.holographic_fluence_gather_buffers[2u],
+			environment.state.holographic_fluence_gather_buffers[3u],
 		};
 		glDeleteBuffers(std::size(buffers), buffers);
 	}
@@ -3035,6 +3109,7 @@ namespace game_logic
 			}
 		}
 
+		for (GLuint direction{ 0u }; direction < 4u; ++direction)
 		{
 			std::string cone_radius_definition{ "const float cone_radius = " + std::to_string(0.5f) + ";\n" };
 			constexpr GLuint showcase_cascade_value{ 0u };
@@ -3057,7 +3132,7 @@ namespace game_logic
 				std::string west_direction_definition{ "#define WEST_DIRECTION " + std::to_string(game_state::holographic_west_direction) + '\n' };
 				std::string south_direction_definition{ "#define SOUTH_DIRECTION " + std::to_string(game_state::holographic_south_direction) + '\n' };
 
-				std::string direction_definition{ "#define DIRECTION " + std::to_string(game_state::temporary_direction) + '\n' };
+				std::string direction_definition{ "#define DIRECTION " + std::to_string(direction) + '\n' };
 
 				std::string mode_definition{ "#define MODE " + std::to_string(showcase_cascade_value) + "\n" };
 
@@ -3102,38 +3177,39 @@ namespace game_logic
 					mode_definition,
 					::util::shader::file_to_string("holographic_radiance_cascades/cascade_fluence/cascade_fluence.frag")
 				);
-				environment.state.holographic_cascade_fluence_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
-				environment.state.holographic_cascade_fluence_draw_shader_probe_grid_size_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_fluence_draw_shader, "probe_grid_size");
-				environment.state.holographic_cascade_fluence_draw_shader_source_size_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_fluence_draw_shader, "source_size");
-				environment.state.holographic_cascade_fluence_draw_shader_probe_padding_factor_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_fluence_draw_shader, "probe_padding_factor");
-				environment.state.holographic_cascade_fluence_draw_shader_cascade_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_fluence_draw_shader, "cascade");
+				environment.state.holographic_cascade_fluence_draw_shaders[direction] = ::util::shader::create_program(vertex_shader, fragment_shader);
+				environment.state.holographic_cascade_fluence_draw_shader_probe_grid_size_uniform_locations[direction] = glGetUniformLocation(environment.state.holographic_cascade_fluence_draw_shaders[direction], "probe_grid_size");
+				environment.state.holographic_cascade_fluence_draw_shader_source_size_uniform_locations[direction] = glGetUniformLocation(environment.state.holographic_cascade_fluence_draw_shaders[direction], "source_size");
+				environment.state.holographic_cascade_fluence_draw_shader_probe_padding_factor_uniform_locations[direction] = glGetUniformLocation(environment.state.holographic_cascade_fluence_draw_shaders[direction], "probe_padding_factor");
+				environment.state.holographic_cascade_fluence_draw_shader_cascade_uniform_locations[direction] = glGetUniformLocation(environment.state.holographic_cascade_fluence_draw_shaders[direction], "cascade");
 				glProgramUniform2ui
 				(
-					environment.state.holographic_cascade_fluence_draw_shader,
-					environment.state.holographic_cascade_fluence_draw_shader_probe_grid_size_uniform_location,
+					environment.state.holographic_cascade_fluence_draw_shaders[direction],
+					environment.state.holographic_cascade_fluence_draw_shader_probe_grid_size_uniform_locations[direction],
 					environment.state.holographic_probe_grid_width, environment.state.holographic_probe_grid_height
 				);
-				environment.state.holographic_cascade_fluence_draw_shader_cascade = 1u;
+				environment.state.holographic_cascade_fluence_draw_shader_cascades[direction] = 1u;
 				glProgramUniform1ui
 				(
-					environment.state.holographic_cascade_fluence_draw_shader,
-					environment.state.holographic_cascade_fluence_draw_shader_cascade_uniform_location,
-					environment.state.holographic_cascade_fluence_draw_shader_cascade
+					environment.state.holographic_cascade_fluence_draw_shaders[direction],
+					environment.state.holographic_cascade_fluence_draw_shader_cascade_uniform_locations[direction],
+					environment.state.holographic_cascade_fluence_draw_shader_cascades[direction]
 				);
 				std::cout << "Holographic cascade fluence draw shader compiled. Probe grid size uniform location: "
-					<< environment.state.holographic_cascade_fluence_draw_shader_probe_grid_size_uniform_location << ". Source size uniform location: "
-					<< environment.state.holographic_cascade_fluence_draw_shader_source_size_uniform_location << ". Probe padding factor uniform location: "
-					<< environment.state.holographic_cascade_fluence_draw_shader_probe_padding_factor_uniform_location << ". Cascade uniform location: "
-					<< environment.state.holographic_cascade_fluence_draw_shader_cascade_uniform_location << std::endl;
+					<< environment.state.holographic_cascade_fluence_draw_shader_probe_grid_size_uniform_locations[direction] << ". Source size uniform location: "
+					<< environment.state.holographic_cascade_fluence_draw_shader_source_size_uniform_locations[direction] << ". Probe padding factor uniform location: "
+					<< environment.state.holographic_cascade_fluence_draw_shader_probe_padding_factor_uniform_locations[direction] << ". Cascade uniform location: "
+					<< environment.state.holographic_cascade_fluence_draw_shader_cascade_uniform_locations[direction] << std::endl;
 			}
 
+			for (GLuint direction{ 0u }; direction < 4u; ++direction)
 			{
 				std::string east_direction_definition{ "#define EAST_DIRECTION " + std::to_string(game_state::holographic_east_direction) + '\n' };
 				std::string north_direction_definition{ "#define NORTH_DIRECTION " + std::to_string(game_state::holographic_north_direction) + '\n' };
 				std::string west_direction_definition{ "#define WEST_DIRECTION " + std::to_string(game_state::holographic_west_direction) + '\n' };
 				std::string south_direction_definition{ "#define SOUTH_DIRECTION " + std::to_string(game_state::holographic_south_direction) + '\n' };
 
-				std::string direction_definition{ "#define DIRECTION " + std::to_string(game_state::temporary_direction) + '\n' };
+				std::string direction_definition{ "#define DIRECTION " + std::to_string(direction) + '\n' };
 
 				std::string mode_definition{ "#define MODE " + std::to_string(showcase_single_cone_value) + "\n" };
 
@@ -3179,50 +3255,51 @@ namespace game_logic
 					::util::shader::file_to_string("holographic_radiance_cascades/cascade_fluence/cascade_fluence.frag")
 				);
 
-				environment.state.holographic_cascade_fluence_single_cone_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
-				environment.state.holographic_cascade_fluence_single_cone_draw_shader_probe_grid_size_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_fluence_single_cone_draw_shader, "probe_grid_size");
-				environment.state.holographic_cascade_fluence_single_cone_draw_shader_source_size_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_fluence_single_cone_draw_shader, "source_size");
-				environment.state.holographic_cascade_fluence_single_cone_draw_shader_probe_padding_factor_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_fluence_single_cone_draw_shader, "probe_padding_factor");
-				environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascade_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_fluence_single_cone_draw_shader, "cascade");
-				environment.state.holographic_cascade_fluence_single_cone_draw_shader_showcased_cone_texel_position_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_fluence_single_cone_draw_shader, "showcased_cone_texel_position");
+				environment.state.holographic_cascade_fluence_single_cone_draw_shaders[direction] = ::util::shader::create_program(vertex_shader, fragment_shader);
+				environment.state.holographic_cascade_fluence_single_cone_draw_shader_probe_grid_size_uniform_locations[direction] = glGetUniformLocation(environment.state.holographic_cascade_fluence_single_cone_draw_shaders[direction], "probe_grid_size");
+				environment.state.holographic_cascade_fluence_single_cone_draw_shader_source_size_uniform_locations[direction] = glGetUniformLocation(environment.state.holographic_cascade_fluence_single_cone_draw_shaders[direction], "source_size");
+				environment.state.holographic_cascade_fluence_single_cone_draw_shader_probe_padding_factor_uniform_locations[direction] = glGetUniformLocation(environment.state.holographic_cascade_fluence_single_cone_draw_shaders[direction], "probe_padding_factor");
+				environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascade_uniform_locations[direction] = glGetUniformLocation(environment.state.holographic_cascade_fluence_single_cone_draw_shaders[direction], "cascade");
+				environment.state.holographic_cascade_fluence_single_cone_draw_shader_showcased_cone_texel_position_uniform_locations[direction] = glGetUniformLocation(environment.state.holographic_cascade_fluence_single_cone_draw_shaders[direction], "showcased_cone_texel_position");
 
 				glProgramUniform2ui
 				(
-					environment.state.holographic_cascade_fluence_single_cone_draw_shader,
-					environment.state.holographic_cascade_fluence_single_cone_draw_shader_probe_grid_size_uniform_location,
+					environment.state.holographic_cascade_fluence_single_cone_draw_shaders[direction],
+					environment.state.holographic_cascade_fluence_single_cone_draw_shader_probe_grid_size_uniform_locations[direction],
 					environment.state.holographic_probe_grid_width, environment.state.holographic_probe_grid_height
 				);
-				environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascade = 0u;
+				environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascades[direction] = 0u;
 				glProgramUniform1ui
 				(
-					environment.state.holographic_cascade_fluence_single_cone_draw_shader,
-					environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascade_uniform_location,
-					environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascade
+					environment.state.holographic_cascade_fluence_single_cone_draw_shaders[direction],
+					environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascade_uniform_locations[direction],
+					environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascades[direction]
 				);
 				environment.state.holographic_cascade_fluence_single_cone_draw_shader_showcased_cone_texel_x = 1u;
 				environment.state.holographic_cascade_fluence_single_cone_draw_shader_showcased_cone_texel_y = 1u;
 				glProgramUniform2ui
 				(
-					environment.state.holographic_cascade_fluence_single_cone_draw_shader,
-					environment.state.holographic_cascade_fluence_single_cone_draw_shader_showcased_cone_texel_position_uniform_location,
+					environment.state.holographic_cascade_fluence_single_cone_draw_shaders[direction],
+					environment.state.holographic_cascade_fluence_single_cone_draw_shader_showcased_cone_texel_position_uniform_locations[direction],
 					environment.state.holographic_cascade_fluence_single_cone_draw_shader_showcased_cone_texel_x,
 					environment.state.holographic_cascade_fluence_single_cone_draw_shader_showcased_cone_texel_y
 				);
 				std::cout << "Holographic cascade fluence single cone draw shader compiled. Probe grid size uniform location: "
-					<< environment.state.holographic_cascade_fluence_single_cone_draw_shader_probe_grid_size_uniform_location << ". Source size uniform location: "
-					<< environment.state.holographic_cascade_fluence_draw_shader_source_size_uniform_location << ". Probe padding factor uniform location: "
-					<< environment.state.holographic_cascade_fluence_draw_shader_probe_padding_factor_uniform_location << ". Cascade uniform location: "
-					<< environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascade_uniform_location << ". Showcased cone texel position: "
-					<< environment.state.holographic_cascade_fluence_single_cone_draw_shader_showcased_cone_texel_position_uniform_location << std::endl;
+					<< environment.state.holographic_cascade_fluence_single_cone_draw_shader_probe_grid_size_uniform_locations[direction] << ". Source size uniform location: "
+					<< environment.state.holographic_cascade_fluence_draw_shader_source_size_uniform_locations[direction] << ". Probe padding factor uniform location: "
+					<< environment.state.holographic_cascade_fluence_draw_shader_probe_padding_factor_uniform_locations[direction] << ". Cascade uniform location: "
+					<< environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascade_uniform_locations[direction] << ". Showcased cone texel position: "
+					<< environment.state.holographic_cascade_fluence_single_cone_draw_shader_showcased_cone_texel_position_uniform_locations[direction] << std::endl;
 			}
 
+			for (GLuint direction{ 0u }; direction < 4u; ++direction)
 			{
 				std::string east_direction_definition{ "#define EAST_DIRECTION " + std::to_string(game_state::holographic_east_direction) + '\n' };
 				std::string north_direction_definition{ "#define NORTH_DIRECTION " + std::to_string(game_state::holographic_north_direction) + '\n' };
 				std::string west_direction_definition{ "#define WEST_DIRECTION " + std::to_string(game_state::holographic_west_direction) + '\n' };
 				std::string south_direction_definition{ "#define SOUTH_DIRECTION " + std::to_string(game_state::holographic_south_direction) + '\n' };
 
-				std::string direction_definition{ "#define DIRECTION " + std::to_string(game_state::temporary_direction) + '\n' };
+				std::string direction_definition{ "#define DIRECTION " + std::to_string(direction) + '\n' };
 
 				std::string mode_definition{ "#define MODE " + std::to_string(showcase_merge_to_value) + "\n" };
 
@@ -3268,41 +3345,41 @@ namespace game_logic
 					::util::shader::file_to_string("holographic_radiance_cascades/cascade_fluence/cascade_fluence.frag")
 				);
 
-				environment.state.holographic_cascade_fluence_merge_to_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
-				environment.state.holographic_cascade_fluence_merge_to_draw_shader_probe_grid_size_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_fluence_merge_to_draw_shader, "probe_grid_size");
-				environment.state.holographic_cascade_fluence_merge_to_draw_shader_source_size_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_fluence_merge_to_draw_shader, "source_size");
-				environment.state.holographic_cascade_fluence_merge_to_draw_shader_probe_padding_factor_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_fluence_merge_to_draw_shader, "probe_padding_factor");
-				environment.state.holographic_cascade_fluence_merge_to_draw_shader_cascade_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_fluence_merge_to_draw_shader, "cascade");
-				environment.state.holographic_cascade_fluence_merge_to_draw_shader_merged_to_cone_texel_position_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_fluence_merge_to_draw_shader, "merged_to_cone_texel_position");
+				environment.state.holographic_cascade_fluence_merge_to_draw_shaders[direction] = ::util::shader::create_program(vertex_shader, fragment_shader);
+				environment.state.holographic_cascade_fluence_merge_to_draw_shader_probe_grid_size_uniform_locations[direction] = glGetUniformLocation(environment.state.holographic_cascade_fluence_merge_to_draw_shaders[direction], "probe_grid_size");
+				environment.state.holographic_cascade_fluence_merge_to_draw_shader_source_size_uniform_locations[direction] = glGetUniformLocation(environment.state.holographic_cascade_fluence_merge_to_draw_shaders[direction], "source_size");
+				environment.state.holographic_cascade_fluence_merge_to_draw_shader_probe_padding_factor_uniform_locations[direction] = glGetUniformLocation(environment.state.holographic_cascade_fluence_merge_to_draw_shaders[direction], "probe_padding_factor");
+				environment.state.holographic_cascade_fluence_merge_to_draw_shader_cascade_uniform_locations[direction] = glGetUniformLocation(environment.state.holographic_cascade_fluence_merge_to_draw_shaders[direction], "cascade");
+				environment.state.holographic_cascade_fluence_merge_to_draw_shader_merged_to_cone_texel_position_uniform_locations[direction] = glGetUniformLocation(environment.state.holographic_cascade_fluence_merge_to_draw_shaders[direction], "merged_to_cone_texel_position");
 
 				glProgramUniform2ui
 				(
-					environment.state.holographic_cascade_fluence_merge_to_draw_shader,
-					environment.state.holographic_cascade_fluence_merge_to_draw_shader_probe_grid_size_uniform_location,
+					environment.state.holographic_cascade_fluence_merge_to_draw_shaders[direction],
+					environment.state.holographic_cascade_fluence_merge_to_draw_shader_probe_grid_size_uniform_locations[direction],
 					environment.state.holographic_probe_grid_width, environment.state.holographic_probe_grid_height
 				);
-				environment.state.holographic_cascade_fluence_merge_to_draw_shader_cascade = 1u;
+				environment.state.holographic_cascade_fluence_merge_to_draw_shader_cascades[direction] = 1u;
 				glProgramUniform1ui
 				(
-					environment.state.holographic_cascade_fluence_merge_to_draw_shader,
-					environment.state.holographic_cascade_fluence_merge_to_draw_shader_cascade_uniform_location,
-					environment.state.holographic_cascade_fluence_merge_to_draw_shader_cascade
+					environment.state.holographic_cascade_fluence_merge_to_draw_shaders[direction],
+					environment.state.holographic_cascade_fluence_merge_to_draw_shader_cascade_uniform_locations[direction],
+					environment.state.holographic_cascade_fluence_merge_to_draw_shader_cascades[direction]
 				);
 				environment.state.holographic_cascade_fluence_merge_to_draw_shader_merged_to_cone_texel_x = 1u;
 				environment.state.holographic_cascade_fluence_merge_to_draw_shader_merged_to_cone_texel_y = 1u;
 				glProgramUniform2ui
 				(
-					environment.state.holographic_cascade_fluence_merge_to_draw_shader,
-					environment.state.holographic_cascade_fluence_merge_to_draw_shader_merged_to_cone_texel_position_uniform_location,
+					environment.state.holographic_cascade_fluence_merge_to_draw_shaders[direction],
+					environment.state.holographic_cascade_fluence_merge_to_draw_shader_merged_to_cone_texel_position_uniform_locations[direction],
 					environment.state.holographic_cascade_fluence_merge_to_draw_shader_merged_to_cone_texel_x,
 					environment.state.holographic_cascade_fluence_merge_to_draw_shader_merged_to_cone_texel_y
 				);
 				std::cout << "Holographic cascade fluence merge to draw shader compiled. Probe grid size uniform location: "
-					<< environment.state.holographic_cascade_fluence_merge_to_draw_shader_probe_grid_size_uniform_location << ". Source size uniform location: "
-					<< environment.state.holographic_cascade_fluence_draw_shader_source_size_uniform_location << ". Probe padding factor uniform location: "
-					<< environment.state.holographic_cascade_fluence_draw_shader_probe_padding_factor_uniform_location << ". Cascade uniform location: "
-					<< environment.state.holographic_cascade_fluence_merge_to_draw_shader_cascade_uniform_location << ". Merged to cone texel position uniform location: "
-					<< environment.state.holographic_cascade_fluence_merge_to_draw_shader_merged_to_cone_texel_position_uniform_location << std::endl;
+					<< environment.state.holographic_cascade_fluence_merge_to_draw_shader_probe_grid_size_uniform_locations[direction] << ". Source size uniform location: "
+					<< environment.state.holographic_cascade_fluence_draw_shader_source_size_uniform_locations[direction] << ". Probe padding factor uniform location: "
+					<< environment.state.holographic_cascade_fluence_draw_shader_probe_padding_factor_uniform_locations[direction] << ". Cascade uniform location: "
+					<< environment.state.holographic_cascade_fluence_merge_to_draw_shader_cascade_uniform_locations[direction] << ". Merged to cone texel position uniform location: "
+					<< environment.state.holographic_cascade_fluence_merge_to_draw_shader_merged_to_cone_texel_position_uniform_locations[direction] << std::endl;
 			}
 		}
 
@@ -3334,13 +3411,14 @@ namespace game_logic
 			GLuint ray_texture_mode_value{ environment.state.use_row_ray_textures ? row_ray_texture_mode_value : column_ray_texture_mode_value };
 			std::string ray_texture_mode_definition{ "#define RAY_TEXTURE_MODE " + std::to_string(ray_texture_mode_value) + '\n' };
 
+			for (GLuint direction{ 0u }; direction < 4u; ++direction)
 			{
 				std::string east_direction_definition{ "#define EAST_DIRECTION " + std::to_string(game_state::holographic_east_direction) + '\n' };
 				std::string north_direction_definition{ "#define NORTH_DIRECTION " + std::to_string(game_state::holographic_north_direction) + '\n' };
 				std::string west_direction_definition{ "#define WEST_DIRECTION " + std::to_string(game_state::holographic_west_direction) + '\n' };
 				std::string south_direction_definition{ "#define SOUTH_DIRECTION " + std::to_string(game_state::holographic_south_direction) + '\n' };
 
-				std::string direction_definition{ "#define DIRECTION " + std::to_string(game_state::temporary_direction) + '\n' };
+				std::string direction_definition{ "#define DIRECTION " + std::to_string(direction) + '\n' };
 
 				std::string mode_definition{ "#define MODE " + std::to_string(showcase_cascade_value) + "\n" };
 
@@ -3393,38 +3471,39 @@ namespace game_logic
 					ray_texture_mode_definition,
 					::util::shader::file_to_string("holographic_radiance_cascades/cascade_rays/cascade_rays.frag")
 				);
-				environment.state.holographic_cascade_rays_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
-				environment.state.holographic_cascade_rays_draw_shader_probe_grid_size_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_draw_shader, "probe_grid_size");
-				environment.state.holographic_cascade_rays_draw_shader_source_size_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_draw_shader, "source_size");
-				environment.state.holographic_cascade_rays_draw_shader_probe_padding_factor_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_draw_shader, "probe_padding_factor");
-				environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_draw_shader, "cascade");
+				environment.state.holographic_cascade_rays_draw_shaders[direction] = ::util::shader::create_program(vertex_shader, fragment_shader);
+				environment.state.holographic_cascade_rays_draw_shader_probe_grid_size_uniform_locations[direction] = glGetUniformLocation(environment.state.holographic_cascade_rays_draw_shaders[direction], "probe_grid_size");
+				environment.state.holographic_cascade_rays_draw_shader_source_size_uniform_locations[direction] = glGetUniformLocation(environment.state.holographic_cascade_rays_draw_shaders[direction], "source_size");
+				environment.state.holographic_cascade_rays_draw_shader_probe_padding_factor_uniform_locations[direction] = glGetUniformLocation(environment.state.holographic_cascade_rays_draw_shaders[direction], "probe_padding_factor");
+				environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_locations[direction] = glGetUniformLocation(environment.state.holographic_cascade_rays_draw_shaders[direction], "cascade");
 				glProgramUniform2ui
 				(
-					environment.state.holographic_cascade_rays_draw_shader,
-					environment.state.holographic_cascade_rays_draw_shader_probe_grid_size_uniform_location,
+					environment.state.holographic_cascade_rays_draw_shaders[direction],
+					environment.state.holographic_cascade_rays_draw_shader_probe_grid_size_uniform_locations[direction],
 					environment.state.holographic_probe_grid_size[0u], environment.state.holographic_probe_grid_size[1u]
 				);
-				environment.state.holographic_cascade_rays_draw_shader_cascade = 1u;
+				environment.state.holographic_cascade_rays_draw_shader_cascades[direction] = 1u;
 				glProgramUniform1ui
 				(
-					environment.state.holographic_cascade_rays_draw_shader,
-					environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_location,
-					environment.state.holographic_cascade_rays_draw_shader_cascade
+					environment.state.holographic_cascade_rays_draw_shaders[direction],
+					environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_locations[direction],
+					environment.state.holographic_cascade_rays_draw_shader_cascades[direction]
 				);
 				std::cout << "Holographic cascade rays draw shader compiled. Probe grid size uniform location: "
-					<< environment.state.holographic_cascade_rays_draw_shader_probe_grid_size_uniform_location << ". Source size uniform location: "
-					<< environment.state.holographic_cascade_rays_draw_shader_source_size_uniform_location << ". Probe padding factor uniform location: "
-					<< environment.state.holographic_cascade_rays_draw_shader_probe_padding_factor_uniform_location << ". Cascade uniform location: "
-					<< environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_location << std::endl;
+					<< environment.state.holographic_cascade_rays_draw_shader_probe_grid_size_uniform_locations[direction] << ". Source size uniform location: "
+					<< environment.state.holographic_cascade_rays_draw_shader_source_size_uniform_locations[direction] << ". Probe padding factor uniform location: "
+					<< environment.state.holographic_cascade_rays_draw_shader_probe_padding_factor_uniform_locations[direction] << ". Cascade uniform location: "
+					<< environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_locations[direction] << std::endl;
 			}
 
+			for (GLuint direction{ 0u }; direction < 4u; ++direction)
 			{
 				std::string east_direction_definition{ "#define EAST_DIRECTION " + std::to_string(game_state::holographic_east_direction) + '\n' };
 				std::string north_direction_definition{ "#define NORTH_DIRECTION " + std::to_string(game_state::holographic_north_direction) + '\n' };
 				std::string west_direction_definition{ "#define WEST_DIRECTION " + std::to_string(game_state::holographic_west_direction) + '\n' };
 				std::string south_direction_definition{ "#define SOUTH_DIRECTION " + std::to_string(game_state::holographic_south_direction) + '\n' };
 
-				std::string direction_definition{ "#define DIRECTION " + std::to_string(game_state::temporary_direction) + '\n' };
+				std::string direction_definition{ "#define DIRECTION " + std::to_string(direction) + '\n' };
 
 				std::string mode_definition{ "#define MODE " + std::to_string(showcase_single_ray_value) + "\n" };
 
@@ -3477,49 +3556,50 @@ namespace game_logic
 					ray_texture_mode_definition,
 					::util::shader::file_to_string("holographic_radiance_cascades/cascade_rays/cascade_rays.frag")
 				);
-				environment.state.holographic_cascade_rays_single_ray_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
-				environment.state.holographic_cascade_rays_single_ray_draw_shader_probe_grid_size_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_single_ray_draw_shader, "probe_grid_size");
-				environment.state.holographic_cascade_rays_single_ray_draw_shader_source_size_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_single_ray_draw_shader, "source_size");
-				environment.state.holographic_cascade_rays_single_ray_draw_shader_probe_padding_factor_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_single_ray_draw_shader, "probe_padding_factor");
-				environment.state.holographic_cascade_rays_single_ray_draw_shader_cascade_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_single_ray_draw_shader, "cascade");
-				environment.state.holographic_cascade_rays_single_ray_draw_shader_showcased_ray_texel_position_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_single_ray_draw_shader, "showcased_ray_texel_position");
+				environment.state.holographic_cascade_rays_single_ray_draw_shaders[direction] = ::util::shader::create_program(vertex_shader, fragment_shader);
+				environment.state.holographic_cascade_rays_single_ray_draw_shader_probe_grid_size_uniform_locations[direction] = glGetUniformLocation(environment.state.holographic_cascade_rays_single_ray_draw_shaders[direction], "probe_grid_size");
+				environment.state.holographic_cascade_rays_single_ray_draw_shader_source_size_uniform_locations[direction] = glGetUniformLocation(environment.state.holographic_cascade_rays_single_ray_draw_shaders[direction], "source_size");
+				environment.state.holographic_cascade_rays_single_ray_draw_shader_probe_padding_factor_uniform_locations[direction] = glGetUniformLocation(environment.state.holographic_cascade_rays_single_ray_draw_shaders[direction], "probe_padding_factor");
+				environment.state.holographic_cascade_rays_single_ray_draw_shader_cascade_uniform_locations[direction] = glGetUniformLocation(environment.state.holographic_cascade_rays_single_ray_draw_shaders[direction], "cascade");
+				environment.state.holographic_cascade_rays_single_ray_draw_shader_showcased_ray_texel_position_uniform_locations[direction] = glGetUniformLocation(environment.state.holographic_cascade_rays_single_ray_draw_shaders[direction], "showcased_ray_texel_position");
 				glProgramUniform2ui
 				(
-					environment.state.holographic_cascade_rays_single_ray_draw_shader,
-					environment.state.holographic_cascade_rays_single_ray_draw_shader_probe_grid_size_uniform_location,
+					environment.state.holographic_cascade_rays_single_ray_draw_shaders[direction],
+					environment.state.holographic_cascade_rays_single_ray_draw_shader_probe_grid_size_uniform_locations[direction],
 					environment.state.holographic_probe_grid_size[0u], environment.state.holographic_probe_grid_size[1u]
 				);
-				environment.state.holographic_cascade_rays_single_ray_draw_shader_cascade = 1u;
+				environment.state.holographic_cascade_rays_single_ray_draw_shader_cascades[direction] = 1u;
 				glProgramUniform1ui
 				(
-					environment.state.holographic_cascade_rays_single_ray_draw_shader,
-					environment.state.holographic_cascade_rays_single_ray_draw_shader_cascade_uniform_location,
-					environment.state.holographic_cascade_rays_single_ray_draw_shader_cascade
+					environment.state.holographic_cascade_rays_single_ray_draw_shaders[direction],
+					environment.state.holographic_cascade_rays_single_ray_draw_shader_cascade_uniform_locations[direction],
+					environment.state.holographic_cascade_rays_single_ray_draw_shader_cascades[direction]
 				);
 				environment.state.holographic_cascade_rays_single_ray_draw_shader_showcased_ray_texel_x = 0u;
 				environment.state.holographic_cascade_rays_single_ray_draw_shader_showcased_ray_texel_y = 1u;
 				glProgramUniform2ui
 				(
-					environment.state.holographic_cascade_rays_single_ray_draw_shader,
-					environment.state.holographic_cascade_rays_single_ray_draw_shader_showcased_ray_texel_position_uniform_location,
+					environment.state.holographic_cascade_rays_single_ray_draw_shaders[direction],
+					environment.state.holographic_cascade_rays_single_ray_draw_shader_showcased_ray_texel_position_uniform_locations[direction],
 					environment.state.holographic_cascade_rays_single_ray_draw_shader_showcased_ray_texel_x,
 					environment.state.holographic_cascade_rays_single_ray_draw_shader_showcased_ray_texel_y
 				);
 				std::cout << "Holographic cascade rays single ray draw shader compiled. Probe grid size uniform location: "
-					<< environment.state.holographic_cascade_rays_single_ray_draw_shader_probe_grid_size_uniform_location << ". Source size uniform location: "
-					<< environment.state.holographic_cascade_rays_single_ray_draw_shader_source_size_uniform_location << ". Probe padding factor uniform location: "
-					<< environment.state.holographic_cascade_rays_single_ray_draw_shader_probe_padding_factor_uniform_location << ". Cascade uniform location: "
-					<< environment.state.holographic_cascade_rays_single_ray_draw_shader_cascade_uniform_location << ". Showcased ray texel position uniform location: "
-					<< environment.state.holographic_cascade_rays_single_ray_draw_shader_showcased_ray_texel_position_uniform_location << std::endl;
+					<< environment.state.holographic_cascade_rays_single_ray_draw_shader_probe_grid_size_uniform_locations[direction] << ". Source size uniform location: "
+					<< environment.state.holographic_cascade_rays_single_ray_draw_shader_source_size_uniform_locations[direction] << ". Probe padding factor uniform location: "
+					<< environment.state.holographic_cascade_rays_single_ray_draw_shader_probe_padding_factor_uniform_locations[direction] << ". Cascade uniform location: "
+					<< environment.state.holographic_cascade_rays_single_ray_draw_shader_cascade_uniform_locations[direction] << ". Showcased ray texel position uniform location: "
+					<< environment.state.holographic_cascade_rays_single_ray_draw_shader_showcased_ray_texel_position_uniform_locations[direction] << std::endl;
 			}
 
+			for (GLuint direction{ 0u }; direction < 4u; ++direction)
 			{
 				std::string east_direction_definition{ "#define EAST_DIRECTION " + std::to_string(game_state::holographic_east_direction) + '\n' };
 				std::string north_direction_definition{ "#define NORTH_DIRECTION " + std::to_string(game_state::holographic_north_direction) + '\n' };
 				std::string west_direction_definition{ "#define WEST_DIRECTION " + std::to_string(game_state::holographic_west_direction) + '\n' };
 				std::string south_direction_definition{ "#define SOUTH_DIRECTION " + std::to_string(game_state::holographic_south_direction) + '\n' };
 
-				std::string direction_definition{ "#define DIRECTION " + std::to_string(game_state::temporary_direction) + '\n' };
+				std::string direction_definition{ "#define DIRECTION " + std::to_string(direction) + '\n' };
 
 				std::string mode_definition{ "#define MODE " + std::to_string(showcase_merge_to_cone_value) + "\n" };
 
@@ -3572,49 +3652,50 @@ namespace game_logic
 					ray_texture_mode_definition,
 					::util::shader::file_to_string("holographic_radiance_cascades/cascade_rays/cascade_rays.frag")
 				);
-				environment.state.holographic_cascade_rays_merge_to_cone_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
-				environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_probe_grid_size_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_merge_to_cone_draw_shader, "probe_grid_size");
-				environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_source_size_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_merge_to_cone_draw_shader, "source_size");
-				environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_probe_padding_factor_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_merge_to_cone_draw_shader, "probe_padding_factor");
-				environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_cascade_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_merge_to_cone_draw_shader, "cascade");
-				environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_merged_to_cone_texel_position_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_merge_to_cone_draw_shader, "merged_to_cone_texel_position");
+				environment.state.holographic_cascade_rays_merge_to_cone_draw_shaders[direction] = ::util::shader::create_program(vertex_shader, fragment_shader);
+				environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_probe_grid_size_uniform_locations[direction] = glGetUniformLocation(environment.state.holographic_cascade_rays_merge_to_cone_draw_shaders[direction], "probe_grid_size");
+				environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_source_size_uniform_locations[direction] = glGetUniformLocation(environment.state.holographic_cascade_rays_merge_to_cone_draw_shaders[direction], "source_size");
+				environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_probe_padding_factor_uniform_locations[direction] = glGetUniformLocation(environment.state.holographic_cascade_rays_merge_to_cone_draw_shaders[direction], "probe_padding_factor");
+				environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_cascade_uniform_locations[direction] = glGetUniformLocation(environment.state.holographic_cascade_rays_merge_to_cone_draw_shaders[direction], "cascade");
+				environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_merged_to_cone_texel_position_uniform_locations[direction] = glGetUniformLocation(environment.state.holographic_cascade_rays_merge_to_cone_draw_shaders[direction], "merged_to_cone_texel_position");
 				glProgramUniform2ui
 				(
-					environment.state.holographic_cascade_rays_merge_to_cone_draw_shader,
-					environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_probe_grid_size_uniform_location,
+					environment.state.holographic_cascade_rays_merge_to_cone_draw_shaders[direction],
+					environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_probe_grid_size_uniform_locations[direction],
 					environment.state.holographic_probe_grid_size[0u], environment.state.holographic_probe_grid_size[1u]
 				);
-				environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_cascade = 1u;
+				environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_cascades[direction] = 1u;
 				glProgramUniform1ui
 				(
-					environment.state.holographic_cascade_rays_merge_to_cone_draw_shader,
-					environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_cascade_uniform_location,
-					environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_cascade
+					environment.state.holographic_cascade_rays_merge_to_cone_draw_shaders[direction],
+					environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_cascade_uniform_locations[direction],
+					environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_cascades[direction]
 				);
 				environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_merged_to_cone_texel_x = 0u;
 				environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_merged_to_cone_texel_y = 1u;
 				glProgramUniform2ui
 				(
-					environment.state.holographic_cascade_rays_merge_to_cone_draw_shader,
-					environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_merged_to_cone_texel_position_uniform_location,
+					environment.state.holographic_cascade_rays_merge_to_cone_draw_shaders[direction],
+					environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_merged_to_cone_texel_position_uniform_locations[direction],
 					environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_merged_to_cone_texel_x,
 					environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_merged_to_cone_texel_y
 				);
 				std::cout << "Holographic cascade merge to cone draw shader compiled. Probe grid size uniform location: "
-					<< environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_probe_grid_size_uniform_location << ". Source size uniform location: "
-					<< environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_source_size_uniform_location << ". Probe padding factor uniform location: "
-					<< environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_probe_padding_factor_uniform_location << ". Cascade uniform location: "
-					<< environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_cascade_uniform_location << ". Merged to cone texel position uniform location: "
-					<< environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_merged_to_cone_texel_position_uniform_location << std::endl;
+					<< environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_probe_grid_size_uniform_locations[direction] << ". Source size uniform location: "
+					<< environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_source_size_uniform_locations[direction] << ". Probe padding factor uniform location: "
+					<< environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_probe_padding_factor_uniform_locations[direction] << ". Cascade uniform location: "
+					<< environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_cascade_uniform_locations[direction] << ". Merged to cone texel position uniform location: "
+					<< environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_merged_to_cone_texel_position_uniform_locations[direction] << std::endl;
 			}
 
+			for (GLuint direction{ 0u }; direction < 4u; ++direction)
 			{
 				std::string east_direction_definition{ "#define EAST_DIRECTION " + std::to_string(game_state::holographic_east_direction) + '\n' };
 				std::string north_direction_definition{ "#define NORTH_DIRECTION " + std::to_string(game_state::holographic_north_direction) + '\n' };
 				std::string west_direction_definition{ "#define WEST_DIRECTION " + std::to_string(game_state::holographic_west_direction) + '\n' };
 				std::string south_direction_definition{ "#define SOUTH_DIRECTION " + std::to_string(game_state::holographic_south_direction) + '\n' };
 
-				std::string direction_definition{ "#define DIRECTION " + std::to_string(game_state::temporary_direction) + '\n' };
+				std::string direction_definition{ "#define DIRECTION " + std::to_string(direction) + '\n' };
 
 				std::string mode_definition{ "#define MODE " + std::to_string(showcase_merge_to_ray_value) + "\n" };
 
@@ -3667,49 +3748,50 @@ namespace game_logic
 					ray_texture_mode_definition,
 					::util::shader::file_to_string("holographic_radiance_cascades/cascade_rays/cascade_rays.frag")
 				);
-				environment.state.holographic_cascade_rays_merge_to_ray_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
-				environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_probe_grid_size_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_merge_to_ray_draw_shader, "probe_grid_size");
-				environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_source_size_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_merge_to_ray_draw_shader, "source_size");
-				environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_probe_padding_factor_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_merge_to_ray_draw_shader, "probe_padding_factor");
-				environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_cascade_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_merge_to_ray_draw_shader, "cascade");
-				environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_merged_to_ray_texel_position_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_merge_to_ray_draw_shader, "merged_to_ray_texel_position");
+				environment.state.holographic_cascade_rays_merge_to_ray_draw_shaders[direction] = ::util::shader::create_program(vertex_shader, fragment_shader);
+				environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_probe_grid_size_uniform_locations[direction] = glGetUniformLocation(environment.state.holographic_cascade_rays_merge_to_ray_draw_shaders[direction], "probe_grid_size");
+				environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_source_size_uniform_locations[direction] = glGetUniformLocation(environment.state.holographic_cascade_rays_merge_to_ray_draw_shaders[direction], "source_size");
+				environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_probe_padding_factor_uniform_locations[direction] = glGetUniformLocation(environment.state.holographic_cascade_rays_merge_to_ray_draw_shaders[direction], "probe_padding_factor");
+				environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_cascade_uniform_locations[direction] = glGetUniformLocation(environment.state.holographic_cascade_rays_merge_to_ray_draw_shaders[direction], "cascade");
+				environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_merged_to_ray_texel_position_uniform_locations[direction] = glGetUniformLocation(environment.state.holographic_cascade_rays_merge_to_ray_draw_shaders[direction], "merged_to_ray_texel_position");
 				glProgramUniform2ui
 				(
-					environment.state.holographic_cascade_rays_merge_to_ray_draw_shader,
-					environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_probe_grid_size_uniform_location,
+					environment.state.holographic_cascade_rays_merge_to_ray_draw_shaders[direction],
+					environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_probe_grid_size_uniform_locations[direction],
 					environment.state.holographic_probe_grid_size[0u], environment.state.holographic_probe_grid_size[1u]
 				);
-				environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_cascade = 1u;
+				environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_cascades[direction] = 1u;
 				glProgramUniform1ui
 				(
-					environment.state.holographic_cascade_rays_merge_to_ray_draw_shader,
-					environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_cascade_uniform_location,
-					environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_cascade
+					environment.state.holographic_cascade_rays_merge_to_ray_draw_shaders[direction],
+					environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_cascade_uniform_locations[direction],
+					environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_cascades[direction]
 				);
 				environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_merged_to_ray_texel_x = 0u;
 				environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_merged_to_ray_texel_y = 1u;
 				glProgramUniform2ui
 				(
-					environment.state.holographic_cascade_rays_merge_to_ray_draw_shader,
-					environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_merged_to_ray_texel_position_uniform_location,
+					environment.state.holographic_cascade_rays_merge_to_ray_draw_shaders[direction],
+					environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_merged_to_ray_texel_position_uniform_locations[direction],
 					environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_merged_to_ray_texel_x,
 					environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_merged_to_ray_texel_y
 				);
 				std::cout << "Holographic cascade rays merge to ray draw shader compiled. Probe grid size uniform location: "
-					<< environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_probe_grid_size_uniform_location << ". Source size uniform location: "
-					<< environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_source_size_uniform_location << ". Probe padding factor uniform location: "
-					<< environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_probe_padding_factor_uniform_location << ". Cascade uniform location: "
-					<< environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_cascade_uniform_location << ". Merged to ray texel position uniform location: "
-					<< environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_merged_to_ray_texel_position_uniform_location << std::endl;
+					<< environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_probe_grid_size_uniform_locations[direction] << ". Source size uniform location: "
+					<< environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_source_size_uniform_locations[direction] << ". Probe padding factor uniform location: "
+					<< environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_probe_padding_factor_uniform_locations[direction] << ". Cascade uniform location: "
+					<< environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_cascade_uniform_locations[direction] << ". Merged to ray texel position uniform location: "
+					<< environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_merged_to_ray_texel_position_uniform_locations[direction] << std::endl;
 			}
 
+			for (GLuint direction{ 0u }; direction < 4u; ++direction)
 			{
 				std::string east_direction_definition{ "#define EAST_DIRECTION " + std::to_string(game_state::holographic_east_direction) + '\n' };
 				std::string north_direction_definition{ "#define NORTH_DIRECTION " + std::to_string(game_state::holographic_north_direction) + '\n' };
 				std::string west_direction_definition{ "#define WEST_DIRECTION " + std::to_string(game_state::holographic_west_direction) + '\n' };
 				std::string south_direction_definition{ "#define SOUTH_DIRECTION " + std::to_string(game_state::holographic_south_direction) + '\n' };
 
-				std::string direction_definition{ "#define DIRECTION " + std::to_string(game_state::temporary_direction) + '\n' };
+				std::string direction_definition{ "#define DIRECTION " + std::to_string(direction) + '\n' };
 
 				std::string mode_definition{ "#define MODE " + std::to_string(showcase_radiance_value) + "\n" };
 
@@ -3762,37 +3844,37 @@ namespace game_logic
 					ray_texture_mode_definition,
 					::util::shader::file_to_string("holographic_radiance_cascades/cascade_rays/cascade_rays.frag")
 				);
-				environment.state.holographic_cascade_rays_radiance_draw_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
-				environment.state.holographic_cascade_rays_radiance_draw_shader_probe_grid_size_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_radiance_draw_shader, "probe_grid_size");
-				environment.state.holographic_cascade_rays_radiance_draw_shader_source_size_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_radiance_draw_shader, "source_size");
-				environment.state.holographic_cascade_rays_radiance_draw_shader_probe_padding_factor_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_radiance_draw_shader, "probe_padding_factor");
-				environment.state.holographic_cascade_rays_radiance_draw_shader_cascade_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_radiance_draw_shader, "cascade");
-				environment.state.holographic_cascade_rays_radiance_draw_shader_rays_uniform_location = glGetUniformLocation(environment.state.holographic_cascade_rays_radiance_draw_shader, "rays");
+				environment.state.holographic_cascade_rays_radiance_draw_shaders[direction] = ::util::shader::create_program(vertex_shader, fragment_shader);
+				environment.state.holographic_cascade_rays_radiance_draw_shader_probe_grid_size_uniform_locations[direction] = glGetUniformLocation(environment.state.holographic_cascade_rays_radiance_draw_shaders[direction], "probe_grid_size");
+				environment.state.holographic_cascade_rays_radiance_draw_shader_source_size_uniform_locations[direction] = glGetUniformLocation(environment.state.holographic_cascade_rays_radiance_draw_shaders[direction], "source_size");
+				environment.state.holographic_cascade_rays_radiance_draw_shader_probe_padding_factor_uniform_locations[direction] = glGetUniformLocation(environment.state.holographic_cascade_rays_radiance_draw_shaders[direction], "probe_padding_factor");
+				environment.state.holographic_cascade_rays_radiance_draw_shader_cascade_uniform_locations[direction] = glGetUniformLocation(environment.state.holographic_cascade_rays_radiance_draw_shaders[direction], "cascade");
+				environment.state.holographic_cascade_rays_radiance_draw_shader_rays_uniform_locations[direction] = glGetUniformLocation(environment.state.holographic_cascade_rays_radiance_draw_shaders[direction], "rays");
 				glProgramUniform2ui
 				(
-					environment.state.holographic_cascade_rays_radiance_draw_shader,
-					environment.state.holographic_cascade_rays_radiance_draw_shader_probe_grid_size_uniform_location,
+					environment.state.holographic_cascade_rays_radiance_draw_shaders[direction],
+					environment.state.holographic_cascade_rays_radiance_draw_shader_probe_grid_size_uniform_locations[direction],
 					environment.state.holographic_probe_grid_size[0u], environment.state.holographic_probe_grid_size[1u]
 				);
-				environment.state.holographic_cascade_rays_radiance_draw_shader_cascade = 1u;
+				environment.state.holographic_cascade_rays_radiance_draw_shader_cascades[direction] = 1u;
 				glProgramUniform1ui
 				(
-					environment.state.holographic_cascade_rays_radiance_draw_shader,
-					environment.state.holographic_cascade_rays_radiance_draw_shader_cascade_uniform_location,
-					environment.state.holographic_cascade_rays_radiance_draw_shader_cascade
+					environment.state.holographic_cascade_rays_radiance_draw_shaders[direction],
+					environment.state.holographic_cascade_rays_radiance_draw_shader_cascade_uniform_locations[direction],
+					environment.state.holographic_cascade_rays_radiance_draw_shader_cascades[direction]
 				);
 				glProgramUniform1i
 				(
-					environment.state.holographic_cascade_rays_radiance_draw_shader,
-					environment.state.holographic_cascade_rays_radiance_draw_shader_rays_uniform_location,
+					environment.state.holographic_cascade_rays_radiance_draw_shaders[direction],
+					environment.state.holographic_cascade_rays_radiance_draw_shader_rays_uniform_locations[direction],
 					2
 				);
 				std::cout << "Holographic cascade rays radiance draw shader compiled. Probe grid size uniform location: "
-					<< environment.state.holographic_cascade_rays_radiance_draw_shader_probe_grid_size_uniform_location << ". Source size uniform location: "
-					<< environment.state.holographic_cascade_rays_radiance_draw_shader_source_size_uniform_location << ". Probe padding factor uniform location: "
-					<< environment.state.holographic_cascade_rays_radiance_draw_shader_probe_padding_factor_uniform_location << ". Cascade uniform location: "
-					<< environment.state.holographic_cascade_rays_radiance_draw_shader_cascade_uniform_location << ". Rays uniform location: "
-					<< environment.state.holographic_cascade_rays_radiance_draw_shader_rays_uniform_location << std::endl;
+					<< environment.state.holographic_cascade_rays_radiance_draw_shader_probe_grid_size_uniform_locations[direction] << ". Source size uniform location: "
+					<< environment.state.holographic_cascade_rays_radiance_draw_shader_source_size_uniform_locations[direction] << ". Probe padding factor uniform location: "
+					<< environment.state.holographic_cascade_rays_radiance_draw_shader_probe_padding_factor_uniform_locations[direction] << ". Cascade uniform location: "
+					<< environment.state.holographic_cascade_rays_radiance_draw_shader_cascade_uniform_locations[direction] << ". Rays uniform location: "
+					<< environment.state.holographic_cascade_rays_radiance_draw_shader_rays_uniform_locations[direction] << std::endl;
 			}
 		}
 
@@ -3832,13 +3914,14 @@ namespace game_logic
 				<< environment.state.holographic_sky_circle_draw_shader_sky_circle_uniform_location << std::endl;
 		}
 		
+		for (GLuint direction{ 0u }; direction < 4u; ++direction)
 		{
 			std::string east_direction_definition{ "#define EAST_DIRECTION " + std::to_string(game_state::holographic_east_direction) + '\n' };
 			std::string north_direction_definition{ "#define NORTH_DIRECTION " + std::to_string(game_state::holographic_north_direction) + '\n' };
 			std::string west_direction_definition{ "#define WEST_DIRECTION " + std::to_string(game_state::holographic_west_direction) + '\n' };
 			std::string south_direction_definition{ "#define SOUTH_DIRECTION " + std::to_string(game_state::holographic_south_direction) + '\n' };
 
-			std::string direction_definition{ "#define DIRECTION " + std::to_string(game_state::temporary_direction) + '\n' };
+			std::string direction_definition{ "#define DIRECTION " + std::to_string(direction) + '\n' };
 
 			constexpr GLuint column_ray_texture_mode_value{ 0u };
 			constexpr GLuint row_ray_texture_mode_value{ 1u };
@@ -3880,27 +3963,28 @@ namespace game_logic
 				util_shader_DEFINE("RAY_CASTING_BINDING", STRINGIFY(game_logic__util_RAY_CASTING_BINDING)),
 				::util::shader::file_to_string("holographic_radiance_cascades/rays/extend.frag")
 			);
-			environment.state.holographic_ray_extend_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
-			environment.state.holographic_ray_extend_shader_shorter_rays_uniform_location = glGetUniformLocation
+			environment.state.holographic_ray_extend_shaders[direction] = ::util::shader::create_program(vertex_shader, fragment_shader);
+			environment.state.holographic_ray_extend_shader_shorter_rays_uniform_locations[direction] = glGetUniformLocation
 			(
-				environment.state.holographic_ray_extend_shader, "shorter_rays"
+				environment.state.holographic_ray_extend_shaders[direction], "shorter_rays"
 			);
 			glProgramUniform1i
 			(
-				environment.state.holographic_ray_extend_shader,
-				environment.state.holographic_ray_extend_shader_shorter_rays_uniform_location, 2
+				environment.state.holographic_ray_extend_shaders[direction],
+				environment.state.holographic_ray_extend_shader_shorter_rays_uniform_locations[direction], 2
 			);
 			std::cout << "Holographic ray extend shader compiled. Shorter rays uniform location: "
-				<< environment.state.holographic_ray_extend_shader_shorter_rays_uniform_location << std::endl;
+				<< environment.state.holographic_ray_extend_shader_shorter_rays_uniform_locations[direction] << std::endl;
 		}
 
+		for (GLuint direction{ 0u }; direction < 4u; ++direction)
 		{
 			std::string east_direction_definition{ "#define EAST_DIRECTION " + std::to_string(game_state::holographic_east_direction) + '\n' };
 			std::string north_direction_definition{ "#define NORTH_DIRECTION " + std::to_string(game_state::holographic_north_direction) + '\n' };
 			std::string west_direction_definition{ "#define WEST_DIRECTION " + std::to_string(game_state::holographic_west_direction) + '\n' };
 			std::string south_direction_definition{ "#define SOUTH_DIRECTION " + std::to_string(game_state::holographic_south_direction) + '\n' };
 
-			std::string direction_definition{ "#define DIRECTION " + std::to_string(game_state::temporary_direction) + '\n' };
+			std::string direction_definition{ "#define DIRECTION " + std::to_string(direction) + '\n' };
 
 			GLint const angular_fluence_width{ std::max(1 << static_cast<GLint>(environment.state.max_horizontal_cascade_index), static_cast<GLint>(environment.state.holographic_probe_grid_width)) };
 			GLint const angular_fluence_height{ std::max(1 << static_cast<GLint>(environment.state.max_vertical_cascade_index), static_cast<GLint>(environment.state.holographic_probe_grid_height)) };
@@ -3946,20 +4030,20 @@ namespace game_logic
 				ray_texture_mode_definition,
 				::util::shader::file_to_string("holographic_radiance_cascades/fluence/gather.frag")
 			);
-			environment.state.holographic_fluence_gather_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
-			environment.state.holographic_fluence_gather_shader_rays_uniform_location = glGetUniformLocation(environment.state.holographic_fluence_gather_shader, "rays");
-			environment.state.holographic_fluence_gather_shader_upper_cascade_fluence_uniform_location = glGetUniformLocation(environment.state.holographic_fluence_gather_shader, "upper_cascade_fluence");
+			environment.state.holographic_fluence_gather_shaders[direction] = ::util::shader::create_program(vertex_shader, fragment_shader);
+			environment.state.holographic_fluence_gather_shader_rays_uniform_locations[direction] = glGetUniformLocation(environment.state.holographic_fluence_gather_shaders[direction], "rays");
+			environment.state.holographic_fluence_gather_shader_upper_cascade_fluence_uniform_locations[direction] = glGetUniformLocation(environment.state.holographic_fluence_gather_shaders[direction], "upper_cascade_fluence");
 			glProgramUniform1i(
-				environment.state.holographic_fluence_gather_shader,
-				environment.state.holographic_fluence_gather_shader_rays_uniform_location, 2
+				environment.state.holographic_fluence_gather_shaders[direction],
+				environment.state.holographic_fluence_gather_shader_rays_uniform_locations[direction], 2
 			);
 			glProgramUniform1i(
-				environment.state.holographic_fluence_gather_shader,
-				environment.state.holographic_fluence_gather_shader_upper_cascade_fluence_uniform_location, 3
+				environment.state.holographic_fluence_gather_shaders[direction],
+				environment.state.holographic_fluence_gather_shader_upper_cascade_fluence_uniform_locations[direction], 3
 			);
 			std::cout << "Holographic fluence gather shader compiled. Rays uniform location: "
-				<< environment.state.holographic_fluence_gather_shader_rays_uniform_location << ". Upper cascade fluence uniform location: "
-				<< environment.state.holographic_fluence_gather_shader_upper_cascade_fluence_uniform_location << std::endl;
+				<< environment.state.holographic_fluence_gather_shader_rays_uniform_locations[direction] << ". Upper cascade fluence uniform location: "
+				<< environment.state.holographic_fluence_gather_shader_upper_cascade_fluence_uniform_locations[direction] << std::endl;
 		}
 
 		::util::shader::delete_shader(vertex_shader);
@@ -4596,8 +4680,14 @@ namespace game_logic
 			environment.state.GPU_buffers.rigid_bodies.masses.buffer, 
 			environment.state.GPU_buffers.rigid_bodies.triangles.materials.buffer,
 			environment.state.GPU_buffers.rigid_bodies.triangles.material_indices.buffer,
-			environment.state.holographic_ray_extend_buffer,
-			environment.state.holographic_fluence_gather_buffer,
+			environment.state.holographic_ray_extend_buffers[0u],
+			environment.state.holographic_ray_extend_buffers[1u],
+			environment.state.holographic_ray_extend_buffers[2u],
+			environment.state.holographic_ray_extend_buffers[3u],
+			environment.state.holographic_fluence_gather_buffers[0u],
+			environment.state.holographic_fluence_gather_buffers[1u],
+			environment.state.holographic_fluence_gather_buffers[2u],
+			environment.state.holographic_fluence_gather_buffers[3u],
 		};
 		glCreateBuffers(std::size(buffers), buffers);
 		environment.state.camera_buffer = buffers[0u];
@@ -4633,8 +4723,14 @@ namespace game_logic
 		environment.state.GPU_buffers.rigid_bodies.masses.buffer = buffers[28u];
 		environment.state.GPU_buffers.rigid_bodies.triangles.materials.buffer = buffers[29u];
 		environment.state.GPU_buffers.rigid_bodies.triangles.material_indices.buffer = buffers[30u];
-		environment.state.holographic_ray_extend_buffer = buffers[31u];
-		environment.state.holographic_fluence_gather_buffer = buffers[32u];
+		environment.state.holographic_ray_extend_buffers[0u] = buffers[31u];
+		environment.state.holographic_ray_extend_buffers[1u] = buffers[32u];
+		environment.state.holographic_ray_extend_buffers[2u] = buffers[33u];
+		environment.state.holographic_ray_extend_buffers[3u] = buffers[34u];
+		environment.state.holographic_fluence_gather_buffers[0u] = buffers[35u];
+		environment.state.holographic_fluence_gather_buffers[1u] = buffers[36u];
+		environment.state.holographic_fluence_gather_buffers[2u] = buffers[37u];
+		environment.state.holographic_fluence_gather_buffers[3u] = buffers[38u];
 
 		{ // Materials buffer
 			{
@@ -7590,111 +7686,111 @@ namespace game_logic
 
 				GLuint const skipped_rays_below_column_index
 				{
-					glGetProgramResourceIndex(environment.state.holographic_ray_extend_shader, GL_UNIFORM, "Ray_Casting_Data.skipped_rays_below_column")
+					glGetProgramResourceIndex(environment.state.holographic_ray_extend_shaders[0u], GL_UNIFORM, "Ray_Casting_Data.skipped_rays_below_column")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.holographic_ray_extend_shader, GL_UNIFORM, skipped_rays_below_column_index,
+					environment.state.holographic_ray_extend_shaders[0u], GL_UNIFORM, skipped_rays_below_column_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.holographic_ray_extend_buffer_skipped_rays_below_column_offset
 				);
 
 				GLuint const rays_per_probe_index
 				{
-					glGetProgramResourceIndex(environment.state.holographic_ray_extend_shader, GL_UNIFORM, "Ray_Casting_Data.rays_per_probe")
+					glGetProgramResourceIndex(environment.state.holographic_ray_extend_shaders[0u], GL_UNIFORM, "Ray_Casting_Data.rays_per_probe")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.holographic_ray_extend_shader, GL_UNIFORM, rays_per_probe_index,
+					environment.state.holographic_ray_extend_shaders[0u], GL_UNIFORM, rays_per_probe_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.holographic_ray_extend_buffer_rays_per_probe_offset
 				);
 
 				GLuint const g_index
 				{
-					glGetProgramResourceIndex(environment.state.holographic_ray_extend_shader, GL_UNIFORM, "Ray_Casting_Data.g")
+					glGetProgramResourceIndex(environment.state.holographic_ray_extend_shaders[0u], GL_UNIFORM, "Ray_Casting_Data.g")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.holographic_ray_extend_shader, GL_UNIFORM, g_index,
+					environment.state.holographic_ray_extend_shaders[0u], GL_UNIFORM, g_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.holographic_ray_extend_buffer_g_offset
 				);
 
 				GLuint const f_index
 				{
-					glGetProgramResourceIndex(environment.state.holographic_ray_extend_shader, GL_UNIFORM, "Ray_Casting_Data.f")
+					glGetProgramResourceIndex(environment.state.holographic_ray_extend_shaders[0u], GL_UNIFORM, "Ray_Casting_Data.f")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.holographic_ray_extend_shader, GL_UNIFORM, f_index,
+					environment.state.holographic_ray_extend_shaders[0u], GL_UNIFORM, f_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.holographic_ray_extend_buffer_f_offset
 				);
 
 				GLuint const lower_cascade_rays_per_probe_index
 				{
-					glGetProgramResourceIndex(environment.state.holographic_ray_extend_shader, GL_UNIFORM, "Ray_Casting_Data.lower_cascade_rays_per_probe")
+					glGetProgramResourceIndex(environment.state.holographic_ray_extend_shaders[0u], GL_UNIFORM, "Ray_Casting_Data.lower_cascade_rays_per_probe")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.holographic_ray_extend_shader, GL_UNIFORM, lower_cascade_rays_per_probe_index,
+					environment.state.holographic_ray_extend_shaders[0u], GL_UNIFORM, lower_cascade_rays_per_probe_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.holographic_ray_extend_buffer_lower_cascade_rays_per_probe_offset
 				);
 
 				GLuint const lower_cascade_skipped_rays_below_column_index
 				{
-					glGetProgramResourceIndex(environment.state.holographic_ray_extend_shader, GL_UNIFORM, "Ray_Casting_Data.lower_cascade_skipped_rays_below_column")
+					glGetProgramResourceIndex(environment.state.holographic_ray_extend_shaders[0u], GL_UNIFORM, "Ray_Casting_Data.lower_cascade_skipped_rays_below_column")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.holographic_ray_extend_shader, GL_UNIFORM, lower_cascade_skipped_rays_below_column_index,
+					environment.state.holographic_ray_extend_shaders[0u], GL_UNIFORM, lower_cascade_skipped_rays_below_column_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.holographic_ray_extend_buffer_lower_cascade_skipped_rays_below_column_offset
 				);
 
 				GLuint const lower_cascade_max_ray_probe_column_index
 				{
-					glGetProgramResourceIndex(environment.state.holographic_ray_extend_shader, GL_UNIFORM, "Ray_Casting_Data.lower_cascade_max_ray_probe_column")
+					glGetProgramResourceIndex(environment.state.holographic_ray_extend_shaders[0u], GL_UNIFORM, "Ray_Casting_Data.lower_cascade_max_ray_probe_column")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.holographic_ray_extend_shader, GL_UNIFORM, lower_cascade_max_ray_probe_column_index,
+					environment.state.holographic_ray_extend_shaders[0u], GL_UNIFORM, lower_cascade_max_ray_probe_column_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.holographic_ray_extend_buffer_lower_cascade_max_ray_probe_column_offset
 				);
 
 				GLuint const lower_cascade_max_ray_probe_row_index
 				{
-					glGetProgramResourceIndex(environment.state.holographic_ray_extend_shader, GL_UNIFORM, "Ray_Casting_Data.lower_cascade_max_ray_probe_row")
+					glGetProgramResourceIndex(environment.state.holographic_ray_extend_shaders[0u], GL_UNIFORM, "Ray_Casting_Data.lower_cascade_max_ray_probe_row")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.holographic_ray_extend_shader, GL_UNIFORM, lower_cascade_max_ray_probe_row_index,
+					environment.state.holographic_ray_extend_shaders[0u], GL_UNIFORM, lower_cascade_max_ray_probe_row_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.holographic_ray_extend_buffer_lower_cascade_max_ray_probe_row_offset
 				);
 
 				GLuint const lower_cascade_power_of_two_offset
 				{
-					glGetProgramResourceIndex(environment.state.holographic_ray_extend_shader, GL_UNIFORM, "Ray_Casting_Data.lower_cascade_power_of_two")
+					glGetProgramResourceIndex(environment.state.holographic_ray_extend_shaders[0u], GL_UNIFORM, "Ray_Casting_Data.lower_cascade_power_of_two")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.holographic_ray_extend_shader, GL_UNIFORM, lower_cascade_power_of_two_offset,
+					environment.state.holographic_ray_extend_shaders[0u], GL_UNIFORM, lower_cascade_power_of_two_offset,
 					1u, &offset_label, 1u, nullptr, &environment.state.holographic_ray_extend_buffer_lower_cascade_power_of_two_offset
 				);
 
 				GLuint const lower_cascade_max_probe_column_texel_x_offset
 				{
-					glGetProgramResourceIndex(environment.state.holographic_ray_extend_shader, GL_UNIFORM, "Ray_Casting_Data.lower_cascade_max_probe_column_texel_x")
+					glGetProgramResourceIndex(environment.state.holographic_ray_extend_shaders[0u], GL_UNIFORM, "Ray_Casting_Data.lower_cascade_max_probe_column_texel_x")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.holographic_ray_extend_shader, GL_UNIFORM, lower_cascade_max_probe_column_texel_x_offset,
+					environment.state.holographic_ray_extend_shaders[0u], GL_UNIFORM, lower_cascade_max_probe_column_texel_x_offset,
 					1u, &offset_label, 1u, nullptr, &environment.state.holographic_ray_extend_buffer_lower_cascade_max_probe_column_texel_x_offset
 				);
 
 				GLuint const lower_cascade_max_probe_row_offset
 				{
-					glGetProgramResourceIndex(environment.state.holographic_ray_extend_shader, GL_UNIFORM, "Ray_Casting_Data.lower_cascade_max_probe_row")
+					glGetProgramResourceIndex(environment.state.holographic_ray_extend_shaders[0u], GL_UNIFORM, "Ray_Casting_Data.lower_cascade_max_probe_row")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.holographic_ray_extend_shader, GL_UNIFORM, lower_cascade_max_probe_row_offset,
+					environment.state.holographic_ray_extend_shaders[0u], GL_UNIFORM, lower_cascade_max_probe_row_offset,
 					1u, &offset_label, 1u, nullptr, &environment.state.holographic_ray_extend_buffer_lower_cascade_max_probe_row_offset
 				);
 
@@ -7710,23 +7806,23 @@ namespace game_logic
 
 				GLuint const max_lower_cascade_ray_texture_xy_index
 				{
-					glGetProgramResourceIndex(environment.state.holographic_ray_extend_shader, GL_UNIFORM, "Ray_Casting_Data.max_lower_cascade_ray_texture_xy")
+					glGetProgramResourceIndex(environment.state.holographic_ray_extend_shaders[0u], GL_UNIFORM, "Ray_Casting_Data.max_lower_cascade_ray_texture_xy")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.holographic_ray_extend_shader, GL_UNIFORM, max_lower_cascade_ray_texture_xy_index,
+					environment.state.holographic_ray_extend_shaders[0u], GL_UNIFORM, max_lower_cascade_ray_texture_xy_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.holographic_ray_extend_buffer_max_lower_cascade_ray_texture_xy_offset
 				);
 			}
 
 			GLuint const block_index
 			{
-				glGetProgramResourceIndex(environment.state.holographic_ray_extend_shader, GL_UNIFORM_BLOCK, "Ray_Casting_Data")
+				glGetProgramResourceIndex(environment.state.holographic_ray_extend_shaders[0u], GL_UNIFORM_BLOCK, "Ray_Casting_Data")
 			};
 			GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
 			glGetProgramResourceiv
 			(
-				environment.state.holographic_ray_extend_shader, GL_UNIFORM_BLOCK, block_index,
+				environment.state.holographic_ray_extend_shaders[0u], GL_UNIFORM_BLOCK, block_index,
 				1u, &buffer_size_label, 1u, nullptr, &environment.state.holographic_ray_extend_buffer_block_size
 			);
 		}
@@ -7737,121 +7833,121 @@ namespace game_logic
 
 				GLuint const direction_mask_index
 				{
-					glGetProgramResourceIndex(environment.state.holographic_fluence_gather_shader, GL_UNIFORM, "Fluence_Gathering_Data.direction_mask")
+					glGetProgramResourceIndex(environment.state.holographic_fluence_gather_shaders[0u], GL_UNIFORM, "Fluence_Gathering_Data.direction_mask")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.holographic_fluence_gather_shader, GL_UNIFORM, direction_mask_index,
+					environment.state.holographic_fluence_gather_shaders[0u], GL_UNIFORM, direction_mask_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.holographic_fluence_gather_buffer_direction_mask_offset
 				);
 
 				GLuint const cascade_index
 				{
-					glGetProgramResourceIndex(environment.state.holographic_fluence_gather_shader, GL_UNIFORM, "Fluence_Gathering_Data.cascade")
+					glGetProgramResourceIndex(environment.state.holographic_fluence_gather_shaders[0u], GL_UNIFORM, "Fluence_Gathering_Data.cascade")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.holographic_fluence_gather_shader, GL_UNIFORM, cascade_index,
+					environment.state.holographic_fluence_gather_shaders[0u], GL_UNIFORM, cascade_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.holographic_fluence_gather_buffer_cascade_offset
 				);
 
 				GLuint const max_ray_probe_column_index
 				{
-					glGetProgramResourceIndex(environment.state.holographic_fluence_gather_shader, GL_UNIFORM, "Fluence_Gathering_Data.max_ray_probe_column")
+					glGetProgramResourceIndex(environment.state.holographic_fluence_gather_shaders[0u], GL_UNIFORM, "Fluence_Gathering_Data.max_ray_probe_column")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.holographic_fluence_gather_shader, GL_UNIFORM, max_ray_probe_column_index,
+					environment.state.holographic_fluence_gather_shaders[0u], GL_UNIFORM, max_ray_probe_column_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.holographic_fluence_gather_buffer_max_ray_probe_column_offset
 				);
 
 				GLuint const max_ray_probe_row_index
 				{
-					glGetProgramResourceIndex(environment.state.holographic_fluence_gather_shader, GL_UNIFORM, "Fluence_Gathering_Data.max_ray_probe_row")
+					glGetProgramResourceIndex(environment.state.holographic_fluence_gather_shaders[0u], GL_UNIFORM, "Fluence_Gathering_Data.max_ray_probe_row")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.holographic_fluence_gather_shader, GL_UNIFORM, max_ray_probe_row_index,
+					environment.state.holographic_fluence_gather_shaders[0u], GL_UNIFORM, max_ray_probe_row_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.holographic_fluence_gather_buffer_max_ray_probe_row_offset
 				);
 
 				GLuint const max_fluence_probe_column_texel_x_index
 				{
-					glGetProgramResourceIndex(environment.state.holographic_fluence_gather_shader, GL_UNIFORM, "Fluence_Gathering_Data.max_fluence_probe_column_texel_x")
+					glGetProgramResourceIndex(environment.state.holographic_fluence_gather_shaders[0u], GL_UNIFORM, "Fluence_Gathering_Data.max_fluence_probe_column_texel_x")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.holographic_fluence_gather_shader, GL_UNIFORM, max_fluence_probe_column_texel_x_index,
+					environment.state.holographic_fluence_gather_shaders[0u], GL_UNIFORM, max_fluence_probe_column_texel_x_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.holographic_fluence_gather_buffer_max_fluence_probe_column_texel_x_offset
 				);
 
 				GLuint const max_fluence_probe_y_index
 				{
-					glGetProgramResourceIndex(environment.state.holographic_fluence_gather_shader, GL_UNIFORM, "Fluence_Gathering_Data.max_fluence_probe_y")
+					glGetProgramResourceIndex(environment.state.holographic_fluence_gather_shaders[0u], GL_UNIFORM, "Fluence_Gathering_Data.max_fluence_probe_y")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.holographic_fluence_gather_shader, GL_UNIFORM, max_fluence_probe_y_index,
+					environment.state.holographic_fluence_gather_shaders[0u], GL_UNIFORM, max_fluence_probe_y_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.holographic_fluence_gather_buffer_max_fluence_probe_y_offset
 				);
 
 				GLuint const rays_per_probe_index
 				{
-					glGetProgramResourceIndex(environment.state.holographic_fluence_gather_shader, GL_UNIFORM, "Fluence_Gathering_Data.rays_per_probe")
+					glGetProgramResourceIndex(environment.state.holographic_fluence_gather_shaders[0u], GL_UNIFORM, "Fluence_Gathering_Data.rays_per_probe")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.holographic_fluence_gather_shader, GL_UNIFORM, rays_per_probe_index,
+					environment.state.holographic_fluence_gather_shaders[0u], GL_UNIFORM, rays_per_probe_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.holographic_fluence_gather_buffer_rays_per_probe_offset
 				);
 
 				GLuint const skipped_rays_below_column_index
 				{
-					glGetProgramResourceIndex(environment.state.holographic_fluence_gather_shader, GL_UNIFORM, "Fluence_Gathering_Data.skipped_rays_below_column")
+					glGetProgramResourceIndex(environment.state.holographic_fluence_gather_shaders[0u], GL_UNIFORM, "Fluence_Gathering_Data.skipped_rays_below_column")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.holographic_fluence_gather_shader, GL_UNIFORM, skipped_rays_below_column_index,
+					environment.state.holographic_fluence_gather_shaders[0u], GL_UNIFORM, skipped_rays_below_column_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.holographic_fluence_gather_buffer_skipped_rays_below_column_offset
 				);
 
 				GLuint const cascade_power_of_two_index
 				{
-					glGetProgramResourceIndex(environment.state.holographic_fluence_gather_shader, GL_UNIFORM, "Fluence_Gathering_Data.cascade_power_of_two")
+					glGetProgramResourceIndex(environment.state.holographic_fluence_gather_shaders[0u], GL_UNIFORM, "Fluence_Gathering_Data.cascade_power_of_two")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.holographic_fluence_gather_shader, GL_UNIFORM, cascade_power_of_two_index,
+					environment.state.holographic_fluence_gather_shaders[0u], GL_UNIFORM, cascade_power_of_two_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.holographic_fluence_gather_buffer_cascade_power_of_two_offset
 				);
 
 				GLuint const upper_cascade_probe_column_texel_x_mask_index
 				{
-					glGetProgramResourceIndex(environment.state.holographic_fluence_gather_shader, GL_UNIFORM, "Fluence_Gathering_Data.upper_cascade_probe_column_texel_x_mask")
+					glGetProgramResourceIndex(environment.state.holographic_fluence_gather_shaders[0u], GL_UNIFORM, "Fluence_Gathering_Data.upper_cascade_probe_column_texel_x_mask")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.holographic_fluence_gather_shader, GL_UNIFORM, upper_cascade_probe_column_texel_x_mask_index,
+					environment.state.holographic_fluence_gather_shaders[0u], GL_UNIFORM, upper_cascade_probe_column_texel_x_mask_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.holographic_fluence_gather_buffer_upper_cascade_probe_column_texel_x_mask_offset
 				);
 
 				GLuint const upper_cascade_index
 				{
-					glGetProgramResourceIndex(environment.state.holographic_fluence_gather_shader, GL_UNIFORM, "Fluence_Gathering_Data.upper_cascade")
+					glGetProgramResourceIndex(environment.state.holographic_fluence_gather_shaders[0u], GL_UNIFORM, "Fluence_Gathering_Data.upper_cascade")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.holographic_fluence_gather_shader, GL_UNIFORM, upper_cascade_index,
+					environment.state.holographic_fluence_gather_shaders[0u], GL_UNIFORM, upper_cascade_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.holographic_fluence_gather_buffer_upper_cascade_offset
 				);
 
 				GLuint const upper_cascade_fluence_layer_index
 				{
-					glGetProgramResourceIndex(environment.state.holographic_fluence_gather_shader, GL_UNIFORM, "Fluence_Gathering_Data.upper_cascade_fluence_layer")
+					glGetProgramResourceIndex(environment.state.holographic_fluence_gather_shaders[0u], GL_UNIFORM, "Fluence_Gathering_Data.upper_cascade_fluence_layer")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.holographic_fluence_gather_shader, GL_UNIFORM, upper_cascade_fluence_layer_index,
+					environment.state.holographic_fluence_gather_shaders[0u], GL_UNIFORM, upper_cascade_fluence_layer_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.holographic_fluence_gather_buffer_upper_cascade_fluence_layer_offset
 				);
 
@@ -7867,33 +7963,33 @@ namespace game_logic
 				
 				GLuint const output_factor_index
 				{
-					glGetProgramResourceIndex(environment.state.holographic_fluence_gather_shader, GL_UNIFORM, "Fluence_Gathering_Data.output_factor")
+					glGetProgramResourceIndex(environment.state.holographic_fluence_gather_shaders[0u], GL_UNIFORM, "Fluence_Gathering_Data.output_factor")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.holographic_fluence_gather_shader, GL_UNIFORM, output_factor_index,
+					environment.state.holographic_fluence_gather_shaders[0u], GL_UNIFORM, output_factor_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.holographic_fluence_gather_buffer_output_factor_offset
 				);
 
 				GLuint const output_shift_index
 				{
-					glGetProgramResourceIndex(environment.state.holographic_fluence_gather_shader, GL_UNIFORM, "Fluence_Gathering_Data.output_shift")
+					glGetProgramResourceIndex(environment.state.holographic_fluence_gather_shaders[0u], GL_UNIFORM, "Fluence_Gathering_Data.output_shift")
 				};
 				glGetProgramResourceiv
 				(
-					environment.state.holographic_fluence_gather_shader, GL_UNIFORM, output_shift_index,
+					environment.state.holographic_fluence_gather_shaders[0u], GL_UNIFORM, output_shift_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.holographic_fluence_gather_buffer_output_shift_offset
 				);
 			}
 
 			GLuint const block_index
 			{
-				glGetProgramResourceIndex(environment.state.holographic_fluence_gather_shader, GL_UNIFORM_BLOCK, "Fluence_Gathering_Data")
+				glGetProgramResourceIndex(environment.state.holographic_fluence_gather_shaders[0u], GL_UNIFORM_BLOCK, "Fluence_Gathering_Data")
 			};
 			GLenum const buffer_size_label{ GL_BUFFER_DATA_SIZE };
 			glGetProgramResourceiv
 			(
-				environment.state.holographic_fluence_gather_shader, GL_UNIFORM_BLOCK, block_index,
+				environment.state.holographic_fluence_gather_shaders[0u], GL_UNIFORM_BLOCK, block_index,
 				1u, &buffer_size_label, 1u, nullptr, &environment.state.holographic_fluence_gather_buffer_block_size
 			);
 		}
@@ -8168,7 +8264,7 @@ namespace game_logic
 		std::cout << "masses stride: " << environment.state.GPU_buffers.rigid_bodies.masses.masses_stride << std::endl;
 		std::cout << std::endl;
 
-		std::cout << "Holographic ray extend buffer (" << environment.state.holographic_ray_extend_buffer << "):" << std::endl;
+		std::cout << "Holographic ray extend buffers (" << environment.state.holographic_ray_extend_buffers[0u] << ", " << environment.state.holographic_ray_extend_buffers[1u] << ", " << environment.state.holographic_ray_extend_buffers[2u] << ", " << environment.state.holographic_ray_extend_buffers[3u] << "):" << std::endl;
 		std::cout << "block size: " << environment.state.holographic_ray_extend_buffer_block_size << std::endl;
 		std::cout << "skipped rays below column offset: " << environment.state.holographic_ray_extend_buffer_skipped_rays_below_column_offset << std::endl;
 		std::cout << "rays per probe offset: " << environment.state.holographic_ray_extend_buffer_rays_per_probe_offset << std::endl;
@@ -8185,7 +8281,7 @@ namespace game_logic
 		std::cout << "max lower cascade ray texture xy offset: " << environment.state.holographic_ray_extend_buffer_max_lower_cascade_ray_texture_xy_offset << std::endl;
 		std::cout << std::endl;
 
-		std::cout << "Holographic fluence gather buffer (" << environment.state.holographic_fluence_gather_buffer << "):" << std::endl;
+		std::cout << "Holographic fluence gather buffer (" << environment.state.holographic_fluence_gather_buffers[0u] << ", " << environment.state.holographic_fluence_gather_buffers[1u] << ", " << environment.state.holographic_fluence_gather_buffers[2u] << ", " << environment.state.holographic_fluence_gather_buffers[3u] << "):" << std::endl;
 		std::cout << "block size: " << environment.state.holographic_fluence_gather_buffer_block_size << std::endl;
 		std::cout << "direction mask offset: " << environment.state.holographic_fluence_gather_buffer_direction_mask_offset << std::endl;
 		std::cout << "cascade offset: " << environment.state.holographic_fluence_gather_buffer_cascade_offset << std::endl;
@@ -11007,234 +11103,242 @@ namespace game_logic
 			}
 			else
 			{
-				GLuint max_cascade_index
+				for (GLuint direction{ 0u }; direction < 4u; ++direction)
 				{
-					X(game_state::temporary_direction, environment.state.max_horizontal_cascade_index, environment.state.max_vertical_cascade_index)
-				};
-
-				GLint time_elapsed_query_done;
-				glGetQueryObjectiv(environment.state.time_elapsed_query, GL_QUERY_RESULT_AVAILABLE, &time_elapsed_query_done);
-				if (time_elapsed_query_done == GL_TRUE)
-				{
-					glBeginQuery(GL_TIME_ELAPSED, environment.state.time_elapsed_query);
-				}
-
-				GLuint const edge_width{ environment.state.holographic_probe_grid_width - 1u };
-				GLuint const edge_height{ environment.state.holographic_probe_grid_height - 1u };
-
-				GLuint const edge_width_decremented{ edge_width - 1u };
-				GLuint const edge_height_decremented{ edge_height - 1u };
-
-				GLuint ray_trace_cascade_count{ std::min(game_state::initial_holographic_ray_trace_cascade_count, max_cascade_index) };
-				for (GLuint cascade{ 0u }; cascade < ray_trace_cascade_count; ++cascade)
-				{
-					glBindFramebuffer(GL_DRAW_FRAMEBUFFER, environment.state.holographic_ray_framebuffers[cascade]);
-
-					GLuint width;
-					GLuint height;
-					if (environment.state.use_row_ray_textures)
+					if (direction != 3u)
 					{
-						GLuint const cascade_power_of_two{ 1u << cascade };
-						GLuint const rays_per_probe{ cascade_power_of_two + 1u };
-
-						if (game_state::temporary_direction == game_state::holographic_east_direction || game_state::temporary_direction == game_state::holographic_west_direction)
-						{
-							GLuint const min_outside_probe_x{ (edge_width_decremented + cascade_power_of_two) >> cascade };
-
-							width = (min_outside_probe_x - 1u) * rays_per_probe;
-							height = environment.state.holographic_probe_grid_height;
-						}
-						else if (game_state::temporary_direction == game_state::holographic_north_direction || game_state::temporary_direction == game_state::holographic_south_direction)
-						{
-							GLuint const min_outside_probe_y{ (edge_height_decremented + cascade_power_of_two) >> cascade };
-
-							width = environment.state.holographic_probe_grid_width;
-							height = (min_outside_probe_y - 1u) * rays_per_probe;
-						}
+						continue;
 					}
-					else
-					{
-						GLuint const cascade_power_of_two{ 1u << cascade };
-						width = ceil_div(environment.state.holographic_probe_grid_width - 1u - cascade_power_of_two, cascade_power_of_two);
-						GLuint const rays_in_vacuum_per_column{ ceil_div(cascade_power_of_two + 1u, 2u) << 1u };
-						height = environment.state.holographic_probe_grid_height * (cascade_power_of_two + 1u) - rays_in_vacuum_per_column;
-					}
-					glViewport(0, 0, width, height);
 
-					glUseProgram(environment.state.holographic_ray_trace_shaders[cascade]);
-					glDrawArrays(GL_TRIANGLES, 0, 3u);
-				}
-
-				glUseProgram(environment.state.holographic_ray_extend_shader);
-				for (GLint cascade{ static_cast<GLint>(game_state::initial_holographic_ray_trace_cascade_count) }; cascade < max_cascade_index; ++cascade)
-				{
-					GLint const padded_block_size
+					GLuint max_cascade_index
 					{
-						ceil_div(environment.state.holographic_ray_extend_buffer_block_size, environment.state.uniform_buffer_offset_alignment)
-						* environment.state.uniform_buffer_offset_alignment
+						X(direction, environment.state.max_horizontal_cascade_index, environment.state.max_vertical_cascade_index)
 					};
-					GLint base_offset{ (cascade - static_cast<GLint>(game_state::initial_holographic_ray_trace_cascade_count)) * padded_block_size };
-					glBindBufferRange(
-						GL_UNIFORM_BUFFER, game_logic__util_RAY_CASTING_BINDING,
-						environment.state.holographic_ray_extend_buffer,
-						base_offset, environment.state.holographic_ray_extend_buffer_block_size
-					);
 
-					glBindTextureUnit(2u, environment.state.ray_textures[cascade - 1]);
+					GLint time_elapsed_query_done;
+					glGetQueryObjectiv(environment.state.time_elapsed_query, GL_QUERY_RESULT_AVAILABLE, &time_elapsed_query_done);
+					if (time_elapsed_query_done == GL_TRUE)
+					{
+						glBeginQuery(GL_TIME_ELAPSED, environment.state.time_elapsed_query);
+					}
 
-					glBindFramebuffer(GL_DRAW_FRAMEBUFFER, environment.state.holographic_ray_framebuffers[cascade]);
+					GLuint const edge_width{ environment.state.holographic_probe_grid_width - 1u };
+					GLuint const edge_height{ environment.state.holographic_probe_grid_height - 1u };
+
+					GLuint const edge_width_decremented{ edge_width - 1u };
+					GLuint const edge_height_decremented{ edge_height - 1u };
+
+					GLuint ray_trace_cascade_count{ std::min(game_state::initial_holographic_ray_trace_cascade_count, max_cascade_index) };
+					for (GLuint cascade{ 0u }; cascade < ray_trace_cascade_count; ++cascade)
+					{
+						glBindFramebuffer(GL_DRAW_FRAMEBUFFER, environment.state.holographic_ray_framebuffers[cascade]);
+
+						GLuint width;
+						GLuint height;
+						if (environment.state.use_row_ray_textures)
+						{
+							GLuint const cascade_power_of_two{ 1u << cascade };
+							GLuint const rays_per_probe{ cascade_power_of_two + 1u };
+
+							if (direction == game_state::holographic_east_direction || direction == game_state::holographic_west_direction)
+							{
+								GLuint const min_outside_probe_x{ (edge_width_decremented + cascade_power_of_two) >> cascade };
+
+								width = (min_outside_probe_x - 1u) * rays_per_probe;
+								height = environment.state.holographic_probe_grid_height;
+							}
+							else if (direction == game_state::holographic_north_direction || direction == game_state::holographic_south_direction)
+							{
+								GLuint const min_outside_probe_y{ (edge_height_decremented + cascade_power_of_two) >> cascade };
+
+								width = environment.state.holographic_probe_grid_width;
+								height = (min_outside_probe_y - 1u) * rays_per_probe;
+							}
+						}
+						else
+						{
+							GLuint const cascade_power_of_two{ 1u << cascade };
+							width = ceil_div(environment.state.holographic_probe_grid_width - 1u - cascade_power_of_two, cascade_power_of_two);
+							GLuint const rays_in_vacuum_per_column{ ceil_div(cascade_power_of_two + 1u, 2u) << 1u };
+							height = environment.state.holographic_probe_grid_height * (cascade_power_of_two + 1u) - rays_in_vacuum_per_column;
+						}
+						glViewport(0, 0, width, height);
+
+						glUseProgram(environment.state.holographic_ray_trace_shaders[direction][cascade]);
+						glDrawArrays(GL_TRIANGLES, 0, 3u);
+					}
+
+					glUseProgram(environment.state.holographic_ray_extend_shaders[direction]);
+					for (GLint cascade{ static_cast<GLint>(game_state::initial_holographic_ray_trace_cascade_count) }; cascade < max_cascade_index; ++cascade)
+					{
+						GLint const padded_block_size
+						{
+							ceil_div(environment.state.holographic_ray_extend_buffer_block_size, environment.state.uniform_buffer_offset_alignment)
+							* environment.state.uniform_buffer_offset_alignment
+						};
+						GLint base_offset{ (cascade - static_cast<GLint>(game_state::initial_holographic_ray_trace_cascade_count)) * padded_block_size };
+						glBindBufferRange(
+							GL_UNIFORM_BUFFER, game_logic__util_RAY_CASTING_BINDING,
+							environment.state.holographic_ray_extend_buffers[direction],
+							base_offset, environment.state.holographic_ray_extend_buffer_block_size
+						);
+
+						glBindTextureUnit(2u, environment.state.ray_textures[cascade - 1]);
+
+						glBindFramebuffer(GL_DRAW_FRAMEBUFFER, environment.state.holographic_ray_framebuffers[cascade]);
+
+						GLint width;
+						GLint height;
+						if (environment.state.use_row_ray_textures)
+						{
+							GLint const cascade_power_of_two{ 1 << cascade };
+							GLint const rays_per_probe{ cascade_power_of_two + 1 };
+
+							if (direction == game_state::holographic_east_direction || direction == game_state::holographic_west_direction)
+							{
+								GLuint const min_outside_probe_x{ (edge_width_decremented + cascade_power_of_two) >> cascade };
+
+								width = (min_outside_probe_x - 1u) * rays_per_probe;
+								height = environment.state.holographic_probe_grid_height;
+							}
+							else if (direction == game_state::holographic_north_direction || direction == game_state::holographic_south_direction)
+							{
+								GLuint const min_outside_probe_y{ (edge_height_decremented + cascade_power_of_two) >> cascade };
+
+								width = environment.state.holographic_probe_grid_width;
+								height = (min_outside_probe_y - 1u) * rays_per_probe;
+							}
+						}
+						else
+						{
+							GLint const cascade_power_of_two{ 1 << cascade };
+							width = ceil_div(static_cast<GLint>(environment.state.holographic_probe_grid_width) - 1 - cascade_power_of_two, cascade_power_of_two);
+							GLint const rays_in_vacuum_per_column{ ceil_div(cascade_power_of_two + 1, 2) << 1 };
+							height = environment.state.holographic_probe_grid_height * (cascade_power_of_two + 1) - rays_in_vacuum_per_column;
+						}
+
+						glViewport(0, 0, width, height);
+
+						glDrawArrays(GL_TRIANGLES, 0, 3u);
+					}
+
+					glBindFramebuffer(GL_DRAW_FRAMEBUFFER, environment.state.holographic_sky_circle_framebuffer);
+					glViewport(0, 0, environment.state.sky_circle_texture_length, 1u);
+					draw_to_sky_circle(environment);
+
+					glBindFramebuffer(GL_DRAW_FRAMEBUFFER, environment.state.angular_fluence_framebuffer);
+
+					glNamedFramebufferDrawBuffer(environment.state.angular_fluence_framebuffer, GL_COLOR_ATTACHMENT0);
+
+					GLint const max_cascade{ static_cast<GLint>(max_cascade_index) };
 
 					GLint width;
 					GLint height;
-					if (environment.state.use_row_ray_textures)
+					if (direction == game_state::holographic_east_direction || direction == game_state::holographic_west_direction)
 					{
-						GLint const cascade_power_of_two{ 1 << cascade };
-						GLint const rays_per_probe{ cascade_power_of_two + 1 };
-
-						if (game_state::temporary_direction == game_state::holographic_east_direction || game_state::temporary_direction == game_state::holographic_west_direction)
+						width =
 						{
-							GLuint const min_outside_probe_x{ (edge_width_decremented + cascade_power_of_two) >> cascade };
-
-							width = (min_outside_probe_x - 1u) * rays_per_probe;
-							height = environment.state.holographic_probe_grid_height;
-						}
-						else if (game_state::temporary_direction == game_state::holographic_north_direction || game_state::temporary_direction == game_state::holographic_south_direction)
-						{
-							GLuint const min_outside_probe_y{ (edge_height_decremented + cascade_power_of_two) >> cascade };
-
-							width = environment.state.holographic_probe_grid_width;
-							height = (min_outside_probe_y - 1u) * rays_per_probe;
-						}
+							((static_cast<GLint>(environment.state.holographic_probe_grid_width) + (1 << max_cascade) - 2) >> max_cascade) << max_cascade
+						};
+						height = static_cast<GLint>(environment.state.holographic_probe_grid_height);
 					}
-					else
+					else if (direction == game_state::holographic_north_direction || direction == game_state::holographic_south_direction)
 					{
-						GLint const cascade_power_of_two{ 1 << cascade };
-						width = ceil_div(static_cast<GLint>(environment.state.holographic_probe_grid_width) - 1 - cascade_power_of_two, cascade_power_of_two);
-						GLint const rays_in_vacuum_per_column{ ceil_div(cascade_power_of_two + 1, 2) << 1 };
-						height = environment.state.holographic_probe_grid_height * (cascade_power_of_two + 1) - rays_in_vacuum_per_column;
+						width = static_cast<GLint>(environment.state.holographic_probe_grid_width);
+						height =
+						{
+							((static_cast<GLint>(environment.state.holographic_probe_grid_height) + (1 << max_cascade) - 2) >> max_cascade) << max_cascade
+						};
 					}
 
 					glViewport(0, 0, width, height);
 
+					glUseProgram(environment.state.holographic_sky_circle_gather_shaders[direction]);
 					glDrawArrays(GL_TRIANGLES, 0, 3u);
-				}
 
-				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, environment.state.holographic_sky_circle_framebuffer);
-				glViewport(0, 0, environment.state.sky_circle_texture_length, 1u);
-				draw_to_sky_circle(environment);
-
-				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, environment.state.angular_fluence_framebuffer);
-				
-				glNamedFramebufferDrawBuffer(environment.state.angular_fluence_framebuffer, GL_COLOR_ATTACHMENT0);
-				
-				GLint const max_cascade{ static_cast<GLint>(max_cascade_index) };
-
-				GLint width;
-				GLint height;
-				if (game_state::temporary_direction == game_state::holographic_east_direction || game_state::temporary_direction == game_state::holographic_west_direction)
-				{
-					width = 
+					glUseProgram(environment.state.holographic_fluence_gather_shaders[direction]);
+					GLint const max_fluence_gather_cascade{ max_cascade - 1 };
+					for (GLint cascade{ max_fluence_gather_cascade }; cascade > 0; --cascade)
 					{
-						((static_cast<GLint>(environment.state.holographic_probe_grid_width) + (1 << max_cascade) - 2) >> max_cascade) << max_cascade
-					};
-					height = static_cast<GLint>(environment.state.holographic_probe_grid_height);
-				}
-				else if (game_state::temporary_direction == game_state::holographic_north_direction || game_state::temporary_direction == game_state::holographic_south_direction)
-				{
-					width = static_cast<GLint>(environment.state.holographic_probe_grid_width);
-					height =
-					{
-						((static_cast<GLint>(environment.state.holographic_probe_grid_height) + (1 << max_cascade) - 2) >> max_cascade) << max_cascade
-					};
-				}
+						GLint const padded_block_size
+						{
+							ceil_div(environment.state.holographic_fluence_gather_buffer_block_size, environment.state.uniform_buffer_offset_alignment)
+							* environment.state.uniform_buffer_offset_alignment
+						};
+						GLint base_offset{ (max_fluence_gather_cascade - cascade) * padded_block_size };
+						glBindBufferRange(
+							GL_UNIFORM_BUFFER, game_logic__util_FLUENCE_GATHERING_BINDING,
+							environment.state.holographic_fluence_gather_buffers[direction],
+							base_offset, environment.state.holographic_fluence_gather_buffer_block_size
+						);
 
-				glViewport(0, 0, width, height);
+						glBindTextureUnit(2u, environment.state.ray_textures[cascade]);
 
-				glUseProgram(environment.state.holographic_sky_circle_gather_shader);
-				glDrawArrays(GL_TRIANGLES, 0, 3u);
+						GLint const upper_cascade_fluence_layer
+						{
+							(max_fluence_gather_cascade - cascade) & 1
+						};
 
-				glUseProgram(environment.state.holographic_fluence_gather_shader);
-				GLint const max_fluence_gather_cascade{ max_cascade - 1 };
-				for (GLint cascade{ max_fluence_gather_cascade }; cascade > 0; --cascade)
-				{
+						GLint const destination_layer{ upper_cascade_fluence_layer ^ 1 };
+						glNamedFramebufferDrawBuffer(environment.state.angular_fluence_framebuffer, GL_COLOR_ATTACHMENT0 + destination_layer);
+
+						GLint width;
+						GLint height;
+						if (direction == game_state::holographic_east_direction || direction == game_state::holographic_west_direction)
+						{
+							// IMPORTANT TODO: Check that the width is correct
+							width =
+							{
+								((static_cast<GLint>(environment.state.holographic_probe_grid_width) + (1 << cascade) - 2) >> cascade) << cascade
+							};
+							height = static_cast<GLint>(environment.state.holographic_probe_grid_height);
+						}
+						else if (direction == game_state::holographic_north_direction || direction == game_state::holographic_south_direction)
+						{
+							width = static_cast<GLint>(environment.state.holographic_probe_grid_width);
+							height = {
+								((static_cast<GLint>(environment.state.holographic_probe_grid_height) + (1 << cascade) - 2) >> cascade) << cascade
+							};
+						}
+
+						glViewport(0, 0, width, height);
+
+						glDrawArrays(GL_TRIANGLES, 0, 3u);
+					}
+
 					GLint const padded_block_size
 					{
 						ceil_div(environment.state.holographic_fluence_gather_buffer_block_size, environment.state.uniform_buffer_offset_alignment)
 						* environment.state.uniform_buffer_offset_alignment
 					};
-					GLint base_offset{ (max_fluence_gather_cascade - cascade) * padded_block_size };
+					GLint base_offset{ (max_fluence_gather_cascade - 0) * padded_block_size };
 					glBindBufferRange(
 						GL_UNIFORM_BUFFER, game_logic__util_FLUENCE_GATHERING_BINDING,
-						environment.state.holographic_fluence_gather_buffer,
+						environment.state.holographic_fluence_gather_buffers[direction],
 						base_offset, environment.state.holographic_fluence_gather_buffer_block_size
 					);
 
-					glBindTextureUnit(2u, environment.state.ray_textures[cascade]);
+					glBindTextureUnit(2u, environment.state.ray_textures[0u]);
 
-					GLint const upper_cascade_fluence_layer
-					{
-						(max_fluence_gather_cascade - cascade) & 1
-					};
-
-					GLint const destination_layer{ upper_cascade_fluence_layer ^ 1 };
-					glNamedFramebufferDrawBuffer(environment.state.angular_fluence_framebuffer, GL_COLOR_ATTACHMENT0 + destination_layer);
-
-					GLint width;
-					GLint height;
-					if (game_state::temporary_direction == game_state::holographic_east_direction || game_state::temporary_direction == game_state::holographic_west_direction)
-					{
-						// IMPORTANT TODO: Check that the width is correct
-						width = 
-						{
-							((static_cast<GLint>(environment.state.holographic_probe_grid_width) + (1 << cascade) - 2) >> cascade) << cascade
-						};
-						height = static_cast<GLint>(environment.state.holographic_probe_grid_height);
-					}
-					else if (game_state::temporary_direction == game_state::holographic_north_direction || game_state::temporary_direction == game_state::holographic_south_direction)
-					{
-						width = static_cast<GLint>(environment.state.holographic_probe_grid_width);
-						height = {
-							((static_cast<GLint>(environment.state.holographic_probe_grid_height) + (1 << cascade) - 2) >> cascade) << cascade
-						};
-					}
-
-					glViewport(0, 0, width, height);
-
+					glBindFramebuffer(GL_DRAW_FRAMEBUFFER, environment.state.fluence_framebuffer);
+					glViewport(0, 0, environment.state.holographic_probe_grid_width, environment.state.holographic_probe_grid_height);
+					// IMPORTANT TODO: Additive blending!!!
 					glDrawArrays(GL_TRIANGLES, 0, 3u);
-				}
 
-				GLint const padded_block_size
-				{
-					ceil_div(environment.state.holographic_fluence_gather_buffer_block_size, environment.state.uniform_buffer_offset_alignment)
-					* environment.state.uniform_buffer_offset_alignment
-				};
-				GLint base_offset{ (max_fluence_gather_cascade - 0) * padded_block_size };
-				glBindBufferRange(
-					GL_UNIFORM_BUFFER, game_logic__util_FLUENCE_GATHERING_BINDING,
-					environment.state.holographic_fluence_gather_buffer,
-					base_offset, environment.state.holographic_fluence_gather_buffer_block_size
-				);
+					glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0u);
+					glViewport(0, 0, environment.state.framebuffer_width, environment.state.framebuffer_height);
+					if (environment.state.presentation_state_0 == game_state::presentation_state_0::SHOW_INNER_WORKINGS)
+					{	// TODO: This if check be if we are zoomed out
+						GLfloat clear_color[4u]{ 0.0f, 0.0f, 0.0f, 1.0f };
+						glClearNamedFramebufferfv(0, GL_COLOR, 0, clear_color);
+					}
+					glUseProgram(environment.state.holographic_draw_fluence_shader);
+					glDrawArrays(GL_TRIANGLES, 0, 6u);
 
-				glBindTextureUnit(2u, environment.state.ray_textures[0u]);
-
-				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, environment.state.fluence_framebuffer);
-				glViewport(0, 0, environment.state.holographic_probe_grid_width, environment.state.holographic_probe_grid_height);
-				// IMPORTANT TODO: Additive blending!!!
-				glDrawArrays(GL_TRIANGLES, 0, 3u);
-
-				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0u);
-				glViewport(0, 0, environment.state.framebuffer_width, environment.state.framebuffer_height);
-				if (environment.state.presentation_state_0 == game_state::presentation_state_0::SHOW_INNER_WORKINGS)
-				{	// TODO: This if check be if we are zoomed out
-					GLfloat clear_color[4u]{ 0.0f, 0.0f, 0.0f, 1.0f };
-					glClearNamedFramebufferfv(0, GL_COLOR, 0, clear_color);
-				}
-				glUseProgram(environment.state.holographic_draw_fluence_shader);
-				glDrawArrays(GL_TRIANGLES, 0, 6u);
-
-				if (time_elapsed_query_done == GL_TRUE)
-				{
-					glEndQuery(GL_TIME_ELAPSED);
+					if (time_elapsed_query_done == GL_TRUE)
+					{
+						glEndQuery(GL_TIME_ELAPSED);
+					}
 				}
 			}
 		}
@@ -11277,23 +11381,25 @@ namespace game_logic
 			glDrawArrays(GL_POINTS, 0, environment.state.holographic_probe_grid_width * environment.state.holographic_probe_grid_height);
 
 			{
+				GLuint const direction{ 0u };
+
 				glEnablei(GL_BLEND, 0);
 
 				if (environment.state.presentation_stage == 12u)
 				{
-					glUseProgram(environment.state.holographic_cascade_fluence_single_cone_draw_shader);
-					GLuint const cascade_power_of_two{ 1u << environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascade };
+					glUseProgram(environment.state.holographic_cascade_fluence_single_cone_draw_shaders[direction]);
+					GLuint const cascade_power_of_two{ 1u << environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascades[direction] };
 
 					find_fluence_cone_closest_to_cursor
 					(
 						environment,
-						environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascade, cascade_power_of_two, static_cast<GLfloat>(cascade_power_of_two),
+						environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascades[direction], cascade_power_of_two, static_cast<GLfloat>(cascade_power_of_two),
 						environment.state.holographic_cascade_fluence_single_cone_draw_shader_showcased_cone_texel_x, environment.state.holographic_cascade_fluence_single_cone_draw_shader_showcased_cone_texel_y
 					);
 					glProgramUniform2ui
 					(
-						environment.state.holographic_cascade_fluence_single_cone_draw_shader,
-						environment.state.holographic_cascade_fluence_single_cone_draw_shader_showcased_cone_texel_position_uniform_location,
+						environment.state.holographic_cascade_fluence_single_cone_draw_shaders[direction],
+						environment.state.holographic_cascade_fluence_single_cone_draw_shader_showcased_cone_texel_position_uniform_locations[direction],
 						environment.state.holographic_cascade_fluence_single_cone_draw_shader_showcased_cone_texel_x,
 						environment.state.holographic_cascade_fluence_single_cone_draw_shader_showcased_cone_texel_y
 					);
@@ -11306,21 +11412,21 @@ namespace game_logic
 					};
 					glProgramUniform2ui
 					(
-						environment.state.holographic_cascade_fluence_single_cone_draw_shader,
-						environment.state.holographic_cascade_fluence_single_cone_draw_shader_source_size_uniform_location,
+						environment.state.holographic_cascade_fluence_single_cone_draw_shaders[direction],
+						environment.state.holographic_cascade_fluence_single_cone_draw_shader_source_size_uniform_locations[direction],
 						environment.state.framebuffer_width, environment.state.framebuffer_height
 					);
 					glProgramUniform2f
 					(
-						environment.state.holographic_cascade_fluence_single_cone_draw_shader,
-						environment.state.holographic_cascade_fluence_single_cone_draw_shader_probe_padding_factor_uniform_location,
+						environment.state.holographic_cascade_fluence_single_cone_draw_shaders[direction],
+						environment.state.holographic_cascade_fluence_single_cone_draw_shader_probe_padding_factor_uniform_locations[direction],
 						environment.state.probe_padding_factor_x, environment.state.probe_padding_factor_y
 					);
 					glDrawArrays(GL_TRIANGLES, 0, vertex_count);
 
 					{
-						glUseProgram(environment.state.holographic_cascade_rays_draw_shader);
-						GLuint const cascade_power_of_two{ 1u << environment.state.holographic_cascade_rays_draw_shader_cascade };
+						glUseProgram(environment.state.holographic_cascade_rays_draw_shaders[direction]);
+						GLuint const cascade_power_of_two{ 1u << environment.state.holographic_cascade_rays_draw_shader_cascades[direction] };
 						// TODO: Avoid calling ceil function
 						// IMPORTANT TODO: Probe column 0 is not needed
 						GLuint const vertex_count
@@ -11330,14 +11436,14 @@ namespace game_logic
 						};
 						glProgramUniform2ui
 						(
-							environment.state.holographic_cascade_rays_draw_shader,
-							environment.state.holographic_cascade_rays_draw_shader_source_size_uniform_location,
+							environment.state.holographic_cascade_rays_draw_shaders[direction],
+							environment.state.holographic_cascade_rays_draw_shader_source_size_uniform_locations[direction],
 							environment.state.framebuffer_width, environment.state.framebuffer_height
 						);
 						glProgramUniform2f
 						(
-							environment.state.holographic_cascade_rays_draw_shader,
-							environment.state.holographic_cascade_rays_draw_shader_probe_padding_factor_uniform_location,
+							environment.state.holographic_cascade_rays_draw_shaders[direction],
+							environment.state.holographic_cascade_rays_draw_shader_probe_padding_factor_uniform_locations[direction],
 							environment.state.probe_padding_factor_x, environment.state.probe_padding_factor_y
 						);
 						glDrawArrays(GL_LINES, 0, vertex_count);
@@ -11345,23 +11451,23 @@ namespace game_logic
 				}
 				else if (environment.state.presentation_stage == 13u)
 				{
-					GLuint const lower_cascade_power_of_two{ 1u << environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascade };
-					GLuint const upper_cascade_power_of_two{ 1u << environment.state.holographic_cascade_fluence_merge_to_draw_shader_cascade };
+					GLuint const lower_cascade_power_of_two{ 1u << environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascades[direction] };
+					GLuint const upper_cascade_power_of_two{ 1u << environment.state.holographic_cascade_fluence_merge_to_draw_shader_cascades[direction] };
 
 					find_fluence_cone_closest_to_cursor
 					(
 						environment,
-						environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascade, lower_cascade_power_of_two, static_cast<GLfloat>(lower_cascade_power_of_two),
+						environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascades[direction], lower_cascade_power_of_two, static_cast<GLfloat>(lower_cascade_power_of_two),
 						environment.state.holographic_cascade_fluence_single_cone_draw_shader_showcased_cone_texel_x, environment.state.holographic_cascade_fluence_single_cone_draw_shader_showcased_cone_texel_y
 					);
 
 					{
-						glUseProgram(environment.state.holographic_cascade_fluence_single_cone_draw_shader);
+						glUseProgram(environment.state.holographic_cascade_fluence_single_cone_draw_shaders[direction]);
 
 						glProgramUniform2ui
 						(
-							environment.state.holographic_cascade_fluence_single_cone_draw_shader,
-							environment.state.holographic_cascade_fluence_single_cone_draw_shader_showcased_cone_texel_position_uniform_location,
+							environment.state.holographic_cascade_fluence_single_cone_draw_shaders[direction],
+							environment.state.holographic_cascade_fluence_single_cone_draw_shader_showcased_cone_texel_position_uniform_locations[direction],
 							environment.state.holographic_cascade_fluence_single_cone_draw_shader_showcased_cone_texel_x,
 							environment.state.holographic_cascade_fluence_single_cone_draw_shader_showcased_cone_texel_y
 						);
@@ -11372,29 +11478,29 @@ namespace game_logic
 						};
 						glProgramUniform2ui
 						(
-							environment.state.holographic_cascade_fluence_single_cone_draw_shader,
-							environment.state.holographic_cascade_fluence_single_cone_draw_shader_source_size_uniform_location,
+							environment.state.holographic_cascade_fluence_single_cone_draw_shaders[direction],
+							environment.state.holographic_cascade_fluence_single_cone_draw_shader_source_size_uniform_locations[direction],
 							environment.state.framebuffer_width, environment.state.framebuffer_height
 						);
 						glProgramUniform2f
 						(
-							environment.state.holographic_cascade_fluence_single_cone_draw_shader,
-							environment.state.holographic_cascade_fluence_single_cone_draw_shader_probe_padding_factor_uniform_location,
+							environment.state.holographic_cascade_fluence_single_cone_draw_shaders[direction],
+							environment.state.holographic_cascade_fluence_single_cone_draw_shader_probe_padding_factor_uniform_locations[direction],
 							environment.state.probe_padding_factor_x, environment.state.probe_padding_factor_y
 						);
 						glDrawArrays(GL_TRIANGLES, 0, vertex_count);
 					}
 
 					{
-						glUseProgram(environment.state.holographic_cascade_fluence_merge_to_draw_shader);
+						glUseProgram(environment.state.holographic_cascade_fluence_merge_to_draw_shaders[direction]);
 
 						environment.state.holographic_cascade_fluence_merge_to_draw_shader_merged_to_cone_texel_x = environment.state.holographic_cascade_fluence_single_cone_draw_shader_showcased_cone_texel_x;
 						environment.state.holographic_cascade_fluence_merge_to_draw_shader_merged_to_cone_texel_y = environment.state.holographic_cascade_fluence_single_cone_draw_shader_showcased_cone_texel_y;
 
 						glProgramUniform2ui
 						(
-							environment.state.holographic_cascade_fluence_merge_to_draw_shader,
-							environment.state.holographic_cascade_fluence_merge_to_draw_shader_merged_to_cone_texel_position_uniform_location,
+							environment.state.holographic_cascade_fluence_merge_to_draw_shaders[direction],
+							environment.state.holographic_cascade_fluence_merge_to_draw_shader_merged_to_cone_texel_position_uniform_locations[direction],
 							environment.state.holographic_cascade_fluence_merge_to_draw_shader_merged_to_cone_texel_x,
 							environment.state.holographic_cascade_fluence_merge_to_draw_shader_merged_to_cone_texel_y
 						);
@@ -11407,30 +11513,30 @@ namespace game_logic
 						};
 						glProgramUniform2ui
 						(
-							environment.state.holographic_cascade_fluence_merge_to_draw_shader,
-							environment.state.holographic_cascade_fluence_merge_to_draw_shader_source_size_uniform_location,
+							environment.state.holographic_cascade_fluence_merge_to_draw_shaders[direction],
+							environment.state.holographic_cascade_fluence_merge_to_draw_shader_source_size_uniform_locations[direction],
 							environment.state.framebuffer_width, environment.state.framebuffer_height
 						);
 						glProgramUniform2f
 						(
-							environment.state.holographic_cascade_fluence_merge_to_draw_shader,
-							environment.state.holographic_cascade_fluence_merge_to_draw_shader_probe_padding_factor_uniform_location,
+							environment.state.holographic_cascade_fluence_merge_to_draw_shaders[direction],
+							environment.state.holographic_cascade_fluence_merge_to_draw_shader_probe_padding_factor_uniform_locations[direction],
 							environment.state.probe_padding_factor_x, environment.state.probe_padding_factor_y
 						);
 						glDrawArrays(GL_TRIANGLES, 0, vertex_count);
 					}
 
 					{
-						glUseProgram(environment.state.holographic_cascade_rays_merge_to_cone_draw_shader);
-						GLuint const cascade_power_of_two{ 1u << environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_cascade };
+						glUseProgram(environment.state.holographic_cascade_rays_merge_to_cone_draw_shaders[direction]);
+						GLuint const cascade_power_of_two{ 1u << environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_cascades[direction] };
 
 						environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_merged_to_cone_texel_x = environment.state.holographic_cascade_fluence_single_cone_draw_shader_showcased_cone_texel_x;
 						environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_merged_to_cone_texel_y = environment.state.holographic_cascade_fluence_single_cone_draw_shader_showcased_cone_texel_y;
 
 						glProgramUniform2ui
 						(
-							environment.state.holographic_cascade_rays_merge_to_cone_draw_shader,
-							environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_merged_to_cone_texel_position_uniform_location,
+							environment.state.holographic_cascade_rays_merge_to_cone_draw_shaders[direction],
+							environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_merged_to_cone_texel_position_uniform_locations[direction],
 							environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_merged_to_cone_texel_x,
 							environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_merged_to_cone_texel_y
 						);
@@ -11443,14 +11549,14 @@ namespace game_logic
 						};
 						glProgramUniform2ui
 						(
-							environment.state.holographic_cascade_rays_merge_to_cone_draw_shader,
-							environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_source_size_uniform_location,
+							environment.state.holographic_cascade_rays_merge_to_cone_draw_shaders[direction],
+							environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_source_size_uniform_locations[direction],
 							environment.state.framebuffer_width, environment.state.framebuffer_height
 						);
 						glProgramUniform2f
 						(
-							environment.state.holographic_cascade_rays_merge_to_cone_draw_shader,
-							environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_probe_padding_factor_uniform_location,
+							environment.state.holographic_cascade_rays_merge_to_cone_draw_shaders[direction],
+							environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_probe_padding_factor_uniform_locations[direction],
 							environment.state.probe_padding_factor_x, environment.state.probe_padding_factor_y
 						);
 						glDrawArrays(GL_LINES, 0, vertex_count);
@@ -11459,26 +11565,26 @@ namespace game_logic
 				else if (environment.state.presentation_stage == 14u)
 				{
 					{
-						GLuint const cascade_power_of_two{ 1u << environment.state.holographic_cascade_rays_single_ray_draw_shader_cascade };
+						GLuint const cascade_power_of_two{ 1u << environment.state.holographic_cascade_rays_single_ray_draw_shader_cascades[direction] };
 						GLuint const rays_per_probe{ cascade_power_of_two + 1u };
 						GLuint const skipped_rays_below_column{ (rays_per_probe + 1u) >> 1u };
 
 						find_ray_closest_to_cursor
 						(
 							environment,
-							environment.state.holographic_cascade_rays_single_ray_draw_shader_cascade, cascade_power_of_two, static_cast<GLfloat>(cascade_power_of_two),
+							environment.state.holographic_cascade_rays_single_ray_draw_shader_cascades[direction], cascade_power_of_two, static_cast<GLfloat>(cascade_power_of_two),
 							rays_per_probe, skipped_rays_below_column,
 							environment.state.holographic_cascade_rays_single_ray_draw_shader_showcased_ray_texel_x, environment.state.holographic_cascade_rays_single_ray_draw_shader_showcased_ray_texel_y
 						);
 						glProgramUniform2ui
 						(
-							environment.state.holographic_cascade_rays_single_ray_draw_shader,
-							environment.state.holographic_cascade_rays_single_ray_draw_shader_showcased_ray_texel_position_uniform_location,
+							environment.state.holographic_cascade_rays_single_ray_draw_shaders[direction],
+							environment.state.holographic_cascade_rays_single_ray_draw_shader_showcased_ray_texel_position_uniform_locations[direction],
 							environment.state.holographic_cascade_rays_single_ray_draw_shader_showcased_ray_texel_x,
 							environment.state.holographic_cascade_rays_single_ray_draw_shader_showcased_ray_texel_y
 						);
 
-						glUseProgram(environment.state.holographic_cascade_rays_single_ray_draw_shader);
+						glUseProgram(environment.state.holographic_cascade_rays_single_ray_draw_shaders[direction]);
 						// TODO: Avoid calling ceil function
 						// IMPORTANT TODO: Probe column 0 is not needed
 						GLuint const vertex_count
@@ -11488,14 +11594,14 @@ namespace game_logic
 						};
 						glProgramUniform2ui
 						(
-							environment.state.holographic_cascade_rays_single_ray_draw_shader,
-							environment.state.holographic_cascade_rays_single_ray_draw_shader_source_size_uniform_location,
+							environment.state.holographic_cascade_rays_single_ray_draw_shaders[direction],
+							environment.state.holographic_cascade_rays_single_ray_draw_shader_source_size_uniform_locations[direction],
 							environment.state.framebuffer_width, environment.state.framebuffer_height
 						);
 						glProgramUniform2f
 						(
-							environment.state.holographic_cascade_rays_single_ray_draw_shader,
-							environment.state.holographic_cascade_rays_single_ray_draw_shader_probe_padding_factor_uniform_location,
+							environment.state.holographic_cascade_rays_single_ray_draw_shaders[direction],
+							environment.state.holographic_cascade_rays_single_ray_draw_shader_probe_padding_factor_uniform_locations[direction],
 							environment.state.probe_padding_factor_x, environment.state.probe_padding_factor_y
 						);
 						glDrawArrays(GL_LINES, 0, vertex_count);
@@ -11503,14 +11609,14 @@ namespace game_logic
 				}
 				else if (environment.state.presentation_stage == 15u)
 				{
-					GLuint const merged_to_cascade_power_of_two{ 1u << environment.state.holographic_cascade_rays_single_ray_draw_shader_cascade };
+					GLuint const merged_to_cascade_power_of_two{ 1u << environment.state.holographic_cascade_rays_single_ray_draw_shader_cascades[direction] };
 					GLuint const merged_to_rays_per_probe{ merged_to_cascade_power_of_two + 1u };
 					GLuint const merged_to_skipped_rays_below_column{ (merged_to_rays_per_probe + 1u) >> 1u };
 
 					find_ray_closest_to_cursor
 					(
 						environment,
-						environment.state.holographic_cascade_rays_single_ray_draw_shader_cascade, merged_to_cascade_power_of_two, static_cast<GLfloat>(merged_to_cascade_power_of_two),
+						environment.state.holographic_cascade_rays_single_ray_draw_shader_cascades[direction], merged_to_cascade_power_of_two, static_cast<GLfloat>(merged_to_cascade_power_of_two),
 						merged_to_rays_per_probe, merged_to_skipped_rays_below_column,
 						environment.state.holographic_cascade_rays_single_ray_draw_shader_showcased_ray_texel_x, environment.state.holographic_cascade_rays_single_ray_draw_shader_showcased_ray_texel_y
 					);
@@ -11518,13 +11624,13 @@ namespace game_logic
 					{
 						glProgramUniform2ui
 						(
-							environment.state.holographic_cascade_rays_single_ray_draw_shader,
-							environment.state.holographic_cascade_rays_single_ray_draw_shader_showcased_ray_texel_position_uniform_location,
+							environment.state.holographic_cascade_rays_single_ray_draw_shaders[direction],
+							environment.state.holographic_cascade_rays_single_ray_draw_shader_showcased_ray_texel_position_uniform_locations[direction],
 							environment.state.holographic_cascade_rays_single_ray_draw_shader_showcased_ray_texel_x,
 							environment.state.holographic_cascade_rays_single_ray_draw_shader_showcased_ray_texel_y
 						);
 
-						glUseProgram(environment.state.holographic_cascade_rays_single_ray_draw_shader);
+						glUseProgram(environment.state.holographic_cascade_rays_single_ray_draw_shaders[direction]);
 						// TODO: Avoid calling ceil function
 						// IMPORTANT TODO: Probe column 0 is not needed
 						GLuint const vertex_count
@@ -11534,21 +11640,21 @@ namespace game_logic
 						};
 						glProgramUniform2ui
 						(
-							environment.state.holographic_cascade_rays_single_ray_draw_shader,
-							environment.state.holographic_cascade_rays_single_ray_draw_shader_source_size_uniform_location,
+							environment.state.holographic_cascade_rays_single_ray_draw_shaders[direction],
+							environment.state.holographic_cascade_rays_single_ray_draw_shader_source_size_uniform_locations[direction],
 							environment.state.framebuffer_width, environment.state.framebuffer_height
 						);
 						glProgramUniform2f
 						(
-							environment.state.holographic_cascade_rays_single_ray_draw_shader,
-							environment.state.holographic_cascade_rays_single_ray_draw_shader_probe_padding_factor_uniform_location,
+							environment.state.holographic_cascade_rays_single_ray_draw_shaders[direction],
+							environment.state.holographic_cascade_rays_single_ray_draw_shader_probe_padding_factor_uniform_locations[direction],
 							environment.state.probe_padding_factor_x, environment.state.probe_padding_factor_y
 						);
 						glDrawArrays(GL_LINES, 0, vertex_count);
 					}
 
 					{
-						GLuint const merged_from_cascade_power_of_two{ 1u << environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_cascade };
+						GLuint const merged_from_cascade_power_of_two{ 1u << environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_cascades[direction] };
 						GLuint const merged_from_rays_per_probe{ merged_from_cascade_power_of_two + 1u };
 						GLuint const merged_from_skipped_rays_below_column{ (merged_from_rays_per_probe + 1u) >> 1u };
 
@@ -11556,13 +11662,13 @@ namespace game_logic
 						environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_merged_to_ray_texel_y = environment.state.holographic_cascade_rays_single_ray_draw_shader_showcased_ray_texel_y;
 						glProgramUniform2ui
 						(
-							environment.state.holographic_cascade_rays_merge_to_ray_draw_shader,
-							environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_merged_to_ray_texel_position_uniform_location,
+							environment.state.holographic_cascade_rays_merge_to_ray_draw_shaders[direction],
+							environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_merged_to_ray_texel_position_uniform_locations[direction],
 							environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_merged_to_ray_texel_x,
 							environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_merged_to_ray_texel_y
 						);
 
-						glUseProgram(environment.state.holographic_cascade_rays_merge_to_ray_draw_shader);
+						glUseProgram(environment.state.holographic_cascade_rays_merge_to_ray_draw_shaders[direction]);
 						// TODO: Avoid calling ceil function
 						// IMPORTANT TODO: Probe column 0 is not needed
 						GLuint const vertex_count
@@ -11572,14 +11678,14 @@ namespace game_logic
 						};
 						glProgramUniform2ui
 						(
-							environment.state.holographic_cascade_rays_merge_to_ray_draw_shader,
-							environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_source_size_uniform_location,
+							environment.state.holographic_cascade_rays_merge_to_ray_draw_shaders[direction],
+							environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_source_size_uniform_locations[direction],
 							environment.state.framebuffer_width, environment.state.framebuffer_height
 						);
 						glProgramUniform2f
 						(
-							environment.state.holographic_cascade_rays_merge_to_ray_draw_shader,
-							environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_probe_padding_factor_uniform_location,
+							environment.state.holographic_cascade_rays_merge_to_ray_draw_shaders[direction],
+							environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_probe_padding_factor_uniform_locations[direction],
 							environment.state.probe_padding_factor_x, environment.state.probe_padding_factor_y
 						);
 						glDrawArrays(GL_LINES, 0, vertex_count);
@@ -11587,13 +11693,13 @@ namespace game_logic
 				}
 				else if (18u <= environment.state.presentation_stage && environment.state.presentation_stage <= 21u)
 				{
-					GLuint const cascade_power_of_two{ 1u << environment.state.holographic_cascade_rays_radiance_draw_shader_cascade };
+					GLuint const cascade_power_of_two{ 1u << environment.state.holographic_cascade_rays_radiance_draw_shader_cascades[direction] };
 					GLuint const rays_per_probe{ cascade_power_of_two + 1u };
 					GLuint const skipped_rays_below_column{ (cascade_power_of_two + 1u) >> 1u };
 
-					glBindTextureUnit(2u, environment.state.ray_textures[environment.state.holographic_cascade_rays_radiance_draw_shader_cascade]);
+					glBindTextureUnit(2u, environment.state.ray_textures[environment.state.holographic_cascade_rays_radiance_draw_shader_cascades[direction]]);
 
-					glUseProgram(environment.state.holographic_cascade_rays_radiance_draw_shader);
+					glUseProgram(environment.state.holographic_cascade_rays_radiance_draw_shaders[direction]);
 					// TODO: Avoid calling ceil function
 					// IMPORTANT TODO: Probe column 0 is not needed
 					GLuint const vertex_count
@@ -11603,22 +11709,22 @@ namespace game_logic
 					};
 					glProgramUniform2ui
 					(
-						environment.state.holographic_cascade_rays_radiance_draw_shader,
-						environment.state.holographic_cascade_rays_radiance_draw_shader_source_size_uniform_location,
+						environment.state.holographic_cascade_rays_radiance_draw_shaders[direction],
+						environment.state.holographic_cascade_rays_radiance_draw_shader_source_size_uniform_locations[direction],
 						environment.state.framebuffer_width, environment.state.framebuffer_height
 					);
 					glProgramUniform2f
 					(
-						environment.state.holographic_cascade_rays_radiance_draw_shader,
-						environment.state.holographic_cascade_rays_radiance_draw_shader_probe_padding_factor_uniform_location,
+						environment.state.holographic_cascade_rays_radiance_draw_shaders[direction],
+						environment.state.holographic_cascade_rays_radiance_draw_shader_probe_padding_factor_uniform_locations[direction],
 						environment.state.probe_padding_factor_x, environment.state.probe_padding_factor_y
 					);
 					glDrawArrays(GL_LINES, 0, vertex_count);
 				}
 				else
 				{
-					glUseProgram(environment.state.holographic_cascade_fluence_draw_shader);
-					GLuint const cascade_power_of_two{ 1u << environment.state.holographic_cascade_fluence_draw_shader_cascade };
+					glUseProgram(environment.state.holographic_cascade_fluence_draw_shaders[direction]);
+					GLuint const cascade_power_of_two{ 1u << environment.state.holographic_cascade_fluence_draw_shader_cascades[direction] };
 					// TODO: Avoid calling ceil function
 					GLuint const vertex_count
 					{
@@ -11627,21 +11733,21 @@ namespace game_logic
 					};
 					glProgramUniform2ui
 					(
-						environment.state.holographic_cascade_fluence_draw_shader,
-						environment.state.holographic_cascade_fluence_draw_shader_source_size_uniform_location,
+						environment.state.holographic_cascade_fluence_draw_shaders[direction],
+						environment.state.holographic_cascade_fluence_draw_shader_source_size_uniform_locations[direction],
 						environment.state.framebuffer_width, environment.state.framebuffer_height
 					);
 					glProgramUniform2f
 					(
-						environment.state.holographic_cascade_fluence_draw_shader,
-						environment.state.holographic_cascade_fluence_draw_shader_probe_padding_factor_uniform_location,
+						environment.state.holographic_cascade_fluence_draw_shaders[direction],
+						environment.state.holographic_cascade_fluence_draw_shader_probe_padding_factor_uniform_locations[direction],
 						environment.state.probe_padding_factor_x, environment.state.probe_padding_factor_y
 					);
 					glDrawArrays(GL_TRIANGLES, 0, vertex_count);
 
 					{
-						glUseProgram(environment.state.holographic_cascade_rays_draw_shader);
-						GLuint const cascade_power_of_two{ 1u << environment.state.holographic_cascade_rays_draw_shader_cascade };
+						glUseProgram(environment.state.holographic_cascade_rays_draw_shaders[direction]);
+						GLuint const cascade_power_of_two{ 1u << environment.state.holographic_cascade_rays_draw_shader_cascades[direction] };
 						// TODO: Avoid calling ceil function
 						// IMPORTANT TODO: Probe column 0 is not needed
 						GLuint const vertex_count
@@ -11651,14 +11757,14 @@ namespace game_logic
 						};
 						glProgramUniform2ui
 						(
-							environment.state.holographic_cascade_rays_draw_shader,
-							environment.state.holographic_cascade_rays_draw_shader_source_size_uniform_location,
+							environment.state.holographic_cascade_rays_draw_shaders[direction],
+							environment.state.holographic_cascade_rays_draw_shader_source_size_uniform_locations[direction],
 							environment.state.framebuffer_width, environment.state.framebuffer_height
 						);
 						glProgramUniform2f
 						(
-							environment.state.holographic_cascade_rays_draw_shader,
-							environment.state.holographic_cascade_rays_draw_shader_probe_padding_factor_uniform_location,
+							environment.state.holographic_cascade_rays_draw_shaders[direction],
+							environment.state.holographic_cascade_rays_draw_shader_probe_padding_factor_uniform_locations[direction],
 							environment.state.probe_padding_factor_x, environment.state.probe_padding_factor_y
 						);
 						glDrawArrays(GL_LINES, 0, vertex_count);
@@ -11721,8 +11827,14 @@ namespace game_logic
 			environment.state.GPU_buffers.rigid_bodies.masses.buffer, 
 			environment.state.GPU_buffers.rigid_bodies.triangles.materials.buffer,
 			environment.state.GPU_buffers.rigid_bodies.triangles.material_indices.buffer,
-			environment.state.holographic_ray_extend_buffer,
-			environment.state.holographic_fluence_gather_buffer,
+			environment.state.holographic_ray_extend_buffers[0u],
+			environment.state.holographic_ray_extend_buffers[1u],
+			environment.state.holographic_ray_extend_buffers[2u],
+			environment.state.holographic_ray_extend_buffers[3u],
+			environment.state.holographic_fluence_gather_buffers[0u],
+			environment.state.holographic_fluence_gather_buffers[1u],
+			environment.state.holographic_fluence_gather_buffers[2u],
+			environment.state.holographic_fluence_gather_buffers[3u],
 		};
 		glDeleteBuffers(std::size(buffers), buffers);
 
