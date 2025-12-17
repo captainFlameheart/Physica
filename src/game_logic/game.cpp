@@ -1158,7 +1158,7 @@ namespace game_logic
 			std::string zoomed_out_zoom_mode_definition{ "#define ZOOMED_OUT_ZOOM_MODE " + std::to_string(zoomed_out_zoom_mode_value) + '\n' };
 
 			{
-				constexpr GLuint zoom_mode_value{ default_zoom_mode_value };
+				GLuint const zoom_mode_value{ environment.state.is_zoomed_out ? zoomed_out_zoom_mode_value : default_zoom_mode_value };
 				std::string zoom_mode_definition{ "#define ZOOM_MODE " + std::to_string(zoom_mode_value) + '\n' };
 
 				GLfloat const double_padding_x{ environment.state.probe_padding_factor_x / environment.state.framebuffer_width };
@@ -2082,6 +2082,7 @@ namespace game_logic
 		environment.state.holographic_probe_grid_height = 512u;//75u;//50u;//environment.state.holographic_probe_grid_width >> 1u;//10u;//400u;
 		environment.state.probe_padding_factor_x = 1.0f;
 		environment.state.probe_padding_factor_y = 1.0f;
+		environment.state.is_zoomed_out = false;
 
 		glEnable(GL_FRAMEBUFFER_SRGB);
 		environment.state.framebuffer_sRGB_enabled = true;
@@ -3028,7 +3029,7 @@ namespace game_logic
 			std::string zoomed_out_zoom_mode_definition{ "#define ZOOMED_OUT_ZOOM_MODE " + std::to_string(zoomed_out_zoom_mode_value) + '\n' };
 
 			{
-				constexpr GLuint zoom_mode_value{ default_zoom_mode_value };
+				GLuint const zoom_mode_value{ environment.state.is_zoomed_out ? zoomed_out_zoom_mode_value : default_zoom_mode_value };
 				std::string zoom_mode_definition{ "#define ZOOM_MODE " + std::to_string(zoom_mode_value) + '\n' };
 				
 				::util::shader::set_shader_statically
@@ -3076,7 +3077,7 @@ namespace game_logic
 			std::string zoomed_out_zoom_mode_definition{ "#define ZOOMED_OUT_MODE " + std::to_string(zoomed_out_zoom_mode_value) + '\n' };
 
 			{
-				constexpr GLuint zoom_mode_value{ default_zoom_mode_value };;
+				GLuint const zoom_mode_value{ environment.state.is_zoomed_out ? zoomed_out_zoom_mode_value : default_zoom_mode_value };;
 				std::string zoom_mode_definition{ "#define MODE " + std::to_string(zoom_mode_value) + '\n' };
 				::util::shader::set_shader_statically
 				(
@@ -3136,7 +3137,7 @@ namespace game_logic
 
 				std::string mode_definition{ "#define MODE " + std::to_string(showcase_cascade_value) + "\n" };
 
-				constexpr GLuint zoom_mode_value{ default_zoom_mode_value };;
+				GLuint const zoom_mode_value{ environment.state.is_zoomed_out ? zoomed_out_zoom_mode_value : default_zoom_mode_value };;
 				std::string zoom_mode_definition{ "#define ZOOM_MODE " + std::to_string(zoom_mode_value) + '\n' };
 
 				::util::shader::set_shader_statically
@@ -3213,7 +3214,7 @@ namespace game_logic
 
 				std::string mode_definition{ "#define MODE " + std::to_string(showcase_single_cone_value) + "\n" };
 
-				constexpr GLuint zoom_mode_value{ default_zoom_mode_value };;
+				GLuint const zoom_mode_value{ environment.state.is_zoomed_out ? zoomed_out_zoom_mode_value : default_zoom_mode_value };;
 				std::string zoom_mode_definition{ "#define ZOOM_MODE " + std::to_string(zoom_mode_value) + '\n' };
 
 				::util::shader::set_shader_statically
@@ -3303,7 +3304,7 @@ namespace game_logic
 
 				std::string mode_definition{ "#define MODE " + std::to_string(showcase_merge_to_value) + "\n" };
 
-				constexpr GLuint zoom_mode_value{ default_zoom_mode_value };;
+				GLuint const zoom_mode_value{ environment.state.is_zoomed_out ? zoomed_out_zoom_mode_value : default_zoom_mode_value };;
 				std::string zoom_mode_definition{ "#define ZOOM_MODE " + std::to_string(zoom_mode_value) + '\n' };
 
 				::util::shader::set_shader_statically
@@ -3422,7 +3423,7 @@ namespace game_logic
 
 				std::string mode_definition{ "#define MODE " + std::to_string(showcase_cascade_value) + "\n" };
 
-				constexpr GLuint zoom_mode_value{ default_zoom_mode_value };;
+				GLuint const zoom_mode_value{ environment.state.is_zoomed_out ? zoomed_out_zoom_mode_value : default_zoom_mode_value };;
 				std::string zoom_mode_definition{ "#define ZOOM_MODE " + std::to_string(zoom_mode_value) + '\n' };
 
 				::util::shader::set_shader_statically
@@ -3507,7 +3508,7 @@ namespace game_logic
 
 				std::string mode_definition{ "#define MODE " + std::to_string(showcase_single_ray_value) + "\n" };
 
-				constexpr GLuint zoom_mode_value{ default_zoom_mode_value };;
+				GLuint const zoom_mode_value{ environment.state.is_zoomed_out ? zoomed_out_zoom_mode_value : default_zoom_mode_value };;
 				std::string zoom_mode_definition{ "#define ZOOM_MODE " + std::to_string(zoom_mode_value) + '\n' };
 
 				::util::shader::set_shader_statically
@@ -3603,7 +3604,7 @@ namespace game_logic
 
 				std::string mode_definition{ "#define MODE " + std::to_string(showcase_merge_to_cone_value) + "\n" };
 
-				constexpr GLuint zoom_mode_value{ default_zoom_mode_value };;
+				GLuint const zoom_mode_value{ environment.state.is_zoomed_out ? zoomed_out_zoom_mode_value : default_zoom_mode_value };;
 				std::string zoom_mode_definition{ "#define ZOOM_MODE " + std::to_string(zoom_mode_value) + '\n' };
 
 				::util::shader::set_shader_statically
@@ -3699,7 +3700,7 @@ namespace game_logic
 
 				std::string mode_definition{ "#define MODE " + std::to_string(showcase_merge_to_ray_value) + "\n" };
 
-				constexpr GLuint zoom_mode_value{ default_zoom_mode_value };;
+				GLuint const zoom_mode_value{ environment.state.is_zoomed_out ? zoomed_out_zoom_mode_value : default_zoom_mode_value };;
 				std::string zoom_mode_definition{ "#define ZOOM_MODE " + std::to_string(zoom_mode_value) + '\n' };
 
 				::util::shader::set_shader_statically
@@ -3795,7 +3796,7 @@ namespace game_logic
 
 				std::string mode_definition{ "#define MODE " + std::to_string(showcase_radiance_value) + "\n" };
 
-				constexpr GLuint zoom_mode_value{ default_zoom_mode_value };
+				GLuint const zoom_mode_value{ environment.state.is_zoomed_out ? zoomed_out_zoom_mode_value : default_zoom_mode_value };
 				std::string zoom_mode_definition{ "#define ZOOM_MODE " + std::to_string(zoom_mode_value) + '\n' };
 
 				::util::shader::set_shader_statically
@@ -11170,6 +11171,13 @@ namespace game_logic
 			}
 			else
 			{
+				GLint time_elapsed_query_done;
+				glGetQueryObjectiv(environment.state.time_elapsed_query, GL_QUERY_RESULT_AVAILABLE, &time_elapsed_query_done);
+				if (time_elapsed_query_done == GL_TRUE)
+				{
+					glBeginQuery(GL_TIME_ELAPSED, environment.state.time_elapsed_query);
+				}
+
 				glDisablei(GL_BLEND, 0u);
 				glBlendEquationi(0u, GL_ADD);
 				glBlendFunci(0u, GL_ONE, GL_ONE);
@@ -11185,13 +11193,6 @@ namespace game_logic
 					{
 						X(direction, environment.state.max_horizontal_cascade_index, environment.state.max_vertical_cascade_index)
 					};
-
-					GLint time_elapsed_query_done;
-					glGetQueryObjectiv(environment.state.time_elapsed_query, GL_QUERY_RESULT_AVAILABLE, &time_elapsed_query_done);
-					if (time_elapsed_query_done == GL_TRUE)
-					{
-						glBeginQuery(GL_TIME_ELAPSED, environment.state.time_elapsed_query);
-					}
 
 					GLuint const edge_width{ environment.state.holographic_probe_grid_width - 1u };
 					GLuint const edge_height{ environment.state.holographic_probe_grid_height - 1u };
@@ -11413,12 +11414,17 @@ namespace game_logic
 						glClearNamedFramebufferfv(0, GL_COLOR, 0, clear_color);
 					}
 					glUseProgram(environment.state.holographic_draw_fluence_shader);
-					glDrawArrays(GL_TRIANGLES, 0, 6u);
-
-					if (time_elapsed_query_done == GL_TRUE)
+					GLuint vertex_count = 3u;
+					if (environment.state.is_zoomed_out)
 					{
-						glEndQuery(GL_TIME_ELAPSED);
+						vertex_count = 6u;
 					}
+					glDrawArrays(GL_TRIANGLES, 0, vertex_count);
+				}
+				
+				if (time_elapsed_query_done == GL_TRUE)
+				{
+					glEndQuery(GL_TIME_ELAPSED);
 				}
 			}
 		}

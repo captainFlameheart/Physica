@@ -7,16 +7,25 @@
 
 */
 
-const vec2 vertices[6u] = vec2[6u]
-(
-	vec2(-1.0, -1.0), 
-	vec2(1.0, -1.0), 
-	vec2(1.0, 1.0), 
+#if ZOOM_MODE == DEFAULT_ZOOM_MODE
+	const vec2 vertices[3u] = vec2[3u]
+	(
+		vec2(-1.0, -1.0), 
+		vec2(3.0, -1.0), 
+		vec2(-1.0, 3.0)
+	);
+#elif ZOOM_MODE == ZOOMED_OUT_ZOOM_MODE
+	const vec2 vertices[6u] = vec2[6u]
+	(
+		vec2(-1.0, -1.0), 
+		vec2(1.0, -1.0), 
+		vec2(1.0, 1.0), 
 
-	vec2(1.0, 1.0), 
-	vec2(-1.0, 1.0), 
-	vec2(-1.0, -1.0)
-);
+		vec2(1.0, 1.0), 
+		vec2(-1.0, 1.0), 
+		vec2(-1.0, -1.0)
+	);
+#endif
 
 noperspective out vec2 sample_point;
 
