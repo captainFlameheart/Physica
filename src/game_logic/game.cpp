@@ -4812,10 +4812,10 @@ namespace game_logic
 			{
 				GLfloat albedo[4u]{ 1.0f, 0.0f, 0.0f, 1.0f };
 				GLfloat emission[4u]{ 0.0f, 0.0f, 0.0f, 0.0f };
-				GLfloat const absorption_scalar{ 5.0f };
+				GLfloat const absorption_scalar{ 4.0f };
 				GLfloat absorption[4u]{ absorption_scalar, absorption_scalar, absorption_scalar, absorption_scalar };
 				GLfloat scattering[4u]{ 0.0f, 0.0f, 0.0f, 0.0f };
-				switch (i % 40u)
+				switch (i % 20u)
 				{
 				case 0u:
 					albedo[0u] = 1.0f;
@@ -4827,11 +4827,6 @@ namespace game_logic
 					emission[1u] = 1.0f;
 					emission[2u] = 1.0f;
 					emission[3u] = 1.0f;
-					/*
-					absorption[0u] = 0.5f;
-					absorption[1u] = 0.5f;
-					absorption[2u] = 0.5f;
-					absorption[3u] = 0.5f;*/
 					break;
 				case 1u:
 					albedo[0u] = 0.0f;
@@ -4853,8 +4848,9 @@ namespace game_logic
 
 					emission[0u] = 0.0f;
 					emission[1u] = 1.0f;
-					emission[2u] = 0.0f;
+					emission[2u] = 0.3f;
 					emission[3u] = 1.0f;
+					break;
 				case 4u:
 					albedo[0u] = 1.0f;
 					albedo[1u] = 0.0f;
@@ -4862,17 +4858,76 @@ namespace game_logic
 					albedo[3u] = 1.0f;
 
 					emission[0u] = 1.0f;
-					emission[1u] = 0.0f;
+					emission[1u] = 0.3f;
 					emission[2u] = 1.0f;
 					emission[3u] = 1.0f;
 					break;
-				default:
-					albedo[0u] = 0.0f;
+				case 5u:
+					albedo[0u] = 1.0f;
+					albedo[1u] = 1.0f;
+					albedo[2u] = 1.0f;
+					albedo[3u] = 1.0f;
+					break;
+				case 6u:
+					albedo[0u] = 0.8f;
+					albedo[1u] = 0.5f;
+					albedo[2u] = 0.9f;
+					albedo[3u] = 1.0f;
+					break;
+				case 7u:
+					albedo[0u] = 0.3f;
+					albedo[1u] = 0.2f;
+					albedo[2u] = 0.6f;
+					albedo[3u] = 1.0f;
+					break;
+				case 8u:
+					albedo[0u] = 1.0f;
+					albedo[1u] = 0.0f;
+					albedo[2u] = 0.0f;
+					albedo[3u] = 1.0f;
+					break;
+				case 9u:
+					albedo[0u] = 1.0f;
 					albedo[1u] = 1.0f;
 					albedo[2u] = 0.0f;
 					albedo[3u] = 1.0f;
 					break;
+				case 10u:
+					albedo[0u] = 0.0f;
+					albedo[1u] = 1.0f;
+					albedo[2u] = 1.0f;
+					albedo[3u] = 1.0f;
+					break;
+				case 11u:
+					albedo[0u] = 0.0f;
+					albedo[1u] = 0.0f;
+					albedo[2u] = 1.0f;
+					albedo[3u] = 1.0f;
+					break;
+				case 12u:
+					albedo[0u] = 0.3f;
+					albedo[1u] = 0.0f;
+					albedo[2u] = 1.0f;
+					albedo[3u] = 1.0f;
+					break;
+				case 13u:
+					albedo[0u] = 1.0f;
+					albedo[1u] = 0.5f;
+					albedo[2u] = 0.1f;
+					albedo[3u] = 1.0f;
+					break;
+				default:
+					albedo[0u] = 0.1f;
+					albedo[1u] = 1.0f;
+					albedo[2u] = 0.1f;
+					albedo[3u] = 1.0f;
+					break;
 				}
+
+				emission[0u] *= 0.9f;
+				emission[1u] *= 0.9f;
+				emission[2u] *= 0.9f;
+				emission[3u] *= 0.9f;
 
 				unsigned char* const base{ initial_materials + environment.state.GPU_buffers.rigid_bodies.triangles.materials.materials_offset + i * environment.state.GPU_buffers.rigid_bodies.triangles.materials.materials_stride };
 
@@ -4949,7 +5004,7 @@ namespace game_logic
 
 			for (GLuint i = 0; i < game_logic_MAX_TRIANGLE_COUNT(environment); ++i)
 			{
-				GLuint index{ i % 10u };
+				GLuint index{ i % 20u };
 
 				unsigned char* const base{ initial_material_indices + environment.state.GPU_buffers.rigid_bodies.triangles.material_indices.material_indices_offset + i * environment.state.GPU_buffers.rigid_bodies.triangles.material_indices.material_indices_stride };
 
@@ -10708,6 +10763,18 @@ namespace game_logic
 			GL_COLOR, 0, clear_fluence
 		);
 
+		GLfloat global_brightness{ 0.5f * 0.0f };
+		
+		GLfloat global_tint_r{ 1.0f };
+		GLfloat global_tint_g{ 1.0f };
+		GLfloat global_tint_b{ 1.0f };
+		GLfloat global_tint_a{ 1.0f };
+
+		global_tint_r *= global_brightness;
+		global_tint_g *= global_brightness;
+		global_tint_b *= global_brightness;
+		global_tint_a *= global_brightness;
+
 		constexpr GLfloat pi{ 3.14159265358979323846f };
 
 		glUseProgram(environment.state.draw_sky_circle_test_element_shader);
@@ -10732,7 +10799,7 @@ namespace game_logic
 			(
 				environment.state.draw_sky_circle_test_element_shader,
 				environment.state.draw_sky_circle_test_element_shader_color_uniform_location,
-				1.0f, 1.0f, 0.5f, 0.0f
+				1.0f * global_tint_r, 1.0f * global_tint_g, 0.5f * global_tint_b, 0.0f * global_tint_a
 			);
 			glDrawArrays(GL_LINES, 0, 4u);
 		}
@@ -10757,7 +10824,7 @@ namespace game_logic
 			(
 				environment.state.draw_sky_circle_test_element_shader,
 				environment.state.draw_sky_circle_test_element_shader_color_uniform_location,
-				1.0f, 0.1f, 0.1f, 0.0f
+				1.0f * global_tint_r, 0.1f * global_tint_g, 0.1f * global_tint_b, 0.0f * global_tint_a
 			);
 			glDrawArrays(GL_LINES, 0, 4u);
 		}
@@ -10782,7 +10849,7 @@ namespace game_logic
 			(
 				environment.state.draw_sky_circle_test_element_shader,
 				environment.state.draw_sky_circle_test_element_shader_color_uniform_location,
-				0.0f, 0.0f, 0.0f, 0.0f
+				0.0f * global_tint_r, 0.0f * global_tint_g, 0.0f * global_tint_b, 0.0f * global_tint_a
 			);
 			glDrawArrays(GL_LINES, 0, 4u);
 		}*/
@@ -10808,7 +10875,7 @@ namespace game_logic
 			(
 				environment.state.draw_sky_circle_test_element_shader,
 				environment.state.draw_sky_circle_test_element_shader_color_uniform_location,
-				1.0f, 1.0f, 0.5f, 0.0f
+				1.0f * global_tint_r, 1.0f * global_tint_g, 0.5f * global_tint_b, 0.0f * global_tint_a
 			);
 			glDrawArrays(GL_LINES, 0, 4u);
 		}

@@ -30,6 +30,6 @@ void main()
         }
     }
     albedo.a = 1.0;
-    emission = albedo;
+    emission = albedo * 0.5;
     scattering = vec4(0.0, 0.0, 0.0, 0.0);
 }
