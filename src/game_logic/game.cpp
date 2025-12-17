@@ -569,6 +569,30 @@ namespace game_logic
 		}
 	}
 
+	GLuint const& X(GLuint const direction, GLuint const& x, GLuint const& y)
+	{
+		if (direction == game_state::holographic_east_direction || direction == game_state::holographic_west_direction)
+		{
+			return x;
+		}
+		else if (direction == game_state::holographic_north_direction || direction == game_state::holographic_south_direction)
+		{
+			return y;
+		}
+	}
+
+	GLuint const& Y(GLuint const direction, GLuint const& x, GLuint const& y)
+	{
+		if (direction == game_state::holographic_east_direction || direction == game_state::holographic_west_direction)
+		{
+			return y;
+		}
+		else if (direction == game_state::holographic_north_direction || direction == game_state::holographic_south_direction)
+		{
+			return x;
+		}
+	}
+
 	GLfloat const& X(GLuint const direction, GLfloat const& x, GLfloat const& y)
 	{
 		if (direction == game_state::holographic_east_direction || direction == game_state::holographic_west_direction)
@@ -10982,6 +11006,11 @@ namespace game_logic
 			}
 			else
 			{
+				GLuint max_cascade_index
+				{
+					X(game_state::temporary_direction, environment.state.max_horizontal_cascade_index, environment.state.max_vertical_cascade_index)
+				};
+
 				GLint time_elapsed_query_done;
 				glGetQueryObjectiv(environment.state.time_elapsed_query, GL_QUERY_RESULT_AVAILABLE, &time_elapsed_query_done);
 				if (time_elapsed_query_done == GL_TRUE)
@@ -10995,7 +11024,7 @@ namespace game_logic
 				GLuint const edge_width_decremented{ edge_width - 1u };
 				GLuint const edge_height_decremented{ edge_height - 1u };
 
-				GLuint ray_trace_cascade_count{ std::min(game_state::initial_holographic_ray_trace_cascade_count, environment.state.max_cascade_index) };
+				GLuint ray_trace_cascade_count{ std::min(game_state::initial_holographic_ray_trace_cascade_count, max_cascade_index) };
 				for (GLuint cascade{ 0u }; cascade < ray_trace_cascade_count; ++cascade)
 				{
 					glBindFramebuffer(GL_DRAW_FRAMEBUFFER, environment.state.holographic_ray_framebuffers[cascade]);
@@ -11036,7 +11065,7 @@ namespace game_logic
 				}
 
 				glUseProgram(environment.state.holographic_ray_extend_shader);
-				for (GLint cascade{ static_cast<GLint>(game_state::initial_holographic_ray_trace_cascade_count) }; cascade < environment.state.max_cascade_index; ++cascade)
+				for (GLint cascade{ static_cast<GLint>(game_state::initial_holographic_ray_trace_cascade_count) }; cascade < max_cascade_index; ++cascade)
 				{
 					GLint const padded_block_size
 					{
@@ -11097,21 +11126,29 @@ namespace game_logic
 				
 				glNamedFramebufferDrawBuffer(environment.state.angular_fluence_framebuffer, GL_COLOR_ATTACHMENT0);
 				
-				GLint const max_cascade{ static_cast<GLint>(environment.state.max_cascade_index) };
+				GLint const max_cascade{ static_cast<GLint>(max_cascade_index) };
 
-				GLint const width
+				GLint width;
+				GLint height;
+				if (game_state::temporary_direction == game_state::holographic_east_direction || game_state::temporary_direction == game_state::holographic_west_direction)
 				{
-					((static_cast<GLint>(environment.state.holographic_probe_grid_width) + (1 << max_cascade) - 2) >> max_cascade) << max_cascade
-				};
-				GLint const height{ static_cast<GLint>(environment.state.holographic_probe_grid_height) };
+					width = 
+					{
+						((static_cast<GLint>(environment.state.holographic_probe_grid_width) + (1 << max_cascade) - 2) >> max_cascade) << max_cascade
+					};
+					height = static_cast<GLint>(environment.state.holographic_probe_grid_height);
+				}
+				else if (game_state::temporary_direction == game_state::holographic_north_direction || game_state::temporary_direction == game_state::holographic_south_direction)
+				{
+					width = static_cast<GLint>(environment.state.holographic_probe_grid_width);
+					height =
+					{
+						((static_cast<GLint>(environment.state.holographic_probe_grid_height) + (1 << max_cascade) - 2) >> max_cascade) << max_cascade
+					};
+				}
+
 				glViewport(0, 0, width, height);
 
-				/*GLfloat const clear_fluence[]{0.0f, 0.0f, 0.0f, 0.0f};
-				glClearNamedFramebufferfv	// TODO: This is not the fastest, but we will replace it later with a shader anyways
-				(
-					environment.state.angular_fluence_framebuffer,
-					GL_COLOR, 0, clear_fluence
-				);*/
 				glUseProgram(environment.state.holographic_sky_circle_gather_shader);
 				glDrawArrays(GL_TRIANGLES, 0, 3u);
 
