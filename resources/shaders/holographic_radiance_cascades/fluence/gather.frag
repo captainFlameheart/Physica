@@ -32,8 +32,8 @@ layout(shared, binding = FLUENCE_GATHERING_BINDING) uniform Fluence_Gathering_Da
 	int upper_cascade;
 	int upper_cascade_fluence_layer;
 	
-	// MUST TODO: This value should be non-zero only for the last cascade
-	// IMPORTANT TODO: This value should only exist in memory for west and south directions.
+	// IMPORTANT TODO: These values should only exist in memory for west and south directions.
+	int output_factor;
 	int output_shift;
 
 	//ivec2 max_ray_texture_xy;	// TODO: REMOVE FROM CPU
@@ -82,8 +82,7 @@ void main()
 		#elif DIRECTION == NORTH_DIRECTION
 			// TODO
 		#elif DIRECTION == WEST_DIRECTION
-			output_texel_position.x = fluence_gathering_data.output_shift - output_texel_position.x;
-			//output_texel_position = ivec2(max_fluence_texture_xy.x - output_texel_position.x, max_fluence_texture_xy.y - output_texel_position.y);
+			output_texel_position.x = fluence_gathering_data.output_factor * output_texel_position.x + fluence_gathering_data.output_shift;
 		#elif DIRECTION == SOUTH_DIRECTION
 			// TODO
 		#endif

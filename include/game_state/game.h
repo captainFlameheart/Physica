@@ -411,6 +411,7 @@ namespace game_state
 		GLint holographic_fluence_gather_buffer_upper_cascade_probe_column_texel_x_mask_offset;
 		GLint holographic_fluence_gather_buffer_upper_cascade_offset;
 		GLint holographic_fluence_gather_buffer_upper_cascade_fluence_layer_offset;
+		GLint holographic_fluence_gather_buffer_output_factor_offset;
 		GLint holographic_fluence_gather_buffer_output_shift_offset;
 		//GLint holographic_fluence_gather_buffer_max_ray_texture_xy_offset;
 
