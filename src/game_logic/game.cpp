@@ -10990,8 +10990,10 @@ namespace game_logic
 				}
 
 				GLuint const edge_width{ environment.state.holographic_probe_grid_width - 1u };
-				GLuint const edge_width_decremented{ edge_width - 1u };
 				GLuint const edge_height{ environment.state.holographic_probe_grid_height - 1u };
+
+				GLuint const edge_width_decremented{ edge_width - 1u };
+				GLuint const edge_height_decremented{ edge_height - 1u };
 
 				GLuint ray_trace_cascade_count{ std::min(game_state::initial_holographic_ray_trace_cascade_count, environment.state.max_cascade_index) };
 				for (GLuint cascade{ 0u }; cascade < ray_trace_cascade_count; ++cascade)
@@ -11005,9 +11007,20 @@ namespace game_logic
 						GLuint const cascade_power_of_two{ 1u << cascade };
 						GLuint const rays_per_probe{ cascade_power_of_two + 1u };
 
-						GLuint const min_outside_probe_x{ (edge_width_decremented + cascade_power_of_two) >> cascade };
-						width = (min_outside_probe_x - 1u) * rays_per_probe;
-						height = environment.state.holographic_probe_grid_height;
+						if (game_state::temporary_direction == game_state::holographic_east_direction || game_state::temporary_direction == game_state::holographic_west_direction)
+						{
+							GLuint const min_outside_probe_x{ (edge_width_decremented + cascade_power_of_two) >> cascade };
+
+							width = (min_outside_probe_x - 1u) * rays_per_probe;
+							height = environment.state.holographic_probe_grid_height;
+						}
+						else if (game_state::temporary_direction == game_state::holographic_north_direction || game_state::temporary_direction == game_state::holographic_south_direction)
+						{
+							GLuint const min_outside_probe_y{ (edge_height_decremented + cascade_power_of_two) >> cascade };
+
+							width = environment.state.holographic_probe_grid_width;
+							height = (min_outside_probe_y - 1u) * rays_per_probe;
+						}
 					}
 					else
 					{
@@ -11048,9 +11061,20 @@ namespace game_logic
 						GLint const cascade_power_of_two{ 1 << cascade };
 						GLint const rays_per_probe{ cascade_power_of_two + 1 };
 
-						GLint const min_outside_probe_x{ (static_cast<GLint>(edge_width_decremented) + cascade_power_of_two) >> cascade };
-						width = (min_outside_probe_x - 1) * rays_per_probe;
-						height = static_cast<GLint>(environment.state.holographic_probe_grid_height);
+						if (game_state::temporary_direction == game_state::holographic_east_direction || game_state::temporary_direction == game_state::holographic_west_direction)
+						{
+							GLuint const min_outside_probe_x{ (edge_width_decremented + cascade_power_of_two) >> cascade };
+
+							width = (min_outside_probe_x - 1u) * rays_per_probe;
+							height = environment.state.holographic_probe_grid_height;
+						}
+						else if (game_state::temporary_direction == game_state::holographic_north_direction || game_state::temporary_direction == game_state::holographic_south_direction)
+						{
+							GLuint const min_outside_probe_y{ (edge_height_decremented + cascade_power_of_two) >> cascade };
+
+							width = environment.state.holographic_probe_grid_width;
+							height = (min_outside_probe_y - 1u) * rays_per_probe;
+						}
 					}
 					else
 					{
@@ -11060,10 +11084,6 @@ namespace game_logic
 						height = environment.state.holographic_probe_grid_height * (cascade_power_of_two + 1) - rays_in_vacuum_per_column;
 					}
 
-					//GLint const cascade_power_of_two{ 1 << cascade };
-					//GLint const width{ ceil_div(static_cast<GLint>(environment.state.holographic_probe_grid_width) - 1 - cascade_power_of_two, cascade_power_of_two) };
-					//GLint const rays_in_vacuum_per_column{ ceil_div(cascade_power_of_two + 1, 2) << 1 };
-					//GLint const height{ static_cast<GLint>(environment.state.holographic_probe_grid_height) * (cascade_power_of_two + 1) - rays_in_vacuum_per_column };
 					glViewport(0, 0, width, height);
 
 					glDrawArrays(GL_TRIANGLES, 0, 3u);
