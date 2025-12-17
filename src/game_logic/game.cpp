@@ -1455,7 +1455,7 @@ namespace game_logic
 			GLint const edge_width_decremented{ edge_width - 1 };
 			GLint const edge_height_decremented{ edge_height - 1 };
 			
-			GLint const max_fluence_probe_y{ Y(game_state::holographic_east_direction, edge_width, edge_height) };
+			GLint const max_fluence_probe_y{ Y(game_state::temporary_direction, edge_width, edge_height) };
 
 			GLint const max_fluence_gather_cascade{ padded_block_count };
 
