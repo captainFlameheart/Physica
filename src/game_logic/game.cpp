@@ -545,6 +545,82 @@ namespace game_logic
 		set_fluence_interpolation(environment, GL_NEAREST);
 	}
 
+	GLint const& X(GLuint const direction, GLint& x, GLint& y)
+	{
+		if (direction == game_state::holographic_east_direction || direction == game_state::holographic_west_direction)
+		{
+			return x;
+		}
+		else if (direction == game_state::holographic_north_direction || direction == game_state::holographic_south_direction)
+		{
+			return y;
+		}
+	}
+
+	GLint const& Y(GLuint const direction, GLint const& x, GLint const& y)
+	{
+		if (direction == game_state::holographic_east_direction || direction == game_state::holographic_west_direction)
+		{
+			return y;
+		}
+		else if (direction == game_state::holographic_north_direction || direction == game_state::holographic_south_direction)
+		{
+			return x;
+		}
+	}
+
+	GLfloat const& X(GLuint const direction, GLfloat const& x, GLfloat const& y)
+	{
+		if (direction == game_state::holographic_east_direction || direction == game_state::holographic_west_direction)
+		{
+			return x;
+		}
+		else if (direction == game_state::holographic_north_direction || direction == game_state::holographic_south_direction)
+		{
+			return y;
+		}
+	}
+
+	GLfloat const& Y(GLuint const direction, GLfloat const& x, GLfloat const& y)
+	{
+		if (direction == game_state::holographic_east_direction || direction == game_state::holographic_west_direction)
+		{
+			return y;
+		}
+		else if (direction == game_state::holographic_north_direction || direction == game_state::holographic_south_direction)
+		{
+			return x;
+		}
+	}
+
+	void VEC2(GLuint const direction, GLfloat const x, GLfloat const y, GLfloat (output)[2u])
+	{
+		if (direction == game_state::holographic_east_direction || direction == game_state::holographic_west_direction)
+		{
+			output[0u] = x;
+			output[1u] = y;
+		}
+		else if (direction == game_state::holographic_north_direction || direction == game_state::holographic_south_direction)
+		{
+			output[0u] = y;
+			output[1u] = x;
+		}
+	}
+
+	void VEC2(GLuint const direction, GLfloat const x, GLfloat const y, GLfloat& X, GLfloat& Y)
+	{
+		if (direction == game_state::holographic_east_direction || direction == game_state::holographic_west_direction)
+		{
+			X = x;
+			Y = y;
+		}
+		else if (direction == game_state::holographic_north_direction || direction == game_state::holographic_south_direction)
+		{
+			X = y;
+			Y = x;
+		}
+	}
+
 	void somewhat_adapt_to_default_framebuffer_size
 	(
 		game_environment::Environment& environment,
@@ -797,7 +873,7 @@ namespace game_logic
 		GLuint const vertex_shader{ ::util::shader::create_shader(GL_VERTEX_SHADER) };
 		GLuint const fragment_shader{ ::util::shader::create_shader(GL_FRAGMENT_SHADER) };
 		
-		{	// MUST TODO: Add directions to sky circle gather.
+		{
 			std::string east_direction_definition{ "#define EAST_DIRECTION " + std::to_string(game_state::holographic_east_direction) + '\n' };
 			std::string north_direction_definition{ "#define NORTH_DIRECTION " + std::to_string(game_state::holographic_north_direction) + '\n' };
 			std::string west_direction_definition{ "#define WEST_DIRECTION " + std::to_string(game_state::holographic_west_direction) + '\n' };
@@ -805,13 +881,10 @@ namespace game_logic
 
 			std::string direction_definition{ "#define DIRECTION " + std::to_string(game_state::temporary_direction) + '\n' };
 			
-			GLint const angular_fluence_width{ std::max(1 << static_cast<GLint>(environment.state.max_horizontal_cascade_index), static_cast<GLint>(environment.state.holographic_probe_grid_width)) };
-			GLint const angular_fluence_height{ std::max(1 << static_cast<GLint>(environment.state.max_vertical_cascade_index), static_cast<GLint>(environment.state.holographic_probe_grid_height)) };
-			std::string max_fluence_texture_xy_definition{ "const ivec2 max_fluence_texture_xy = ivec2(" + std::to_string(angular_fluence_width - 1) + ", " + std::to_string(angular_fluence_height - 1) + ");\n" };
-
 			constexpr GLint angular_step_count{ 1 };
 
 			std::string cascade_definition{ "const int cascade = " + std::to_string(environment.state.max_cascade_index) + ";\n"};
+			// TODO: Make angular step count depend on max horizontal/vertical cascade angle.
 			std::string angular_step_count_definition{ "const int angular_step_count = " + std::to_string(angular_step_count) + ";\n" };
 
 			::util::shader::set_shader_statically
@@ -823,7 +896,6 @@ namespace game_logic
 				west_direction_definition,
 				south_direction_definition,
 				direction_definition,
-				max_fluence_texture_xy_definition,
 				cascade_definition,
 				angular_step_count_definition,
 				::util::shader::file_to_string("holographic_radiance_cascades/sky_circle/gather/gather.vert")
@@ -837,7 +909,6 @@ namespace game_logic
 				west_direction_definition,
 				south_direction_definition,
 				direction_definition,
-				max_fluence_texture_xy_definition,
 				cascade_definition,
 				angular_step_count_definition,
 				::util::shader::file_to_string("holographic_radiance_cascades/sky_circle/gather/gather.frag")
@@ -870,28 +941,6 @@ namespace game_logic
 
 			std::string direction_definition{ "#define DIRECTION " + std::to_string(game_state::temporary_direction) + '\n' };
 
-			GLuint edge_width_decremented{ environment.state.holographic_probe_grid_width - 2u };
-			GLuint edge_height_decremented{ environment.state.holographic_probe_grid_height - 2u };
-
-			GLuint const min_horizontal_outside_probe_x{ (edge_width_decremented + cascade_power_of_two) >> cascade };
-			GLuint const min_vertical_outside_probe_x{ (edge_height_decremented + cascade_power_of_two) >> cascade };
-
-			GLuint ray_texture_width = (min_horizontal_outside_probe_x - 1u) * rays_per_probe;
-			if (cascade < environment.state.max_vertical_cascade_index)
-			{
-				ray_texture_width = std::max(ray_texture_width, environment.state.holographic_probe_grid_width);
-			}
-
-			GLuint ray_texture_height = (min_vertical_outside_probe_x - 1u) * rays_per_probe;
-			if (cascade < environment.state.max_horizontal_cascade_index)
-			{
-				ray_texture_height = std::max(ray_texture_height, environment.state.holographic_probe_grid_height);
-			}
-
-			GLuint max_ray_texture_x{ ray_texture_width - 1u };
-			GLuint max_ray_texture_y{ ray_texture_height - 1u };
-			std::string max_ray_texture_xy_definition{ "const uvec2 max_ray_texture_xy = uvec2(" + std::to_string(max_ray_texture_x) + ", " + std::to_string(max_ray_texture_y) + ");\n" };
-
 			constexpr GLuint column_ray_texture_mode_value{ 0u };
 			constexpr GLuint row_ray_texture_mode_value{ 1u };
 
@@ -911,7 +960,6 @@ namespace game_logic
 				west_direction_definition,
 				south_direction_definition,
 				direction_definition,
-				max_ray_texture_xy_definition,
 				column_ray_texture_mode_definition,
 				row_ray_texture_mode_definition,
 				ray_texture_mode_definition,
@@ -930,6 +978,8 @@ namespace game_logic
 			GLuint inverse_projection_scale_x;
 			GLuint inverse_projection_scale_y;
 
+			//if (game_state::temporary_direction == game_state::holographic_east_direction || game_state::temporary_direction == game_state::holographic_west_direction)
+			//{
 			probe_grid_width = environment.state.holographic_probe_grid_width;
 			probe_grid_height = environment.state.holographic_probe_grid_height;
 
@@ -941,11 +991,8 @@ namespace game_logic
 
 			inverse_projection_scale_x = game_logic__util__projection_INVERSE_SCALE_X(environment);
 			inverse_projection_scale_y = game_logic__util__projection_INVERSE_SCALE_Y(environment);
-
-			/*if (game_state::temporary_direction == game_state::holographic_east_direction)
-			{
-			}
-			else if (game_state::temporary_direction == game_state::holographic_north_direction)
+			/* }
+			else if (game_state::temporary_direction == game_state::holographic_north_direction || game_state::temporary_direction == game_state::holographic_south_direction)
 			{
 				probe_grid_width = environment.state.holographic_probe_grid_height;
 				probe_grid_height = environment.state.holographic_probe_grid_width;
@@ -981,8 +1028,16 @@ namespace game_logic
 			GLfloat const probe_grid_full_step_to_sample_step_factor_x{ probe_grid_to_sample_factor_x * step_count_inverse };
 			GLfloat const probe_grid_full_step_to_sample_step_factor_y{ probe_grid_to_sample_factor_y * step_count_inverse };
 
-			GLfloat const probe_grid_point_to_sample_point_factor_x{ static_cast<GLfloat>(cascade_power_of_two) * probe_grid_to_sample_factor_x };
-			GLfloat const probe_grid_point_to_sample_point_factor_y{ probe_grid_to_sample_factor_y };
+			GLfloat probe_grid_point_to_sample_point_factor_x;
+			GLfloat probe_grid_point_to_sample_point_factor_y;
+			VEC2(game_state::temporary_direction, 
+				static_cast<GLfloat>(cascade_power_of_two) * X(game_state::temporary_direction, probe_grid_to_sample_factor_x, probe_grid_to_sample_factor_y),
+				Y(game_state::temporary_direction, probe_grid_to_sample_factor_x, probe_grid_to_sample_factor_y),
+				probe_grid_point_to_sample_point_factor_x, probe_grid_point_to_sample_point_factor_y
+			);
+
+			//GLfloat const probe_grid_point_to_sample_point_factor_x{ static_cast<GLfloat>(cascade_power_of_two) * probe_grid_to_sample_factor_x };
+			//GLfloat const probe_grid_point_to_sample_point_factor_y{ probe_grid_to_sample_factor_y };
 
 			GLfloat const probe_grid_point_to_sample_point_bias_x{ padding_x };
 			GLfloat const probe_grid_point_to_sample_point_bias_y{ padding_y };
@@ -1032,7 +1087,6 @@ namespace game_logic
 				west_direction_definition,
 				south_direction_definition,
 				direction_definition,
-				max_ray_texture_xy_definition,
 				column_ray_texture_mode_definition,
 				row_ray_texture_mode_definition,
 				ray_texture_mode_definition,

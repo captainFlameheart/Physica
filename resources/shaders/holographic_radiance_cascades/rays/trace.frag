@@ -83,14 +83,12 @@ void main()
 		// TODO: Check that we have accounted for the negative sign before the bias on the CPU.
 		vec2 sample_point = VEC2(probe_column + 1, Y(output_texel_position)) * probe_grid_point_to_sample_point_factor - probe_grid_point_to_sample_point_bias + sample_step * 0.5;
 
-		#if DIRECTION == EAST_DIRECTION
-		#elif DIRECTION == NORTH_DIRECTION
-			// TODO
-		#elif DIRECTION == WEST_DIRECTION
-			X(sample_step) = -X(sample_step);
-			X(sample_point) = 1.0 - X(sample_point);
+		#if DIRECTION == WEST_DIRECTION
+			sample_step.x = -sample_step.x;
+			sample_point.x = 1.0 - sample_point.x;
 		#elif DIRECTION == SOUTH_DIRECTION
-			// TODO
+			sample_step.y = -sample_step.y;
+			sample_point.y = 1.0 - sample_point.y;
 		#endif
 
 		float world_step_distance = length(probe_grid_full_step * probe_grid_full_step_to_sample_step_projection) * camera.z * METER_INVERSE;
