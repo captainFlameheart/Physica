@@ -27,19 +27,6 @@ const uint step_count = ?u;
 
 */
 
-layout(shared, binding = CAMERA_BINDING) uniform Camera
-{
-	ivec2 xy;
-	int angle;
-	float z;
-	mat2 view_rotation;
-} camera;
-
-uniform sampler2DArray source;
-
-layout (location = 0) out vec4 radiance;
-layout (location = 1) out vec4 transmittance;
-
 #if DIRECTION == EAST_DIRECTION || DIRECTION == WEST_DIRECTION
 	
 	#define X(v) ((v).x)
@@ -57,6 +44,19 @@ layout (location = 1) out vec4 transmittance;
 	#define VEC2(X, Y) vec2(Y, X)
 
 #endif
+
+layout(shared, binding = CAMERA_BINDING) uniform Camera
+{
+	ivec2 xy;
+	int angle;
+	float z;
+	mat2 view_rotation;
+} camera;
+
+uniform sampler2DArray source;
+
+layout (location = 0) out vec4 radiance;
+layout (location = 1) out vec4 transmittance;
 
 void main()
 {
