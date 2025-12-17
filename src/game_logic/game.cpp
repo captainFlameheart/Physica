@@ -907,7 +907,8 @@ namespace game_logic
 			
 			constexpr GLint angular_step_count{ 1 };
 
-			std::string cascade_definition{ "const int cascade = " + std::to_string(environment.state.max_cascade_index) + ";\n"};
+			GLuint max_cascade{ X(game_state::temporary_direction, environment.state.max_horizontal_cascade_index, environment.state.max_vertical_cascade_index) };
+			std::string cascade_definition{ "const int cascade = " + std::to_string(max_cascade) + ";\n"};
 			// TODO: Make angular step count depend on max horizontal/vertical cascade angle.
 			std::string angular_step_count_definition{ "const int angular_step_count = " + std::to_string(angular_step_count) + ";\n" };
 

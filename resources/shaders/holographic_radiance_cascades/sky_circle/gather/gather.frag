@@ -63,11 +63,11 @@ void main()
 	float angle = lower_angle + step_angular_size * 0.5;
 	#if DIRECTION == EAST_DIRECTION
 	#elif DIRECTION == NORTH_DIRECTION
-		angle = half_pi + angle;
+		angle = half_pi - angle;
 	#elif DIRECTION == WEST_DIRECTION
 		angle = pi - angle;
 	#elif DIRECTION == SOUTH_DIRECTION
-		angle = one_and_a_half_pi - angle;
+		angle = one_and_a_half_pi + angle;
 	#endif
 	fluence = vec4(0.0);
 	for (int i = 0; i < angular_step_count; ++i)
