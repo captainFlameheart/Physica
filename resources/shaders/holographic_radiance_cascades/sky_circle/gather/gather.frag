@@ -12,6 +12,26 @@ const int angular_step_count = ?;
 
 */
 
+#if DIRECTION == EAST_DIRECTION || DIRECTION == WEST_DIRECTION
+	
+	#define X(v) ((v).x)
+	#define Y(v) ((v).y)
+
+	#define IVEC2(X, Y) ivec2(X, Y)
+	#define IVEC3(X, Y, Z) ivec3(X, Y, Z)
+	#define VEC2(X, Y) vec2(X, Y)
+
+#elif DIRECTION == NORTH_DIRECTION || DIRECTION == SOUTH_DIRECTION
+	
+	#define X(v) ((v).y)
+	#define Y(v) ((v).x)
+
+	#define IVEC2(X, Y) ivec2(Y, X)
+	#define IVEC3(X, Y, Z) ivec3(Y, X, Z)
+	#define VEC2(X, Y) vec2(Y, X)
+
+#endif
+
 const int cascade_power_of_two = 1 << cascade;
 const int direction_mask = cascade_power_of_two - 1;
 const float cascade_power_of_two_inverse = 1.0 / float(cascade_power_of_two);
@@ -32,7 +52,7 @@ void main()
 {
 	ivec2 output_texel_position = ivec2(gl_FragCoord.xy);
 
-	int direction_id = output_texel_position.x & direction_mask;
+	int direction_id = X(output_texel_position) & direction_mask;
 	float lower_direction_y = float((direction_id << 1) - cascade_power_of_two);
 	float lower_direction_slope = lower_direction_y * cascade_power_of_two_inverse;
 	float lower_angle = atan(lower_direction_slope);
