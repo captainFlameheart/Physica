@@ -1357,11 +1357,11 @@ namespace game_logic
 						base + environment.state.holographic_ray_extend_buffer_lower_cascade_max_probe_row_offset,
 						&lower_cascade_max_probe_row, sizeof(lower_cascade_max_probe_row)
 					);
-					std::memcpy
+					/*std::memcpy
 					(
 						base + environment.state.holographic_ray_extend_buffer_max_ray_texture_xy_offset,
 						&max_ray_texture_xy, sizeof(max_ray_texture_xy)
-					);
+					);*/
 					std::memcpy
 					(
 						base + environment.state.holographic_ray_extend_buffer_max_lower_cascade_ray_texture_xy_offset,
@@ -1380,7 +1380,7 @@ namespace game_logic
 						<< "\n		lower_cascade_power_of_two = " << lower_cascade_power_of_two << " at " << base_offset + environment.state.holographic_ray_extend_buffer_lower_cascade_power_of_two_offset
 						<< "\n		lower_cascade_max_probe_column_texel_x = " << lower_cascade_max_probe_column_texel_x << " at " << base_offset + environment.state.holographic_ray_extend_buffer_lower_cascade_max_probe_column_texel_x_offset
 						<< "\n		lower_cascade_max_probe_row = " << lower_cascade_max_probe_row << " at " << base_offset + environment.state.holographic_ray_extend_buffer_lower_cascade_max_probe_row_offset
-						<< "\n		max_ray_texture_xy = ivec2(" << max_ray_texture_xy[0u] << ", " << max_ray_texture_xy[1u] << ") at " << base_offset + environment.state.holographic_ray_extend_buffer_max_ray_texture_xy_offset
+						//<< "\n		max_ray_texture_xy = ivec2(" << max_ray_texture_xy[0u] << ", " << max_ray_texture_xy[1u] << ") at " << base_offset + environment.state.holographic_ray_extend_buffer_max_ray_texture_xy_offset
 						<< "\n		max_lower_cascade_ray_texture_xy = ivec2(" << max_lower_cascade_ray_texture_xy[0u] << ", " << max_lower_cascade_ray_texture_xy[1u] << ") at " << base_offset + environment.state.holographic_ray_extend_buffer_max_lower_cascade_ray_texture_xy_offset
 						<< "\n";
 				}
@@ -1459,7 +1459,18 @@ namespace game_logic
 				GLint max_lower_cascade_ray_texture_x;
 				GLint max_lower_cascade_ray_texture_y;
 
+				GLint output_shift = 0;
 				{
+					if (cascade == 0)
+					{
+						if (game_state::temporary_direction == game_state::holographic_west_direction)
+						{
+							output_shift = static_cast<GLint>(environment.state.holographic_probe_grid_width) - 1;
+						}
+					}
+				}
+
+				/* {
 					GLint const edge_width_decremented{ static_cast<GLint>(environment.state.holographic_probe_grid_width) - 2 };
 					GLint const edge_height_decremented{ static_cast<GLint>(environment.state.holographic_probe_grid_height) - 2 };
 
@@ -1482,8 +1493,9 @@ namespace game_logic
 						max_ray_texture_x = ray_texture_width - 1u;
 						max_ray_texture_y = ray_texture_height - 1u;
 					}
-				}
-				GLint const max_ray_texture_xy[2u]{ max_ray_texture_x, max_ray_texture_y };
+				}*/
+				
+				//GLint const max_ray_texture_xy[2u]{ max_ray_texture_x, max_ray_texture_y };
 
 				GLint const direction_mask{ (1 << cascade) - 1 };
 				GLint const max_ray_probe_column
@@ -1588,10 +1600,15 @@ namespace game_logic
 					base + environment.state.holographic_fluence_gather_buffer_upper_cascade_fluence_layer_offset,
 					&upper_cascade_fluence_layer, sizeof(upper_cascade_fluence_layer)
 				);
-				std::memcpy
+				/*std::memcpy
 				(
 					base + environment.state.holographic_fluence_gather_buffer_max_ray_texture_xy_offset,
 					&max_ray_texture_xy, sizeof(max_ray_texture_xy)
+				);*/
+				std::memcpy
+				(
+					base + environment.state.holographic_fluence_gather_buffer_output_shift_offset,
+					&output_shift, sizeof(output_shift)
 				);
 
 				std::cout << "\n	cascade = " << cascade << " at " << base_offset << ":"
@@ -1607,7 +1624,8 @@ namespace game_logic
 					<< "\n		upper_cascade_probe_column_texel_x_mask = " << upper_cascade_probe_column_texel_x_mask << " at " << base_offset + environment.state.holographic_fluence_gather_buffer_upper_cascade_probe_column_texel_x_mask_offset
 					<< "\n		upper_cascade = " << upper_cascade << " at " << base_offset + environment.state.holographic_fluence_gather_buffer_upper_cascade_offset
 					<< "\n		upper_cascade_fluence_layer = " << upper_cascade_fluence_layer << " at " << base_offset + environment.state.holographic_fluence_gather_buffer_upper_cascade_fluence_layer_offset
-					<< "\n		max_ray_texture_xy = ivec2(" << max_ray_texture_xy[0u] << ", " << max_ray_texture_xy[1u] << ") at " << base_offset + environment.state.holographic_fluence_gather_buffer_max_ray_texture_xy_offset
+					//<< "\n		max_ray_texture_xy = ivec2(" << max_ray_texture_xy[0u] << ", " << max_ray_texture_xy[1u] << ") at " << base_offset + environment.state.holographic_fluence_gather_buffer_max_ray_texture_xy_offset
+					<< "\n		output_shift = " << output_shift << " at " << base_offset + environment.state.holographic_fluence_gather_buffer_output_shift_offset
 					<< "\n";
 			}
 			std::cout << std::endl;
@@ -7692,7 +7710,7 @@ namespace game_logic
 					1u, &offset_label, 1u, nullptr, &environment.state.holographic_ray_extend_buffer_lower_cascade_max_probe_row_offset
 				);
 
-				GLuint const max_ray_texture_xy_index
+				/*GLuint const max_ray_texture_xy_index
 				{
 					glGetProgramResourceIndex(environment.state.holographic_ray_extend_shader, GL_UNIFORM, "Ray_Casting_Data.max_ray_texture_xy")
 				};
@@ -7700,7 +7718,7 @@ namespace game_logic
 				(
 					environment.state.holographic_ray_extend_shader, GL_UNIFORM, max_ray_texture_xy_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.holographic_ray_extend_buffer_max_ray_texture_xy_offset
-				);
+				);*/
 
 				GLuint const max_lower_cascade_ray_texture_xy_index
 				{
@@ -7849,7 +7867,7 @@ namespace game_logic
 					1u, &offset_label, 1u, nullptr, &environment.state.holographic_fluence_gather_buffer_upper_cascade_fluence_layer_offset
 				);
 
-				GLuint const max_ray_texture_xy_index
+				/*GLuint const max_ray_texture_xy_index
 				{
 					glGetProgramResourceIndex(environment.state.holographic_fluence_gather_shader, GL_UNIFORM, "Fluence_Gathering_Data.max_ray_texture_xy")
 				};
@@ -7857,6 +7875,16 @@ namespace game_logic
 				(
 					environment.state.holographic_fluence_gather_shader, GL_UNIFORM, max_ray_texture_xy_index,
 					1u, &offset_label, 1u, nullptr, &environment.state.holographic_fluence_gather_buffer_max_ray_texture_xy_offset
+				);*/
+				
+				GLuint const output_shift_index
+				{
+					glGetProgramResourceIndex(environment.state.holographic_fluence_gather_shader, GL_UNIFORM, "Fluence_Gathering_Data.output_shift")
+				};
+				glGetProgramResourceiv
+				(
+					environment.state.holographic_fluence_gather_shader, GL_UNIFORM, output_shift_index,
+					1u, &offset_label, 1u, nullptr, &environment.state.holographic_fluence_gather_buffer_output_shift_offset
 				);
 			}
 
@@ -8155,7 +8183,7 @@ namespace game_logic
 		std::cout << "lower cascade power of two offset: " << environment.state.holographic_ray_extend_buffer_lower_cascade_power_of_two_offset << std::endl;
 		std::cout << "lower cascade max probe column texel x offset: " << environment.state.holographic_ray_extend_buffer_lower_cascade_max_probe_column_texel_x_offset << std::endl;
 		std::cout << "lower cascade max probe row offset: " << environment.state.holographic_ray_extend_buffer_lower_cascade_max_probe_row_offset << std::endl;
-		std::cout << "max ray texture xy offset: " << environment.state.holographic_ray_extend_buffer_max_ray_texture_xy_offset << std::endl;
+		//std::cout << "max ray texture xy offset: " << environment.state.holographic_ray_extend_buffer_max_ray_texture_xy_offset << std::endl;
 		std::cout << "max lower cascade ray texture xy offset: " << environment.state.holographic_ray_extend_buffer_max_lower_cascade_ray_texture_xy_offset << std::endl;
 		std::cout << std::endl;
 
@@ -8173,7 +8201,8 @@ namespace game_logic
 		std::cout << "upper cascade probe column texel x mask offset: " << environment.state.holographic_fluence_gather_buffer_upper_cascade_probe_column_texel_x_mask_offset << std::endl;
 		std::cout << "upper cascade offset: " << environment.state.holographic_fluence_gather_buffer_upper_cascade_offset << std::endl;
 		std::cout << "upper cascade fluence layer offset: " << environment.state.holographic_fluence_gather_buffer_upper_cascade_fluence_layer_offset << std::endl;
-		std::cout << "max ray texture xy offset: " << environment.state.holographic_fluence_gather_buffer_max_ray_texture_xy_offset << std::endl;
+		//std::cout << "max ray texture xy offset: " << environment.state.holographic_fluence_gather_buffer_max_ray_texture_xy_offset << std::endl;
+		std::cout << "output shift offset: " << environment.state.holographic_fluence_gather_buffer_output_shift_offset << std::endl;
 		std::cout << std::endl;
 
 		Model<3u> triangle_model;
