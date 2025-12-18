@@ -233,6 +233,7 @@ namespace game_state
 			GLfloat probe_padding_factor[2u];
 		};
 		GLboolean is_zoomed_out;
+		GLboolean collapse_distance_cones;
 
 		GLuint holographic_source_draw_shader;
 		GLint holographic_source_draw_shader_source_uniform_location;

@@ -12,6 +12,8 @@
 
 #define RAY_TEXTURE_MODE ?
 
+#define COLLAPSE_DISTANCE_CONES ?
+
 */
 
 #if DIRECTION == EAST_DIRECTION || DIRECTION == WEST_DIRECTION
@@ -141,13 +143,18 @@ void main()
 		float not_interpolating_float = float(not_interpolating);
 		vec4 lower_near_transmit_factor = 1.0 + not_interpolating_float * shifted_lower_near_transmittance;
 
-		// IMPORTANT TODO: The clamping should not be necessary here, but it might be necessary when the fluence is added to the final fluence 
-		// buffer.
 		int near_sample_probe_column_texel_x = min(
 			X(output_texel_position) & fluence_gathering_data.upper_cascade_probe_column_texel_x_mask, fluence_gathering_data.max_fluence_probe_column_texel_x
 		);
+		#if COLLAPSE_DISTANCE_CONES == 1
+			int near_fluence_is_inside = int(near_sample_probe_column_texel_x != fluence_gathering_data.max_fluence_probe_column_texel_x);
+		#endif
+
 		int lower_near_fluence_sample_x = near_sample_probe_column_texel_x + lower_direction_id;
 		int lower_near_fluence_sample_y = clamp(Y(output_texel_position) + not_interpolating * lower_y_offset, 0, fluence_gathering_data.max_fluence_probe_y);
+		#if COLLAPSE_DISTANCE_CONES == 1
+			lower_near_fluence_sample_y *= near_fluence_is_inside;
+		#endif
 
 		// Lower near fluence
 		fluence += lower_near_transmit_factor * texelFetch(upper_cascade_fluence, IVEC3(lower_near_fluence_sample_x, lower_near_fluence_sample_y, fluence_gathering_data.upper_cascade_fluence_layer), 0);
@@ -158,14 +165,25 @@ void main()
 
 		int upper_near_fluence_sample_x = near_sample_probe_column_texel_x + upper_direction_id - 1;
 		int upper_near_fluence_sample_y = clamp(Y(output_texel_position) + not_interpolating * upper_y_offset, 0, fluence_gathering_data.max_fluence_probe_y);
+		#if COLLAPSE_DISTANCE_CONES == 1
+			upper_near_fluence_sample_y *= near_fluence_is_inside;
+		#endif
 
 		// Upper near fluence
 		fluence += upper_near_transmit_factor * texelFetch(upper_cascade_fluence, IVEC3(upper_near_fluence_sample_x, upper_near_fluence_sample_y, fluence_gathering_data.upper_cascade_fluence_layer), 0);
 
-		int lower_far_fluence_sample_x = min(
+		int far_fluence_probe_column_texel_x = min(
 			near_sample_probe_column_texel_x + (interpolating << fluence_gathering_data.upper_cascade), fluence_gathering_data.max_fluence_probe_column_texel_x
-		) + lower_direction_id;
+		);
+		#if COLLAPSE_DISTANCE_CONES == 1
+			int far_fluence_is_inside = int(far_fluence_probe_column_texel_x != fluence_gathering_data.max_fluence_probe_column_texel_x);
+		#endif
+		
+		int lower_far_fluence_sample_x = far_fluence_probe_column_texel_x + lower_direction_id;
 		int lower_far_fluence_sample_y = clamp(Y(output_texel_position) + (interpolating + 1) * lower_y_offset, 0, fluence_gathering_data.max_fluence_probe_y);
+		#if COLLAPSE_DISTANCE_CONES == 1
+			lower_far_fluence_sample_y *= far_fluence_is_inside;
+		#endif
 
 		// Lower far fluence
 		lower_far_fluence += lower_far_transmittance * texelFetch(upper_cascade_fluence, IVEC3(lower_far_fluence_sample_x, lower_far_fluence_sample_y, fluence_gathering_data.upper_cascade_fluence_layer), 0);
@@ -174,11 +192,12 @@ void main()
 		vec4 lower_far_transmit_factor = 1.0 + interpolating_float * shifted_lower_near_transmittance;
 		fluence += lower_far_transmit_factor * lower_far_fluence;
 
-		int upper_far_fluence_sample_x = min(
-			near_sample_probe_column_texel_x + (interpolating << fluence_gathering_data.upper_cascade), fluence_gathering_data.max_fluence_probe_column_texel_x
-		) + upper_direction_id - 1;	// TODO: Many expressions that have been evaluated earlier
+		int upper_far_fluence_sample_x = far_fluence_probe_column_texel_x + upper_direction_id - 1;	// TODO: Many expressions that have been evaluated earlier
 		int upper_far_fluence_sample_y = clamp(Y(output_texel_position) + (interpolating + 1) * upper_y_offset, 0, fluence_gathering_data.max_fluence_probe_y);
-	
+		#if COLLAPSE_DISTANCE_CONES == 1
+			upper_far_fluence_sample_y *= far_fluence_is_inside;
+		#endif
+
 		// Upper far fluence
 		upper_far_fluence += upper_far_transmittance * texelFetch(upper_cascade_fluence, IVEC3(upper_far_fluence_sample_x, upper_far_fluence_sample_y, fluence_gathering_data.upper_cascade_fluence_layer), 0);
 

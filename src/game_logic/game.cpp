@@ -2083,6 +2083,7 @@ namespace game_logic
 		environment.state.probe_padding_factor_x = 1.0f;
 		environment.state.probe_padding_factor_y = 1.0f;
 		environment.state.is_zoomed_out = false;
+		environment.state.collapse_distance_cones = true;
 
 		glEnable(GL_FRAMEBUFFER_SRGB);
 		environment.state.framebuffer_sRGB_enabled = true;
@@ -4000,6 +4001,8 @@ namespace game_logic
 			GLuint ray_texture_mode_value{ environment.state.use_row_ray_textures ? row_ray_texture_mode_value : column_ray_texture_mode_value };
 			std::string ray_texture_mode_definition{ "#define RAY_TEXTURE_MODE " + std::to_string(ray_texture_mode_value) + '\n' };
 
+			std::string collapse_distance_cones_definition{ "#define COLLAPSE_DISTANCE_CONES " + std::to_string(static_cast<GLint>(environment.state.collapse_distance_cones)) + '\n' };
+
 			::util::shader::set_shader_statically
 			(
 				vertex_shader,
@@ -4013,6 +4016,7 @@ namespace game_logic
 				column_ray_texture_mode_definition,
 				row_ray_texture_mode_definition,
 				ray_texture_mode_definition,
+				collapse_distance_cones_definition,
 				::util::shader::file_to_string("util/plain_full_screen.vert")
 			);
 			::util::shader::set_shader_statically
@@ -4029,6 +4033,7 @@ namespace game_logic
 				column_ray_texture_mode_definition,
 				row_ray_texture_mode_definition,
 				ray_texture_mode_definition,
+				collapse_distance_cones_definition,
 				::util::shader::file_to_string("holographic_radiance_cascades/fluence/gather.frag")
 			);
 			environment.state.holographic_fluence_gather_shaders[direction] = ::util::shader::create_program(vertex_shader, fragment_shader);
@@ -10764,7 +10769,7 @@ namespace game_logic
 			GL_COLOR, 0, clear_fluence
 		);
 
-		GLfloat global_brightness{ 0.5f * 0.0f };
+		GLfloat global_brightness{ 20.0f };
 		
 		GLfloat global_tint_r{ 1.0f };
 		GLfloat global_tint_g{ 1.0f };
@@ -10800,7 +10805,7 @@ namespace game_logic
 			(
 				environment.state.draw_sky_circle_test_element_shader,
 				environment.state.draw_sky_circle_test_element_shader_color_uniform_location,
-				1.0f * global_tint_r, 1.0f * global_tint_g, 0.5f * global_tint_b, 0.0f * global_tint_a
+				1.0f * global_tint_r, 1.0f * global_tint_g, 1.0f * global_tint_b, 0.0f * global_tint_a
 			);
 			glDrawArrays(GL_LINES, 0, 4u);
 		}
@@ -11313,10 +11318,18 @@ namespace game_logic
 							((static_cast<GLint>(environment.state.holographic_probe_grid_width) + (1 << max_cascade) - 2) >> max_cascade) << max_cascade
 						};
 						height = static_cast<GLint>(environment.state.holographic_probe_grid_height);
+						if (environment.state.collapse_distance_cones)
+						{
+							height = 1;
+						}
 					}
 					else if (direction == game_state::holographic_north_direction || direction == game_state::holographic_south_direction)
 					{
 						width = static_cast<GLint>(environment.state.holographic_probe_grid_width);
+						if (environment.state.collapse_distance_cones)
+						{
+							width = 1;
+						}
 						height =
 						{
 							((static_cast<GLint>(environment.state.holographic_probe_grid_height) + (1 << max_cascade) - 2) >> max_cascade) << max_cascade
@@ -11354,28 +11367,67 @@ namespace game_logic
 						GLint const destination_layer{ upper_cascade_fluence_layer ^ 1 };
 						glNamedFramebufferDrawBuffer(environment.state.angular_fluence_framebuffer, GL_COLOR_ATTACHMENT0 + destination_layer);
 
-						GLint width;
-						GLint height;
-						if (direction == game_state::holographic_east_direction || direction == game_state::holographic_west_direction)
+						if (environment.state.collapse_distance_cones)
 						{
-							// IMPORTANT TODO: Check that the width is correct
-							width =
+							GLint width;
+							GLint height;
+							if (direction == game_state::holographic_east_direction || direction == game_state::holographic_west_direction)
 							{
-								((static_cast<GLint>(environment.state.holographic_probe_grid_width) + (1 << cascade) - 2) >> cascade) << cascade
-							};
-							height = static_cast<GLint>(environment.state.holographic_probe_grid_height);
+								// IMPORTANT TODO: Check that the width is correct
+								width =
+								{
+									((static_cast<GLint>(environment.state.holographic_probe_grid_width) + (1 << cascade) - 2) >> cascade) << cascade
+								};
+								width -= (1 << cascade);
+								height = static_cast<GLint>(environment.state.holographic_probe_grid_height);
+							}
+							else if (direction == game_state::holographic_north_direction || direction == game_state::holographic_south_direction)
+							{
+								width = static_cast<GLint>(environment.state.holographic_probe_grid_width);
+								height = {
+									((static_cast<GLint>(environment.state.holographic_probe_grid_height) + (1 << cascade) - 2) >> cascade) << cascade
+								};
+								height -= (1 << cascade);
+							}
+
+							glViewport(0, 0, width, height);
+							glDrawArrays(GL_TRIANGLES, 0, 3u);
+
+
+							if (direction == game_state::holographic_east_direction || direction == game_state::holographic_west_direction)
+							{
+								glViewport(width, 0, 1 << cascade, 1u);
+							}
+							else if (direction == game_state::holographic_north_direction || direction == game_state::holographic_south_direction)
+							{
+								glViewport(0, height, 1u, 1 << cascade);
+							}
+							glDrawArrays(GL_TRIANGLES, 0, 3u);
 						}
-						else if (direction == game_state::holographic_north_direction || direction == game_state::holographic_south_direction)
+						else
 						{
-							width = static_cast<GLint>(environment.state.holographic_probe_grid_width);
-							height = {
-								((static_cast<GLint>(environment.state.holographic_probe_grid_height) + (1 << cascade) - 2) >> cascade) << cascade
-							};
+							GLint width;
+							GLint height;
+							if (direction == game_state::holographic_east_direction || direction == game_state::holographic_west_direction)
+							{
+								// IMPORTANT TODO: Check that the width is correct
+								width =
+								{
+									((static_cast<GLint>(environment.state.holographic_probe_grid_width) + (1 << cascade) - 2) >> cascade) << cascade
+								};
+								height = static_cast<GLint>(environment.state.holographic_probe_grid_height);
+							}
+							else if (direction == game_state::holographic_north_direction || direction == game_state::holographic_south_direction)
+							{
+								width = static_cast<GLint>(environment.state.holographic_probe_grid_width);
+								height = {
+									((static_cast<GLint>(environment.state.holographic_probe_grid_height) + (1 << cascade) - 2) >> cascade) << cascade
+								};
+							}
+
+							glViewport(0, 0, width, height);
+							glDrawArrays(GL_TRIANGLES, 0, 3u);
 						}
-
-						glViewport(0, 0, width, height);
-
-						glDrawArrays(GL_TRIANGLES, 0, 3u);
 					}
 
 					GLint const padded_block_size
