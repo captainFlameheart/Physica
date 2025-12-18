@@ -36,6 +36,16 @@ namespace game_state
 		};
 	}
 
+	namespace draw_fluence_state
+	{
+		enum Draw_Fluence_State
+		{
+			DEFAULT,
+			SPLIT,
+			ZOOM_OUT,
+		};
+	}
+
 	constexpr GLuint initial_holographic_ray_trace_cascade_count{ 2u };
 
 	constexpr GLuint holographic_east_direction{ 0u };
@@ -425,14 +435,17 @@ namespace game_state
 		GLint holographic_fluence_gather_buffer_output_shift_offset;
 		//GLint holographic_fluence_gather_buffer_max_ray_texture_xy_offset;
 
-		GLuint holographic_draw_fluence_shader;
-		GLint holographic_draw_fluence_shader_source_uniform_location;
-		GLint holographic_draw_fluence_shader_fluence_uniform_location;
+		GLuint holographic_draw_fluence_shaders[3u];
+		GLint holographic_draw_fluence_shader_source_uniform_locations[3u];
+		GLint holographic_draw_fluence_shader_fluence_uniform_locations[3u];
+		GLfloat holographic_draw_fluence_shader_split_position;
+		GLfloat holographic_draw_fluence_shader_target_split_position;
+		GLint holographic_draw_fluence_shader_split_position_uniform_location;
 
 		GLuint presentation_stage;
 		
 		presentation_state_0::Presentation_State_0 presentation_state_0;
-
 		sky_circle_state::Sky_Circle_State sky_circle_state;
+		draw_fluence_state::Draw_Fluence_State draw_fluence_state;
 	};
 }

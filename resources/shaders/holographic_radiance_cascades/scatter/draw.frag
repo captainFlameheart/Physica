@@ -11,16 +11,10 @@ const vec2 source_sample_point_to_probe_grid_point_bias = vec2(?, ?);
 const vec2 probe_grid_point_to_fluence_sample_point_factor = vec2(?, ?);
 const vec2 probe_grid_point_to_fluence_sample_point_bias = vec2(?, ?);
 
-#define SPLIT ?
-
 */
 
 uniform sampler2DArray source;
 uniform sampler2D fluence;
-
-#if SPLIT == 1
-	uniform float split_position;
-#endif
 
 #if ZOOM_MODE == ZOOMED_OUT_ZOOM_MODE
 	noperspective in vec2 source_sample_point;
@@ -42,28 +36,5 @@ void main()
 	const vec4 ambience = vec4(0.001);
 	fluence_value += ambience;
 	
-	#if SPLIT == 1
-		float position;
-		#if ZOOM_MODE == DEFAULT_ZOOM_MODE
-			position = gl_FragCoord.x / textureSize(source, 0).x;
-		#elif ZOOM_MODE == ZOOMED_OUT_ZOOM_MODE
-			position = source_sample_point.x;
-		#endif
-		float distance = position - split_position;
-		const float split_thickness = 0.005;
-		if (distance < -split_thickness)
-		{
-			color = mix(color * (fluence_value + fluence_value.a), fluence_value, color.a);
-		}
-		else if (distance > split_thickness)
-		{
-			// Color calculated
-		}
-		else
-		{
-			color = vec4(1.0, 0.0, 1.0, 1.0);
-		}
-	#else
-		color = mix(color * (fluence_value + fluence_value.a), fluence_value, color.a);
-	#endif
+	color = mix(color * (fluence_value + fluence_value.a), fluence_value, color.a);
 }

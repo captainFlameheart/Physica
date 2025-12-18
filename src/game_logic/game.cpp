@@ -1205,46 +1205,63 @@ namespace game_logic
 					std::to_string(probe_grid_point_to_fluence_sample_point_bias_y) + ");\n"
 				};
 
-				::util::shader::set_shader_statically
-				(
-					vertex_shader,
-					util_shader_VERSION,
-					default_zoom_mode_definition,
-					zoomed_out_zoom_mode_definition,
-					zoom_mode_definition,
-					source_sample_point_to_probe_grid_point_factor_definition,
-					source_sample_point_to_probe_grid_point_bias_definition,
-					probe_grid_point_to_fluence_sample_point_factor_definition,
-					probe_grid_point_to_fluence_sample_point_bias_definition,
-					::util::shader::file_to_string("holographic_radiance_cascades/fluence/draw.vert")
-				);
-				::util::shader::set_shader_statically
-				(
-					fragment_shader,
-					util_shader_VERSION,
-					default_zoom_mode_definition,
-					zoomed_out_zoom_mode_definition,
-					zoom_mode_definition,
-					source_sample_point_to_probe_grid_point_factor_definition,
-					source_sample_point_to_probe_grid_point_bias_definition,
-					probe_grid_point_to_fluence_sample_point_factor_definition,
-					probe_grid_point_to_fluence_sample_point_bias_definition,
-					::util::shader::file_to_string("holographic_radiance_cascades/fluence/draw.frag")
-				);
-				environment.state.holographic_draw_fluence_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
-				environment.state.holographic_draw_fluence_shader_source_uniform_location = glGetUniformLocation(environment.state.holographic_draw_fluence_shader, "source");
-				environment.state.holographic_draw_fluence_shader_fluence_uniform_location = glGetUniformLocation(environment.state.holographic_draw_fluence_shader, "fluence");
-				glProgramUniform1i(
-					environment.state.holographic_draw_fluence_shader,
-					environment.state.holographic_draw_fluence_shader_source_uniform_location, 1
-				);
-				glProgramUniform1i(
-					environment.state.holographic_draw_fluence_shader,
-					environment.state.holographic_draw_fluence_shader_fluence_uniform_location, 4
-				);
-				std::cout << "Holographic draw fluence shader compiled. Source uniform location: "
-					<< environment.state.holographic_draw_fluence_shader_source_uniform_location << ". Fluence uniform location: "
-					<< environment.state.holographic_draw_fluence_shader_fluence_uniform_location << std::endl;
+				for (GLuint i{ 0u }; i < 3u; ++i)
+				{
+					constexpr GLuint default_zoom_mode_value{ 0u };
+					constexpr GLuint zoomed_out_zoom_mode_value{ 1u };
+
+					std::string default_zoom_mode_definition{ "#define DEFAULT_ZOOM_MODE " + std::to_string(default_zoom_mode_value) + '\n' };
+					std::string zoomed_out_zoom_mode_definition{ "#define ZOOMED_OUT_ZOOM_MODE " + std::to_string(zoomed_out_zoom_mode_value) + '\n' };
+
+					GLuint const zoom_mode_value{ i == 2u ? zoomed_out_zoom_mode_value : default_zoom_mode_value };
+					std::string zoom_mode_definition{ "#define ZOOM_MODE " + std::to_string(zoom_mode_value) + '\n' };
+
+					std::string split_definition{ "#define SPLIT " + std::to_string(static_cast<GLint>(i == 1)) + '\n' };
+					
+					::util::shader::set_shader_statically
+					(
+						vertex_shader,
+						util_shader_VERSION,
+						default_zoom_mode_definition,
+						zoomed_out_zoom_mode_definition,
+						zoom_mode_definition,
+						split_definition,
+						source_sample_point_to_probe_grid_point_factor_definition,
+						source_sample_point_to_probe_grid_point_bias_definition,
+						probe_grid_point_to_fluence_sample_point_factor_definition,
+						probe_grid_point_to_fluence_sample_point_bias_definition,
+						::util::shader::file_to_string("holographic_radiance_cascades/fluence/draw.vert")
+					);
+					::util::shader::set_shader_statically
+					(
+						fragment_shader,
+						util_shader_VERSION,
+						default_zoom_mode_definition,
+						zoomed_out_zoom_mode_definition,
+						zoom_mode_definition,
+						split_definition,
+						source_sample_point_to_probe_grid_point_factor_definition,
+						source_sample_point_to_probe_grid_point_bias_definition,
+						probe_grid_point_to_fluence_sample_point_factor_definition,
+						probe_grid_point_to_fluence_sample_point_bias_definition,
+						::util::shader::file_to_string("holographic_radiance_cascades/fluence/draw.frag")
+					);
+					environment.state.holographic_draw_fluence_shaders[i] = ::util::shader::create_program(vertex_shader, fragment_shader);
+					environment.state.holographic_draw_fluence_shader_source_uniform_locations[i] = glGetUniformLocation(environment.state.holographic_draw_fluence_shaders[i], "source");
+					environment.state.holographic_draw_fluence_shader_fluence_uniform_locations[i] = glGetUniformLocation(environment.state.holographic_draw_fluence_shaders[i], "fluence");
+					glProgramUniform1i(
+						environment.state.holographic_draw_fluence_shaders[i],
+						environment.state.holographic_draw_fluence_shader_source_uniform_locations[i], 1
+					);
+					glProgramUniform1i(
+						environment.state.holographic_draw_fluence_shaders[i],
+						environment.state.holographic_draw_fluence_shader_fluence_uniform_locations[i], 4
+					);
+					std::cout << "Holographic draw fluence shader compiled. Source uniform location: "
+						<< environment.state.holographic_draw_fluence_shader_source_uniform_locations[i] << ". Fluence uniform location: "
+						<< environment.state.holographic_draw_fluence_shader_fluence_uniform_locations[i] << std::endl;
+				}
+				environment.state.holographic_draw_fluence_shader_split_position_uniform_location = glGetUniformLocation(environment.state.holographic_draw_fluence_shaders[1], "split_position");
 			}
 		}
 
@@ -1676,6 +1693,13 @@ namespace game_logic
 		switch (stage)
 		{
 		case 0u:
+			break;
+		case 1u:
+			environment.state.holographic_draw_fluence_shader_split_position = 0.0f;
+			environment.state.holographic_draw_fluence_shader_target_split_position = 10.0f;
+			break;
+		}
+		/*case 0u:
 			glProgramUniform1f
 			(
 				environment.state.holographic_source_draw_shader,
@@ -1996,7 +2020,8 @@ namespace game_logic
 				);
 			}
 			break;
-		}
+		}*/
+
 	}
 
 	void end_presentation_stage(game_environment::Environment& environment)
@@ -2008,10 +2033,8 @@ namespace game_logic
 		case 0u:
 			break;
 		case 1u:
-			break;
-		case 2u:
-			break;
-		case 3u:
+			environment.state.holographic_draw_fluence_shader_split_position = 1.0f;
+			environment.state.holographic_draw_fluence_shader_target_split_position = -10.0f;
 			break;
 		}
 	}
@@ -2020,7 +2043,10 @@ namespace game_logic
 	{
 		std::cout << "Free SOME default framebuffer size dependent data" << std::endl;
 
-		glDeleteProgram(environment.state.holographic_draw_fluence_shader);
+		for (GLuint i{ 0u }; i < 3u; ++i)
+		{
+			glDeleteProgram(environment.state.holographic_draw_fluence_shaders[i]);
+		}
 		for (GLuint direction{ 0u }; direction < 4u; ++direction)
 		{
 			glDeleteProgram(environment.state.holographic_sky_circle_gather_shaders[direction]);
@@ -2084,6 +2110,9 @@ namespace game_logic
 		environment.state.probe_padding_factor_y = 1.0f;
 		environment.state.is_zoomed_out = false;
 		environment.state.collapse_distance_cones = true;
+		environment.state.draw_fluence_state = game_state::draw_fluence_state::SPLIT;
+		environment.state.holographic_draw_fluence_shader_split_position = 0.0;
+		environment.state.holographic_draw_fluence_shader_target_split_position = 0.0;
 
 		glEnable(GL_FRAMEBUFFER_SRGB);
 		environment.state.framebuffer_sRGB_enabled = true;
@@ -10380,6 +10409,19 @@ namespace game_logic
 
 	void tick(game_environment::Environment& environment)
 	{
+		GLfloat split_position_difference = environment.state.holographic_draw_fluence_shader_target_split_position - environment.state.holographic_draw_fluence_shader_split_position;
+		
+		environment.state.holographic_draw_fluence_shader_split_position += split_position_difference / abs(split_position_difference) * 0.2f * game_logic__util__tick__delta_time_SECONDS(environment);
+
+		if (environment.state.holographic_draw_fluence_shader_split_position >= 1.0)
+		{
+			environment.state.draw_fluence_state = game_state::draw_fluence_state::DEFAULT;
+		}
+		else
+		{
+			environment.state.draw_fluence_state = game_state::draw_fluence_state::SPLIT;
+		}
+
 		GLint cursor_world_position[2u];
 		window_to_world::window_screen_cursor_position_to_world_position(environment, &cursor_world_position[0], &cursor_world_position[1]);
 		glClearNamedBufferSubData
@@ -11533,7 +11575,19 @@ namespace game_logic
 						GLfloat clear_color[4u]{ 0.0f, 0.0f, 0.0f, 1.0f };
 						glClearNamedFramebufferfv(0, GL_COLOR, 0, clear_color);
 					}
-					glUseProgram(environment.state.holographic_draw_fluence_shader);
+					if (environment.state.draw_fluence_state == game_state::draw_fluence_state::DEFAULT)
+					{
+						glUseProgram(environment.state.holographic_draw_fluence_shaders[0u]);
+					}
+					else if (environment.state.draw_fluence_state == game_state::draw_fluence_state::SPLIT)
+					{
+						glUseProgram(environment.state.holographic_draw_fluence_shaders[1u]);
+						glProgramUniform1f(environment.state.holographic_draw_fluence_shaders[1u], environment.state.holographic_draw_fluence_shader_split_position_uniform_location, environment.state.holographic_draw_fluence_shader_split_position);
+					}
+					else if (environment.state.draw_fluence_state == game_state::draw_fluence_state::ZOOM_OUT)
+					{
+						glUseProgram(environment.state.holographic_draw_fluence_shaders[2u]);
+					}
 					GLuint vertex_count = 3u;
 					if (environment.state.is_zoomed_out)
 					{
