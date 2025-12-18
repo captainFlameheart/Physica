@@ -1758,481 +1758,486 @@ namespace game_logic
 
 	void start_presentation_stage(game_environment::Environment& environment)
 	{
-		environment.state.presentation_state_0 = game_state::presentation_state_0::DEFAULT;
-
 		GLuint stage{ environment.state.presentation_stage };
 		std::cout << "Start stage " << stage << std::endl;
-		switch (stage)
+		if (environment.state.presentation_state_0 == game_state::presentation_state_0::DEFAULT)
 		{
-		case 0u:
-			environment.state.holographic_draw_fluence_shader_split_position = -10.0f;
-			environment.state.holographic_draw_fluence_shader_target_split_position = -10.0f;
-			break;
-		case 1u:
-			environment.state.holographic_draw_fluence_shader_split_position = 0.0f;
-			environment.state.holographic_draw_fluence_shader_target_split_position = 10.0f;
-			break;
-		case 2u:
-			set_target_cursor(environment, 0.01f,
-				1.0f, 0.0f, 0.0f, 0.2f,
-				10.0f, 0.0f, 0.0f, 0.2f,
-				100.0f, 100.0f, 100.0f, 100.0f,
-				1.0f, 0.0f, 0.0f, 0.2f
-			);
-			break;
-		case 3u:
-			set_target_cursor(environment, 0.01f,
-				0.0f, 1.0f, 0.0f, 0.2f,
-				0.0f, 10.0f, 0.0f, 0.2f,
-				100.0f, 100.0f, 100.0f, 100.0f,
-				1.0f, 0.0f, 0.0f, 0.2f
-			);
-			break;
-		case 4u:
-			set_target_cursor(environment, 0.01f,
-				0.0f, 0.0f, 1.0f, 0.2f,
-				0.0f, 0.0f, 10.0f, 0.2f,
-				100.0f, 100.0f, 100.0f, 100.0f,
-				1.0f, 0.0f, 0.0f, 0.2f
-			);
-			break;
-		case 5u:
-			set_target_cursor(environment, 0.02f,
-				0.0f, 0.0f, 1.0f, 0.2f,
-				10.0f, 10.0f, 100.0f, 0.2f,
-				100.0f, 100.0f, 100.0f, 100.0f,
-				1.0f, 0.0f, 0.0f, 0.2f
-			);
-			break;
-		case 6u:
-			set_target_cursor(environment, 0.01f,
-				0.0f, 0.0f, 1.0f, 0.2f,
-				0.0f, 0.0f, 20.0f, 0.2f,
-				100.0f, 100.0f, 100.0f, 100.0f,
-				1.0f, 0.0f, 0.0f, 0.2f
-			);
-			break;
-		case 7u:
-			set_target_cursor(environment, 0.02f,
-				0.0f, 0.0f, 1.0f, 0.2f,
-				0.0f, 0.0f, 0.0f, 20.0f,
-				100.0f, 100.0f, 100.0f, 100.0f,
-				1.0f, 0.0f, 0.0f, 0.2f
-			);
-			break;
-		case 8u:
-			set_target_cursor(environment, 0.01f,
-				1.0f, 1.0f, 1.0f, 0.2f,
-				0.0f, 0.0f, 0.0f, 0.0f,
-				100.0f, 100.0f, 100.0f, 100.0f,
-				1.0f, 0.0f, 0.0f, 0.2f
-			);
-			break;
-		case 9u:
-			environment.state.sun_1_target_color[0u] = 3.0f;
-			environment.state.sun_1_target_color[1u] = 3.0f;
-			environment.state.sun_1_target_color[2u] = 0.5f;
-			environment.state.sun_1_target_color[3u] = 0.0f;
-			break;
-		case 10u:
-			environment.state.sun_1_target_color[0u] = 0.0f;
-			environment.state.sun_1_target_color[1u] = 0.0f;
-			environment.state.sun_1_target_color[2u] = 0.0f;
-			environment.state.sun_1_target_color[3u] = 0.0f;
-			
-			environment.state.sun_2_target_color[0u] = 5.0f;
-			environment.state.sun_2_target_color[1u] = 0.1f;
-			environment.state.sun_2_target_color[2u] = 0.1f;
-			environment.state.sun_2_target_color[3u] = 0.0f;
+			switch (stage)
+			{
+			case 0u:
+				environment.state.holographic_draw_fluence_shader_split_position = -10.0f;
+				environment.state.holographic_draw_fluence_shader_target_split_position = -10.0f;
+				break;
+			case 1u:
+				environment.state.holographic_draw_fluence_shader_split_position = 0.0f;
+				environment.state.holographic_draw_fluence_shader_target_split_position = 10.0f;
+				break;
+			case 2u:
+				set_target_cursor(environment, 0.01f,
+					1.0f, 0.0f, 0.0f, 0.2f,
+					10.0f, 0.0f, 0.0f, 0.2f,
+					100.0f, 100.0f, 100.0f, 100.0f,
+					1.0f, 0.0f, 0.0f, 0.2f
+				);
+				break;
+			case 3u:
+				set_target_cursor(environment, 0.01f,
+					0.0f, 1.0f, 0.0f, 0.2f,
+					0.0f, 10.0f, 0.0f, 0.2f,
+					100.0f, 100.0f, 100.0f, 100.0f,
+					1.0f, 0.0f, 0.0f, 0.2f
+				);
+				break;
+			case 4u:
+				set_target_cursor(environment, 0.01f,
+					0.0f, 0.0f, 1.0f, 0.2f,
+					0.0f, 0.0f, 10.0f, 0.2f,
+					100.0f, 100.0f, 100.0f, 100.0f,
+					1.0f, 0.0f, 0.0f, 0.2f
+				);
+				break;
+			case 5u:
+				set_target_cursor(environment, 0.02f,
+					0.0f, 0.0f, 1.0f, 0.2f,
+					10.0f, 10.0f, 100.0f, 0.2f,
+					100.0f, 100.0f, 100.0f, 100.0f,
+					1.0f, 0.0f, 0.0f, 0.2f
+				);
+				break;
+			case 6u:
+				set_target_cursor(environment, 0.01f,
+					0.0f, 0.0f, 1.0f, 0.2f,
+					0.0f, 0.0f, 20.0f, 0.2f,
+					100.0f, 100.0f, 100.0f, 100.0f,
+					1.0f, 0.0f, 0.0f, 0.2f
+				);
+				break;
+			case 7u:
+				set_target_cursor(environment, 0.02f,
+					0.0f, 0.0f, 1.0f, 0.2f,
+					0.0f, 0.0f, 0.0f, 20.0f,
+					100.0f, 100.0f, 100.0f, 100.0f,
+					1.0f, 0.0f, 0.0f, 0.2f
+				);
+				break;
+			case 8u:
+				set_target_cursor(environment, 0.01f,
+					1.0f, 1.0f, 1.0f, 0.2f,
+					0.0f, 0.0f, 0.0f, 0.0f,
+					100.0f, 100.0f, 100.0f, 100.0f,
+					1.0f, 0.0f, 0.0f, 0.2f
+				);
+				break;
+			case 9u:
+				environment.state.sun_1_target_color[0u] = 3.0f;
+				environment.state.sun_1_target_color[1u] = 3.0f;
+				environment.state.sun_1_target_color[2u] = 0.5f;
+				environment.state.sun_1_target_color[3u] = 0.0f;
+				break;
+			case 10u:
+				environment.state.sun_1_target_color[0u] = 0.0f;
+				environment.state.sun_1_target_color[1u] = 0.0f;
+				environment.state.sun_1_target_color[2u] = 0.0f;
+				environment.state.sun_1_target_color[3u] = 0.0f;
 
-			environment.state.sky_circle_state = game_state::sky_circle_state::DEFAULT;
-			break;
-		case 11u:
-			environment.state.sun_1_target_color[0u] = 0.0f;
-			environment.state.sun_1_target_color[1u] = 0.0f;
-			environment.state.sun_1_target_color[2u] = 0.0f;
-			environment.state.sun_1_target_color[3u] = 0.0f;
+				environment.state.sun_2_target_color[0u] = 5.0f;
+				environment.state.sun_2_target_color[1u] = 0.1f;
+				environment.state.sun_2_target_color[2u] = 0.1f;
+				environment.state.sun_2_target_color[3u] = 0.0f;
 
-			environment.state.sun_2_target_color[0u] = 5.0f;
-			environment.state.sun_2_target_color[1u] = 0.1f;
-			environment.state.sun_2_target_color[2u] = 0.1f;
-			environment.state.sun_2_target_color[3u] = 0.0f;
-			environment.state.sky_circle_state = game_state::sky_circle_state::SHOW_INNER_WORKINGS;
-			break;
-		case 12u:
-			environment.state.sun_1_target_color[0u] = 3.0f;
-			environment.state.sun_1_target_color[1u] = 3.0f;
-			environment.state.sun_1_target_color[2u] = 0.5f;
-			environment.state.sun_1_target_color[3u] = 0.0f;
+				environment.state.sky_circle_state = game_state::sky_circle_state::DEFAULT;
+				break;
+			case 11u:
+				environment.state.sun_1_target_color[0u] = 0.0f;
+				environment.state.sun_1_target_color[1u] = 0.0f;
+				environment.state.sun_1_target_color[2u] = 0.0f;
+				environment.state.sun_1_target_color[3u] = 0.0f;
 
-			environment.state.sun_2_target_color[0u] = 5.0f;
-			environment.state.sun_2_target_color[1u] = 0.1f;
-			environment.state.sun_2_target_color[2u] = 0.1f;
-			environment.state.sun_2_target_color[3u] = 0.0f;
+				environment.state.sun_2_target_color[0u] = 5.0f;
+				environment.state.sun_2_target_color[1u] = 0.1f;
+				environment.state.sun_2_target_color[2u] = 0.1f;
+				environment.state.sun_2_target_color[3u] = 0.0f;
+				environment.state.sky_circle_state = game_state::sky_circle_state::SHOW_INNER_WORKINGS;
+				break;
+			case 12u:
+				environment.state.sun_1_target_color[0u] = 3.0f;
+				environment.state.sun_1_target_color[1u] = 3.0f;
+				environment.state.sun_1_target_color[2u] = 0.5f;
+				environment.state.sun_1_target_color[3u] = 0.0f;
 
-			environment.state.sky_circle_state = game_state::sky_circle_state::SHOW_INNER_WORKINGS;
-			break;
-		case 13u:
-			environment.state.sun_1_target_color[0u] = 0.0f;
-			environment.state.sun_1_target_color[1u] = 0.0f;
-			environment.state.sun_1_target_color[2u] = 0.0f;
-			environment.state.sun_1_target_color[3u] = 0.0f;
+				environment.state.sun_2_target_color[0u] = 5.0f;
+				environment.state.sun_2_target_color[1u] = 0.1f;
+				environment.state.sun_2_target_color[2u] = 0.1f;
+				environment.state.sun_2_target_color[3u] = 0.0f;
 
-			environment.state.sun_2_target_color[0u] = 0.0f;
-			environment.state.sun_2_target_color[1u] = 0.0f;
-			environment.state.sun_2_target_color[2u] = 0.0f;
-			environment.state.sun_2_target_color[3u] = 0.0f;
+				environment.state.sky_circle_state = game_state::sky_circle_state::SHOW_INNER_WORKINGS;
+				break;
+			case 13u:
+				environment.state.sun_1_target_color[0u] = 0.0f;
+				environment.state.sun_1_target_color[1u] = 0.0f;
+				environment.state.sun_1_target_color[2u] = 0.0f;
+				environment.state.sun_1_target_color[3u] = 0.0f;
 
-			environment.state.sky_circle_state = game_state::sky_circle_state::DEFAULT;
+				environment.state.sun_2_target_color[0u] = 0.0f;
+				environment.state.sun_2_target_color[1u] = 0.0f;
+				environment.state.sun_2_target_color[2u] = 0.0f;
+				environment.state.sun_2_target_color[3u] = 0.0f;
 
-			set_target_cursor(environment, 0.01f,
-				1.0f, 1.0f, 1.0f, 0.2f,
-				0.0f, 0.0f, 0.0f, 0.0f,
-				100.0f, 100.0f, 100.0f, 100.0f,
-				1.0f, 0.0f, 0.0f, 0.2f
-			);
-			break;
+				environment.state.sky_circle_state = game_state::sky_circle_state::DEFAULT;
 
-		case 14u:
-			set_target_cursor(environment, 0.03f,
-				1.0f, 1.0f, 0.0f, 0.2f,
-				0.0f, 1.0f, 5.0f, 0.0f,
-				0.0f, 0.0f, 0.0f, 0.0f,
-				1.0f, 0.0f, 0.0f, 0.2f
-			);
-			break;
-		case 15u:
-			set_target_cursor(environment, 0.01f,
-				1.0f, 1.0f, 1.0f, 0.2f,
-				0.0f, 0.0f, 0.0f, 0.0f,
-				100.0f, 100.0f, 100.0f, 100.0f,
-				1.0f, 0.0f, 0.0f, 0.2f
-			);
-			break;
+				set_target_cursor(environment, 0.01f,
+					1.0f, 1.0f, 1.0f, 0.2f,
+					0.0f, 0.0f, 0.0f, 0.0f,
+					100.0f, 100.0f, 100.0f, 100.0f,
+					1.0f, 0.0f, 0.0f, 0.2f
+				);
+				break;
+
+			case 14u:
+				set_target_cursor(environment, 0.03f,
+					1.0f, 1.0f, 0.0f, 0.2f,
+					0.0f, 1.0f, 5.0f, 0.0f,
+					0.0f, 0.0f, 0.0f, 0.0f,
+					1.0f, 0.0f, 0.0f, 0.2f
+				);
+				break;
+			case 15u:
+				set_target_cursor(environment, 0.01f,
+					1.0f, 1.0f, 1.0f, 0.2f,
+					0.0f, 0.0f, 0.0f, 0.0f,
+					100.0f, 100.0f, 100.0f, 100.0f,
+					1.0f, 0.0f, 0.0f, 0.2f
+				);
+				break;
+			}
 		}
-		/*case 0u:
-			glProgramUniform1f
-			(
-				environment.state.holographic_source_draw_shader,
-				environment.state.holographic_source_draw_shader_layer_uniform_location,
-				0.0f
-			);
-			break;
-		case 1u:
-			glProgramUniform1f
-			(
-				environment.state.holographic_source_draw_shader,
-				environment.state.holographic_source_draw_shader_layer_uniform_location,
-				1.0f
-			);
-			break;
-		case 2u:
-			glProgramUniform1f
-			(
-				environment.state.holographic_source_draw_shader,
-				environment.state.holographic_source_draw_shader_layer_uniform_location,
-				2.0f
-			);
-			break;
-		case 3u:
-			glProgramUniform1f
-			(
-				environment.state.holographic_source_draw_shader,
-				environment.state.holographic_source_draw_shader_layer_uniform_location,
-				3.0f
-			);
-			break;
-		case 4u:
-			for (GLuint direction{ 0u }; direction < 4u; ++direction)
+		else
+		{
+			switch (stage)
 			{
-				environment.state.holographic_cascade_rays_draw_shader_cascades[direction] = 0u;
-				glProgramUniform1ui
+			case 0u:
+				glProgramUniform1f
 				(
-					environment.state.holographic_cascade_rays_draw_shaders[direction],
-					environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_locations[direction],
-					environment.state.holographic_cascade_rays_draw_shader_cascades[direction]
+					environment.state.holographic_source_draw_shader,
+					environment.state.holographic_source_draw_shader_layer_uniform_location,
+					0.0f
 				);
-				environment.state.holographic_cascade_fluence_draw_shader_cascades[direction] = environment.state.holographic_cascade_rays_draw_shader_cascades[direction];
-				glProgramUniform1ui
+				break;
+			case 1u:
+				glProgramUniform1f
 				(
-					environment.state.holographic_cascade_fluence_draw_shaders[direction],
-					environment.state.holographic_cascade_fluence_draw_shader_cascade_uniform_locations[direction],
-					environment.state.holographic_cascade_fluence_draw_shader_cascades[direction]
+					environment.state.holographic_source_draw_shader,
+					environment.state.holographic_source_draw_shader_layer_uniform_location,
+					1.0f
 				);
+				break;
+			case 2u:
+				glProgramUniform1f
+				(
+					environment.state.holographic_source_draw_shader,
+					environment.state.holographic_source_draw_shader_layer_uniform_location,
+					2.0f
+				);
+				break;
+			case 3u:
+				glProgramUniform1f
+				(
+					environment.state.holographic_source_draw_shader,
+					environment.state.holographic_source_draw_shader_layer_uniform_location,
+					3.0f
+				);
+				break;
+			case 4u:
+				for (GLuint direction{ 0u }; direction < 4u; ++direction)
+				{
+					environment.state.holographic_cascade_rays_draw_shader_cascades[direction] = 0u;
+					glProgramUniform1ui
+					(
+						environment.state.holographic_cascade_rays_draw_shaders[direction],
+						environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_locations[direction],
+						environment.state.holographic_cascade_rays_draw_shader_cascades[direction]
+					);
+					environment.state.holographic_cascade_fluence_draw_shader_cascades[direction] = environment.state.holographic_cascade_rays_draw_shader_cascades[direction];
+					glProgramUniform1ui
+					(
+						environment.state.holographic_cascade_fluence_draw_shaders[direction],
+						environment.state.holographic_cascade_fluence_draw_shader_cascade_uniform_locations[direction],
+						environment.state.holographic_cascade_fluence_draw_shader_cascades[direction]
+					);
+				}
+				break;
+			case 5u:
+				for (GLuint direction{ 0u }; direction < 4u; ++direction)
+				{
+					environment.state.holographic_cascade_rays_draw_shader_cascades[direction] = 1u;
+					glProgramUniform1ui
+					(
+						environment.state.holographic_cascade_rays_draw_shaders[direction],
+						environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_locations[direction],
+						environment.state.holographic_cascade_rays_draw_shader_cascades[direction]
+					);
+					environment.state.holographic_cascade_fluence_draw_shader_cascades[direction] = environment.state.holographic_cascade_rays_draw_shader_cascades[direction];
+					glProgramUniform1ui
+					(
+						environment.state.holographic_cascade_fluence_draw_shaders[direction],
+						environment.state.holographic_cascade_fluence_draw_shader_cascade_uniform_locations[direction],
+						environment.state.holographic_cascade_fluence_draw_shader_cascades[direction]
+					);
+				}
+				break;
+			case 6u:
+				for (GLuint direction{ 0u }; direction < 4u; ++direction)
+				{
+					environment.state.holographic_cascade_rays_draw_shader_cascades[direction] = 2u;
+					glProgramUniform1ui
+					(
+						environment.state.holographic_cascade_rays_draw_shaders[direction],
+						environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_locations[direction],
+						environment.state.holographic_cascade_rays_draw_shader_cascades[direction]
+					);
+					environment.state.holographic_cascade_fluence_draw_shader_cascades[direction] = environment.state.holographic_cascade_rays_draw_shader_cascades[direction];
+					glProgramUniform1ui
+					(
+						environment.state.holographic_cascade_fluence_draw_shaders[direction],
+						environment.state.holographic_cascade_fluence_draw_shader_cascade_uniform_locations[direction],
+						environment.state.holographic_cascade_fluence_draw_shader_cascades[direction]
+					);
+				}
+				break;
+			case 7u:
+				for (GLuint direction{ 0u }; direction < 4u; ++direction)
+				{
+					environment.state.holographic_cascade_rays_draw_shader_cascades[direction] = 3u;
+					glProgramUniform1ui
+					(
+						environment.state.holographic_cascade_rays_draw_shaders[direction],
+						environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_locations[direction],
+						environment.state.holographic_cascade_rays_draw_shader_cascades[direction]
+					);
+					environment.state.holographic_cascade_fluence_draw_shader_cascades[direction] = environment.state.holographic_cascade_rays_draw_shader_cascades[direction];
+					glProgramUniform1ui
+					(
+						environment.state.holographic_cascade_fluence_draw_shaders[direction],
+						environment.state.holographic_cascade_fluence_draw_shader_cascade_uniform_locations[direction],
+						environment.state.holographic_cascade_fluence_draw_shader_cascades[direction]
+					);
+				}
+				break;
+			case 8u:
+				for (GLuint direction{ 0u }; direction < 4u; ++direction)
+				{
+					environment.state.holographic_cascade_rays_draw_shader_cascades[direction] = 4u;
+					glProgramUniform1ui
+					(
+						environment.state.holographic_cascade_rays_draw_shaders[direction],
+						environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_locations[direction],
+						environment.state.holographic_cascade_rays_draw_shader_cascades[direction]
+					);
+					environment.state.holographic_cascade_fluence_draw_shader_cascades[direction] = environment.state.holographic_cascade_rays_draw_shader_cascades[direction];
+					glProgramUniform1ui
+					(
+						environment.state.holographic_cascade_fluence_draw_shaders[direction],
+						environment.state.holographic_cascade_fluence_draw_shader_cascade_uniform_locations[direction],
+						environment.state.holographic_cascade_fluence_draw_shader_cascades[direction]
+					);
+				}
+				break;
+			case 9u:
+				for (GLuint direction{ 0u }; direction < 4u; ++direction)
+				{
+					environment.state.holographic_cascade_rays_draw_shader_cascades[direction] = 5u;
+					glProgramUniform1ui
+					(
+						environment.state.holographic_cascade_rays_draw_shaders[direction],
+						environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_locations[direction],
+						environment.state.holographic_cascade_rays_draw_shader_cascades[direction]
+					);
+					environment.state.holographic_cascade_fluence_draw_shader_cascades[direction] = environment.state.holographic_cascade_rays_draw_shader_cascades[direction];
+					glProgramUniform1ui
+					(
+						environment.state.holographic_cascade_fluence_draw_shaders[direction],
+						environment.state.holographic_cascade_fluence_draw_shader_cascade_uniform_locations[direction],
+						environment.state.holographic_cascade_fluence_draw_shader_cascades[direction]
+					);
+				}
+				break;
+			case 10u:
+				for (GLuint direction{ 0u }; direction < 4u; ++direction)
+				{
+					environment.state.holographic_cascade_rays_draw_shader_cascades[direction] = 6u;
+					glProgramUniform1ui
+					(
+						environment.state.holographic_cascade_rays_draw_shaders[direction],
+						environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_locations[direction],
+						environment.state.holographic_cascade_rays_draw_shader_cascades[direction]
+					);
+					environment.state.holographic_cascade_fluence_draw_shader_cascades[direction] = environment.state.holographic_cascade_rays_draw_shader_cascades[direction];
+					glProgramUniform1ui
+					(
+						environment.state.holographic_cascade_fluence_draw_shaders[direction],
+						environment.state.holographic_cascade_fluence_draw_shader_cascade_uniform_locations[direction],
+						environment.state.holographic_cascade_fluence_draw_shader_cascades[direction]
+					);
+				}
+				break;
+			case 11u:
+				for (GLuint direction{ 0u }; direction < 4u; ++direction)
+				{
+					environment.state.holographic_cascade_rays_draw_shader_cascades[direction] = 7u;
+					glProgramUniform1ui
+					(
+						environment.state.holographic_cascade_rays_draw_shaders[direction],
+						environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_locations[direction],
+						environment.state.holographic_cascade_rays_draw_shader_cascades[direction]
+					);
+					environment.state.holographic_cascade_fluence_draw_shader_cascades[direction] = environment.state.holographic_cascade_rays_draw_shader_cascades[direction];
+					glProgramUniform1ui
+					(
+						environment.state.holographic_cascade_fluence_draw_shaders[direction],
+						environment.state.holographic_cascade_fluence_draw_shader_cascade_uniform_locations[direction],
+						environment.state.holographic_cascade_fluence_draw_shader_cascades[direction]
+					);
+				}
+				break;
+			case 12u:
+				for (GLuint direction{ 0u }; direction < 4u; ++direction)
+				{
+					environment.state.holographic_cascade_rays_draw_shader_cascades[direction] = 1u;
+					glProgramUniform1ui
+					(
+						environment.state.holographic_cascade_rays_draw_shaders[direction],
+						environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_locations[direction],
+						environment.state.holographic_cascade_rays_draw_shader_cascades[direction]
+					);
+					environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascades[direction] = environment.state.holographic_cascade_rays_draw_shader_cascades[direction];
+					glProgramUniform1ui
+					(
+						environment.state.holographic_cascade_fluence_single_cone_draw_shaders[direction],
+						environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascade_uniform_locations[direction],
+						environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascades[direction]
+					);
+				}
+				break;
+			case 13u:
+				for (GLuint direction{ 0u }; direction < 4u; ++direction)
+				{
+					environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_cascades[direction] = 1u;
+					glProgramUniform1ui
+					(
+						environment.state.holographic_cascade_rays_merge_to_cone_draw_shaders[direction],
+						environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_cascade_uniform_locations[direction],
+						environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_cascades[direction]
+					);
+					environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascades[direction] = environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_cascades[direction];
+					glProgramUniform1ui
+					(
+						environment.state.holographic_cascade_fluence_single_cone_draw_shaders[direction],
+						environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascade_uniform_locations[direction],
+						environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascades[direction]
+					);
+					environment.state.holographic_cascade_fluence_merge_to_draw_shader_cascades[direction] = environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_cascades[direction] + 1u;
+					glProgramUniform1ui
+					(
+						environment.state.holographic_cascade_fluence_merge_to_draw_shaders[direction],
+						environment.state.holographic_cascade_fluence_merge_to_draw_shader_cascade_uniform_locations[direction],
+						environment.state.holographic_cascade_fluence_merge_to_draw_shader_cascades[direction]
+					);
+				}
+				break;
+			case 14u:
+				for (GLuint direction{ 0u }; direction < 4u; ++direction)
+				{
+					environment.state.holographic_cascade_rays_single_ray_draw_shader_cascades[direction] = 1u;
+					glProgramUniform1ui
+					(
+						environment.state.holographic_cascade_rays_single_ray_draw_shaders[direction],
+						environment.state.holographic_cascade_rays_single_ray_draw_shader_cascade_uniform_locations[direction],
+						environment.state.holographic_cascade_rays_single_ray_draw_shader_cascades[direction]
+					);
+					environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascades[direction] = environment.state.holographic_cascade_rays_draw_shader_cascades[direction];
+					glProgramUniform1ui
+					(
+						environment.state.holographic_cascade_fluence_single_cone_draw_shaders[direction],
+						environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascade_uniform_locations[direction],
+						environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascades[direction]
+					);
+				}
+				break;
+			case 15u:
+				for (GLuint direction{ 0u }; direction < 4u; ++direction)
+				{
+					environment.state.holographic_cascade_rays_single_ray_draw_shader_cascades[direction] = 1u;
+					glProgramUniform1ui
+					(
+						environment.state.holographic_cascade_rays_single_ray_draw_shaders[direction],
+						environment.state.holographic_cascade_rays_single_ray_draw_shader_cascade_uniform_locations[direction],
+						environment.state.holographic_cascade_rays_single_ray_draw_shader_cascades[direction]
+					);
+					environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_cascades[direction] = environment.state.holographic_cascade_rays_single_ray_draw_shader_cascades[direction] - 1u;
+					glProgramUniform1ui
+					(
+						environment.state.holographic_cascade_rays_merge_to_ray_draw_shaders[direction],
+						environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_cascade_uniform_locations[direction],
+						environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_cascades[direction]
+					);
+				}
+				break;
+			case 16u:
+				set_nearest_fluence_interpolation(environment);
+				break;
+			case 17u:
+				set_linear_fluence_interpolation(environment);
+				break;
+			case 18u:
+				for (GLuint direction{ 0u }; direction < 4u; ++direction)
+				{
+					environment.state.holographic_cascade_rays_radiance_draw_shader_cascades[direction] = 0u;
+					glProgramUniform1ui
+					(
+						environment.state.holographic_cascade_rays_radiance_draw_shaders[direction],
+						environment.state.holographic_cascade_rays_radiance_draw_shader_cascade_uniform_locations[direction],
+						environment.state.holographic_cascade_rays_radiance_draw_shader_cascades[direction]
+					);
+				}
+				break;
+			case 19u:
+				for (GLuint direction{ 0u }; direction < 4u; ++direction)
+				{
+					environment.state.holographic_cascade_rays_radiance_draw_shader_cascades[direction] = 1u;
+					glProgramUniform1ui
+					(
+						environment.state.holographic_cascade_rays_radiance_draw_shaders[direction],
+						environment.state.holographic_cascade_rays_radiance_draw_shader_cascade_uniform_locations[direction],
+						environment.state.holographic_cascade_rays_radiance_draw_shader_cascades[direction]
+					);
+				}
+				break;
+			case 20u:
+				for (GLuint direction{ 0u }; direction < 4u; ++direction)
+				{
+					environment.state.holographic_cascade_rays_radiance_draw_shader_cascades[direction] = 2u;
+					glProgramUniform1ui
+					(
+						environment.state.holographic_cascade_rays_radiance_draw_shaders[direction],
+						environment.state.holographic_cascade_rays_radiance_draw_shader_cascade_uniform_locations[direction],
+						environment.state.holographic_cascade_rays_radiance_draw_shader_cascades[direction]
+					);
+				}
+				break;
+			case 21u:
+				for (GLuint direction{ 0u }; direction < 4u; ++direction)
+				{
+					environment.state.holographic_cascade_rays_radiance_draw_shader_cascades[direction] = 3u;
+					glProgramUniform1ui
+					(
+						environment.state.holographic_cascade_rays_radiance_draw_shaders[direction],
+						environment.state.holographic_cascade_rays_radiance_draw_shader_cascade_uniform_locations[direction],
+						environment.state.holographic_cascade_rays_radiance_draw_shader_cascades[direction]
+					);
+				}
+				break;
 			}
-			break;
-		case 5u:
-			for (GLuint direction{ 0u }; direction < 4u; ++direction)
-			{
-				environment.state.holographic_cascade_rays_draw_shader_cascades[direction] = 1u;
-				glProgramUniform1ui
-				(
-					environment.state.holographic_cascade_rays_draw_shaders[direction],
-					environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_locations[direction],
-					environment.state.holographic_cascade_rays_draw_shader_cascades[direction]
-				);
-				environment.state.holographic_cascade_fluence_draw_shader_cascades[direction] = environment.state.holographic_cascade_rays_draw_shader_cascades[direction];
-				glProgramUniform1ui
-				(
-					environment.state.holographic_cascade_fluence_draw_shaders[direction],
-					environment.state.holographic_cascade_fluence_draw_shader_cascade_uniform_locations[direction],
-					environment.state.holographic_cascade_fluence_draw_shader_cascades[direction]
-				);
-			}
-			break;
-		case 6u:
-			for (GLuint direction{ 0u }; direction < 4u; ++direction)
-			{
-				environment.state.holographic_cascade_rays_draw_shader_cascades[direction] = 2u;
-				glProgramUniform1ui
-				(
-					environment.state.holographic_cascade_rays_draw_shaders[direction],
-					environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_locations[direction],
-					environment.state.holographic_cascade_rays_draw_shader_cascades[direction]
-				);
-				environment.state.holographic_cascade_fluence_draw_shader_cascades[direction] = environment.state.holographic_cascade_rays_draw_shader_cascades[direction];
-				glProgramUniform1ui
-				(
-					environment.state.holographic_cascade_fluence_draw_shaders[direction],
-					environment.state.holographic_cascade_fluence_draw_shader_cascade_uniform_locations[direction],
-					environment.state.holographic_cascade_fluence_draw_shader_cascades[direction]
-				);
-			}
-			break;
-		case 7u:
-			for (GLuint direction{ 0u }; direction < 4u; ++direction)
-			{
-				environment.state.holographic_cascade_rays_draw_shader_cascades[direction] = 3u;
-				glProgramUniform1ui
-				(
-					environment.state.holographic_cascade_rays_draw_shaders[direction],
-					environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_locations[direction],
-					environment.state.holographic_cascade_rays_draw_shader_cascades[direction]
-				);
-				environment.state.holographic_cascade_fluence_draw_shader_cascades[direction] = environment.state.holographic_cascade_rays_draw_shader_cascades[direction];
-				glProgramUniform1ui
-				(
-					environment.state.holographic_cascade_fluence_draw_shaders[direction],
-					environment.state.holographic_cascade_fluence_draw_shader_cascade_uniform_locations[direction],
-					environment.state.holographic_cascade_fluence_draw_shader_cascades[direction]
-				);
-			}
-			break;
-		case 8u:
-			for (GLuint direction{ 0u }; direction < 4u; ++direction)
-			{
-				environment.state.holographic_cascade_rays_draw_shader_cascades[direction] = 4u;
-				glProgramUniform1ui
-				(
-					environment.state.holographic_cascade_rays_draw_shaders[direction],
-					environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_locations[direction],
-					environment.state.holographic_cascade_rays_draw_shader_cascades[direction]
-				);
-				environment.state.holographic_cascade_fluence_draw_shader_cascades[direction] = environment.state.holographic_cascade_rays_draw_shader_cascades[direction];
-				glProgramUniform1ui
-				(
-					environment.state.holographic_cascade_fluence_draw_shaders[direction],
-					environment.state.holographic_cascade_fluence_draw_shader_cascade_uniform_locations[direction],
-					environment.state.holographic_cascade_fluence_draw_shader_cascades[direction]
-				);
-			}
-			break;
-		case 9u:
-			for (GLuint direction{ 0u }; direction < 4u; ++direction)
-			{
-				environment.state.holographic_cascade_rays_draw_shader_cascades[direction] = 5u;
-				glProgramUniform1ui
-				(
-					environment.state.holographic_cascade_rays_draw_shaders[direction],
-					environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_locations[direction],
-					environment.state.holographic_cascade_rays_draw_shader_cascades[direction]
-				);
-				environment.state.holographic_cascade_fluence_draw_shader_cascades[direction] = environment.state.holographic_cascade_rays_draw_shader_cascades[direction];
-				glProgramUniform1ui
-				(
-					environment.state.holographic_cascade_fluence_draw_shaders[direction],
-					environment.state.holographic_cascade_fluence_draw_shader_cascade_uniform_locations[direction],
-					environment.state.holographic_cascade_fluence_draw_shader_cascades[direction]
-				);
-			}
-			break;
-		case 10u:
-			for (GLuint direction{ 0u }; direction < 4u; ++direction)
-			{
-				environment.state.holographic_cascade_rays_draw_shader_cascades[direction] = 6u;
-				glProgramUniform1ui
-				(
-					environment.state.holographic_cascade_rays_draw_shaders[direction],
-					environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_locations[direction],
-					environment.state.holographic_cascade_rays_draw_shader_cascades[direction]
-				);
-				environment.state.holographic_cascade_fluence_draw_shader_cascades[direction] = environment.state.holographic_cascade_rays_draw_shader_cascades[direction];
-				glProgramUniform1ui
-				(
-					environment.state.holographic_cascade_fluence_draw_shaders[direction],
-					environment.state.holographic_cascade_fluence_draw_shader_cascade_uniform_locations[direction],
-					environment.state.holographic_cascade_fluence_draw_shader_cascades[direction]
-				);
-			}
-			break;
-		case 11u:
-			for (GLuint direction{ 0u }; direction < 4u; ++direction)
-			{
-				environment.state.holographic_cascade_rays_draw_shader_cascades[direction] = 7u;
-				glProgramUniform1ui
-				(
-					environment.state.holographic_cascade_rays_draw_shaders[direction],
-					environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_locations[direction],
-					environment.state.holographic_cascade_rays_draw_shader_cascades[direction]
-				);
-				environment.state.holographic_cascade_fluence_draw_shader_cascades[direction] = environment.state.holographic_cascade_rays_draw_shader_cascades[direction];
-				glProgramUniform1ui
-				(
-					environment.state.holographic_cascade_fluence_draw_shaders[direction],
-					environment.state.holographic_cascade_fluence_draw_shader_cascade_uniform_locations[direction],
-					environment.state.holographic_cascade_fluence_draw_shader_cascades[direction]
-				);
-			}
-			break;
-		case 12u:
-			for (GLuint direction{ 0u }; direction < 4u; ++direction)
-			{
-				environment.state.holographic_cascade_rays_draw_shader_cascades[direction] = 1u;
-				glProgramUniform1ui
-				(
-					environment.state.holographic_cascade_rays_draw_shaders[direction],
-					environment.state.holographic_cascade_rays_draw_shader_cascade_uniform_locations[direction],
-					environment.state.holographic_cascade_rays_draw_shader_cascades[direction]
-				);
-				environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascades[direction] = environment.state.holographic_cascade_rays_draw_shader_cascades[direction];
-				glProgramUniform1ui
-				(
-					environment.state.holographic_cascade_fluence_single_cone_draw_shaders[direction],
-					environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascade_uniform_locations[direction],
-					environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascades[direction]
-				);
-			}
-			break;
-		case 13u:
-			for (GLuint direction{ 0u }; direction < 4u; ++direction)
-			{
-				environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_cascades[direction] = 2u;
-				glProgramUniform1ui
-				(
-					environment.state.holographic_cascade_rays_merge_to_cone_draw_shaders[direction],
-					environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_cascade_uniform_locations[direction],
-					environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_cascades[direction]
-				);
-				environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascades[direction] = environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_cascades[direction];
-				glProgramUniform1ui
-				(
-					environment.state.holographic_cascade_fluence_single_cone_draw_shaders[direction],
-					environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascade_uniform_locations[direction],
-					environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascades[direction]
-				);
-				environment.state.holographic_cascade_fluence_merge_to_draw_shader_cascades[direction] = environment.state.holographic_cascade_rays_merge_to_cone_draw_shader_cascades[direction] + 1u;
-				glProgramUniform1ui
-				(
-					environment.state.holographic_cascade_fluence_merge_to_draw_shaders[direction],
-					environment.state.holographic_cascade_fluence_merge_to_draw_shader_cascade_uniform_locations[direction],
-					environment.state.holographic_cascade_fluence_merge_to_draw_shader_cascades[direction]
-				);
-			}
-			break;
-		case 14u:
-			for (GLuint direction{ 0u }; direction < 4u; ++direction)
-			{
-				environment.state.holographic_cascade_rays_single_ray_draw_shader_cascades[direction] = 1u;
-				glProgramUniform1ui
-				(
-					environment.state.holographic_cascade_rays_single_ray_draw_shaders[direction],
-					environment.state.holographic_cascade_rays_single_ray_draw_shader_cascade_uniform_locations[direction],
-					environment.state.holographic_cascade_rays_single_ray_draw_shader_cascades[direction]
-				);
-				environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascades[direction] = environment.state.holographic_cascade_rays_draw_shader_cascades[direction];
-				glProgramUniform1ui
-				(
-					environment.state.holographic_cascade_fluence_single_cone_draw_shaders[direction],
-					environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascade_uniform_locations[direction],
-					environment.state.holographic_cascade_fluence_single_cone_draw_shader_cascades[direction]
-				);
-			}
-			break;
-		case 15u:
-			for (GLuint direction{ 0u }; direction < 4u; ++direction)
-			{
-				environment.state.holographic_cascade_rays_single_ray_draw_shader_cascades[direction] = 3u;
-				glProgramUniform1ui
-				(
-					environment.state.holographic_cascade_rays_single_ray_draw_shaders[direction],
-					environment.state.holographic_cascade_rays_single_ray_draw_shader_cascade_uniform_locations[direction],
-					environment.state.holographic_cascade_rays_single_ray_draw_shader_cascades[direction]
-				);
-				environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_cascades[direction] = environment.state.holographic_cascade_rays_single_ray_draw_shader_cascades[direction] - 1u;
-				glProgramUniform1ui
-				(
-					environment.state.holographic_cascade_rays_merge_to_ray_draw_shaders[direction],
-					environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_cascade_uniform_locations[direction],
-					environment.state.holographic_cascade_rays_merge_to_ray_draw_shader_cascades[direction]
-				);
-			}
-			break;
-		case 16u:
-			set_nearest_fluence_interpolation(environment);
-			break;
-		case 17u:
-			set_linear_fluence_interpolation(environment);
-			break;
-		case 18u:
-			for (GLuint direction{ 0u }; direction < 4u; ++direction)
-			{
-				environment.state.holographic_cascade_rays_radiance_draw_shader_cascades[direction] = 0u;
-				glProgramUniform1ui
-				(
-					environment.state.holographic_cascade_rays_radiance_draw_shaders[direction],
-					environment.state.holographic_cascade_rays_radiance_draw_shader_cascade_uniform_locations[direction],
-					environment.state.holographic_cascade_rays_radiance_draw_shader_cascades[direction]
-				);
-			}
-			break;
-		case 19u:
-			for (GLuint direction{ 0u }; direction < 4u; ++direction)
-			{
-				environment.state.holographic_cascade_rays_radiance_draw_shader_cascades[direction] = 1u;
-				glProgramUniform1ui
-				(
-					environment.state.holographic_cascade_rays_radiance_draw_shaders[direction],
-					environment.state.holographic_cascade_rays_radiance_draw_shader_cascade_uniform_locations[direction],
-					environment.state.holographic_cascade_rays_radiance_draw_shader_cascades[direction]
-				);
-			}
-			break;
-		case 20u:
-			for (GLuint direction{ 0u }; direction < 4u; ++direction)
-			{
-				environment.state.holographic_cascade_rays_radiance_draw_shader_cascades[direction] = 2u;
-				glProgramUniform1ui
-				(
-					environment.state.holographic_cascade_rays_radiance_draw_shaders[direction],
-					environment.state.holographic_cascade_rays_radiance_draw_shader_cascade_uniform_locations[direction],
-					environment.state.holographic_cascade_rays_radiance_draw_shader_cascades[direction]
-				);
-			}
-			break;
-		case 21u:
-			for (GLuint direction{ 0u }; direction < 4u; ++direction)
-			{
-				environment.state.holographic_cascade_rays_radiance_draw_shader_cascades[direction] = 3u;
-				glProgramUniform1ui
-				(
-					environment.state.holographic_cascade_rays_radiance_draw_shaders[direction],
-					environment.state.holographic_cascade_rays_radiance_draw_shader_cascade_uniform_locations[direction],
-					environment.state.holographic_cascade_rays_radiance_draw_shader_cascades[direction]
-				);
-			}
-			break;
-		}*/
-
+		}
 	}
 
 	void end_presentation_stage(game_environment::Environment& environment)
@@ -2310,16 +2315,28 @@ namespace game_logic
 		get_OpenGL_capabilities(environment);
 		print_default_frame_buffer_parameters(environment);
 
+		environment.state.presentation_state_0 = game_state::presentation_state_0::DEFAULT;
+		if (environment.state.presentation_state_0 == game_state::presentation_state_0::DEFAULT)
+		{
+			environment.state.holographic_probe_grid_width = 1024u;
+			environment.state.holographic_probe_grid_height = 512u;
+			environment.state.is_zoomed_out = false;
+			environment.state.draw_fluence_state = game_state::draw_fluence_state::SPLIT;
+		}
+		else
+		{
+			environment.state.holographic_probe_grid_width = 20u;
+			environment.state.holographic_probe_grid_height = 10u;
+			environment.state.is_zoomed_out = true;
+			environment.state.draw_fluence_state = game_state::draw_fluence_state::ZOOM_OUT;
+		}
+
 		environment.state.presentation_stage = 0u;
 		environment.state.use_holographic_radiance_cascades = true;
 		environment.state.use_row_ray_textures = true;
-		environment.state.holographic_probe_grid_width = 1024u;//150u;//100u;//20u;//800u;
-		environment.state.holographic_probe_grid_height = 512u;//75u;//50u;//environment.state.holographic_probe_grid_width >> 1u;//10u;//400u;
 		environment.state.probe_padding_factor_x = 1.0f;
 		environment.state.probe_padding_factor_y = 1.0f;
-		environment.state.is_zoomed_out = false;
 		environment.state.collapse_distance_cones = true;
-		environment.state.draw_fluence_state = game_state::draw_fluence_state::SPLIT;
 		environment.state.holographic_draw_fluence_shader_split_position = 0.0;
 		environment.state.holographic_draw_fluence_shader_target_split_position = 0.0;
 		environment.state.sky_circle_state = game_state::sky_circle_state::DEFAULT;
@@ -10679,8 +10696,11 @@ namespace game_logic
 
 	void tick(game_environment::Environment& environment)
 	{
-		GLfloat split_position_difference = environment.state.holographic_draw_fluence_shader_target_split_position - environment.state.holographic_draw_fluence_shader_split_position;
-		environment.state.holographic_draw_fluence_shader_split_position += split_position_difference / abs(split_position_difference) * 0.2f * game_logic__util__tick__delta_time_SECONDS(environment);
+		if (environment.state.presentation_state_0 == game_state::presentation_state_0::DEFAULT)
+		{
+			GLfloat split_position_difference = environment.state.holographic_draw_fluence_shader_target_split_position - environment.state.holographic_draw_fluence_shader_split_position;
+			environment.state.holographic_draw_fluence_shader_split_position += split_position_difference / abs(split_position_difference) * 0.2f * game_logic__util__tick__delta_time_SECONDS(environment);
+		}
 
 		GLfloat lerp_factor{ remaining_error_per_second_to_lerp_factor(environment, 0.1f) };
 		lerp(environment, environment.state.cursor_radius, environment.state.target_cursor_radius, lerp_factor);
@@ -10692,13 +10712,16 @@ namespace game_logic
 		lerp(environment, environment.state.sun_1_color, environment.state.sun_1_target_color, lerp_factor);
 		lerp(environment, environment.state.sun_2_color, environment.state.sun_2_target_color, lerp_factor);
 
-		if (environment.state.holographic_draw_fluence_shader_split_position >= 1.0)
+		if (environment.state.presentation_state_0 == game_state::presentation_state_0::DEFAULT)
 		{
-			environment.state.draw_fluence_state = game_state::draw_fluence_state::DEFAULT;
-		}
-		else
-		{
-			environment.state.draw_fluence_state = game_state::draw_fluence_state::SPLIT;
+			if (environment.state.holographic_draw_fluence_shader_split_position >= 1.0)
+			{
+				environment.state.draw_fluence_state = game_state::draw_fluence_state::DEFAULT;
+			}
+			else
+			{
+				environment.state.draw_fluence_state = game_state::draw_fluence_state::SPLIT;
+			}
 		}
 
 		GLint cursor_world_position[2u];
@@ -11193,7 +11216,7 @@ namespace game_logic
 			glDrawArrays(GL_LINES, 0, 4u);
 		}
 
-		if (environment.state.presentation_stage == 11u)
+		if (false && environment.state.presentation_stage == 11u)
 		{	// Moon
 			constexpr GLfloat start_angle{ 0.0f * pi };
 			constexpr GLfloat angular_half_size{ 0.01f * pi };
