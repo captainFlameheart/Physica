@@ -4851,7 +4851,7 @@ namespace game_logic
 
 			for (GLuint i = 0; i < MAX_MATERIAL_COUNT(environment); ++i)
 			{
-				GLfloat albedo[4u]{ 1.0f, 0.0f, 0.0f, 1.0f };
+				GLfloat albedo[4u]{ 1.0f, 0.0f, 0.0f, 0.2f };
 				GLfloat emission[4u]{ 0.0f, 0.0f, 0.0f, 0.0f };
 				GLfloat const absorption_scalar{ 4.0f };
 				GLfloat absorption[4u]{ absorption_scalar, absorption_scalar, absorption_scalar, absorption_scalar };
@@ -4862,106 +4862,106 @@ namespace game_logic
 					albedo[0u] = 1.0f;
 					albedo[1u] = 1.0f;
 					albedo[2u] = 1.0f;
-					albedo[3u] = 1.0f;
+					albedo[3u] = 0.2f;
 
 					emission[0u] = 1.0f;
 					emission[1u] = 1.0f;
 					emission[2u] = 1.0f;
-					emission[3u] = 1.0f;
+					emission[3u] = 0.0f;
 					break;
 				case 1u:
 					albedo[0u] = 0.0f;
 					albedo[1u] = 0.0f;
 					albedo[2u] = 1.0f;
-					albedo[3u] = 1.0f;
+					albedo[3u] = 0.2f;
 					break;
 				case 2u:
 					albedo[0u] = 1.0f;
 					albedo[1u] = 0.0f;
 					albedo[2u] = 1.0f;
-					albedo[3u] = 1.0f;
+					albedo[3u] = 0.2f;
 					break;
 				case 3u:
 					albedo[0u] = 0.0f;
 					albedo[1u] = 1.0f;
 					albedo[2u] = 0.0f;
-					albedo[3u] = 1.0f;
+					albedo[3u] = 0.2f;
 
 					emission[0u] = 0.0f;
 					emission[1u] = 1.0f;
 					emission[2u] = 0.3f;
-					emission[3u] = 1.0f;
+					emission[3u] = 0.0f;
 					break;
 				case 4u:
 					albedo[0u] = 1.0f;
 					albedo[1u] = 0.0f;
 					albedo[2u] = 1.0f;
-					albedo[3u] = 1.0f;
+					albedo[3u] = 0.2f;
 
 					emission[0u] = 1.0f;
 					emission[1u] = 0.3f;
 					emission[2u] = 1.0f;
-					emission[3u] = 1.0f;
+					emission[3u] = 0.0f;
 					break;
 				case 5u:
 					albedo[0u] = 1.0f;
 					albedo[1u] = 1.0f;
 					albedo[2u] = 1.0f;
-					albedo[3u] = 1.0f;
+					albedo[3u] = 0.2f;
 					break;
 				case 6u:
 					albedo[0u] = 0.8f;
 					albedo[1u] = 0.5f;
 					albedo[2u] = 0.9f;
-					albedo[3u] = 1.0f;
+					albedo[3u] = 0.2f;
 					break;
 				case 7u:
 					albedo[0u] = 0.3f;
 					albedo[1u] = 0.2f;
 					albedo[2u] = 0.6f;
-					albedo[3u] = 1.0f;
+					albedo[3u] = 0.2f;
 					break;
 				case 8u:
 					albedo[0u] = 1.0f;
 					albedo[1u] = 0.0f;
 					albedo[2u] = 0.0f;
-					albedo[3u] = 1.0f;
+					albedo[3u] = 0.2f;
 					break;
 				case 9u:
 					albedo[0u] = 1.0f;
 					albedo[1u] = 1.0f;
 					albedo[2u] = 0.0f;
-					albedo[3u] = 1.0f;
+					albedo[3u] = 0.2f;
 					break;
 				case 10u:
 					albedo[0u] = 0.0f;
 					albedo[1u] = 1.0f;
 					albedo[2u] = 1.0f;
-					albedo[3u] = 1.0f;
+					albedo[3u] = 0.2f;
 					break;
 				case 11u:
 					albedo[0u] = 0.0f;
 					albedo[1u] = 0.0f;
 					albedo[2u] = 1.0f;
-					albedo[3u] = 1.0f;
+					albedo[3u] = 0.2f;
 					break;
 				case 12u:
 					albedo[0u] = 0.3f;
 					albedo[1u] = 0.0f;
 					albedo[2u] = 1.0f;
-					albedo[3u] = 1.0f;
+					albedo[3u] = 0.2f;
 					break;
 				case 13u:
 					albedo[0u] = 1.0f;
 					albedo[1u] = 0.5f;
 					albedo[2u] = 0.1f;
-					albedo[3u] = 1.0f;
+					albedo[3u] = 0.2f;
 					break;
 				default:
 					albedo[0u] = 0.1f;
 					albedo[1u] = 1.0f;
 					albedo[2u] = 0.1f;
-					albedo[3u] = 1.0f;
+					albedo[3u] = 0.2f;
 					break;
 				}
 
@@ -11212,19 +11212,19 @@ namespace game_logic
 		(
 			environment.state.draw_cursor_shader,
 			environment.state.draw_cursor_shader_main_albedo_uniform_location,
-			1.0f, 0.0f, 0.0f, 0.0f
+			1.0f, 1.0f, 1.0f, 0.2f
 		);
 		glProgramUniform4f
 		(
 			environment.state.draw_cursor_shader,
 			environment.state.draw_cursor_shader_main_emission_uniform_location,
-			0.0f, 0.0f, 10.0f, 0.0f
+			0.0f, 0.0f, 0.0f * 10.0f, 0.0f
 		);
 		glProgramUniform4f
 		(
 			environment.state.draw_cursor_shader,
 			environment.state.draw_cursor_shader_main_attenuation_uniform_location,
-			1.0f, 1.0f, 1.0f, 1.0f
+			100.0f, 100.0f, 100.0f, 100.0f
 		);
 		glProgramUniform4f
 		(

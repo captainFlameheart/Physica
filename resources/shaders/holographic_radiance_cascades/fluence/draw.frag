@@ -33,5 +33,8 @@ void main()
 	#endif
 
 	vec4 fluence_value = texture(fluence, fluence_sample_point);
-	color = mix(color * (fluence_value + 0.001), fluence_value, 0.2);
+	const vec4 ambience = vec4(0.001);
+	fluence_value += ambience;
+	
+	color = mix(color * (fluence_value + fluence_value.a), fluence_value, color.a);
 }

@@ -29,7 +29,7 @@ void main()
             albedo.rgb += 0.5; //mix(0.5 * albedo.rgb, albedo.rgb, texture_color.a / outline_threshold);
         }
     }
-    albedo.a = 1.0;
-    emission = albedo * 0.5;
+    albedo.a = 0.2;
+    emission = vec4(albedo.rgb * 0.5, 0.0);
     scattering = vec4(0.0, 0.0, 0.0, 0.0);
 }
