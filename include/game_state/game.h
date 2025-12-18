@@ -106,8 +106,9 @@ namespace game_state
 				GLuint angular_fluence_framebuffer;
 				GLuint fluence_framebuffer;
 				GLuint holographic_sky_circle_framebuffer;	// TODO: Order this based on use.
+				GLuint temporary_framebuffer;
 			};
-			GLuint framebuffers[5u];
+			GLuint framebuffers[6u];
 		};
 		GLuint* holographic_ray_framebuffers;
 
@@ -217,6 +218,13 @@ namespace game_state
 		GLuint cursor_constraint_draw_shader;
 		
 		GLuint cursor_position_draw_shader;
+
+		GLuint draw_cursor_shader;
+		GLuint draw_cursor_shader_radius_uniform_location;
+		GLuint draw_cursor_shader_main_albedo_uniform_location;
+		GLuint draw_cursor_shader_main_emission_uniform_location;
+		GLuint draw_cursor_shader_main_attenuation_uniform_location;
+		GLuint draw_cursor_shader_main_scattering_uniform_location;
 
 		GLuint draw_sky_circle_test_element_shader;
 		GLuint draw_sky_circle_test_element_shader_end_points_uniform_location;

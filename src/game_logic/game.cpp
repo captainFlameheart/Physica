@@ -2967,6 +2967,41 @@ namespace game_logic
 			(
 				vertex_shader,
 				util_shader_VERSION,
+				util_shader_DEFINE("CURSOR_POSITION_BINDING", STRINGIFY(game_logic__util_CURSOR_POSITION_BINDING)),
+				util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
+				game_PROJECTION_SCALE_DEFINITION(environment),
+				::util::shader::file_to_string("util/draw_cursor/draw_cursor.vert")
+			);
+			::util::shader::set_shader_statically
+			(
+				fragment_shader,
+				util_shader_VERSION,
+				util_shader_DEFINE("CURSOR_POSITION_BINDING", STRINGIFY(game_logic__util_CURSOR_POSITION_BINDING)),
+				util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
+				game_PROJECTION_SCALE_DEFINITION(environment),
+				::util::shader::file_to_string("util/draw_cursor/draw_cursor.frag")
+			);
+			environment.state.draw_cursor_shader = ::util::shader::create_program(vertex_shader, fragment_shader);
+			environment.state.draw_cursor_shader_radius_uniform_location = glGetUniformLocation(environment.state.draw_cursor_shader, "radius");
+			environment.state.draw_cursor_shader_main_albedo_uniform_location = glGetUniformLocation(environment.state.draw_cursor_shader, "main_albedo");
+			environment.state.draw_cursor_shader_main_emission_uniform_location = glGetUniformLocation(environment.state.draw_cursor_shader, "main_emission");
+			environment.state.draw_cursor_shader_main_attenuation_uniform_location = glGetUniformLocation(environment.state.draw_cursor_shader, "main_attenuation");
+			environment.state.draw_cursor_shader_main_scattering_uniform_location = glGetUniformLocation(environment.state.draw_cursor_shader, "main_scattering");
+
+			std::cout << "Draw cursor shader compiled."
+				<< "\nRadius uniform location: " << environment.state.draw_cursor_shader_radius_uniform_location
+				<< "\nMain albedo uniform location: " << environment.state.draw_cursor_shader_main_albedo_uniform_location
+				<< "\nMain emission uniform location: " << environment.state.draw_cursor_shader_main_emission_uniform_location
+				<< "\nMain attenuation uniform location: " << environment.state.draw_cursor_shader_main_attenuation_uniform_location
+				<< "\nMain scattering uniform location: " << environment.state.draw_cursor_shader_main_scattering_uniform_location
+				<< std::endl;
+		}
+
+		{
+			::util::shader::set_shader_statically
+			(
+				vertex_shader,
+				util_shader_VERSION,
 				util_shader_DEFINE("CAMERA_BINDING", STRINGIFY(game_CAMERA_BINDING)),
 				util_shader_DEFINE("RADIAN", STRINGIFY(game_logic__util__spatial_RADIAN(environment))),
 				util_shader_DEFINE("RADIAN_INVERSE", STRINGIFY(game_logic__util__spatial_RADIAN_INVERSE(environment))),
@@ -10769,7 +10804,7 @@ namespace game_logic
 			GL_COLOR, 0, clear_fluence
 		);
 
-		GLfloat global_brightness{ 20.0f };
+		GLfloat global_brightness{ 20.0f * 0.0f };
 		
 		GLfloat global_tint_r{ 1.0f };
 		GLfloat global_tint_g{ 1.0f };
@@ -11162,9 +11197,42 @@ namespace game_logic
 			glDrawArrays(GL_LINES, 0, 2u);
 		}
 
-		glUseProgram(environment.state.cursor_position_draw_shader);
+		/*glUseProgram(environment.state.cursor_position_draw_shader);
 		glPointSize(5.0f);
-		glDrawArrays(GL_POINTS, 0, 1u);
+		glDrawArrays(GL_POINTS, 0, 1u);*/
+
+		glUseProgram(environment.state.draw_cursor_shader);
+		glProgramUniform1f
+		(
+			environment.state.draw_cursor_shader,
+			environment.state.draw_cursor_shader_radius_uniform_location,
+			0.01f
+		);
+		glProgramUniform4f
+		(
+			environment.state.draw_cursor_shader,
+			environment.state.draw_cursor_shader_main_albedo_uniform_location,
+			1.0f, 0.0f, 0.0f, 0.0f
+		);
+		glProgramUniform4f
+		(
+			environment.state.draw_cursor_shader,
+			environment.state.draw_cursor_shader_main_emission_uniform_location,
+			0.0f, 0.0f, 10.0f, 0.0f
+		);
+		glProgramUniform4f
+		(
+			environment.state.draw_cursor_shader,
+			environment.state.draw_cursor_shader_main_attenuation_uniform_location,
+			1.0f, 1.0f, 1.0f, 1.0f
+		);
+		glProgramUniform4f
+		(
+			environment.state.draw_cursor_shader,
+			environment.state.draw_cursor_shader_main_scattering_uniform_location,
+			0.0f, 0.0f, 0.0f, 0.0f
+		);
+		glDrawArrays(GL_TRIANGLES, 0, 6u);
 
 		if (environment.state.use_holographic_radiance_cascades)
 		{
