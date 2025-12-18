@@ -28,7 +28,7 @@ void main()
         float distance_fraction = distance / (GRAB_RADIUS);
         color = vec4(distance_fraction, 0.0, distance_fraction, 0.2);
     }
-    emission.rgb = color.rgb;
+    emission.rgb = vec3(2.0, 0.0, 4.0);
     emission.a = 0.0;
     attenuation = vec4(0.1);
     scattering = vec4(0.0);

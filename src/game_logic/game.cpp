@@ -1759,7 +1759,6 @@ namespace game_logic
 	void start_presentation_stage(game_environment::Environment& environment)
 	{
 		environment.state.presentation_state_0 = game_state::presentation_state_0::DEFAULT;
-		environment.state.sky_circle_state = game_state::sky_circle_state::SHOW_INNER_WORKINGS;
 
 		GLuint stage{ environment.state.presentation_stage };
 		std::cout << "Start stage " << stage << std::endl;
@@ -1845,8 +1844,22 @@ namespace game_logic
 			environment.state.sun_2_target_color[1u] = 0.1f;
 			environment.state.sun_2_target_color[2u] = 0.1f;
 			environment.state.sun_2_target_color[3u] = 0.0f;
+
+			environment.state.sky_circle_state = game_state::sky_circle_state::DEFAULT;
 			break;
 		case 11u:
+			environment.state.sun_1_target_color[0u] = 0.0f;
+			environment.state.sun_1_target_color[1u] = 0.0f;
+			environment.state.sun_1_target_color[2u] = 0.0f;
+			environment.state.sun_1_target_color[3u] = 0.0f;
+
+			environment.state.sun_2_target_color[0u] = 5.0f;
+			environment.state.sun_2_target_color[1u] = 0.1f;
+			environment.state.sun_2_target_color[2u] = 0.1f;
+			environment.state.sun_2_target_color[3u] = 0.0f;
+			environment.state.sky_circle_state = game_state::sky_circle_state::SHOW_INNER_WORKINGS;
+			break;
+		case 12u:
 			environment.state.sun_1_target_color[0u] = 3.0f;
 			environment.state.sun_1_target_color[1u] = 3.0f;
 			environment.state.sun_1_target_color[2u] = 0.5f;
@@ -1856,8 +1869,10 @@ namespace game_logic
 			environment.state.sun_2_target_color[1u] = 0.1f;
 			environment.state.sun_2_target_color[2u] = 0.1f;
 			environment.state.sun_2_target_color[3u] = 0.0f;
+
+			environment.state.sky_circle_state = game_state::sky_circle_state::SHOW_INNER_WORKINGS;
 			break;
-		case 12u:
+		case 13u:
 			environment.state.sun_1_target_color[0u] = 0.0f;
 			environment.state.sun_1_target_color[1u] = 0.0f;
 			environment.state.sun_1_target_color[2u] = 0.0f;
@@ -1867,6 +1882,32 @@ namespace game_logic
 			environment.state.sun_2_target_color[1u] = 0.0f;
 			environment.state.sun_2_target_color[2u] = 0.0f;
 			environment.state.sun_2_target_color[3u] = 0.0f;
+
+			environment.state.sky_circle_state = game_state::sky_circle_state::DEFAULT;
+
+			set_target_cursor(environment, 0.01f,
+				1.0f, 1.0f, 1.0f, 0.2f,
+				0.0f, 0.0f, 0.0f, 0.0f,
+				100.0f, 100.0f, 100.0f, 100.0f,
+				1.0f, 0.0f, 0.0f, 0.2f
+			);
+			break;
+
+		case 14u:
+			set_target_cursor(environment, 0.03f,
+				1.0f, 1.0f, 0.0f, 0.2f,
+				0.0f, 1.0f, 5.0f, 0.0f,
+				0.0f, 0.0f, 0.0f, 0.0f,
+				1.0f, 0.0f, 0.0f, 0.2f
+			);
+			break;
+		case 15u:
+			set_target_cursor(environment, 0.01f,
+				1.0f, 1.0f, 1.0f, 0.2f,
+				0.0f, 0.0f, 0.0f, 0.0f,
+				100.0f, 100.0f, 100.0f, 100.0f,
+				1.0f, 0.0f, 0.0f, 0.2f
+			);
 			break;
 		}
 		/*case 0u:
@@ -2281,6 +2322,7 @@ namespace game_logic
 		environment.state.draw_fluence_state = game_state::draw_fluence_state::SPLIT;
 		environment.state.holographic_draw_fluence_shader_split_position = 0.0;
 		environment.state.holographic_draw_fluence_shader_target_split_position = 0.0;
+		environment.state.sky_circle_state = game_state::sky_circle_state::DEFAULT;
 
 		
 		set_cursor
@@ -11448,14 +11490,14 @@ namespace game_logic
 			glDrawArrays(GL_LINES, 0, grid_point_count * 2u);
 		}
 
-		if (environment.state.presentation_stage < 4u)
-		{
-			GLuint const layer{ environment.state.presentation_stage };
-			glEnablei(GL_BLEND, layer);
+		//if (environment.state.presentation_stage < 4u)
+		//{
+			//GLuint const layer{ environment.state.presentation_stage };
+			//glEnablei(GL_BLEND, layer);
 			glUseProgram(environment.state.gravity_sources_draw_shader);
 			glDrawArrays(GL_TRIANGLES, 0, environment.state.GPU_buffers.gravity_sources.current_gravity_source_count * 6u);
-			glDisablei(GL_BLEND, layer);
-		}
+			//glDisablei(GL_BLEND, layer);
+		//}
 
 		if (hovered_gravity_source != environment.state.GPU_buffers.gravity_sources.current_gravity_source_count)
 		{
