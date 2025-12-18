@@ -184,6 +184,79 @@
 
 namespace game_logic
 {
+	void set_target_cursor(
+		game_environment::Environment& environment,
+		GLfloat target_cursor_radius,
+		GLfloat target_cursor_albedo_r, GLfloat target_cursor_albedo_g, GLfloat target_cursor_albedo_b, GLfloat target_cursor_albedo_a,
+		GLfloat target_cursor_emission_r, GLfloat target_cursor_emission_g, GLfloat target_cursor_emission_b, GLfloat target_cursor_emission_a,
+		GLfloat target_cursor_attenuation_r, GLfloat target_cursor_attenuation_g, GLfloat target_cursor_attenuation_b, GLfloat target_cursor_attenuation_a,
+		GLfloat target_cursor_scattering_r, GLfloat target_cursor_scattering_g, GLfloat target_cursor_scattering_b, GLfloat target_cursor_scattering_a
+	)
+	{
+		environment.state.target_cursor_radius = target_cursor_radius;
+
+		environment.state.target_cursor_albedo[0u] = target_cursor_albedo_r;
+		environment.state.target_cursor_albedo[1u] = target_cursor_albedo_g;
+		environment.state.target_cursor_albedo[2u] = target_cursor_albedo_b;
+		environment.state.target_cursor_albedo[3u] = target_cursor_albedo_a;
+
+		environment.state.target_cursor_emission[0u] = target_cursor_emission_r;
+		environment.state.target_cursor_emission[1u] = target_cursor_emission_g;
+		environment.state.target_cursor_emission[2u] = target_cursor_emission_b;
+		environment.state.target_cursor_emission[3u] = target_cursor_emission_a;
+
+		environment.state.target_cursor_attenuation[0u] = target_cursor_attenuation_r;
+		environment.state.target_cursor_attenuation[1u] = target_cursor_attenuation_g;
+		environment.state.target_cursor_attenuation[2u] = target_cursor_attenuation_b;
+		environment.state.target_cursor_attenuation[3u] = target_cursor_attenuation_a;
+
+		environment.state.target_cursor_scattering[0u] = target_cursor_scattering_r;
+		environment.state.target_cursor_scattering[1u] = target_cursor_scattering_g;
+		environment.state.target_cursor_scattering[2u] = target_cursor_scattering_b;
+		environment.state.target_cursor_scattering[3u] = target_cursor_scattering_a;
+	}
+
+	void set_cursor(
+		game_environment::Environment& environment,
+		GLfloat target_cursor_radius,
+		GLfloat target_cursor_albedo_r, GLfloat target_cursor_albedo_g, GLfloat target_cursor_albedo_b, GLfloat target_cursor_albedo_a,
+		GLfloat target_cursor_emission_r, GLfloat target_cursor_emission_g, GLfloat target_cursor_emission_b, GLfloat target_cursor_emission_a,
+		GLfloat target_cursor_attenuation_r, GLfloat target_cursor_attenuation_g, GLfloat target_cursor_attenuation_b, GLfloat target_cursor_attenuation_a,
+		GLfloat target_cursor_scattering_r, GLfloat target_cursor_scattering_g, GLfloat target_cursor_scattering_b, GLfloat target_cursor_scattering_a
+	)
+	{
+		environment.state.cursor_radius = target_cursor_radius;
+
+		environment.state.cursor_albedo[0u] = target_cursor_albedo_r;
+		environment.state.cursor_albedo[1u] = target_cursor_albedo_g;
+		environment.state.cursor_albedo[2u] = target_cursor_albedo_b;
+		environment.state.cursor_albedo[3u] = target_cursor_albedo_a;
+
+		environment.state.cursor_emission[0u] = target_cursor_emission_r;
+		environment.state.cursor_emission[1u] = target_cursor_emission_g;
+		environment.state.cursor_emission[2u] = target_cursor_emission_b;
+		environment.state.cursor_emission[3u] = target_cursor_emission_a;
+
+		environment.state.cursor_attenuation[0u] = target_cursor_attenuation_r;
+		environment.state.cursor_attenuation[1u] = target_cursor_attenuation_g;
+		environment.state.cursor_attenuation[2u] = target_cursor_attenuation_b;
+		environment.state.cursor_attenuation[3u] = target_cursor_attenuation_a;
+
+		environment.state.cursor_scattering[0u] = target_cursor_scattering_r;
+		environment.state.cursor_scattering[1u] = target_cursor_scattering_g;
+		environment.state.cursor_scattering[2u] = target_cursor_scattering_b;
+		environment.state.cursor_scattering[3u] = target_cursor_scattering_a;
+
+		set_target_cursor
+		(
+			environment, target_cursor_radius,
+			target_cursor_albedo_r, target_cursor_albedo_g, target_cursor_albedo_b, target_cursor_albedo_a,
+			target_cursor_emission_r, target_cursor_emission_g, target_cursor_emission_b, target_cursor_emission_a,
+			target_cursor_attenuation_r, target_cursor_attenuation_g, target_cursor_attenuation_b, target_cursor_attenuation_a,
+			target_cursor_scattering_r, target_cursor_scattering_g, target_cursor_scattering_b, target_cursor_scattering_a
+		);
+	}
+
 	// TODO: Move to ::util::math
 	inline GLuint ceil_div(GLuint numerator, GLuint denominator)
 	{
@@ -1693,10 +1766,107 @@ namespace game_logic
 		switch (stage)
 		{
 		case 0u:
+			environment.state.holographic_draw_fluence_shader_split_position = -10.0f;
+			environment.state.holographic_draw_fluence_shader_target_split_position = -10.0f;
 			break;
 		case 1u:
 			environment.state.holographic_draw_fluence_shader_split_position = 0.0f;
 			environment.state.holographic_draw_fluence_shader_target_split_position = 10.0f;
+			break;
+		case 2u:
+			set_target_cursor(environment, 0.01f,
+				1.0f, 0.0f, 0.0f, 0.2f,
+				10.0f, 0.0f, 0.0f, 0.2f,
+				100.0f, 100.0f, 100.0f, 100.0f,
+				1.0f, 0.0f, 0.0f, 0.2f
+			);
+			break;
+		case 3u:
+			set_target_cursor(environment, 0.01f,
+				0.0f, 1.0f, 0.0f, 0.2f,
+				0.0f, 10.0f, 0.0f, 0.2f,
+				100.0f, 100.0f, 100.0f, 100.0f,
+				1.0f, 0.0f, 0.0f, 0.2f
+			);
+			break;
+		case 4u:
+			set_target_cursor(environment, 0.01f,
+				0.0f, 0.0f, 1.0f, 0.2f,
+				0.0f, 0.0f, 10.0f, 0.2f,
+				100.0f, 100.0f, 100.0f, 100.0f,
+				1.0f, 0.0f, 0.0f, 0.2f
+			);
+			break;
+		case 5u:
+			set_target_cursor(environment, 0.02f,
+				0.0f, 0.0f, 1.0f, 0.2f,
+				10.0f, 10.0f, 100.0f, 0.2f,
+				100.0f, 100.0f, 100.0f, 100.0f,
+				1.0f, 0.0f, 0.0f, 0.2f
+			);
+			break;
+		case 6u:
+			set_target_cursor(environment, 0.01f,
+				0.0f, 0.0f, 1.0f, 0.2f,
+				0.0f, 0.0f, 20.0f, 0.2f,
+				100.0f, 100.0f, 100.0f, 100.0f,
+				1.0f, 0.0f, 0.0f, 0.2f
+			);
+			break;
+		case 7u:
+			set_target_cursor(environment, 0.02f,
+				0.0f, 0.0f, 1.0f, 0.2f,
+				0.0f, 0.0f, 0.0f, 20.0f,
+				100.0f, 100.0f, 100.0f, 100.0f,
+				1.0f, 0.0f, 0.0f, 0.2f
+			);
+			break;
+		case 8u:
+			set_target_cursor(environment, 0.01f,
+				1.0f, 1.0f, 1.0f, 0.2f,
+				0.0f, 0.0f, 0.0f, 0.0f,
+				100.0f, 100.0f, 100.0f, 100.0f,
+				1.0f, 0.0f, 0.0f, 0.2f
+			);
+			break;
+		case 9u:
+			environment.state.sun_1_target_color[0u] = 3.0f;
+			environment.state.sun_1_target_color[1u] = 3.0f;
+			environment.state.sun_1_target_color[2u] = 0.5f;
+			environment.state.sun_1_target_color[3u] = 0.0f;
+			break;
+		case 10u:
+			environment.state.sun_1_target_color[0u] = 0.0f;
+			environment.state.sun_1_target_color[1u] = 0.0f;
+			environment.state.sun_1_target_color[2u] = 0.0f;
+			environment.state.sun_1_target_color[3u] = 0.0f;
+			
+			environment.state.sun_2_target_color[0u] = 5.0f;
+			environment.state.sun_2_target_color[1u] = 0.1f;
+			environment.state.sun_2_target_color[2u] = 0.1f;
+			environment.state.sun_2_target_color[3u] = 0.0f;
+			break;
+		case 11u:
+			environment.state.sun_1_target_color[0u] = 3.0f;
+			environment.state.sun_1_target_color[1u] = 3.0f;
+			environment.state.sun_1_target_color[2u] = 0.5f;
+			environment.state.sun_1_target_color[3u] = 0.0f;
+
+			environment.state.sun_2_target_color[0u] = 5.0f;
+			environment.state.sun_2_target_color[1u] = 0.1f;
+			environment.state.sun_2_target_color[2u] = 0.1f;
+			environment.state.sun_2_target_color[3u] = 0.0f;
+			break;
+		case 12u:
+			environment.state.sun_1_target_color[0u] = 0.0f;
+			environment.state.sun_1_target_color[1u] = 0.0f;
+			environment.state.sun_1_target_color[2u] = 0.0f;
+			environment.state.sun_1_target_color[3u] = 0.0f;
+
+			environment.state.sun_2_target_color[0u] = 0.0f;
+			environment.state.sun_2_target_color[1u] = 0.0f;
+			environment.state.sun_2_target_color[2u] = 0.0f;
+			environment.state.sun_2_target_color[3u] = 0.0f;
 			break;
 		}
 		/*case 0u:
@@ -2033,8 +2203,6 @@ namespace game_logic
 		case 0u:
 			break;
 		case 1u:
-			environment.state.holographic_draw_fluence_shader_split_position = 1.0f;
-			environment.state.holographic_draw_fluence_shader_target_split_position = -10.0f;
 			break;
 		}
 	}
@@ -2113,6 +2281,36 @@ namespace game_logic
 		environment.state.draw_fluence_state = game_state::draw_fluence_state::SPLIT;
 		environment.state.holographic_draw_fluence_shader_split_position = 0.0;
 		environment.state.holographic_draw_fluence_shader_target_split_position = 0.0;
+
+		
+		set_cursor
+		(
+			environment, 0.01f,
+			1.0f, 1.0f, 1.0f, 0.2f,
+			0.0f, 0.0f, 0.0f * 10.0f, 0.0f,
+			100.0f, 100.0f, 100.0f, 100.0f,
+			0.0f, 0.0f, 0.0f, 0.0f
+		);
+
+		environment.state.sun_1_color[0u] = 0.0f;
+		environment.state.sun_1_color[1u] = 0.0f;
+		environment.state.sun_1_color[2u] = 0.0f;
+		environment.state.sun_1_color[3u] = 0.0f;
+
+		environment.state.sun_2_color[0u] = 0.0f;
+		environment.state.sun_2_color[1u] = 0.0f;
+		environment.state.sun_2_color[2u] = 0.0f;
+		environment.state.sun_2_color[3u] = 0.0f;
+
+		environment.state.sun_1_target_color[0u] = 0.0f;
+		environment.state.sun_1_target_color[1u] = 0.0f;
+		environment.state.sun_1_target_color[2u] = 0.0f;
+		environment.state.sun_1_target_color[3u] = 0.0f;
+
+		environment.state.sun_2_target_color[0u] = 0.0f;
+		environment.state.sun_2_target_color[1u] = 0.0f;
+		environment.state.sun_2_target_color[2u] = 0.0f;
+		environment.state.sun_2_target_color[3u] = 0.0f;
 
 		glEnable(GL_FRAMEBUFFER_SRGB);
 		environment.state.framebuffer_sRGB_enabled = true;
@@ -10407,11 +10605,50 @@ namespace game_logic
 		environment.state.camera.xy.y = world_cursor_y - world_cursor_y_offset_from_camera;
 	}
 
+	GLfloat remaining_error_per_second_to_lerp_factor
+	(
+		game_environment::Environment& environment, GLfloat remaining_error_per_second
+	)
+	{
+		return 1.0 - std::powf(remaining_error_per_second, game_logic__util__tick__delta_time_SECONDS(environment));
+	}
+
+	void lerp
+	(
+		game_environment::Environment& environment,
+		GLfloat &x, GLfloat const& target, GLfloat lerp_factor
+	)
+	{
+		x = (1.0f - lerp_factor) * x + lerp_factor * target;
+	}
+
+	void lerp
+	(
+		game_environment::Environment& environment,
+		GLfloat (&v)[4u], GLfloat const (&target)[4u], GLfloat lerp_factor
+	)
+	{
+		for (GLuint i{ 0u }; i < 4u; ++i)
+		{
+
+			v[i] = (1.0f - lerp_factor) * v[i] + lerp_factor * target[i];
+		}
+	}
+
 	void tick(game_environment::Environment& environment)
 	{
 		GLfloat split_position_difference = environment.state.holographic_draw_fluence_shader_target_split_position - environment.state.holographic_draw_fluence_shader_split_position;
-		
 		environment.state.holographic_draw_fluence_shader_split_position += split_position_difference / abs(split_position_difference) * 0.2f * game_logic__util__tick__delta_time_SECONDS(environment);
+
+		GLfloat lerp_factor{ remaining_error_per_second_to_lerp_factor(environment, 0.1f) };
+		lerp(environment, environment.state.cursor_radius, environment.state.target_cursor_radius, lerp_factor);
+		lerp(environment, environment.state.cursor_albedo, environment.state.target_cursor_albedo, lerp_factor);
+		lerp(environment, environment.state.cursor_emission, environment.state.target_cursor_emission, lerp_factor);
+		lerp(environment, environment.state.cursor_attenuation, environment.state.target_cursor_attenuation, lerp_factor);
+		lerp(environment, environment.state.cursor_scattering, environment.state.target_cursor_scattering, lerp_factor);
+
+		lerp(environment, environment.state.sun_1_color, environment.state.sun_1_target_color, lerp_factor);
+		lerp(environment, environment.state.sun_2_color, environment.state.sun_2_target_color, lerp_factor);
 
 		if (environment.state.holographic_draw_fluence_shader_split_position >= 1.0)
 		{
@@ -10846,7 +11083,7 @@ namespace game_logic
 			GL_COLOR, 0, clear_fluence
 		);
 
-		GLfloat global_brightness{ 20.0f * 0.0f };
+		GLfloat global_brightness{ 1.0f * 1.0f };
 		
 		GLfloat global_tint_r{ 1.0f };
 		GLfloat global_tint_g{ 1.0f };
@@ -10862,6 +11099,7 @@ namespace game_logic
 
 		glUseProgram(environment.state.draw_sky_circle_test_element_shader);
 
+		//if (9u <= environment.state.presentation_stage && environment.state.presentation_stage != 10u && environment.state.presentation_stage <= 12u)
 		{	// Sun 1
 			constexpr GLfloat start_angle{ 1.0f * pi };
 			constexpr GLfloat angular_half_size{ 0.05f * pi };
@@ -10882,12 +11120,13 @@ namespace game_logic
 			(
 				environment.state.draw_sky_circle_test_element_shader,
 				environment.state.draw_sky_circle_test_element_shader_color_uniform_location,
-				1.0f * global_tint_r, 1.0f * global_tint_g, 1.0f * global_tint_b, 0.0f * global_tint_a
+				environment.state.sun_1_color[0u] * global_tint_r, environment.state.sun_1_color[1u] * global_tint_g, environment.state.sun_1_color[2u] * global_tint_b, environment.state.sun_1_color[3u] * global_tint_a
 			);
 			glDrawArrays(GL_LINES, 0, 4u);
 		}
 
-		/* {	// Sun 2
+		//if (environment.state.presentation_stage == 10u || environment.state.presentation_stage == 11u)
+		{	// Sun 2
 			constexpr GLfloat start_angle{ 0.0f * pi };
 			constexpr GLfloat angular_half_size{ 0.05f * pi };
 			constexpr GLfloat initial_start_angle{ start_angle - angular_half_size };
@@ -10907,11 +11146,12 @@ namespace game_logic
 			(
 				environment.state.draw_sky_circle_test_element_shader,
 				environment.state.draw_sky_circle_test_element_shader_color_uniform_location,
-				1.0f * global_tint_r, 0.1f * global_tint_g, 0.1f * global_tint_b, 0.0f * global_tint_a
+				environment.state.sun_2_color[0u] * global_tint_r, environment.state.sun_2_color[1u] * global_tint_g, environment.state.sun_2_color[2u] * global_tint_b, environment.state.sun_2_color[3u] * global_tint_a
 			);
 			glDrawArrays(GL_LINES, 0, 4u);
 		}
 
+		if (environment.state.presentation_stage == 11u)
 		{	// Moon
 			constexpr GLfloat start_angle{ 0.0f * pi };
 			constexpr GLfloat angular_half_size{ 0.01f * pi };
@@ -10935,7 +11175,7 @@ namespace game_logic
 				0.0f * global_tint_r, 0.0f * global_tint_g, 0.0f * global_tint_b, 0.0f * global_tint_a
 			);
 			glDrawArrays(GL_LINES, 0, 4u);
-		}*/
+		}
 
 		#if 0
 		{	// Full size sun
@@ -11248,31 +11488,31 @@ namespace game_logic
 		(
 			environment.state.draw_cursor_shader,
 			environment.state.draw_cursor_shader_radius_uniform_location,
-			0.01f
+			environment.state.cursor_radius
 		);
 		glProgramUniform4f
 		(
 			environment.state.draw_cursor_shader,
 			environment.state.draw_cursor_shader_main_albedo_uniform_location,
-			1.0f, 1.0f, 1.0f, 0.2f
+			environment.state.cursor_albedo[0u], environment.state.cursor_albedo[1u], environment.state.cursor_albedo[2u], environment.state.cursor_albedo[3u]
 		);
 		glProgramUniform4f
 		(
 			environment.state.draw_cursor_shader,
 			environment.state.draw_cursor_shader_main_emission_uniform_location,
-			0.0f, 0.0f, 0.0f * 10.0f, 0.0f
+			environment.state.cursor_emission[0u], environment.state.cursor_emission[1u], environment.state.cursor_emission[2u], environment.state.cursor_emission[3u]
 		);
 		glProgramUniform4f
 		(
 			environment.state.draw_cursor_shader,
 			environment.state.draw_cursor_shader_main_attenuation_uniform_location,
-			100.0f, 100.0f, 100.0f, 100.0f
+			environment.state.cursor_attenuation[0u], environment.state.cursor_attenuation[1u], environment.state.cursor_attenuation[2u], environment.state.cursor_attenuation[3u]
 		);
 		glProgramUniform4f
 		(
 			environment.state.draw_cursor_shader,
 			environment.state.draw_cursor_shader_main_scattering_uniform_location,
-			0.0f, 0.0f, 0.0f, 0.0f
+			environment.state.cursor_scattering[0u], environment.state.cursor_scattering[1u], environment.state.cursor_scattering[2u], environment.state.cursor_scattering[3u]
 		);
 		glDrawArrays(GL_TRIANGLES, 0, 6u);
 

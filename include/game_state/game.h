@@ -447,5 +447,23 @@ namespace game_state
 		presentation_state_0::Presentation_State_0 presentation_state_0;
 		sky_circle_state::Sky_Circle_State sky_circle_state;
 		draw_fluence_state::Draw_Fluence_State draw_fluence_state;
+
+		GLfloat cursor_radius;
+		GLfloat cursor_albedo[4u];
+		GLfloat cursor_emission[4u];
+		GLfloat cursor_attenuation[4u];
+		GLfloat cursor_scattering[4u];
+
+		GLfloat target_cursor_radius;
+		GLfloat target_cursor_albedo[4u];
+		GLfloat target_cursor_emission[4u];
+		GLfloat target_cursor_attenuation[4u];
+		GLfloat target_cursor_scattering[4u];
+
+		GLfloat sun_1_color[4u];
+		GLfloat sun_1_target_color[4u];
+		
+		GLfloat sun_2_color[4u];
+		GLfloat sun_2_target_color[4u];
 	};
 }
