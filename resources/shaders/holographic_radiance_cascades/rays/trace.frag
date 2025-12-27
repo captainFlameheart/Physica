@@ -83,6 +83,7 @@ void main()
 		// TODO: Check that we have accounted for the negative sign before the bias on the CPU.
 		vec2 sample_point = VEC2(probe_column + 1, Y(output_texel_position)) * probe_grid_point_to_sample_point_factor - probe_grid_point_to_sample_point_bias + sample_step * 0.5;
 
+		// IMPORTANT TODO: We can do some of these operations on the CPU.
 		#if DIRECTION == WEST_DIRECTION
 			sample_step.x = -sample_step.x;
 			sample_point.x = 1.0 - sample_point.x;
@@ -109,7 +110,8 @@ void main()
 			vec4 transmittance_factor = exp(-scaled_attenuation);
 
 			vec4 small_emission_factor = world_step_distance * (1.0 - 0.5 * scaled_attenuation); // Second order taylor approximation for small attenuation.
-			vec4 large_emission_factor = emission * (1.0 - transmittance_factor) / clamped_absorption;
+			// TODO: Verify that the emission should indeed be removed from the large_emission_factor
+			vec4 large_emission_factor = /*emission * */ (1.0 - transmittance_factor) / clamped_absorption;
 			vec4 mix_factor = step(1e-4, absorption);
 			vec4 emission_factor = mix(small_emission_factor, large_emission_factor, mix_factor);
 

@@ -1922,6 +1922,7 @@ namespace game_logic
 					environment.state.holographic_source_draw_shader_layer_uniform_location,
 					0.0f
 				);
+				environment.state.show_source_image = true;
 				break;
 			case 1u:
 				glProgramUniform1f
@@ -1930,6 +1931,7 @@ namespace game_logic
 					environment.state.holographic_source_draw_shader_layer_uniform_location,
 					1.0f
 				);
+				environment.state.show_source_image = true;
 				break;
 			case 2u:
 				glProgramUniform1f
@@ -1938,6 +1940,7 @@ namespace game_logic
 					environment.state.holographic_source_draw_shader_layer_uniform_location,
 					2.0f
 				);
+				environment.state.show_source_image = true;
 				break;
 			case 3u:
 				glProgramUniform1f
@@ -1946,8 +1949,10 @@ namespace game_logic
 					environment.state.holographic_source_draw_shader_layer_uniform_location,
 					3.0f
 				);
+				environment.state.show_source_image = true;
 				break;
 			case 4u:
+				environment.state.show_source_image = false;
 				for (GLuint direction{ 0u }; direction < 4u; ++direction)
 				{
 					environment.state.holographic_cascade_rays_draw_shader_cascades[direction] = 0u;
@@ -2322,6 +2327,7 @@ namespace game_logic
 			environment.state.holographic_probe_grid_height = 512u;
 			environment.state.is_zoomed_out = false;
 			environment.state.draw_fluence_state = game_state::draw_fluence_state::SPLIT;
+			environment.state.show_source_image = false;
 		}
 		else
 		{
@@ -2329,6 +2335,7 @@ namespace game_logic
 			environment.state.holographic_probe_grid_height = 10u;
 			environment.state.is_zoomed_out = true;
 			environment.state.draw_fluence_state = game_state::draw_fluence_state::ZOOM_OUT;
+			environment.state.show_source_image = true;
 		}
 
 		environment.state.presentation_stage = 0u;
@@ -11583,7 +11590,7 @@ namespace game_logic
 
 		if (environment.state.use_holographic_radiance_cascades)
 		{
-			if (false)
+			if (environment.state.show_source_image)
 			{
 				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0u);
 				glUseProgram(environment.state.holographic_source_draw_shader);

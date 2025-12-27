@@ -106,6 +106,7 @@ namespace game_state
 		bool physics_running;
 
 		bool use_holographic_radiance_cascades;
+		bool show_source_image;
 
 		union
 		{
