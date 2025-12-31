@@ -54,6 +54,7 @@ void main()
 
 	int direction_id = X(output_texel_position) & direction_mask;
 	float lower_direction_y = float((direction_id << 1) - cascade_power_of_two);
+	// VERY IMPORTANT TODO: I think we should adjust angles based on probe grid size vs camera aspect ratio
 	float lower_direction_slope = lower_direction_y * cascade_power_of_two_inverse;
 	float lower_angle = atan(lower_direction_slope);
 	float upper_angle = atan(lower_direction_slope + double_cascade_power_of_two_inverse);

@@ -2341,8 +2341,9 @@ namespace game_logic
 		environment.state.presentation_stage = 0u;
 		environment.state.use_holographic_radiance_cascades = true;
 		environment.state.use_row_ray_textures = true;
-		environment.state.probe_padding_factor_x = 1.0f;
-		environment.state.probe_padding_factor_y = 1.0f;
+		// IMPORTANT TODO: Figure out why a probe padding factor of 1 causes visual glitches at borders.
+		environment.state.probe_padding_factor_x = 10.0f;
+		environment.state.probe_padding_factor_y = 10.0f;
 		environment.state.collapse_distance_cones = true;
 		environment.state.holographic_draw_fluence_shader_split_position = 0.0;
 		environment.state.holographic_draw_fluence_shader_target_split_position = 0.0;
@@ -11815,7 +11816,6 @@ namespace game_logic
 							glViewport(0, 0, width, height);
 							glDrawArrays(GL_TRIANGLES, 0, 3u);
 
-
 							if (direction == game_state::holographic_east_direction || direction == game_state::holographic_west_direction)
 							{
 								glViewport(width, 0, 1 << cascade, 1u);
@@ -11883,7 +11883,7 @@ namespace game_logic
 					glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0u);
 					glViewport(0, 0, environment.state.framebuffer_width, environment.state.framebuffer_height);
 					if (environment.state.presentation_state_0 == game_state::presentation_state_0::SHOW_INNER_WORKINGS)
-					{	// TODO: This if check be if we are zoomed out
+					{	// TODO: This if check should be if we are zoomed out
 						GLfloat clear_color[4u]{ 0.0f, 0.0f, 0.0f, 1.0f };
 						glClearNamedFramebufferfv(0, GL_COLOR, 0, clear_color);
 					}
