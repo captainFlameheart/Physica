@@ -71,12 +71,34 @@ namespace game_state
 					{
 						GLuint draw_started_timestamp_query;
 						GLuint source_image_completed_timestamp_query;
+						union
+						{
+							struct
+							{
+								GLuint east_ray_trace_completed_timestamp_query;
+								GLuint north_ray_trace_completed_timestamp_query;
+								GLuint west_ray_trace_completed_timestamp_query;
+								GLuint south_ray_trace_completed_timestamp_query;
+							};
+							GLuint ray_trace_completed_timestamp_queries[4u];
+						};
+						union
+						{
+							struct
+							{
+								GLuint east_ray_merge_completed_timestamp_query;
+								GLuint north_ray_merge_completed_timestamp_query;
+								GLuint west_ray_merge_completed_timestamp_query;
+								GLuint south_ray_merge_completed_timestamp_query;
+							};
+							GLuint ray_merge_completed_timestamp_queries[4u];
+						};
 						GLuint holographic_radiance_cascades_completed_timestamp_query;
 					};
-					GLuint timestamp_queries[3u];
+					GLuint timestamp_queries[11u];
 				};
 			};
-			GLuint queries[4u];
+			GLuint queries[12u];
 		};
 
 		union
@@ -87,9 +109,31 @@ namespace game_state
 				{
 					GLuint64 draw_started_timestamp;
 					GLuint64 source_image_completed_timestamp;
+					union
+					{
+						struct
+						{
+							GLuint64 east_ray_trace_completed_timestamp;
+							GLuint64 north_ray_trace_completed_timestamp;
+							GLuint64 west_ray_trace_completed_timestamp;
+							GLuint64 south_ray_trace_completed_timestamp;
+						};
+						GLuint64 ray_trace_completed_timestamps[4u];
+					};
+					union
+					{
+						struct
+						{
+							GLuint64 east_ray_merge_completed_timestamp;
+							GLuint64 north_ray_merge_completed_timestamp;
+							GLuint64 west_ray_merge_completed_timestamp;
+							GLuint64 south_ray_merge_completed_timestamp;
+						};
+						GLuint64 ray_merge_completed_timestamps[4u];
+					};
 					GLuint64 holographic_radiance_cascades_completed_timestamp;
 				};
-				GLuint64 timestamps[3u];
+				GLuint64 timestamps[11u];
 			};
 		};
 

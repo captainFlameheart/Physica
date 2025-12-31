@@ -11717,6 +11717,8 @@ namespace game_logic
 						glDrawArrays(GL_TRIANGLES, 0, 3u);
 					}
 
+					maybe_start_timestamp_query(environment, environment.state.ray_trace_completed_timestamp_queries[direction]);
+
 					glUseProgram(environment.state.holographic_ray_extend_shaders[direction]);
 					for (GLint cascade{ static_cast<GLint>(game_state::initial_holographic_ray_trace_cascade_count) }; cascade < max_cascade_index; ++cascade)
 					{
@@ -11770,6 +11772,8 @@ namespace game_logic
 
 						glDrawArrays(GL_TRIANGLES, 0, 3u);
 					}
+
+					maybe_start_timestamp_query(environment, environment.state.ray_merge_completed_timestamp_queries[direction]);
 
 					glBindFramebuffer(GL_DRAW_FRAMEBUFFER, environment.state.holographic_sky_circle_framebuffer);
 					glViewport(0, 0, environment.state.sky_circle_texture_length, 1u);
@@ -12416,8 +12420,21 @@ namespace game_logic
 				}
 
 				print_elapsed_time(environment, "Draw source image", environment.state.draw_started_timestamp, environment.state.source_image_completed_timestamp);
+				std::cout << '\n';
+
+				GLuint64 before_direction_timestamp{ environment.state.source_image_completed_timestamp };
+				for (GLuint direction{ 0u }; direction < 4u; ++direction)
+				{
+					print_elapsed_time(environment, "Ray trace direction " + std::to_string(direction), before_direction_timestamp, environment.state.ray_trace_completed_timestamps[direction]);
+					print_elapsed_time(environment, "Ray merge direction " + std::to_string(direction), environment.state.ray_trace_completed_timestamps[direction], environment.state.ray_merge_completed_timestamps[direction]);
+					
+
+					std::cout << '\n';
+					before_direction_timestamp = environment.state.ray_merge_completed_timestamps[direction];
+				}
+
 				print_elapsed_time(environment, "Apply holographic radiance cascades", environment.state.source_image_completed_timestamp, environment.state.holographic_radiance_cascades_completed_timestamp);
-				
+
 				GLuint64 time_elapsed;
 				glGetQueryObjectui64v(environment.state.time_elapsed_query, GL_QUERY_RESULT, &time_elapsed);
 				GLdouble time_elapsed_double = static_cast<GLdouble>(time_elapsed);
