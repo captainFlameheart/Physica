@@ -93,12 +93,23 @@ namespace game_state
 							};
 							GLuint ray_merge_completed_timestamp_queries[4u];
 						};
+						union
+						{
+							struct
+							{
+								GLuint east_sky_circle_gather_completed_timestamp_query;
+								GLuint north_sky_circle_gather_timestamp_query;
+								GLuint west_sky_circle_gather_timestamp_query;
+								GLuint south_sky_circle_gather_timestamp_query;
+							};
+							GLuint sky_circle_gather_completed_timestamp_queries[4u];
+						};
 						GLuint holographic_radiance_cascades_completed_timestamp_query;
 					};
-					GLuint timestamp_queries[11u];
+					GLuint timestamp_queries[15u];
 				};
 			};
-			GLuint queries[12u];
+			GLuint queries[16u];
 		};
 
 		union
@@ -131,9 +142,20 @@ namespace game_state
 						};
 						GLuint64 ray_merge_completed_timestamps[4u];
 					};
+					union
+					{
+						struct
+						{
+							GLuint64 east_sky_circle_gather_completed_timestamp;
+							GLuint64 north_sky_circle_gather_timestamp;
+							GLuint64 west_sky_circle_gather_timestamp;
+							GLuint64 south_sky_circle_gather_timestamp;
+						};
+						GLuint64 sky_circle_gather_completed_timestamps[4u];
+					};
 					GLuint64 holographic_radiance_cascades_completed_timestamp;
 				};
-				GLuint64 timestamps[11u];
+				GLuint64 timestamps[15u];
 			};
 		};
 

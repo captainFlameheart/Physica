@@ -11653,6 +11653,10 @@ namespace game_logic
 					}
 				}
 
+				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, environment.state.holographic_sky_circle_framebuffer);
+				glViewport(0, 0, environment.state.sky_circle_texture_length, 1u);
+				draw_to_sky_circle(environment);
+
 				maybe_start_timestamp_query(environment, environment.state.source_image_completed_timestamp_query);
 
 				glDisablei(GL_BLEND, 0u);
@@ -11775,10 +11779,6 @@ namespace game_logic
 
 					maybe_start_timestamp_query(environment, environment.state.ray_merge_completed_timestamp_queries[direction]);
 
-					glBindFramebuffer(GL_DRAW_FRAMEBUFFER, environment.state.holographic_sky_circle_framebuffer);
-					glViewport(0, 0, environment.state.sky_circle_texture_length, 1u);
-					draw_to_sky_circle(environment);
-
 					glBindFramebuffer(GL_DRAW_FRAMEBUFFER, environment.state.angular_fluence_framebuffer);
 
 					glNamedFramebufferDrawBuffer(environment.state.angular_fluence_framebuffer, GL_COLOR_ATTACHMENT0);
@@ -11816,6 +11816,8 @@ namespace game_logic
 
 					glUseProgram(environment.state.holographic_sky_circle_gather_shaders[direction]);
 					glDrawArrays(GL_TRIANGLES, 0, 3u);
+
+					maybe_start_timestamp_query(environment, environment.state.sky_circle_gather_completed_timestamp_queries[direction]);
 
 					glUseProgram(environment.state.holographic_fluence_gather_shaders[direction]);
 					GLint const max_fluence_gather_cascade{ max_cascade - 1 };
@@ -12425,10 +12427,10 @@ namespace game_logic
 				GLuint64 before_direction_timestamp{ environment.state.source_image_completed_timestamp };
 				for (GLuint direction{ 0u }; direction < 4u; ++direction)
 				{
-					print_elapsed_time(environment, "Ray trace direction " + std::to_string(direction), before_direction_timestamp, environment.state.ray_trace_completed_timestamps[direction]);
-					print_elapsed_time(environment, "Ray merge direction " + std::to_string(direction), environment.state.ray_trace_completed_timestamps[direction], environment.state.ray_merge_completed_timestamps[direction]);
-					
-
+					std::cout << "Direction " << direction << ":\n";
+					print_elapsed_time(environment, "Ray trace", before_direction_timestamp, environment.state.ray_trace_completed_timestamps[direction]);
+					print_elapsed_time(environment, "Ray merge", environment.state.ray_trace_completed_timestamps[direction], environment.state.ray_merge_completed_timestamps[direction]);
+					print_elapsed_time(environment, "Sky circle gather", environment.state.ray_merge_completed_timestamps[direction], environment.state.sky_circle_gather_completed_timestamps[direction]);
 					std::cout << '\n';
 					before_direction_timestamp = environment.state.ray_merge_completed_timestamps[direction];
 				}
