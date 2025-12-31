@@ -59,6 +59,43 @@ namespace game_state
 	// (initialize -> render -> events -> tick * n -> render -> events -> tick * n -> render -> ...)
 	struct Game
 	{
+		union
+		{
+			struct
+			{
+				GLuint time_elapsed_query;
+
+				union
+				{
+					struct
+					{
+						GLuint draw_started_timestamp_query;
+						GLuint source_image_completed_timestamp_query;
+						GLuint holographic_radiance_cascades_completed_timestamp_query;
+					};
+					GLuint timestamp_queries[3u];
+				};
+			};
+			GLuint queries[4u];
+		};
+
+		union
+		{
+			union
+			{
+				struct
+				{
+					GLuint64 draw_started_timestamp;
+					GLuint64 source_image_completed_timestamp;
+					GLuint64 holographic_radiance_cascades_completed_timestamp;
+				};
+				GLuint64 timestamps[3u];
+			};
+		};
+
+		bool start_time_queries;
+		GLuint draws_until_time_check;
+
 		GLint framebuffer_width;
 		GLint framebuffer_height;
 
@@ -66,7 +103,6 @@ namespace game_state
 		GLint max_texture_size;
 
 		GLboolean framebuffer_sRGB_enabled;
-		GLuint time_elapsed_query;
 
 		cursor_types::Cursor_Type_Set cursor_types;
 

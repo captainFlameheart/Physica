@@ -184,6 +184,11 @@
 
 namespace game_logic
 {
+	void reset_draws_until_time_check(game_environment::Environment& environment)
+	{
+		environment.state.draws_until_time_check = 60u;
+	}
+
 	void set_target_cursor(
 		game_environment::Environment& environment,
 		GLfloat target_cursor_radius,
@@ -2382,7 +2387,9 @@ namespace game_logic
 		glEnable(GL_FRAMEBUFFER_SRGB);
 		environment.state.framebuffer_sRGB_enabled = true;
 
-		glCreateQueries(GL_TIME_ELAPSED, 1, &environment.state.time_elapsed_query);
+		glCreateQueries(GL_TIME_ELAPSED, std::size(environment.state.queries), environment.state.queries);
+		environment.state.start_time_queries = true;
+		reset_draws_until_time_check(environment);
 
 		environment.state.GPU_buffers.rigid_bodies.triangles.vertices.values = new GLfloat[game_logic_MAX_VERTEX_COUNT(environment)][2u];
 
@@ -11278,11 +11285,48 @@ namespace game_logic
 	#endif
 	}
 
+	void maybe_start_timestamp_query(game_environment::Environment& environment, GLuint timestamp_query)
+	{
+		if (environment.state.start_time_queries)
+		{
+			glQueryCounter(timestamp_query, GL_TIMESTAMP);
+		}
+	}
+
+	bool all_time_queries_done(game_environment::Environment& environment)
+	{
+		for (GLuint i{ 0u }; i < std::size(environment.state.timestamp_queries); ++i)
+		{
+			GLint timestamp_query_done;
+			glGetQueryObjectiv(environment.state.timestamp_queries[i], GL_QUERY_RESULT_AVAILABLE, &timestamp_query_done);
+			if (timestamp_query_done == GL_FALSE)
+			{
+				return false;
+			}
+		}
+		GLint time_elapsed_query_done;
+		glGetQueryObjectiv(environment.state.time_elapsed_query, GL_QUERY_RESULT_AVAILABLE, &time_elapsed_query_done);
+		return time_elapsed_query_done == GL_TRUE;
+	}
+
+	void print_elapsed_time
+	(
+		game_environment::Environment& environment, 
+		std::string name, GLuint64 start_timestamp, GLuint64 end_timestamp
+	)
+	{
+		GLuint64 time_elapsed{ end_timestamp - start_timestamp };
+		GLdouble time_elapsed_double{ static_cast<GLdouble>(end_timestamp - start_timestamp) };
+		std::cout << name << ": " << time_elapsed << " ns = " << time_elapsed_double * 1e-6 << " ms = " << time_elapsed_double * 6e-6 << " % of draw frame\n";
+	}
+
 	// TODO: Rename to draw to not confuse with arbitrary OpenGL rendering commands 
 	// which includes compute shaders
 	void render(game_environment::Environment& environment)
 	{
 		// TODO: Indirect drawing for increased performance
+
+		maybe_start_timestamp_query(environment, environment.state.draw_started_timestamp_query);
 
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
@@ -11599,12 +11643,17 @@ namespace game_logic
 			}
 			else
 			{
-				GLint time_elapsed_query_done;
-				glGetQueryObjectiv(environment.state.time_elapsed_query, GL_QUERY_RESULT_AVAILABLE, &time_elapsed_query_done);
-				if (time_elapsed_query_done == GL_TRUE)
+				if (environment.state.start_time_queries)
 				{
-					glBeginQuery(GL_TIME_ELAPSED, environment.state.time_elapsed_query);
+					GLint time_elapsed_query_done;
+					glGetQueryObjectiv(environment.state.time_elapsed_query, GL_QUERY_RESULT_AVAILABLE, &time_elapsed_query_done);
+					if (time_elapsed_query_done == GL_TRUE)
+					{
+						glBeginQuery(GL_TIME_ELAPSED, environment.state.time_elapsed_query);
+					}
 				}
+
+				maybe_start_timestamp_query(environment, environment.state.source_image_completed_timestamp_query);
 
 				glDisablei(GL_BLEND, 0u);
 				glBlendEquationi(0u, GL_ADD);
@@ -11907,8 +11956,10 @@ namespace game_logic
 					}
 					glDrawArrays(GL_TRIANGLES, 0, vertex_count);
 				}
+
+				maybe_start_timestamp_query(environment, environment.state.holographic_radiance_cascades_completed_timestamp_query);
 				
-				if (time_elapsed_query_done == GL_TRUE)
+				if (environment.state.start_time_queries)
 				{
 					glEndQuery(GL_TIME_ELAPSED);
 				}
@@ -12351,6 +12402,36 @@ namespace game_logic
 		{
 			glUseProgram(environment.state.holographic_sky_circle_draw_shader);
 			glDrawArrays(GL_TRIANGLES, 0, 6u);
+		}
+
+		environment.state.start_time_queries = false;
+		
+		if (environment.state.draws_until_time_check == 0u)
+		{
+			if (all_time_queries_done(environment))
+			{
+				for (GLuint i{ 0u }; i < std::size(environment.state.timestamp_queries); ++i)
+				{
+					glGetQueryObjectui64v(environment.state.timestamp_queries[i], GL_QUERY_RESULT, environment.state.timestamps + i);
+				}
+
+				print_elapsed_time(environment, "Draw source image", environment.state.draw_started_timestamp, environment.state.source_image_completed_timestamp);
+				print_elapsed_time(environment, "Apply holographic radiance cascades", environment.state.source_image_completed_timestamp, environment.state.holographic_radiance_cascades_completed_timestamp);
+				
+				GLuint64 time_elapsed;
+				glGetQueryObjectui64v(environment.state.time_elapsed_query, GL_QUERY_RESULT, &time_elapsed);
+				GLdouble time_elapsed_double = static_cast<GLdouble>(time_elapsed);
+				std::cout << "Time elapsed : " << time_elapsed << " ns = " << time_elapsed_double * 1e-6 << " ms = " << time_elapsed_double * 6e-6 << " % of draw frame\n";
+
+				std::cout << std::endl;
+
+				environment.state.start_time_queries = true;
+				reset_draws_until_time_check(environment);
+			}
+		}
+		else
+		{
+			--environment.state.draws_until_time_check;
 		}
 	}
 
