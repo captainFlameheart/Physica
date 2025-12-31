@@ -104,12 +104,23 @@ namespace game_state
 							};
 							GLuint sky_circle_gather_completed_timestamp_queries[4u];
 						};
+						union
+						{
+							struct
+							{
+								GLuint east_angular_fluence_gather_completed_timestamp_query;
+								GLuint north_angular_fluence_gather_timestamp_query;
+								GLuint west_angular_fluence_gather_timestamp_query;
+								GLuint south_angular_fluence_gather_timestamp_query;
+							};
+							GLuint angular_fluence_gather_gather_completed_timestamp_queries[4u];
+						};
 						GLuint holographic_radiance_cascades_completed_timestamp_query;
 					};
-					GLuint timestamp_queries[15u];
+					GLuint timestamp_queries[19u];
 				};
 			};
-			GLuint queries[16u];
+			GLuint queries[20u];
 		};
 
 		union
@@ -147,15 +158,26 @@ namespace game_state
 						struct
 						{
 							GLuint64 east_sky_circle_gather_completed_timestamp;
-							GLuint64 north_sky_circle_gather_timestamp;
-							GLuint64 west_sky_circle_gather_timestamp;
-							GLuint64 south_sky_circle_gather_timestamp;
+							GLuint64 north_sky_circle_gather_completed_timestamp;
+							GLuint64 west_sky_circle_gather_completed_timestamp;
+							GLuint64 south_sky_circle_gather_completed_timestamp;
 						};
 						GLuint64 sky_circle_gather_completed_timestamps[4u];
 					};
+					union
+					{
+						struct
+						{
+							GLuint64 east_angular_fluence_gather_completed_timestamp;
+							GLuint64 north_angular_fluence_gather_completed_timestamp;
+							GLuint64 west_angular_fluence_gather_completed_timestamp;
+							GLuint64 south_angular_fluence_gather_completed_timestamp;
+						};
+						GLuint64 angular_fluence_gather_completed_timestamps[4u];
+					};
 					GLuint64 holographic_radiance_cascades_completed_timestamp;
 				};
-				GLuint64 timestamps[15u];
+				GLuint64 timestamps[19u];
 			};
 		};
 

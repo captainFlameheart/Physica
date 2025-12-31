@@ -1780,7 +1780,7 @@ namespace game_logic
 			case 2u:
 				set_target_cursor(environment, 0.01f,
 					1.0f, 0.0f, 0.0f, 0.2f,
-					10.0f, 0.0f, 0.0f, 0.2f,
+					100.0f, 0.0f, 0.0f, 0.2f,
 					100.0f, 100.0f, 100.0f, 100.0f,
 					1.0f, 0.0f, 0.0f, 0.2f
 				);
@@ -1788,7 +1788,7 @@ namespace game_logic
 			case 3u:
 				set_target_cursor(environment, 0.01f,
 					0.0f, 1.0f, 0.0f, 0.2f,
-					0.0f, 10.0f, 0.0f, 0.2f,
+					0.0f, 100.0f, 0.0f, 0.2f,
 					100.0f, 100.0f, 100.0f, 100.0f,
 					1.0f, 0.0f, 0.0f, 0.2f
 				);
@@ -1796,7 +1796,7 @@ namespace game_logic
 			case 4u:
 				set_target_cursor(environment, 0.01f,
 					0.0f, 0.0f, 1.0f, 0.2f,
-					0.0f, 0.0f, 10.0f, 0.2f,
+					0.0f, 0.0f, 100.0f, 0.2f,
 					100.0f, 100.0f, 100.0f, 100.0f,
 					1.0f, 0.0f, 0.0f, 0.2f
 				);
@@ -1804,7 +1804,7 @@ namespace game_logic
 			case 5u:
 				set_target_cursor(environment, 0.02f,
 					0.0f, 0.0f, 1.0f, 0.2f,
-					10.0f, 10.0f, 100.0f, 0.2f,
+					100.0f, 100.0f, 1000.0f, 0.2f,
 					100.0f, 100.0f, 100.0f, 100.0f,
 					1.0f, 0.0f, 0.0f, 0.2f
 				);
@@ -1820,7 +1820,7 @@ namespace game_logic
 			case 7u:
 				set_target_cursor(environment, 0.02f,
 					0.0f, 0.0f, 1.0f, 0.2f,
-					0.0f, 0.0f, 0.0f, 20.0f,
+					0.0f, 0.0f, 0.0f, 100.0f,
 					100.0f, 100.0f, 100.0f, 100.0f,
 					1.0f, 0.0f, 0.0f, 0.2f
 				);
@@ -11309,7 +11309,7 @@ namespace game_logic
 		return time_elapsed_query_done == GL_TRUE;
 	}
 
-	void print_elapsed_time
+	GLuint64 print_elapsed_time
 	(
 		game_environment::Environment& environment, 
 		std::string name, GLuint64 start_timestamp, GLuint64 end_timestamp
@@ -11318,6 +11318,7 @@ namespace game_logic
 		GLuint64 time_elapsed{ end_timestamp - start_timestamp };
 		GLdouble time_elapsed_double{ static_cast<GLdouble>(end_timestamp - start_timestamp) };
 		std::cout << name << ": " << time_elapsed << " ns = " << time_elapsed_double * 1e-6 << " ms = " << time_elapsed_double * 6e-6 << " % of draw frame\n";
+		return time_elapsed;
 	}
 
 	// TODO: Rename to draw to not confuse with arbitrary OpenGL rendering commands 
@@ -11935,33 +11936,35 @@ namespace game_logic
 					}
 					add_fluence = true;
 
-					glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0u);
-					glViewport(0, 0, environment.state.framebuffer_width, environment.state.framebuffer_height);
-					if (environment.state.presentation_state_0 == game_state::presentation_state_0::SHOW_INNER_WORKINGS)
-					{	// TODO: This if check should be if we are zoomed out
-						GLfloat clear_color[4u]{ 0.0f, 0.0f, 0.0f, 1.0f };
-						glClearNamedFramebufferfv(0, GL_COLOR, 0, clear_color);
-					}
-					if (environment.state.draw_fluence_state == game_state::draw_fluence_state::DEFAULT)
-					{
-						glUseProgram(environment.state.holographic_draw_fluence_shaders[0u]);
-					}
-					else if (environment.state.draw_fluence_state == game_state::draw_fluence_state::SPLIT)
-					{
-						glUseProgram(environment.state.holographic_draw_fluence_shaders[1u]);
-						glProgramUniform1f(environment.state.holographic_draw_fluence_shaders[1u], environment.state.holographic_draw_fluence_shader_split_position_uniform_location, environment.state.holographic_draw_fluence_shader_split_position);
-					}
-					else if (environment.state.draw_fluence_state == game_state::draw_fluence_state::ZOOM_OUT)
-					{
-						glUseProgram(environment.state.holographic_draw_fluence_shaders[2u]);
-					}
-					GLuint vertex_count = 3u;
-					if (environment.state.is_zoomed_out)
-					{
-						vertex_count = 6u;
-					}
-					glDrawArrays(GL_TRIANGLES, 0, vertex_count);
+					maybe_start_timestamp_query(environment, environment.state.angular_fluence_gather_gather_completed_timestamp_queries[direction]);
 				}
+
+				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0u);
+				glViewport(0, 0, environment.state.framebuffer_width, environment.state.framebuffer_height);
+				if (environment.state.presentation_state_0 == game_state::presentation_state_0::SHOW_INNER_WORKINGS)
+				{	// TODO: This if check should be if we are zoomed out
+					GLfloat clear_color[4u]{ 0.0f, 0.0f, 0.0f, 1.0f };
+					glClearNamedFramebufferfv(0, GL_COLOR, 0, clear_color);
+				}
+				if (environment.state.draw_fluence_state == game_state::draw_fluence_state::DEFAULT)
+				{
+					glUseProgram(environment.state.holographic_draw_fluence_shaders[0u]);
+				}
+				else if (environment.state.draw_fluence_state == game_state::draw_fluence_state::SPLIT)
+				{
+					glUseProgram(environment.state.holographic_draw_fluence_shaders[1u]);
+					glProgramUniform1f(environment.state.holographic_draw_fluence_shaders[1u], environment.state.holographic_draw_fluence_shader_split_position_uniform_location, environment.state.holographic_draw_fluence_shader_split_position);
+				}
+				else if (environment.state.draw_fluence_state == game_state::draw_fluence_state::ZOOM_OUT)
+				{
+					glUseProgram(environment.state.holographic_draw_fluence_shaders[2u]);
+				}
+				GLuint vertex_count = 3u;
+				if (environment.state.is_zoomed_out)
+				{
+					vertex_count = 6u;
+				}
+				glDrawArrays(GL_TRIANGLES, 0, vertex_count);
 
 				maybe_start_timestamp_query(environment, environment.state.holographic_radiance_cascades_completed_timestamp_query);
 				
@@ -12431,8 +12434,9 @@ namespace game_logic
 					print_elapsed_time(environment, "Ray trace", before_direction_timestamp, environment.state.ray_trace_completed_timestamps[direction]);
 					print_elapsed_time(environment, "Ray merge", environment.state.ray_trace_completed_timestamps[direction], environment.state.ray_merge_completed_timestamps[direction]);
 					print_elapsed_time(environment, "Sky circle gather", environment.state.ray_merge_completed_timestamps[direction], environment.state.sky_circle_gather_completed_timestamps[direction]);
+					print_elapsed_time(environment, "Angular fluence gather", environment.state.sky_circle_gather_completed_timestamps[direction], environment.state.angular_fluence_gather_completed_timestamps[direction]);
 					std::cout << '\n';
-					before_direction_timestamp = environment.state.ray_merge_completed_timestamps[direction];
+					before_direction_timestamp = environment.state.angular_fluence_gather_completed_timestamps[direction];
 				}
 
 				print_elapsed_time(environment, "Apply holographic radiance cascades", environment.state.source_image_completed_timestamp, environment.state.holographic_radiance_cascades_completed_timestamp);
