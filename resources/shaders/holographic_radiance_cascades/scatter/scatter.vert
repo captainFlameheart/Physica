@@ -46,6 +46,8 @@ out vec2 fluence_sample_point;
 
 void main()
 {
+	// MUST TODO: ACCOUNT FOR CAMERA MOTION
+
 	vec2 vertex = vertices[gl_VertexID];
 
 	#if ZOOM_MODE == ZOOMED_OUT_ZOOM_MODE

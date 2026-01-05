@@ -729,7 +729,8 @@ namespace game_logic
 		GLint const width, GLint const height
 	)
 	{
-		std::cout << "SOMEWHAT adapt to default framebuffer size" << std::endl;
+		std::cout << width << std::endl;
+		std::cout << height << std::endl;
 
 		environment.state.framebuffer_width = width;
 		environment.state.framebuffer_height = height;
@@ -782,6 +783,8 @@ namespace game_logic
 
 			// TODO: GL_RGBA32F might not be needed
 			glTextureStorage3D(environment.state.holographic_source_array_texture, 1u, GL_RGBA32F, width, height, 4u);
+			GLfloat clear_color[4u]{ 0.0f, 0.0f, 0.0f, 0.0f };
+			glClearTexImage(environment.state.holographic_source_array_texture, 0, GL_RGBA, GL_FLOAT, clear_color);
 		}
 
 		{
@@ -960,10 +963,10 @@ namespace game_logic
 				environment.state.fluence_texture, 0
 			);*/
 
-			GLenum const draw_buffers[]{
+			/*GLenum const draw_buffers[]{
 				GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3,
 			};
-			glNamedFramebufferDrawBuffers(environment.state.holographic_source_framebuffer, std::size(draw_buffers), draw_buffers);
+			glNamedFramebufferDrawBuffers(environment.state.holographic_source_framebuffer, std::size(draw_buffers), draw_buffers);*/
 
 			GLenum const framebuffer_status{ glCheckNamedFramebufferStatus(environment.state.holographic_source_framebuffer, GL_DRAW_FRAMEBUFFER) };
 			if (framebuffer_status != GL_FRAMEBUFFER_COMPLETE)
@@ -975,6 +978,120 @@ namespace game_logic
 		GLuint const vertex_shader{ ::util::shader::create_shader(GL_VERTEX_SHADER) };
 		GLuint const fragment_shader{ ::util::shader::create_shader(GL_FRAGMENT_SHADER) };
 		
+		{
+			constexpr GLuint default_zoom_mode_value{ 0u };
+			constexpr GLuint zoomed_out_zoom_mode_value{ 1u };
+
+			std::string default_zoom_mode_definition{ "#define DEFAULT_ZOOM_MODE " + std::to_string(default_zoom_mode_value) + '\n' };
+			std::string zoomed_out_zoom_mode_definition{ "#define ZOOMED_OUT_ZOOM_MODE " + std::to_string(zoomed_out_zoom_mode_value) + '\n' };
+
+			{
+				GLuint const zoom_mode_value{ environment.state.is_zoomed_out ? zoomed_out_zoom_mode_value : default_zoom_mode_value };
+				std::string zoom_mode_definition{ "#define ZOOM_MODE " + std::to_string(zoom_mode_value) + '\n' };
+
+				GLfloat const double_padding_x{ environment.state.probe_padding_factor_x / environment.state.framebuffer_width };
+				GLfloat const double_padding_y{ environment.state.probe_padding_factor_y / environment.state.framebuffer_height };
+
+				GLfloat const source_sample_point_to_probe_grid_point_factor_x{ 1.0f - double_padding_x };
+				GLfloat const source_sample_point_to_probe_grid_point_factor_y{ 1.0f - double_padding_y };
+
+				GLfloat const source_sample_point_to_probe_grid_point_bias_x{ 0.5f * double_padding_x };
+				GLfloat const source_sample_point_to_probe_grid_point_bias_y{ 0.5f * double_padding_y };
+
+				GLfloat const inverse_fluence_width{ 1.0f / static_cast<GLfloat>(environment.state.holographic_probe_grid_width) };
+				GLfloat const inverse_fluence_height{ 1.0f / static_cast<GLfloat>(environment.state.holographic_probe_grid_height) };
+
+				GLfloat const probe_grid_point_to_fluence_sample_point_factor_x{ 1.0f - inverse_fluence_width };
+				GLfloat const probe_grid_point_to_fluence_sample_point_factor_y{ 1.0f - inverse_fluence_height };
+
+				GLfloat const probe_grid_point_to_fluence_sample_point_bias_x{ 0.5f * inverse_fluence_width };
+				GLfloat const probe_grid_point_to_fluence_sample_point_bias_y{ 0.5f * inverse_fluence_height };
+
+				std::string source_sample_point_to_probe_grid_point_factor_definition
+				{
+					"const vec2 source_sample_point_to_probe_grid_point_factor = vec2(" +
+					std::to_string(source_sample_point_to_probe_grid_point_factor_x) + ", " +
+					std::to_string(source_sample_point_to_probe_grid_point_factor_y) + ");\n"
+				};
+				std::string source_sample_point_to_probe_grid_point_bias_definition
+				{
+					"const vec2 source_sample_point_to_probe_grid_point_bias = vec2(" +
+					std::to_string(source_sample_point_to_probe_grid_point_bias_x) + ", " +
+					std::to_string(source_sample_point_to_probe_grid_point_bias_y) + ");\n"
+				};
+
+				std::string probe_grid_point_to_fluence_sample_point_factor_definition
+				{
+					"const vec2 probe_grid_point_to_fluence_sample_point_factor = vec2(" +
+					std::to_string(probe_grid_point_to_fluence_sample_point_factor_x) + ", " +
+					std::to_string(probe_grid_point_to_fluence_sample_point_factor_y) + ");\n"
+				};
+				std::string probe_grid_point_to_fluence_sample_point_bias_definition
+				{
+					"const vec2 probe_grid_point_to_fluence_sample_point_bias = vec2(" +
+					std::to_string(probe_grid_point_to_fluence_sample_point_bias_x) + ", " +
+					std::to_string(probe_grid_point_to_fluence_sample_point_bias_y) + ");\n"
+				};
+
+				for (GLuint i{ 0u }; i < 3u; ++i)
+				{
+					constexpr GLuint default_zoom_mode_value{ 0u };
+					constexpr GLuint zoomed_out_zoom_mode_value{ 1u };
+
+					std::string default_zoom_mode_definition{ "#define DEFAULT_ZOOM_MODE " + std::to_string(default_zoom_mode_value) + '\n' };
+					std::string zoomed_out_zoom_mode_definition{ "#define ZOOMED_OUT_ZOOM_MODE " + std::to_string(zoomed_out_zoom_mode_value) + '\n' };
+
+					GLuint const zoom_mode_value{ i == 2u ? zoomed_out_zoom_mode_value : default_zoom_mode_value };
+					std::string zoom_mode_definition{ "#define ZOOM_MODE " + std::to_string(zoom_mode_value) + '\n' };
+
+					std::string split_definition{ "#define SPLIT " + std::to_string(static_cast<GLint>(i == 1)) + '\n' };
+
+					::util::shader::set_shader_statically
+					(
+						vertex_shader,
+						util_shader_VERSION,
+						default_zoom_mode_definition,
+						zoomed_out_zoom_mode_definition,
+						zoom_mode_definition,
+						split_definition,
+						source_sample_point_to_probe_grid_point_factor_definition,
+						source_sample_point_to_probe_grid_point_bias_definition,
+						probe_grid_point_to_fluence_sample_point_factor_definition,
+						probe_grid_point_to_fluence_sample_point_bias_definition,
+						::util::shader::file_to_string("holographic_radiance_cascades/scatter/scatter.vert")
+					);
+					::util::shader::set_shader_statically
+					(
+						fragment_shader,
+						util_shader_VERSION,
+						default_zoom_mode_definition,
+						zoomed_out_zoom_mode_definition,
+						zoom_mode_definition,
+						split_definition,
+						source_sample_point_to_probe_grid_point_factor_definition,
+						source_sample_point_to_probe_grid_point_bias_definition,
+						probe_grid_point_to_fluence_sample_point_factor_definition,
+						probe_grid_point_to_fluence_sample_point_bias_definition,
+						::util::shader::file_to_string("holographic_radiance_cascades/scatter/scatter.frag")
+					);
+					environment.state.holographic_scatter_shaders[i] = ::util::shader::create_program(vertex_shader, fragment_shader);
+					environment.state.holographic_scatter_shader_source_uniform_locations[i] = glGetUniformLocation(environment.state.holographic_scatter_shaders[i], "source");
+					environment.state.holographic_scatter_shader_fluence_uniform_locations[i] = glGetUniformLocation(environment.state.holographic_scatter_shaders[i], "fluence");
+					glProgramUniform1i(
+						environment.state.holographic_scatter_shaders[i],
+						environment.state.holographic_scatter_shader_source_uniform_locations[i], 1
+					);
+					glProgramUniform1i(
+						environment.state.holographic_scatter_shaders[i],
+						environment.state.holographic_scatter_shader_fluence_uniform_locations[i], 4
+					);
+					std::cout << "Holographic scatter shader compiled. Source uniform location: "
+						<< environment.state.holographic_scatter_shader_source_uniform_locations[i] << ". Fluence uniform location: "
+						<< environment.state.holographic_scatter_shader_fluence_uniform_locations[i] << std::endl;
+				}
+			}
+		}
+
 		for (GLuint direction{ 0u }; direction < 4u; ++direction) {
 			std::string east_direction_definition{ "#define EAST_DIRECTION " + std::to_string(game_state::holographic_east_direction) + '\n' };
 			std::string north_direction_definition{ "#define NORTH_DIRECTION " + std::to_string(game_state::holographic_north_direction) + '\n' };
@@ -2176,7 +2293,7 @@ namespace game_logic
 			case 15u:
 				for (GLuint direction{ 0u }; direction < 4u; ++direction)
 				{
-					environment.state.holographic_cascade_rays_single_ray_draw_shader_cascades[direction] = 1u;
+					environment.state.holographic_cascade_rays_single_ray_draw_shader_cascades[direction] = 2u;
 					glProgramUniform1ui
 					(
 						environment.state.holographic_cascade_rays_single_ray_draw_shaders[direction],
@@ -2269,6 +2386,7 @@ namespace game_logic
 
 		for (GLuint i{ 0u }; i < 3u; ++i)
 		{
+			glDeleteProgram(environment.state.holographic_scatter_shaders[i]);
 			glDeleteProgram(environment.state.holographic_draw_fluence_shaders[i]);
 		}
 		for (GLuint direction{ 0u }; direction < 4u; ++direction)
@@ -2336,8 +2454,8 @@ namespace game_logic
 		}
 		else
 		{
-			environment.state.holographic_probe_grid_width = 20u;
-			environment.state.holographic_probe_grid_height = 10u;
+			environment.state.holographic_probe_grid_width = 9u;
+			environment.state.holographic_probe_grid_height = 5u;
 			environment.state.is_zoomed_out = true;
 			environment.state.draw_fluence_state = game_state::draw_fluence_state::ZOOM_OUT;
 			environment.state.show_source_image = true;
@@ -5154,8 +5272,8 @@ namespace game_logic
 			{
 				GLfloat albedo[4u]{ 1.0f, 0.0f, 0.0f, 0.2f };
 				GLfloat emission[4u]{ 0.0f, 0.0f, 0.0f, 0.0f };
-				GLfloat const absorption_scalar{ 4.0f };
-				GLfloat absorption[4u]{ absorption_scalar, absorption_scalar, absorption_scalar, absorption_scalar };
+				GLfloat const attenuation_scalar{ 4.0f * 16.0f };
+				GLfloat attenuation[4u]{ attenuation_scalar, attenuation_scalar, attenuation_scalar, attenuation_scalar };
 				GLfloat scattering[4u]{ 0.0f, 0.0f, 0.0f, 0.0f };
 				switch (i % 20u)
 				{
@@ -5271,6 +5389,12 @@ namespace game_logic
 				emission[2u] *= 0.9f;
 				emission[3u] *= 0.9f;
 
+				constexpr GLfloat scattering_factor{ 10.0f };
+				scattering[0u] = albedo[0u] * scattering_factor;
+				scattering[1u] = albedo[1u] * scattering_factor;
+				scattering[2u] = albedo[2u] * scattering_factor;
+				scattering[3u] = albedo[3u] * scattering_factor;
+
 				unsigned char* const base{ initial_materials + environment.state.GPU_buffers.rigid_bodies.triangles.materials.materials_offset + i * environment.state.GPU_buffers.rigid_bodies.triangles.materials.materials_stride };
 
 				std::memcpy
@@ -5286,7 +5410,7 @@ namespace game_logic
 				std::memcpy
 				(
 					base + environment.state.GPU_buffers.rigid_bodies.triangles.materials.materials_absorption_offset,
-					&absorption, sizeof(absorption)
+					&attenuation, sizeof(attenuation)
 				);
 				std::memcpy
 				(
@@ -11345,6 +11469,10 @@ namespace game_logic
 		if (environment.state.use_holographic_radiance_cascades)
 		{
 			target_framebuffer = environment.state.holographic_source_framebuffer;
+			GLenum const draw_buffers[]{
+				GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3,
+			};
+			glNamedFramebufferDrawBuffers(environment.state.holographic_source_framebuffer, std::size(draw_buffers), draw_buffers);
 		}
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, target_framebuffer);
 
@@ -11654,15 +11782,43 @@ namespace game_logic
 					}
 				}
 
-				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, environment.state.holographic_sky_circle_framebuffer);
-				glViewport(0, 0, environment.state.sky_circle_texture_length, 1u);
-				draw_to_sky_circle(environment);
+				glBlendEquationi(0u, GL_ADD);
+				glBlendFunci(0u, GL_ONE, GL_ONE);
+
+				glEnablei(GL_BLEND, 0u);
+
+				{	// Scatter
+					glNamedFramebufferDrawBuffer(environment.state.holographic_source_framebuffer, GL_COLOR_ATTACHMENT1);
+					glViewport(0, 0, environment.state.framebuffer_width, environment.state.framebuffer_height);
+					if (environment.state.draw_fluence_state == game_state::draw_fluence_state::DEFAULT)
+					{
+						glUseProgram(environment.state.holographic_scatter_shaders[0u]);
+					}
+					else if (environment.state.draw_fluence_state == game_state::draw_fluence_state::SPLIT)
+					{
+						glUseProgram(environment.state.holographic_scatter_shaders[1u]);
+						glProgramUniform1f(environment.state.holographic_scatter_shaders[1u], environment.state.holographic_draw_fluence_shader_split_position_uniform_location, environment.state.holographic_draw_fluence_shader_split_position);
+					}
+					else if (environment.state.draw_fluence_state == game_state::draw_fluence_state::ZOOM_OUT)
+					{
+						glUseProgram(environment.state.holographic_scatter_shaders[2u]);
+					}
+					GLuint vertex_count = 3u;
+					if (environment.state.is_zoomed_out)
+					{
+						vertex_count = 6u;
+					}
+					glDrawArrays(GL_TRIANGLES, 0, vertex_count);
+				}
 
 				maybe_start_timestamp_query(environment, environment.state.source_image_completed_timestamp_query);
 
 				glDisablei(GL_BLEND, 0u);
-				glBlendEquationi(0u, GL_ADD);
-				glBlendFunci(0u, GL_ONE, GL_ONE);
+
+				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, environment.state.holographic_sky_circle_framebuffer);
+				glViewport(0, 0, environment.state.sky_circle_texture_length, 1u);
+				draw_to_sky_circle(environment);
+
 				bool add_fluence{ false };
 				for (GLuint direction{ 0u }; direction < 4u; ++direction)
 				{

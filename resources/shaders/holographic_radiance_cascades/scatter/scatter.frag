@@ -21,20 +21,16 @@ uniform sampler2D fluence;
 #endif
 in vec2 fluence_sample_point;
 
-layout (location = 0) out vec4 color;
+layout (location = 0) out vec4 emission;
 
 void main()
 {
 	#if ZOOM_MODE == DEFAULT_ZOOM_MODE
 		ivec2 output_texel_position = ivec2(gl_FragCoord.xy);
-		color = texelFetch(source, ivec3(output_texel_position, 0), 0);
+		emission = texelFetch(source, ivec3(output_texel_position, 3), 0);
 	#elif ZOOM_MODE == ZOOMED_OUT_ZOOM_MODE
-		color = texture(source, vec3(source_sample_point, 0.0), 0);
+		emission = texture(source, vec3(source_sample_point, 3), 0);
 	#endif
 
-	vec4 fluence_value = texture(fluence, fluence_sample_point);
-	const vec4 ambience = vec4(0.001);
-	fluence_value += ambience;
-	
-	color = mix(color * (fluence_value + fluence_value.a), fluence_value, color.a);
+	emission *= texture(fluence, fluence_sample_point);
 }

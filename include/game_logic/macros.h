@@ -107,4 +107,4 @@
 #define game_CAMERA_SCROLL_ZOOM_DISTANCE(environment) \
 	game_logic__util__spatial_FLOAT_FROM_METERS(environment, 0.5f)
 #define game_CAMERA_SCROLL_ANGLE(environment) \
-	game_logic__util__spatial_FROM_RADIANS(environment, 0.3f)
+	game_logic__util__spatial_FROM_RADIANS(environment, 0.03f)

@@ -512,6 +512,10 @@ namespace game_state
 		GLint holographic_sky_circle_draw_shader;
 		GLint holographic_sky_circle_draw_shader_sky_circle_uniform_location;
 
+		GLuint holographic_scatter_shaders[3u];
+		GLuint holographic_scatter_shader_source_uniform_locations[3u];
+		GLuint holographic_scatter_shader_fluence_uniform_locations[3u];
+
 		GLuint holographic_ray_trace_shader_counts[4u];
 		GLuint* holographic_ray_trace_shaders[4u];
 		GLint* holographic_ray_trace_shader_source_uniform_locations[4u];
