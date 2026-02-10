@@ -7,6 +7,7 @@
 #include "game_state/cursor_types/cursor_type_set.h"
 #include "GPU_buffers/include.h"
 #include "shaders/include.h"
+#include "OpenGL_capabilities/State.h"
 
 template <unsigned int Vertex_Index_Count>
 struct Model
@@ -180,6 +181,8 @@ namespace game_state
 				GLuint64 timestamps[19u];
 			};
 		};
+
+		OpenGL_capabilities::State OpenGL_capabilities;
 
 		bool start_time_queries;
 		GLuint draws_until_time_check;

@@ -45,6 +45,7 @@
 #include <algorithm>
 #include <chrono>
 #include "game_logic/cursor_types/include.h"
+#include "game_logic/include.h"
 
 #define M_PI 3.14159265358979323846f
 
@@ -2429,6 +2430,9 @@ namespace game_logic
 
 	void initialize(game_environment::Environment& environment)
 	{
+		game_logic::OpenGL_capabilities::query(environment.state.OpenGL_capabilities);
+		game_logic::OpenGL_capabilities::print(environment.state.OpenGL_capabilities);
+
 		glfwGetFramebufferSize(environment.window, &environment.state.framebuffer_width, &environment.state.framebuffer_height);
 
 		std::cout << "Initializing...\n" << std::endl;
@@ -5272,7 +5276,7 @@ namespace game_logic
 			{
 				GLfloat albedo[4u]{ 1.0f, 0.0f, 0.0f, 0.2f };
 				GLfloat emission[4u]{ 0.0f, 0.0f, 0.0f, 0.0f };
-				GLfloat const attenuation_scalar{ 4.0f * 16.0f };
+				GLfloat const attenuation_scalar{ 4.0f };// * 16.0f };
 				GLfloat attenuation[4u]{ attenuation_scalar, attenuation_scalar, attenuation_scalar, attenuation_scalar };
 				GLfloat scattering[4u]{ 0.0f, 0.0f, 0.0f, 0.0f };
 				switch (i % 20u)
@@ -11785,9 +11789,12 @@ namespace game_logic
 				glBlendEquationi(0u, GL_ADD);
 				glBlendFunci(0u, GL_ONE, GL_ONE);
 
-				glEnablei(GL_BLEND, 0u);
 
+				constexpr bool scatter{ false };
+				if (scatter)
 				{	// Scatter
+					glEnablei(GL_BLEND, 0u);
+
 					glNamedFramebufferDrawBuffer(environment.state.holographic_source_framebuffer, GL_COLOR_ATTACHMENT1);
 					glViewport(0, 0, environment.state.framebuffer_width, environment.state.framebuffer_height);
 					if (environment.state.draw_fluence_state == game_state::draw_fluence_state::DEFAULT)
