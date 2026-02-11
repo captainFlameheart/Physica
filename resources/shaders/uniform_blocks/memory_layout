@@ -1,3 +1,5 @@
+// IMPORTANT TODO: Gather bases into vec4s to reduce memory reads
+
 layout(shared, binding = MEMORY_LAYOUT_BINDING) uniform Memory_Layout
 {
 	uint point_mass_position_velocity_base;

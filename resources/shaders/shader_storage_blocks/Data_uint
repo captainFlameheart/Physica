@@ -2,6 +2,7 @@ const uint point_mass_count_index = 0;
 const uint point_mass_distance_constraint_count_index = 1;
 const uint point_mass_uniform_force_constraint_count_index = 2;
 
+// IMPORTANT TODO: Allow prefix of buffer to be treated as a uniform buffer.
 layout(shared, binding = DATA_uint_BINDING) restrict READ_ONLY_PLACEHOLDER
 buffer Data_uint
 {
