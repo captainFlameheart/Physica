@@ -1,0 +1,24 @@
+layout(shared, binding = MEMORY_LAYOUT_BINDING) uniform Memory_Layout
+{
+	uint point_mass_position_velocity_base;
+	uint point_mass_inverse_mass_base;
+	uint point_mass_constraint_count_base;
+
+	uint point_mass_read_force_turn_flags_base;
+	uint point_mass_read_impulses_base;
+
+	uint point_mass_write_force_turn_flags_base;
+	uint point_mass_write_impulses_base;
+
+	uint point_mass_capacity;
+} memory_layout;
+
+// [readonly] uvec4 position_velocity
+// readonly float inverse_mass
+// [readonly] uint constraint_count
+//
+// [readonly] uvec4 read_force_turn_flags
+// [readonly] uvec4 read_impulses
+//
+// [writeonly] uvec4: write_force_turn_flags
+// [writeonly] uvec4: write_impulses
