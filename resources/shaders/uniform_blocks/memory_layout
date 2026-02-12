@@ -1,5 +1,16 @@
 // IMPORTANT TODO: Gather bases into vec4s to reduce memory reads
 
+const uint point_mass_distance_constraint_is_dead_shift = 0u;
+const uint point_mass_distance_constraint_is_dead_mask = 1u << point_mass_distance_constraint_is_dead_shift;
+
+const uint point_mass_distance_constraint_observe_impulse_0_shift = 1u;
+const uint point_mass_distance_constraint_observe_impulse_0_mask = 1u << point_mass_distance_constraint_observe_impulse_0_shift;
+
+const uint point_mass_distance_constraint_observe_impulse_1_shift = 2u;
+const uint point_mass_distance_constraint_observe_impulse_1_mask = 1u << point_mass_distance_constraint_observe_impulse_1_shift;
+
+const uint point_mass_distance_constraint_observe_impulses_mask = point_mass_distance_constraint_observe_impulse_0_mask | point_mass_distance_constraint_observe_impulse_1_mask;
+
 layout(shared, binding = MEMORY_LAYOUT_BINDING) uniform Memory_Layout
 {
 	uint point_mass_position_velocity_base;
@@ -14,6 +25,7 @@ layout(shared, binding = MEMORY_LAYOUT_BINDING) uniform Memory_Layout
 
 	uint point_mass_capacity;
 	
+	uint point_mass_distance_constraint_flags_base;
 	uint point_mass_distance_constraint_indices_turns_base;
 	uint point_mass_distance_constraint_target_distance_base;
 	uint point_mass_distance_constraint_applied_forces_base;

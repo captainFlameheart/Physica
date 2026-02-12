@@ -1,0 +1,160 @@
+layout(local_size_x = UPDATE_TICK_COUNTS_LOCAL_SIZE) in;
+void main()
+{
+	// REALLY FRICKIN COOL TODO: Make constraints "pull" the memory addresses of their bodies towards each other!
+
+	uint index = gl_GlobalInvocationID.x;
+	uint count = data_uint.read_counts[point_mass_distance_constraint_count_index];
+	if (index >= count)
+	{
+		return;
+	}
+
+	uint flags_base = memory_layout.point_mass_distance_constraint_flags_base;
+	uint indices_turns_base = memory_layout.point_mass_distance_constraint_indices_turns_base;
+	uint target_distance_flags_base = memory_layout.point_mass_distance_constraint_target_distance_flags_base;
+	uint applied_forces_base = memory_layout.point_mass_distance_constraint_applied_forces_base;
+	uint impulses_base = memory_layout.point_mass_distance_constraint_impulses_base;
+	uint position_impulses_base = memory_layout.point_mass_distance_constraint_position_impulses_base;
+
+	uint flags_index = flags_base + index;
+	uint indices_turns_index = indices_turns_base + index;
+	uint target_distance_index = target_distance_base + index;
+	uint applied_forces_index = applied_forces_base + index;
+	uint impulses_index = impulses_base + index;
+	uint position_impulses_index = position_impulses_base + index;
+
+	uint flags = data_uint.data[flags_index];
+	if ((flags & (point_mass_distance_constraint_is_dead_mask)) != 0u)
+	{
+		return;
+	}
+	
+	uvec4 indices_turns = data_uvec4.data[indices_turns_index];
+	uvec4 target_distance = data_uvec4.data[target_distance_index];
+	uvec4 applied_forces = data_uvec4.data[applied_forces_index];
+	uvec4 impulses = data_uvec4.data[impulses_index];
+	uvec4 position_impulses = data_uvec4.data[position_impulses_index];
+
+	uint point_mass_position_velocity_base = memory_layout.point_mass_position_velocity_base;
+	uint point_mass_inverse_mass_base = memory_layout.point_mass_inverse_mass_base;
+	uint point_mass_constraint_count_base = memory_layout.point_mass_constraint_count_base;
+	uint point_mass_read_force_turn_flags_base = memory_layout.point_mass_read_force_turn_flags_base;
+	uint point_mass_read_impulses_base = memory_layout.point_mass_read_impulses_base;
+	uint point_mass_write_force_turn_flags_base = memory_layout.point_mass_write_force_turn_flags_base;
+	uint point_mass_write_impulses_base = memory_layout.point_mass_write_impulses_base;
+
+	uint point_mass_position_velocity_index_0 = point_mass_position_velocity_base + indices_turns.x;
+	uint point_mass_position_velocity_index_1 = point_mass_position_velocity_base + indices_turns.y;
+	
+	uint point_mass_inverse_mass_index_0 = point_mass_inverse_mass_base + indices_turns.x;
+	uint point_mass_inverse_mass_index_1 = point_mass_inverse_mass_base + indices_turns.y;
+	
+	uint point_mass_constraint_count_index_0 = point_mass_constraint_count_base + indices_turns.x;
+	uint point_mass_constraint_count_index_1 = point_mass_constraint_count_base + indices_turns.y;
+
+	uint point_mass_read_force_turn_flags_index_0 = point_mass_read_force_turn_flags_base + indices_turns.x;
+	uint point_mass_read_force_turn_flags_index_1 = point_mass_read_force_turn_flags_base + indices_turns.y;
+	
+	uint point_mass_read_impulses_index_0 = point_mass_read_impulses_base + indices_turns.x;
+	uint point_mass_read_impulses_index_1 = point_mass_read_impulses_base + indices_turns.y;
+	
+	uint point_mass_write_force_turn_flags_index_0 = point_mass_write_force_turn_flags_base + indices_turns.x;
+	uint point_mass_write_force_turn_flags_index_1 = point_mass_write_force_turn_flags_base + indices_turns.y;
+	
+	uint point_mass_write_impulses_index_0 = point_mass_write_impulses_base + indices_turns.x;
+	uint point_mass_write_impulses_index_1 = point_mass_write_impulses_base + indices_turns.y;
+
+	uvec4 point_mass_position_velocity_0 = data_uvec4.data[point_mass_position_velocity_index_0];
+	uvec4 point_mass_position_velocity_1 = data_uvec4.data[point_mass_position_velocity_index_1];
+
+	float point_mass_inverse_mass_0 = data_float.data[point_mass_inverse_mass_index_0];
+	float point_mass_inverse_mass_1 = data_float.data[point_mass_inverse_mass_index_1];
+
+	uvec4 point_mass_force_turn_flags_0 = data_uvec4.data[point_mass_read_force_turn_flags_index_0];
+	uvec4 point_mass_force_turn_flags_1 = data_uvec4.data[point_mass_read_force_turn_flags_index_1];
+
+	uvec4 point_mass_impulses_0 = data_uvec4.data[point_mass_read_impulses_index_0];
+	uvec4 point_mass_impulses_1 = data_uvec4.data[point_mass_read_impulses_index_1];
+
+	point_mass_impulses_0 *= (flags >> point_mass_distance_constraint_observe_impulse_0_shift) & 1u;
+	point_mass_impulses_1 *= (flags >> point_mass_distance_constraint_observe_impulse_1_shift) & 1u;
+
+	vec2 direction = vec2(ivec2(point_mass_position_velocity_0.xy - point_mass_position_velocity_1.xy));
+	float distance = length(direction);
+	direction /= distance;
+
+	float inverse_mass = point_mass_inverse_mass_0 + point_mass_inverse_mass_1;
+	float mass = 1.0 / inverse_mass;
+
+	vec4 relative_impulses = vec4(ivec4(point_mass_impulses_0 - point_mass_impulses_1));
+	float observed_impulse = relative_impulses.xy.dot(direction);
+	float counter_impulse = -observed_impulse;	// TODO: Optimize away negation
+	float mass_scaled_counter_impulse = mass * counter_impulse;
+
+	float counter_impulse_0 = point_mass_inverse_mass_0 * mass_scaled_counter_impulse;
+	float counter_impulse_1 = point_mass_inverse_mass_1 * mass_scaled_counter_impulse;
+	
+	impulses.xy += ivec2(direction * counter_impulse_0);
+	impulses.zw -= ivec2(direction * counter_impulse_1);
+
+	point_mass_force_turn_flags_0.xy -= applied_forces.xy;
+	point_mass_force_turn_flags_1.xy -= applied_forces.zw;
+
+	point_mass_position_velocity_0.zw += impulses.xy + point_mass_force_turn_flags_0.xy;
+	point_mass_position_velocity_1.zw += impulses.zw + point_mass_force_turn_flags_1.xy;
+
+	vec2 relative_velocity = vec2(ivec2(point_mass_position_velocity_0.zw - point_mass_position_velocity_1.zw));
+	float velocity = dot(relative_velocity, direction);
+	force = -velocity;
+	mass_scaled_force = mass * delta_velocity;
+
+	float force_0 = point_mass_inverse_mass_0 * mass_scaled_force;
+	float force_1 = point_mass_inverse_mass_1 * mass_scaled_force;
+
+	ivec2 force_0_vector = ivec2(direction * force_0);
+	ivec2 force_1_vector = ivec2(direction * (-force_1));
+
+	flags |= point_mass_distance_constraint_observe_impulses_mask;
+
+	if (indices_turns.z == point_mass_force_turn_flags_0.z)
+	{
+		applied_forces.xy = force_0_vector;
+		point_mass_force_turn_flags_0.xy += applied_forces.xy;
+		data_uvec4.data[point_mass_write_force_turn_flags_index_0] = point_mass_force_turn_flags_0;
+
+		data_uvec4.data[point_mass_write_impulses_index_0] = uvec4(impulses.xy, position_impulses.xy);
+		impulses.xy = uvec2(0u);
+		position_impulses.xy = uvec2(0u);
+
+		uint point_mass_constraint_count_0 = data_uint.data[point_mass_constraint_count_index_0];
+		indices_turns.z += point_mass_constraint_count_0;
+
+		flags ^= point_mass_distance_constraint_observe_impulse_0_mask;
+	}
+	
+	if (indices_turns.w == point_mass_force_turn_flags_1.z)
+	{
+		applied_forces.zw = force_1_vector;
+		point_mass_force_turn_flags_1.xy += applied_forces.zw;
+		data_uvec4.data[point_mass_write_force_turn_flags_index_1] = point_mass_force_turn_flags_1;
+
+		data_uvec4.data[point_mass_write_impulses_index_1] = uvec4(impulses.zw, position_impulses.zw);
+		impulses.zw = uvec2(0u);
+		position_impulses.zw = uvec2(0u);
+
+		uint point_mass_constraint_count_1 = data_uint.data[point_mass_constraint_count_index_1];
+		indices_turns.w += point_mass_constraint_count_1;
+
+		flags ^= point_mass_distance_constraint_observe_impulse_1_mask;
+	}
+
+	impulses.xy += force_0_vector - applied_forces.xy;
+	impulses.zw += force_1_vector - applied_forces.zw;
+
+	data_uint.data[flags_index] = flags;
+	data_uvec4.data[indices_turns_index] = indices_turns;
+	data_uvec4.data[applied_forces_index] = applied_forces;
+	data_uvec4.data[impulses_index] = impulses;
+	data_uvec4.data[position_impulses_index] = position_impulses;
+}

@@ -1,49 +1,49 @@
 layout(local_size_x = UPDATE_TICK_COUNTS_LOCAL_SIZE) in;
 void main()
 {
-	uint point_mass_index = gl_GlobalInvocationID.x;
-	uint point_mass_count = data_uint.read_counts[point_mass_count_index];
-	if (point_mass_index >= point_mass_count)
+	uint index = gl_GlobalInvocationID.x;
+	uint count = data_uint.read_counts[point_mass_count_index];
+	if (index >= count)
 	{
 		return;
 	}
 
-	uint point_mass_position_velocity_base = memory_layout.point_mass_position_velocity_base;
-	// uint point_mass_inverse_mass_base = memory_layout.point_mass_inverse_mass_base;
-	uint point_mass_read_force_turn_flags_base = memory_layout.point_mass_read_force_turn_flags_base;
-	uint point_mass_read_impulses_base = memory_layout.point_mass_read_impulses_base;
-	uint point_mass_write_force_turn_flags_base = memory_layout.point_mass_write_force_turn_flags_base;
-	uint point_mass_write_impulses_base = memory_layout.point_mass_write_impulses_base;
+	uint position_velocity_base = memory_layout.point_mass_position_velocity_base;
+	// uint inverse_mass_base = memory_layout.point_mass_inverse_mass_base;
+	uint read_force_turn_flags_base = memory_layout.point_mass_read_force_turn_flags_base;
+	uint read_impulses_base = memory_layout.point_mass_read_impulses_base;
+	uint write_force_turn_flags_base = memory_layout.point_mass_write_force_turn_flags_base;
+	uint write_impulses_base = memory_layout.point_mass_write_impulses_base;
 
-	uint point_mass_position_velocity_index = point_mass_position_velocity_base + point_mass_index;
-	// uint point_mass_inverse_mass_index = point_mass_inverse_mass_base + point_mass_index;
-	uint point_mass_read_force_turn_flags_index = point_mass_read_force_turn_flags_base + point_mass_index;
-	uint point_mass_read_impulses_index = point_mass_read_impulses_base + point_mass_index;
-	uint point_mass_write_force_turn_flags_index = point_mass_write_force_turn_flags_base + point_mass_index;
-	uint point_mass_write_impulses_index = point_mass_write_impulses_base + point_mass_index;
+	uint position_velocity_index = position_velocity_base + index;
+	// uint inverse_mass_index = inverse_mass_base + index;
+	uint read_force_turn_flags_index = read_force_turn_flags_base + index;
+	uint read_impulses_index = read_impulses_base + index;
+	uint write_force_turn_flags_index = write_force_turn_flags_base + index;
+	uint write_impulses_index = write_impulses_base + index;
 
-	uvec4 position_velocity = data_uvec4.data[point_mass_position_velocity_index];
-	// float inverse_mass = data_float.data[point_mass_inverse_mass_index];
-	uvec4 force_turn_flags = data_uvec4.data[point_mass_read_force_turn_flags_index];
-	uvec4 impulses = data_uvec4.data[point_mass_read_impulses_index];
+	uvec4 position_velocity = data_uvec4.data[position_velocity_index];
+	// float inverse_mass = data_float.data[inverse_mass_index];
+	uvec4 force_turn_flags = data_uvec4.data[read_force_turn_flags_index];
+	uvec4 impulses = data_uvec4.data[read_impulses_index];
 
 	// TODO: Update position based on position impulse
 	position_velocity.zw += force_turn_flags.xy + impulses.xy;
 	position_velocity.xy += position_velocity.zw;
 
-	data_uvec4.data[point_mass_position_velocity_index] = position_velocity;
+	data_uvec4.data[position_velocity_index] = position_velocity;
 
 	force_turn_flags.z += 1;
 
-	data_uvec4.data[point_mass_read_force_turn_flags_index] = force_turn_flags;
+	data_uvec4.data[read_force_turn_flags_index] = force_turn_flags;
 
-	uvec4 previous_force_turn_flags = data_uvec4.data[point_mass_write_force_turn_flags_index];
+	uvec4 previous_force_turn_flags = data_uvec4.data[write_force_turn_flags_index];
 	impulses.xy += force_turn_flags.xy - previous_force_turn_flags.xy;
 
 	// TODO: Update position impulse
 
-	data_uvec4.data[point_mass_read_impulses_index] = impulses;
+	data_uvec4.data[read_impulses_index] = impulses;
 
-	data_uvec4.data[point_mass_write_force_turn_flags_index] = force_turn_flags;
-	data_uvec4.data[point_mass_write_impulses_index] = uvec4(0u);
+	data_uvec4.data[write_force_turn_flags_index] = force_turn_flags;
+	data_uvec4.data[write_impulses_index] = uvec4(0u);
 }
