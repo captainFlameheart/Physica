@@ -1,3 +1,5 @@
+#include "RUN_LEGACY.h"
+#if RUN_LEGACY == 1
 #include "game_logic/util/camera/camera.h"
 #include "game_environment/environment.h"
 #include "game_logic/util/camera/local_world_vector_to_world_vector.h"
@@ -21,3 +23,4 @@ namespace game_logic::util::camera
 		);
 	}
 }
+#endif

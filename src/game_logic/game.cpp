@@ -1,8 +1,7 @@
 #include "glad_glfw.h"
+#include "RUN_LEGACY.h"
 #include "game_logic/game.h"
 #include "legacy/game_logic/game.h"
-
-#define RUN_LEGACY 1
 
 namespace game_logic
 {

@@ -1,5 +1,4 @@
 #pragma once
-
 namespace game_state::camera
 {
 	struct View_Rotation

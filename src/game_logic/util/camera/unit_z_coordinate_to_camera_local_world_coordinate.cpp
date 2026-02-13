@@ -1,3 +1,5 @@
+#include "RUN_LEGACY.h"
+#if RUN_LEGACY == 1
 #include "game_logic/util/camera/unit_z_coordinate_to_camera_local_world_coordinate.h"
 #include "game_logic/util/camera/unit_z_coordinate_to_z_coordinate.h"
 #include "game_logic/util/camera/const_camera_z.h"
@@ -18,3 +20,4 @@ namespace game_logic::util::camera
 		);
 	}
 }
+#endif

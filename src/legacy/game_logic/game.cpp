@@ -1,4 +1,6 @@
-#if 1
+#include "RUN_LEGACY.h"
+
+#if RUN_LEGACY == 1
 #include "glad_glfw.h"
 #include "game_logic/game.h"
 #include "util/shader/shader.h"
@@ -442,7 +444,7 @@ namespace legacy::game_logic
 		GLuint i{ 0u };
 		while (i < Vertex_Index_Count)
 		{
-			game_state::rigid_body::Triangle& triangle{ environment.state.GPU_buffers.rigid_bodies.triangles.values[environment.state.GPU_buffers.rigid_bodies.triangles.current_count] };
+			::game_state::rigid_body::Triangle& triangle{ environment.state.GPU_buffers.rigid_bodies.triangles.values[environment.state.GPU_buffers.rigid_bodies.triangles.current_count] };
 			triangle.vertices[0u] = model.vertex_indices[i++];
 			triangle.vertices[1u] = model.vertex_indices[i++];
 			triangle.vertices[2u] = model.vertex_indices[i++];
@@ -459,7 +461,7 @@ namespace legacy::game_logic
 			);
 
 			GLuint const leaf_index{ game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment) + environment.state.GPU_buffers.rigid_bodies.triangles.current_count };
-			game_state::proximity::Bounding_Box& bounding_box
+			::game_state::proximity::Bounding_Box& bounding_box
 			{
 				environment.state.proximity_tree.nodes[leaf_index].bounding_box
 			};
@@ -6521,7 +6523,7 @@ namespace legacy::game_logic
 		// content from CPU to GPU like this. Instead, use persistent mapping 
 		// for both initialization and updating.
 		unsigned char* const initial_triangles = new unsigned char[environment.state.GPU_buffers.rigid_bodies.triangles.size];
-		environment.state.GPU_buffers.rigid_bodies.triangles.values = new game_state::rigid_body::Triangle[game_logic_MAX_TRIANGLE_COUNT(environment)];
+		environment.state.GPU_buffers.rigid_bodies.triangles.values = new ::game_state::rigid_body::Triangle[game_logic_MAX_TRIANGLE_COUNT(environment)];
 
 		for (GLuint i = 0; i < environment.state.GPU_buffers.rigid_bodies.triangles.current_count; ++i)
 		{
@@ -6529,7 +6531,7 @@ namespace legacy::game_logic
 			{
 				{(2u * i) % 4u, (2u * i + 1u) % 4u, (2u * i + 2u) % 4u}, i / 2u
 			};*/
-			game_state::rigid_body::Triangle triangle
+			::game_state::rigid_body::Triangle triangle
 			{
 				{(2u * i) % 4u, (2u * i + 1u) % 4u, (2u * i + 2u) % 4u}, i
 			};
@@ -10114,7 +10116,7 @@ bool triangle_contains_point
 	GLint x, GLint y, GLfloat& local_x, GLfloat& local_y
 )
 {
-	game_state::rigid_body::Triangle const& triangle{ environment.state.GPU_buffers.rigid_bodies.triangles.values[triangle_index] };
+	::game_state::rigid_body::Triangle const& triangle{ environment.state.GPU_buffers.rigid_bodies.triangles.values[triangle_index] };
 	::game_logic::util::rigid_body::Position body_position;
 	std::memcpy
 	(
@@ -10268,7 +10270,7 @@ void on_mouse_button_event(
 							GLfloat& hovered_local_x;
 							GLfloat& hovered_local_y;
 
-							void operator()(GLuint leaf_index, game_state::proximity::Node const& leaf)
+							void operator()(GLuint leaf_index, ::game_state::proximity::Node const& leaf)
 							{
 								if (leaf_index < game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment))
 								{
@@ -10276,7 +10278,7 @@ void on_mouse_button_event(
 								}
 								leaf_index -= game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment);
 
-								game_state::rigid_body::Triangle const& triangle{ environment.state.GPU_buffers.rigid_bodies.triangles.values[leaf_index] };
+								::game_state::rigid_body::Triangle const& triangle{ environment.state.GPU_buffers.rigid_bodies.triangles.values[leaf_index] };
 								GLint body_position[4u];
 								std::memcpy
 								(
@@ -10469,7 +10471,7 @@ void on_mouse_button_event(
 							GLfloat& hovered_local_x;
 							GLfloat& hovered_local_y;
 
-							void operator()(GLuint leaf_index, game_state::proximity::Node const& leaf)
+							void operator()(GLuint leaf_index, ::game_state::proximity::Node const& leaf)
 							{
 								if (leaf_index < game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment))
 								{
@@ -10477,7 +10479,7 @@ void on_mouse_button_event(
 								}
 								leaf_index -= game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment);
 
-								game_state::rigid_body::Triangle const& triangle{ environment.state.GPU_buffers.rigid_bodies.triangles.values[leaf_index] };
+								::game_state::rigid_body::Triangle const& triangle{ environment.state.GPU_buffers.rigid_bodies.triangles.values[leaf_index] };
 								GLint body_position[4u];
 								std::memcpy
 								(
@@ -10593,7 +10595,7 @@ void on_mouse_button_event(
 							GLfloat& hovered_local_x;
 							GLfloat& hovered_local_y;
 
-							void operator()(GLuint leaf_index, game_state::proximity::Node const& leaf)
+							void operator()(GLuint leaf_index, ::game_state::proximity::Node const& leaf)
 							{
 								if (leaf_index < game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment))
 								{
@@ -10601,7 +10603,7 @@ void on_mouse_button_event(
 								}
 								leaf_index -= game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment);
 
-								game_state::rigid_body::Triangle const& triangle{ environment.state.GPU_buffers.rigid_bodies.triangles.values[leaf_index] };
+								::game_state::rigid_body::Triangle const& triangle{ environment.state.GPU_buffers.rigid_bodies.triangles.values[leaf_index] };
 								GLint body_position[4u];
 								std::memcpy
 								(
@@ -11206,7 +11208,7 @@ void draw_inner_bounding_boxes
 	{
 		return;
 	}
-	game_state::proximity::Node const& node
+	::game_state::proximity::Node const& node
 	{
 		environment.state.proximity_tree.nodes[node_index]
 	};
@@ -11227,7 +11229,7 @@ bool triangle_contains_point
 	GLint x, GLint y
 )
 {
-	game_state::rigid_body::Triangle const& triangle{ environment.state.GPU_buffers.rigid_bodies.triangles.values[triangle_index] };
+	::game_state::rigid_body::Triangle const& triangle{ environment.state.GPU_buffers.rigid_bodies.triangles.values[triangle_index] };
 	::game_logic::util::rigid_body::Position body_position;
 	std::memcpy
 	(
@@ -11632,7 +11634,7 @@ void render(game_environment::Environment& environment)
 						GLint const cursor_world_y;
 						GLuint& hovered_triangle;
 
-						void operator()(GLuint leaf_index, game_state::proximity::Node const& leaf)
+						void operator()(GLuint leaf_index, ::game_state::proximity::Node const& leaf)
 						{
 							if (leaf_index < game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment))
 							{
@@ -11640,7 +11642,7 @@ void render(game_environment::Environment& environment)
 							}
 							leaf_index -= game_logic_TRIANGLE_LEAFS_BASE_INDEX(environment);
 
-							game_state::rigid_body::Triangle const& triangle{ environment.state.GPU_buffers.rigid_bodies.triangles.values[leaf_index] };
+							::game_state::rigid_body::Triangle const& triangle{ environment.state.GPU_buffers.rigid_bodies.triangles.values[leaf_index] };
 							GLint body_position[4u];
 							std::memcpy
 							(

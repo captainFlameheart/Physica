@@ -1,3 +1,5 @@
+#include "RUN_LEGACY.h"
+#if RUN_LEGACY == 1
 #include "game_logic/util/camera/camera_xy.h"
 #include "game_logic/util/camera/camera.h"
 
@@ -8,3 +10,4 @@ namespace game_logic::util::camera
 		return camera(environment).xy;
 	}
 }
+#endif

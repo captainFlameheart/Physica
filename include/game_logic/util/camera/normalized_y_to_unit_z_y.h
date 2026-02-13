@@ -1,4 +1,6 @@
 #pragma once
+#include "RUN_LEGACY.h"
+#if RUN_LEGACY == 1
 #include "game_environment/environment.h"
 
 namespace game_logic::util::camera
@@ -10,3 +12,4 @@ namespace game_logic::util::camera
 		GLfloat* unit_z_y
 	);
 }
+#endif

@@ -1,4 +1,6 @@
 #pragma once
+#include "RUN_LEGACY.h"
+#if RUN_LEGACY == 1
 #include "game_environment/environment.h"
 
 namespace game_logic::window_to_world
@@ -29,3 +31,4 @@ namespace game_logic::window_to_world
 		GLint* world_x, GLint* world_y
 	);
 }
+#endif

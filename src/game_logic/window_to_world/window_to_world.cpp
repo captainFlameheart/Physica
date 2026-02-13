@@ -1,3 +1,5 @@
+#include "RUN_LEGACY.h"
+#if RUN_LEGACY == 1
 #include "game_logic/window_to_world/window_to_world.h"
 #include "game_logic/window_to_camera/window_to_camera.h"
 #include "game_logic/util/glfw/window_screen_cursor_position.h"
@@ -89,3 +91,4 @@ namespace game_logic::window_to_world
 		);
 	}
 }
+#endif

@@ -1,4 +1,5 @@
-#pragma once
+#include "RUN_LEGACY.h"
+#if RUN_LEGACY == 1
 #include "game_logic/window_to_camera/window_to_camera.h"
 #include "game_logic/macros.h"
 #include "game_logic/util/glfw/window_screen_size.h"
@@ -124,3 +125,4 @@ namespace game_logic::window_to_camera
 		);
 	}
 }
+#endif

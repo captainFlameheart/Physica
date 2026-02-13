@@ -1,4 +1,6 @@
 #pragma once
+#include "RUN_LEGACY.h"
+#if RUN_LEGACY == 1
 #include "game_environment/environment.h"
 
 namespace game_logic::window_to_camera
@@ -43,3 +45,4 @@ namespace game_logic::window_to_camera
 		GLfloat* camera_local_world_x, GLfloat* camera_local_world_y
 	);
 }
+#endif

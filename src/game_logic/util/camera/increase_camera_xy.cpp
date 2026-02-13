@@ -1,3 +1,5 @@
+#include "RUN_LEGACY.h"
+#if RUN_LEGACY == 1
 #include "game_logic/util/camera/increase_camera_xy.h"
 #include "game_logic/util/camera/camera_x.h"
 #include "game_logic/util/camera/camera_y.h"
@@ -15,3 +17,4 @@ namespace game_logic::util::camera
 		camera_y(environment) += y_increase;
 	}
 }
+#endif

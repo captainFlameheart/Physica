@@ -1,3 +1,5 @@
+#include "RUN_LEGACY.h"
+#if RUN_LEGACY == 1
 #include "game_logic/util/camera/normalized_x_to_unit_z_x.h"
 #include "game_logic/util/projection/INVERSE_SCALE_X.h"
 
@@ -16,3 +18,4 @@ namespace game_logic::util::camera
 		);
 	}
 }
+#endif

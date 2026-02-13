@@ -1,3 +1,6 @@
+#include "RUN_LEGACY.h"
+#if RUN_LEGACY == 1
+#include "RUN_LEGACY.h"
 #include "game_logic/util/camera/local_world_vector_to_world_vector.h"
 
 namespace game_logic::util::camera
@@ -9,6 +12,7 @@ namespace game_logic::util::camera
 		GLint* world_vector_x, GLint* world_vector_y
 	)
 	{
+#if RUN_LEGACY == 1
 		// TODO: Add and use functions for fetching view rotation columns
 		*world_vector_x = static_cast<GLint>
 		(
@@ -20,5 +24,7 @@ namespace game_logic::util::camera
 			local_world_x * environment.state.camera.view_rotation.column_1[0] +
 			local_world_y * environment.state.camera.view_rotation.column_1[1]
 		);
+#endif
 	}
 }
+#endif

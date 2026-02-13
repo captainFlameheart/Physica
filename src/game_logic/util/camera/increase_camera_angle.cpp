@@ -1,5 +1,8 @@
+#include "RUN_LEGACY.h"
+#if RUN_LEGACY == 1
 #include "game_logic/util/camera/increase_camera_angle.h"
 #include "game_logic/util/spatial/TO_RADIANS.h"
+#include <math.h>
 
 namespace game_logic::util::camera
 {
@@ -9,6 +12,7 @@ namespace game_logic::util::camera
 		GLint const angle_increase
 	)
 	{
+#if RUN_LEGACY == 1
 		// TODO: Create and use camera_angle(environment) function
 		environment.state.camera.angle += angle_increase;
 		// TODO: Make sure to not loose precision due to large angles
@@ -19,5 +23,7 @@ namespace game_logic::util::camera
 		environment.state.camera.view_rotation.column_0[1] = -right_y;
 		environment.state.camera.view_rotation.column_1[0] = right_y;
 		environment.state.camera.view_rotation.column_1[1] = right_x;
+#endif
 	}
 }
+#endif
