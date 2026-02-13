@@ -1,0 +1,6 @@
+layout(shared, binding = fixed_data_binding) FIXED_DATA_BUFFER_RESTRICT_PLACEHOLDER FIXED_DATA_BUFFER_READ_ONLY_PLACEHOLDER
+FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
+{
+	uvec4 camera_position;	// (x, y, z, 0u)
+	mat4 camera_offset_to_clip_coordinates;
+} fixed_data;
