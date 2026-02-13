@@ -1,5 +1,0 @@
-layout(shared, binding = DATA_uvec4_BINDING) restrict READ_ONLY_PLACEHOLDER
-buffer Data_uvec4
-{
-	uvec4 data[];
-} data_uvec4;

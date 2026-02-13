@@ -1,4 +1,4 @@
-struct Dispatch_Command
+/*struct Dispatch_Command
 {
 	uint work_group_count_x;
 	uint work_group_count_y;
@@ -13,9 +13,9 @@ struct Draw_Arrays_Command {
     uint base_instance;
 };
 
-layout(std430, binding = COMMAND_BINDING) restrict READ_ONLY_PLACEHOLDER
+layout(std430, binding = command_binding) restrict READ_ONLY_PLACEHOLDER
 buffer Commands
 {
 	Dispatch_Command dispatch_commands[DISPATCH_COMMAND_COUNT];
 	Draw_Arrays_Command draw_arrays_commands[DRAW_ARRAYS_COMMAND_COUNT];
-} commands;
+} commands;*/

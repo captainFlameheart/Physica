@@ -1,0 +1,5 @@
+layout(shared, binding = uvec4_data_binding) restrict READ_ONLY_PLACEHOLDER
+buffer uvec4_Data
+{
+	uvec4 data[];
+} uvec4_data;

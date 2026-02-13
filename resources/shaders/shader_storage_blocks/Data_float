@@ -1,5 +1,0 @@
-layout(shared, binding = DATA_float_BINDING) restrict READ_ONLY_PLACEHOLDER
-buffer Data_float
-{
-	float data[];
-} data_float;

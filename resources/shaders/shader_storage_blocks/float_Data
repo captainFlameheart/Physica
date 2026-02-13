@@ -1,0 +1,5 @@
+layout(shared, binding = float_data_binding) restrict READ_ONLY_PLACEHOLDER
+buffer float_Data
+{
+	float data[];
+} float_data;

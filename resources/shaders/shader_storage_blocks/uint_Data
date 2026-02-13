@@ -1,0 +1,13 @@
+/*const uint point_mass_count_index = 0;
+const uint point_mass_distance_constraint_count_index = 1;
+const uint point_mass_uniform_force_constraint_count_index = 2;*/
+
+// IMPORTANT TODO: Allow prefix of buffer to be treated as a uniform buffer.
+layout(shared, binding = uint_data_binding) restrict READ_ONLY_PLACEHOLDER
+buffer uint_Data
+{
+	/*uint read_counts[ENTITY_ARRAY_COUNT];
+	uint write_counts[ENTITY_ARRAY_COUNT];*/
+
+	uint data[];
+} uint_data;

@@ -1,6 +1,69 @@
+const uint point_mass_distance_constraint_is_dead_shift = 0u;
+const uint point_mass_distance_constraint_is_dead_mask = 1u << point_mass_distance_constraint_is_dead_shift;
+
+const uint point_mass_distance_constraint_observe_impulse_0_shift = 1u;
+const uint point_mass_distance_constraint_observe_impulse_0_mask = 1u << point_mass_distance_constraint_observe_impulse_0_shift;
+
+const uint point_mass_distance_constraint_observe_impulse_1_shift = 2u;
+const uint point_mass_distance_constraint_observe_impulse_1_mask = 1u << point_mass_distance_constraint_observe_impulse_1_shift;
+
+const uint point_mass_distance_constraint_observe_impulses_mask = point_mass_distance_constraint_observe_impulse_0_mask | point_mass_distance_constraint_observe_impulse_1_mask;
+
+const uint point_mass_count_index = 0;
+const uint point_mass_distance_constraint_count_index = 1;
+const uint point_mass_uniform_force_constraint_count_index = 2;
+
+struct Dispatch_Command
+{
+	uint work_group_count_x;
+	uint work_group_count_y;
+	uint work_group_count_z;
+	uint pad;
+};
+
+struct Draw_Arrays_Command {
+    uint count;
+    uint instance_count;
+    uint first;
+    uint base_instance;
+};
+
 layout(shared, binding = fixed_data_binding) FIXED_DATA_BUFFER_RESTRICT_PLACEHOLDER FIXED_DATA_BUFFER_READ_ONLY_PLACEHOLDER
 FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 {
 	uvec4 camera_position;	// (x, y, z, 0u)
 	mat4 camera_offset_to_clip_coordinates;
+
+	uint point_mass_position_velocity_base;
+	uint point_mass_inverse_mass_base;
+	uint point_mass_constraint_count_base;
+
+	uint point_mass_read_force_turn_flags_base;
+	uint point_mass_read_impulses_base;
+
+	uint point_mass_write_force_turn_flags_base;
+	uint point_mass_write_impulses_base;
+
+	uint point_mass_capacity;
+	
+	uint point_mass_distance_constraint_flags_base;
+	uint point_mass_distance_constraint_indices_turns_base;
+	uint point_mass_distance_constraint_target_distance_base;
+	uint point_mass_distance_constraint_applied_forces_base;
+	uint point_mass_distance_constraint_impulses_base;
+	uint point_mass_distance_constraint_position_impulses_base;
+
+	uint point_mass_distance_constraint_capacity;
+
+	uint point_mass_uniform_force_constraint_indices_turns_base;
+	uint point_mass_uniform_force_constraint_target_and_applied_forces_base;
+	uint point_mass_uniform_force_constraint_impulses_base;
+
+	uint point_mass_uniform_force_constraint_capacity;
+
+	uint read_counts[ENTITY_ARRAY_COUNT];
+	uint write_counts[ENTITY_ARRAY_COUNT];
+
+	Dispatch_Command dispatch_commands[DISPATCH_COMMAND_COUNT];
+	Draw_Arrays_Command draw_arrays_commands[DRAW_ARRAYS_COMMAND_COUNT];
 } fixed_data;
