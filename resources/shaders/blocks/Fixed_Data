@@ -1,3 +1,5 @@
+const float pi = 3.141592653589793;
+
 const uint point_mass_distance_constraint_is_dead_shift = 0u;
 const uint point_mass_distance_constraint_is_dead_mask = 1u << point_mass_distance_constraint_is_dead_shift;
 
