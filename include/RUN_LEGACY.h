@@ -1,2 +1,2 @@
 #pragma once
-#define RUN_LEGACY 1
+#define RUN_LEGACY 0

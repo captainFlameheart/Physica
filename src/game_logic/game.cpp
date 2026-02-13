@@ -1,19 +1,26 @@
 #include "glad_glfw.h"
 #include "RUN_LEGACY.h"
-#include "game_logic/game.h"
+#if RUN_LEGACY == 1
 #include "legacy/game_logic/game.h"
+#else
+#include "game_logic/game.h"
+#include "game_logic/initialize/include.h"
+#include "game_logic/draw/draw.h"
+#endif
+
 
 namespace game_logic
 {
-	void initialize(game_environment::Environment& environment)
+	void _initialize(game_environment::Environment& environment)
 	{
 #if RUN_LEGACY
 		::legacy::game_logic::initialize(environment);
 #else
+		::game_logic::initialize::initialize(environment);
 #endif
 	}
 
-	void on_framebuffer_size_changed(
+	void _on_framebuffer_size_changed(
 		game_environment::Environment& environment,
 		int width, int height
 	)
@@ -28,7 +35,7 @@ namespace game_logic
 #endif
 	}
 
-	void on_key_event(
+	void _on_key_event(
 		game_environment::Environment& environment,
 		int const key,
 		int const scancode,
@@ -49,7 +56,7 @@ namespace game_logic
 #endif
 	}
 
-	void on_cursor_event(
+	void _on_cursor_event(
 		game_environment::Environment& environment,
 		double const x_pos,
 		double const y_pos
@@ -66,7 +73,7 @@ namespace game_logic
 #endif
 	}
 
-	void on_mouse_button_event(
+	void _on_mouse_button_event(
 		game_environment::Environment& environment,
 		int const button,
 		int const action,
@@ -85,7 +92,7 @@ namespace game_logic
 #endif
 	}
 
-	void on_scroll_event(
+	void _on_scroll_event(
 		game_environment::Environment& environment,
 		double const x_offset,
 		double const y_offset
@@ -102,7 +109,7 @@ namespace game_logic
 #endif
 	}
 
-	void tick(game_environment::Environment& environment)
+	void _tick(game_environment::Environment& environment)
 	{
 #if RUN_LEGACY
 		::legacy::game_logic::tick(environment);
@@ -110,15 +117,16 @@ namespace game_logic
 #endif
 	}
 
-	void render(game_environment::Environment& environment)
+	void _draw(game_environment::Environment& environment)
 	{
 #if RUN_LEGACY
 		::legacy::game_logic::render(environment);
 #else
+		::game_logic::draw::draw(environment);
 #endif
 	}
 
-	void free(game_environment::Environment& environment)
+	void _free(game_environment::Environment& environment)
 	{
 #if RUN_LEGACY
 		::legacy::game_logic::free(environment);

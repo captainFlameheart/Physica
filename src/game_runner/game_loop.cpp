@@ -9,7 +9,7 @@ namespace game_runner
 {
 	static void on_framebuffer_size_changed(GLFWwindow* window, int width, int height)
 	{
-		game_logic::on_framebuffer_size_changed
+		game_logic::_on_framebuffer_size_changed
 		(
 			game_environment::from(window), 
 			width, height
@@ -18,7 +18,7 @@ namespace game_runner
 
 	static void on_glfw_key_event(GLFWwindow *window, int key, int scancode, int action, int mods)
 	{
-		game_logic::on_key_event(
+		game_logic::_on_key_event(
 			game_environment::from(window),
 			key, 
 			scancode, 
@@ -29,7 +29,7 @@ namespace game_runner
 
 	static void on_glfw_cursor_event(GLFWwindow *window, double xpos, double ypos)
 	{
-		game_logic::on_cursor_event(
+		game_logic::_on_cursor_event(
 			game_environment::from(window),
 			xpos,
 			ypos
@@ -38,7 +38,7 @@ namespace game_runner
 
 	static void on_glfw_mouse_button_event(GLFWwindow* window, int button, int action, int mods)
 	{
-		game_logic::on_mouse_button_event(
+		game_logic::_on_mouse_button_event(
 			game_environment::from(window),
 			button,
 			action,
@@ -48,7 +48,7 @@ namespace game_runner
 
 	static void on_glfw_scroll_event(GLFWwindow* window, double xoffset, double yoffset)
 	{
-		game_logic::on_scroll_event(
+		game_logic::_on_scroll_event(
 			game_environment::from(window),
 			xoffset,
 			yoffset
@@ -68,11 +68,11 @@ namespace game_runner
 
 		game_environment.window = window;
 		game_environment.lag = 0;
-		game_logic::initialize(game_environment);
+		game_logic::_initialize(game_environment);
 
 		glfwSetTime(0.0);
 	
-		game_logic::render(game_environment);
+		game_logic::_draw(game_environment);
 		glfwSwapBuffers(window);
 
 		glfwPollEvents();
@@ -86,7 +86,7 @@ namespace game_runner
 				game_environment.ticks_this_frame < game_MAX_TICKS_PER_FRAME(game_environment)
 			)
 			{
-				game_logic::tick(game_environment);
+				game_logic::_tick(game_environment);
 				glfwSetTime(glfwGetTime() - static_cast<double>(game_logic__util__tick__delta_time_SECONDS(game_environment)));
 				++game_environment.ticks_this_frame;
 			}
@@ -98,13 +98,13 @@ namespace game_runner
 				DEBUG_LOG("Game loop tick limit hit!");
 			}
 
-			game_logic::render(game_environment);
+			game_logic::_draw(game_environment);
 			glfwSwapBuffers(window);
 
 			glfwPollEvents();
 		}
 
-		game_logic::free(game_environment);
+		game_logic::_free(game_environment);
 		glfwSetWindowUserPointer(window, nullptr);
 	}
 }

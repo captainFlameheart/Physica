@@ -19,6 +19,7 @@ namespace game_environment
 #if RUN_LEGACY == 1
 		legacy::game_state::Game state;
 #else
+		::game_state::Game state;
 #endif
 	};
 
