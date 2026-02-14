@@ -8,5 +8,6 @@ namespace game_logic::initialize::query_layouts
 		query_fixed_data_layout(environment);
 		query_uvec4_data_layout(environment);
 		query_uint_data_layout(environment);
+		query_float_data_layout(environment);
 	}
 }

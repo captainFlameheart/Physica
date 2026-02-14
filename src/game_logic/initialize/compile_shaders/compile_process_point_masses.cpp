@@ -18,7 +18,6 @@ namespace game_logic::initialize::compile_shaders
 			compile_environment.writable_prefix_source,
 			::util::shader::file_to_string("tick/bodies/point_masses/process.comp")
 		);
-		::game_logic::shader_util::print_source(compile_environment.shader_group.compute_shader);
 
 		environment.state.shaders.state.tick.state.bodies.state.point_masses.state.process = ::util::shader::create_program
 		(
