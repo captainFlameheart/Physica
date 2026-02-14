@@ -1,6 +1,6 @@
 #pragma once
 
-namespace game_state::shaders::solve
+namespace legacy::game_state::shaders::solve
 {
 	struct Shader_Set
 	{

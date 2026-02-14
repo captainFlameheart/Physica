@@ -6,7 +6,7 @@
 #include "game_state/rigid_body/Triangle.h"
 #include "game_state/cursor_types/cursor_type_set.h"
 #include "game_state/GPU_buffers/include.h"
-#include "game_state/shaders/include.h"
+#include "legacy/game_state/shaders/include.h"
 #include "game_state/OpenGL_capabilities/State.h"
 
 template <unsigned int Vertex_Index_Count>
@@ -215,7 +215,7 @@ namespace legacy::game_state
 		GLuint vbo;
 
 		::game_state::GPU_buffers::GPU_Buffer_Set GPU_buffers;
-		::game_state::shaders::Shader_Set shaders;
+		::legacy::game_state::shaders::Shader_Set shaders;
 		::game_state::proximity::Tree proximity_tree;
 
 		GLuint test_compute_shader;

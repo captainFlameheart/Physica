@@ -1,6 +1,6 @@
 #pragma once
 
-namespace game_state::shaders::new_constraints
+namespace legacy::game_state::shaders::new_constraints
 {
 	struct Shader_Set
 	{

@@ -1,6 +1,6 @@
 #pragma once
 
-namespace game_state::shaders::persist
+namespace legacy::game_state::shaders::persist
 {
 	struct Shader_Set
 	{

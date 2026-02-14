@@ -14,5 +14,5 @@ namespace game_state::local_sizes
 
 	constexpr Local_Sizes local_sizes{};
 
-	constexpr GLuint compute_program_count{ sizeof(Local_Sizes) / sizeof(GLuint) };
+	constexpr GLuint dispatch_program_count{ sizeof(Local_Sizes) / sizeof(GLuint) };
 }

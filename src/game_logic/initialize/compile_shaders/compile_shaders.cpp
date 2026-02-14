@@ -1,4 +1,4 @@
-#include "game_logic/initialize/compile_shaders/compile_shaders.h"
+#include "game_logic/initialize/compile_shaders/include.h"
 #include "glad_glfw.h"
 #include "game_environment/environment.h"
 #include "util/shader/shader.h"
@@ -12,7 +12,7 @@ namespace game_logic::initialize::compile_shaders
 		::game_state::initialize::compile_shaders::environment::Environment compile_environment;
 		environment::initialize(environment, compile_environment);
 
-		std::cout << "Here" << std::endl;
+		compile_draw_point_masses(environment, compile_environment);
 
 		environment::free(environment, compile_environment);
 	}

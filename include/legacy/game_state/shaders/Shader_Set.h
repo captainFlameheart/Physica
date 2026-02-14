@@ -5,7 +5,7 @@
 #include "persist/include.h"
 #include "new_constraints/include.h"
 
-namespace game_state::shaders
+namespace legacy::game_state::shaders
 {
 	struct Shader_Set
 	{

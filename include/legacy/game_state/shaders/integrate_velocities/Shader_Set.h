@@ -1,6 +1,6 @@
 #pragma once
 
-namespace game_state::shaders::integrate_velocities
+namespace legacy::game_state::shaders::integrate_velocities
 {
 	struct Shader_Set
 	{

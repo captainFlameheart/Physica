@@ -34,14 +34,14 @@ namespace game_logic::initialize::compile_shaders::environment
 		
 		compile_environment.constant_definitions = 
 			"const uint entity_type_count = " + std::to_string(game_state::entity_types::count) + ";\n"
-			"const uint compute_program_count = " + std::to_string(::game_state::local_sizes::compute_program_count) + ";\n"
+			"const uint dispatch_program_count = " + std::to_string(::game_state::local_sizes::dispatch_program_count) + ";\n"
 			"const uint draw_arrays_program_count = " + std::to_string(draw_arrays_program_count) + ";\n"
 			"const uint point_mass_count_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_types::Count_Indices::point_mass)) + ";\n"
 			"const uint point_mass_distance_constraint_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_types::Count_Indices::point_mass_distance_constraint)) + ";\n"
 			"const uint point_mass_uniform_force_constraint_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_types::Count_Indices::point_mass_uniform_force_constraint)) + ";\n"
-			"#const uint uvec4_data_binding = " + std::to_string(::game_state::bindings::shader_storage::uvec4_data) + ";\n"
-			"#const uint uint_data_binding = " + ::std::to_string(::game_state::bindings::shader_storage::uint_data) + ";\n"
-			"#const uint float_data_binding = " + ::std::to_string(::game_state::bindings::shader_storage::float_data) + ";\n";
+			"const uint uvec4_data_binding = " + std::to_string(::game_state::bindings::shader_storage::uvec4_data) + ";\n"
+			"const uint uint_data_binding = " + ::std::to_string(::game_state::bindings::shader_storage::uint_data) + ";\n"
+			"const uint float_data_binding = " + ::std::to_string(::game_state::bindings::shader_storage::float_data) + ";\n";
 
 		compile_environment.fixed_data_source = ::util::shader::file_to_string("blocks/Fixed_Data");
 		compile_environment.uvec4_data_source = ::util::shader::file_to_string("blocks/shader_storage/uvec4_Data");
@@ -64,7 +64,5 @@ namespace game_logic::initialize::compile_shaders::environment
 			compile_environment.version_directive +
 			compile_environment.writable_constant_definitions +
 			compile_environment.constants_and_data_source;
-
-		std::cout << compile_environment.readonly_prefix_source << std::endl;
 	}
 }

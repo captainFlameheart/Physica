@@ -1,6 +1,6 @@
 #pragma once
 
-namespace game_state::shaders::warm_start
+namespace legacy::game_state::shaders::warm_start
 {
 	struct Shader_Set
 	{
