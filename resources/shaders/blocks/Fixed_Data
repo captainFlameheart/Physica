@@ -11,9 +11,11 @@ const uint point_mass_distance_constraint_observe_impulse_1_mask = 1u << point_m
 
 const uint point_mass_distance_constraint_observe_impulses_mask = point_mass_distance_constraint_observe_impulse_0_mask | point_mass_distance_constraint_observe_impulse_1_mask;
 
-const uint point_mass_count_index = 0;
-const uint point_mass_distance_constraint_count_index = 1;
-const uint point_mass_uniform_force_constraint_count_index = 2;
+const uint dispatch_command_enabled_shift = 0u;
+const uint dispatch_command_enabled_mask = 1u << dispatch_command_enabled_shift;
+
+const uint draw_arrays_command_enabled_shift = 0u;
+const uint draw_arrays_command_enabled_mask = 1u << draw_arrays_command_enabled_shift;
 
 struct Dispatch_Command
 {
@@ -66,6 +68,9 @@ FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 	uint read_counts[entity_type_count];
 	uint write_counts[entity_type_count];
 
-	Dispatch_Command dispatch_commands[dispatch_command_count];
-	Draw_Arrays_Command draw_arrays_commands[draw_arrays_command_count];
+	uint dispatch_command_flags[dispatch_program_count];
+	Dispatch_Command dispatch_commands[dispatch_program_count];
+	
+	uint draw_arrays_command_flags[draw_arrays_program_count];
+	Draw_Arrays_Command draw_arrays_commands[draw_arrays_program_count];
 } fixed_data;

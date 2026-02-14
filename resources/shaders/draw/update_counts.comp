@@ -1,21 +1,24 @@
-const uint command_blueprints[draw_arrays_command_count] = 
+const uint command_blueprints[draw_arrays_program_count] = 
 {	// (count_index, vertex_factor)
 	uvec2(point_mass_count_index, draw_point_masses_vertex_factor),
 	uvec2(point_mass_distance_constraint_count_index, draw_point_mass_distance_constraints_vertex_factor),
-	uvec2(point_mass_uniform_force_constraint_count_index, draw_point_mass_uniform_forcce_constraints_vertex_factor),
+	uvec2(point_mass_uniform_force_constraint_count_index, draw_point_mass_uniform_force_constraints_vertex_factor),
 };
 
 layout(local_size_x = update_draw_counts_local_size) in;
 void main()
 {
 	uint command_index = gl_GlobalInvocationID.x
-	if (command_index >= draw_arrays_command_count)
+	if (command_index >= draw_arrays_program_count)
 	{
 		return;
 	}
 	
 	uvec2 command_blueprint = command_blueprints[command_index];
-	uint count = data_uint.write_counts[command_blueprint.x];
+	uint count = fixed_data.write_counts[command_blueprint.x];
 
-	commands.draw_arrays_commands[command_index].count = count * command_blueprint.y;
+	uint flag = fixed_data.draw_arrays_command_flags[command_index];
+	count *= (flag >> draw_arrays_command_enabled_shift) & 1u;
+
+	fixed_data.draw_arrays_commands[command_index].count = count * command_blueprint.y;
 }
