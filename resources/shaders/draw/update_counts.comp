@@ -1,15 +1,15 @@
-const uint command_blueprints[DRAW_ARRAYS_COMMAND_COUNT] = 
+const uint command_blueprints[draw_arrays_command_count] = 
 {	// (count_index, vertex_factor)
 	uvec2(point_mass_count_index, draw_point_masses_vertex_factor),
 	uvec2(point_mass_distance_constraint_count_index, draw_point_mass_distance_constraints_vertex_factor),
 	uvec2(point_mass_uniform_force_constraint_count_index, draw_point_mass_uniform_forcce_constraints_vertex_factor),
 };
 
-layout(local_size_x = UPDATE_DRAW_COUNTS_LOCAL_SIZE) in;
+layout(local_size_x = update_draw_counts_local_size) in;
 void main()
 {
 	uint command_index = gl_GlobalInvocationID.x
-	if (command_index >= DRAW_ARRAYS_COMMAND_COUNT)
+	if (command_index >= draw_arrays_command_count)
 	{
 		return;
 	}

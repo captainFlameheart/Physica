@@ -30,7 +30,7 @@ struct Draw_Arrays_Command {
     uint base_instance;
 };
 
-layout(shared, binding = fixed_data_binding) FIXED_DATA_BUFFER_RESTRICT_PLACEHOLDER FIXED_DATA_BUFFER_READ_ONLY_PLACEHOLDER
+layout(shared, binding = fixed_data_binding) FIXED_DATA_RESTRICT_PLACEHOLDER
 FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 {
 	uvec4 camera_position;	// (x, y, z, 0u)
@@ -63,9 +63,9 @@ FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 
 	uint point_mass_uniform_force_constraint_capacity;
 
-	uint read_counts[ENTITY_ARRAY_COUNT];
-	uint write_counts[ENTITY_ARRAY_COUNT];
+	uint read_counts[entity_type_count];
+	uint write_counts[entity_type_count];
 
-	Dispatch_Command dispatch_commands[DISPATCH_COMMAND_COUNT];
-	Draw_Arrays_Command draw_arrays_commands[DRAW_ARRAYS_COMMAND_COUNT];
+	Dispatch_Command dispatch_commands[dispatch_command_count];
+	Draw_Arrays_Command draw_arrays_commands[draw_arrays_command_count];
 } fixed_data;

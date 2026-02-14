@@ -8,5 +8,5 @@ namespace game_state::bindings::shader_storage
 	constexpr GLuint uvec2_data{ 3u };
 	constexpr GLuint vec2_data{ 4u };
 	constexpr GLuint uint_data{ 5u };
-	constexpr GLuint uint_data{ 6u };
+	constexpr GLuint float_data{ 6u };
 }
