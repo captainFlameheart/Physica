@@ -68,6 +68,7 @@ FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 	uint read_counts[entity_type_count];
 	uint write_counts[entity_type_count];
 
+	// TODO: Move commands into buffer that uses std430 to guarantee correct layout for indirect calls
 	uint dispatch_command_flags[dispatch_program_count];
 	Dispatch_Command dispatch_commands[dispatch_program_count];
 	

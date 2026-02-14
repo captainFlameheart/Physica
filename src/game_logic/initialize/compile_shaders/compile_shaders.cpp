@@ -13,6 +13,7 @@ namespace game_logic::initialize::compile_shaders
 		environment::initialize(environment, compile_environment);
 
 		compile_draw_point_masses(environment, compile_environment);
+		compile_process_point_masses(environment, compile_environment);
 
 		environment::free(environment, compile_environment);
 	}

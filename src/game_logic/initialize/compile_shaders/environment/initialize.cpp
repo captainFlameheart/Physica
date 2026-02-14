@@ -25,12 +25,14 @@ namespace game_logic::initialize::compile_shaders::environment
 			"#define FIXED_DATA_RESTRICT_PLACEHOLDER \n"
 			"#define FIXED_DATA_BUFFER_PLACEHOLDER uniform\n"
 			"#define READ_ONLY_PLACEHOLDER readonly\n"
-			"const uint fixed_data_binding = " + std::to_string(::game_state::bindings::uniform::fixed_data) + ";\n";
+			"const uint fixed_data_binding = " + std::to_string(::game_state::bindings::uniform::fixed_data) + ";\n"
+		;
 		compile_environment.writable_constant_definitions =
 			"#define FIXED_DATA_RESTRICT_PLACEHOLDER restrict\n"
 			"#define FIXED_DATA_BUFFER_PLACEHOLDER buffer\n"
 			"#define READ_ONLY_PLACEHOLDER \n"
-			"const uint fixed_data_binding = " + std::to_string(::game_state::bindings::shader_storage::fixed_data) + ";\n";
+			"const uint fixed_data_binding = " + std::to_string(::game_state::bindings::shader_storage::fixed_data) + ";\n"
+		;
 		
 		compile_environment.constant_definitions = 
 			"const uint entity_type_count = " + std::to_string(game_state::entity_types::count) + ";\n"
@@ -41,7 +43,11 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uint point_mass_uniform_force_constraint_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_types::Count_Indices::point_mass_uniform_force_constraint)) + ";\n"
 			"const uint uvec4_data_binding = " + std::to_string(::game_state::bindings::shader_storage::uvec4_data) + ";\n"
 			"const uint uint_data_binding = " + ::std::to_string(::game_state::bindings::shader_storage::uint_data) + ";\n"
-			"const uint float_data_binding = " + ::std::to_string(::game_state::bindings::shader_storage::float_data) + ";\n";
+			"const uint float_data_binding = " + ::std::to_string(::game_state::bindings::shader_storage::float_data) + ";\n"
+			"const uint process_point_masses_local_size = " + ::std::to_string(::game_state::local_sizes::local_sizes.process_point_masses) + ";\n"
+			"const uint process_point_mass_distance_constraints_local_size = " + ::std::to_string(::game_state::local_sizes::local_sizes.process_point_mass_distance_constraints) + ";\n"
+			"const uint process_point_mass_uniform_force_constraints_local_size = " + ::std::to_string(::game_state::local_sizes::local_sizes.process_point_mass_uniform_force_constraints) + ";\n"
+		;
 
 		compile_environment.fixed_data_source = ::util::shader::file_to_string("blocks/Fixed_Data");
 		compile_environment.uvec4_data_source = ::util::shader::file_to_string("blocks/shader_storage/uvec4_Data");

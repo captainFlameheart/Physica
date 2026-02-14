@@ -19,8 +19,6 @@ namespace game_logic::initialize::compile_shaders
 			::util::shader::file_to_string("draw/bodies/point_masses/default/draw.vert")
 		);
 
-		::game_logic::shader_util::print_source(compile_environment.shader_group.vertex_shader);
-
 		::util::shader::set_shader_statically
 		(
 			compile_environment.shader_group.fragment_shader,
