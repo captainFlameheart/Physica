@@ -19,8 +19,6 @@ namespace game_logic::initialize::compile_shaders
 			::util::shader::file_to_string("initialize/initialize.comp")
 		);
 
-		//::game_logic::shader_util::print_source(compile_environment.shader_group.compute_shader);
-
 		environment.state.shaders.state.initialize.state.initialize = ::util::shader::create_program
 		(
 			compile_environment.shader_group.compute_shader

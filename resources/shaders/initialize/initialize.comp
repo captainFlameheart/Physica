@@ -1,7 +1,8 @@
 layout(local_size_x = 1u) in;
 void main()
 {
-	fixed_data.camera_position = uvec4(0u);
+	fixed_data.camera_position = uvec4(0u, 0u, 1u, 0u);
+
 	mat4 camera_offset_to_local = mat4(1.0);
 	vec2 projection = vec2(0.5, 1.0);
 	mat4 camera_projection = mat4
@@ -45,9 +46,32 @@ void main()
 	uint end_base = address_to_uint_index(end_base_address);
 	point_mass_capacity *= uint(end_base <= uvec4_data.data.length());
 
+	fixed_data.read_counts[point_mass_count_index] = point_mass_capacity;
+	fixed_data.write_counts[point_mass_count_index] = point_mass_capacity;
+
+	for (uint dispatch_program_index = 0u; dispatch_program_index < dispatch_program_count; ++dispatch_program_index)
+	{
+		fixed_data.dispatch_commands[dispatch_program_index].work_group_count_x = 0u;
+		fixed_data.dispatch_commands[dispatch_program_index].work_group_count_y = 0u;
+		fixed_data.dispatch_commands[dispatch_program_index].work_group_count_z = 0u;
+		fixed_data.dispatch_commands[dispatch_program_index].pad = 0u;
+	}
+
+	for (uint draw_arrays_program_index = 0u; draw_arrays_program_index < draw_arrays_program_count; ++draw_arrays_program_index)
+	{
+		fixed_data.draw_arrays_commands[draw_arrays_program_index].count = 0u;
+		fixed_data.draw_arrays_commands[draw_arrays_program_index].instance_count = 1u;
+		fixed_data.draw_arrays_commands[draw_arrays_program_index].first = 0u;
+		fixed_data.draw_arrays_commands[draw_arrays_program_index].base_instance = 0u;
+	}
+
+	// TODO: Let this be set by other shader
+	const uint draw_point_masses_index = 0u;	// TODO: Set from CPU
+	fixed_data.draw_arrays_commands[draw_point_masses_index].count = point_mass_capacity * 6u;
+
 	for (uint point_mass_index = 0u; point_mass_index < point_mass_capacity; ++point_mass_index)
 	{
-		uvec4_data.data[point_mass_position_velocity_base + point_mass_index] = uvec4(0u);
+		uvec4_data.data[point_mass_position_velocity_base + point_mass_index] = uvec4(0u, 0u, 0u, 0u);
 		float_data.data[point_mass_inverse_mass_base + point_mass_index] = 1.0;
 		uint_data.data[point_mass_constraint_count_base + point_mass_index] = 0u;
 		uvec4_data.data[point_mass_read_force_turn_flags_base + point_mass_index] = uvec4(0u);

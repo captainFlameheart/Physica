@@ -12,7 +12,7 @@ const vec2 offsets[6u] = vec2[6u]
 out vec2 offset;
 out float radius;
 
-const float density = 1.0 / (0.01 * pi);
+const float density = 1.0 / (0.02 * pi);
 const float pi_times_density = pi * density;
 
 void main()
@@ -36,6 +36,6 @@ void main()
 	radius = 1.0 / (inverse_mass * pi_times_density);
 	offset *= radius;
 
-	vec4 camera_offset = vec4(vec2(position_velocity.xy - camera_position.xy) + offset, float(-camera_position.z), float(1u));
+	vec4 camera_offset = vec4(vec2(ivec2(position_velocity.xy - camera_position.xy)) + offset, float(-int(camera_position.z)), float(1u));
 	gl_Position = camera_offset_to_clip_coordinates * camera_offset;
 }

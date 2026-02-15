@@ -9,6 +9,8 @@ namespace game_state
 {
 	struct Game
 	{
+		GLuint vertex_array;	// Required for anything to render at all
+
 		OpenGL_capabilities::State OpenGL_capabilities;
 		shaders::Aliased_State shaders;
 		layouts::State layouts;

@@ -16,5 +16,7 @@ namespace game_logic::binding_util
 		(
 			GL_SHADER_STORAGE_BUFFER, ::game_state::bindings::shader_storage::fixed_data, ::game_state::bindings::shader_storage::count, buffers
 		);
+		glBindBufferBase(GL_UNIFORM_BUFFER, ::game_state::bindings::uniform::fixed_data, buffer);
+		glBindBuffer(GL_DRAW_INDIRECT_BUFFER, buffer);
 	}
 }

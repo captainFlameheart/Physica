@@ -8,6 +8,9 @@ namespace game_logic::initialize
 {
 	void initialize(game_environment::Environment& environment)
 	{
+		glCreateVertexArrays(1u, &environment.state.vertex_array);
+		glBindVertexArray(environment.state.vertex_array);
+
 		::game_logic::OpenGL_capabilities::query(environment.state.OpenGL_capabilities);
 		::game_logic::OpenGL_capabilities::print(environment.state.OpenGL_capabilities);
 
@@ -18,7 +21,11 @@ namespace game_logic::initialize
 		::game_logic::binding_util::bind_GPU_only_buffer(environment, 0u);
 
 		glUseProgram(environment.state.shaders.state.initialize.state.initialize);
-		glDispatchCompute(1u, 0u, 0u);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, environment.state.buffers.GPU_only.buffers[0u]);
+
+		glDispatchCompute(1u, 1u, 1u);
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);
+
+		std::cout << environment.state.shaders.state.initialize.state.initialize << std::endl;
 	}
 }
