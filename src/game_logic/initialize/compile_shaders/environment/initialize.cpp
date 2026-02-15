@@ -16,7 +16,7 @@ namespace game_logic::initialize::compile_shaders::environment
 	)
 	{
 		::game_logic::shader_group::initialize(compile_environment.shader_group);
-		
+
 		constexpr GLuint draw_arrays_program_count = 3u;
 
 		compile_environment.version_directive = "#version " + std::string{ ::game_state::device_requirements::OpenGL_versions::version_string } + '\n';
@@ -47,6 +47,12 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uint process_point_masses_local_size = " + ::std::to_string(::game_state::local_sizes::local_sizes.process_point_masses) + ";\n"
 			"const uint process_point_mass_distance_constraints_local_size = " + ::std::to_string(::game_state::local_sizes::local_sizes.process_point_mass_distance_constraints) + ";\n"
 			"const uint process_point_mass_uniform_force_constraints_local_size = " + ::std::to_string(::game_state::local_sizes::local_sizes.process_point_mass_uniform_force_constraints) + ";\n"
+			"const uint uvec4_data_offset = " + std::to_string(environment.state.layouts.uvec4_data.state.offset) + ";\n"
+			"const uint uvec4_data_array_stride = " + std::to_string(environment.state.layouts.uvec4_data.state.array_stride) + ";\n"
+			"const uint uint_data_offset = " + std::to_string(environment.state.layouts.uint_data.state.offset) + ";\n"
+			"const uint uint_data_array_stride = " + std::to_string(environment.state.layouts.uint_data.state.array_stride) + ";\n"
+			"const uint float_data_offset = " + std::to_string(environment.state.layouts.float_data.state.offset) + ";\n"
+			"const uint float_data_array_stride = " + std::to_string(environment.state.layouts.float_data.state.array_stride) + ";\n"
 		;
 
 		compile_environment.fixed_data_source = ::util::shader::file_to_string("blocks/Fixed_Data");

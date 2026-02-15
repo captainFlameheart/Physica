@@ -5,11 +5,11 @@
 
 namespace game_logic::initialize::query_layouts
 {
-	void query_uint_data_layout(game_environment::Environment& environment)
+	void query_uint_data_layout(game_environment::Environment& environment, GLuint program)
 	{
 		::game_logic::shader_util::query::query_shader_storage_variable_offset_array_stride
 		(
-			environment.state.shaders.state.tick.state.bodies.state.point_masses.state.process, "uint_Data.data",
+			program, "uint_Data.data",
 			environment.state.layouts.uint_data.properties
 		);
 	}

@@ -6,6 +6,7 @@
 #include "game_logic/game.h"
 #include "game_logic/initialize/include.h"
 #include "game_logic/draw/draw.h"
+#include "game_logic/free/include.h"
 #endif
 
 
@@ -131,6 +132,7 @@ namespace game_logic
 #if RUN_LEGACY
 		::legacy::game_logic::free(environment);
 #else
+		free::free(environment);
 #endif
 	}
 }

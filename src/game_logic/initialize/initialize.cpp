@@ -10,7 +10,8 @@ namespace game_logic::initialize
 		::game_logic::OpenGL_capabilities::query(environment.state.OpenGL_capabilities);
 		::game_logic::OpenGL_capabilities::print(environment.state.OpenGL_capabilities);
 
-		compile_shaders::compile_shaders(environment);
 		query_layouts::query_layouts(environment);
+		compile_shaders::compile_shaders(environment);
+		buffers::initialize(environment);
 	}
 }

@@ -3,5 +3,5 @@
 
 namespace game_logic::initialize::query_layouts
 {
-	void query_fixed_data_layout(game_environment::Environment& environment);
+	void query_fixed_data_layout(game_environment::Environment& environment, GLuint program);
 }
