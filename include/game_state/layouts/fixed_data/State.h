@@ -162,6 +162,11 @@ namespace game_state::layouts::fixed_data
 		GLint offset;
 	};
 
+	struct Block
+	{
+		GLint buffer_data_size;
+	};
+
 	struct State
 	{
 		union
@@ -313,6 +318,11 @@ namespace game_state::layouts::fixed_data
 		{
 			draw_arrays_commands_base_instance draw_arrays_commands_base_instance_state;
 			GLint draw_arrays_commands_base_instance_properties[sizeof(draw_arrays_commands_base_instance) / sizeof(GLint)];
+		};
+		union
+		{
+			Block block_state;
+			GLint block_properties[sizeof(Block) / sizeof(GLint)];
 		};
 	};
 }

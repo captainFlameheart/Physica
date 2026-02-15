@@ -2,6 +2,7 @@
 #include "game_environment/environment.h"
 #include <iostream>
 #include "game_logic/OpenGL_capabilities/include.h"
+#include "game_logic/binding_util/include.h"
 
 namespace game_logic::initialize
 {
@@ -13,5 +14,11 @@ namespace game_logic::initialize
 		query_layouts::query_layouts(environment);
 		compile_shaders::compile_shaders(environment);
 		buffers::initialize(environment);
+
+		::game_logic::binding_util::bind_GPU_only_buffer(environment, 0u);
+
+		glUseProgram(environment.state.shaders.state.initialize.state.initialize);
+		glDispatchCompute(1u, 0u, 0u);
+		glMemoryBarrier(GL_ALL_BARRIER_BITS);
 	}
 }

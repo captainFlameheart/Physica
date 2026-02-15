@@ -1,5 +1,6 @@
 #pragma once
 #include "query.h"
+#include "query_shader_storage_buffer_data_size.h"
 #include "query_shader_storage_variable_offset.h"
 #include "query_shader_storage_variable_offset_array_stride.h"
 #include "query_shader_storage_variable_offset_array_stride_array_size.h"

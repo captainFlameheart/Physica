@@ -1,4 +1,15 @@
+// IMPORTANT TODO: Switch to std430 layout if shared layout does not match needs!
 const float pi = 3.141592653589793;
+
+const uint uint_size_shift = 2u;
+const uint uint_size = 1u << uint_size_shift;
+
+const uint uvec4_size_shift = 4u;
+const uint uvec4_size = 1u << uvec4_size_shift;
+
+const uint alignment = 128u;	// Must be power of two and at least 4!
+const uint align_up_addition = alignment - 1u;
+const uint align_up_mask = ~align_up_addition;
 
 const uint point_mass_distance_constraint_is_dead_shift = 0u;
 const uint point_mass_distance_constraint_is_dead_mask = 1u << point_mass_distance_constraint_is_dead_shift;
@@ -31,6 +42,21 @@ struct Draw_Arrays_Command {
     uint first;
     uint base_instance;
 };
+
+uint align_up(uint address)
+{
+	return (address + align_up_addition) & align_up_mask;
+}
+
+uint address_to_uvec4_index(uint address)
+{
+	return address >> uvec4_size_shift;
+}
+
+uint address_to_uint_index(uint address)
+{
+	return address >> uint_size_shift;
+}
 
 layout(shared, binding = fixed_data_binding) FIXED_DATA_RESTRICT_PLACEHOLDER
 FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
@@ -65,6 +91,7 @@ FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 
 	uint point_mass_uniform_force_constraint_capacity;
 
+	// TODO: Pad counts to avoid false sharing (unnecessary conflicts during atomic additions)
 	uint read_counts[entity_type_count];
 	uint write_counts[entity_type_count];
 

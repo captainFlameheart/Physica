@@ -1,0 +1,58 @@
+layout(local_size_x = 1u) in;
+void main()
+{
+	fixed_data.camera_position = uvec4(0u);
+	mat4 camera_offset_to_local = mat4(1.0);
+	vec2 projection = vec2(0.5, 1.0);
+	mat4 camera_projection = mat4
+	(
+		projection.x, 0.0, 0.0, 0.0,
+		0.0, projection.y, 0.0, 0.0,
+		0.0, 0.0, 0.0, -1.0,
+		0.0, 0.0, 0.0, 0.0
+	);
+	fixed_data.camera_offset_to_clip_coordinates = camera_projection * camera_offset_to_local;
+
+	uint point_mass_capacity = 1u;
+
+	uint point_mass_position_velocity_base_address = align_up(fixed_data_buffer_data_size);
+	uint point_mass_inverse_mass_base_address = align_up(point_mass_position_velocity_base_address + point_mass_capacity * uvec4_data_array_stride);
+	uint point_mass_constraint_count_base_address = align_up(point_mass_inverse_mass_base_address + point_mass_capacity * float_data_array_stride);
+	uint point_mass_read_force_turn_flags_base_address = align_up(point_mass_constraint_count_base_address + point_mass_capacity * uint_data_array_stride);
+	uint point_mass_read_impulses_base_address = align_up(point_mass_read_force_turn_flags_base_address + point_mass_capacity * uvec4_data_array_stride);
+	uint point_mass_write_force_turn_flags_base_address = align_up(point_mass_read_impulses_base_address + point_mass_capacity * uvec4_data_array_stride);
+	uint point_mass_write_impulses_base_address = align_up(point_mass_write_force_turn_flags_base_address + point_mass_capacity * uvec4_data_array_stride);
+
+	uint point_mass_position_velocity_base = address_to_uvec4_index(point_mass_position_velocity_base_address);
+	uint point_mass_inverse_mass_base = address_to_uint_index(point_mass_inverse_mass_base_address);
+	uint point_mass_constraint_count_base = address_to_uint_index(point_mass_constraint_count_base_address);
+	uint point_mass_read_force_turn_flags_base = address_to_uvec4_index(point_mass_read_force_turn_flags_base_address);
+	uint point_mass_read_impulses_base = address_to_uvec4_index(point_mass_read_impulses_base_address);
+	uint point_mass_write_force_turn_flags_base = address_to_uvec4_index(point_mass_write_force_turn_flags_base_address);
+	uint point_mass_write_impulses_base = address_to_uvec4_index(point_mass_write_impulses_base_address);
+
+	fixed_data.point_mass_position_velocity_base = point_mass_position_velocity_base;
+	fixed_data.point_mass_inverse_mass_base = point_mass_inverse_mass_base;
+	fixed_data.point_mass_constraint_count_base = point_mass_constraint_count_base;
+	fixed_data.point_mass_read_force_turn_flags_base = point_mass_read_force_turn_flags_base;
+	fixed_data.point_mass_read_impulses_base = point_mass_read_impulses_base;
+	fixed_data.point_mass_write_force_turn_flags_base = point_mass_write_force_turn_flags_base;
+	fixed_data.point_mass_write_impulses_base = point_mass_write_impulses_base;
+
+	fixed_data.point_mass_capacity = point_mass_capacity;
+
+	uint end_base_address = point_mass_write_impulses_base_address + point_mass_capacity * uvec4_data_array_stride;
+	uint end_base = address_to_uint_index(end_base_address);
+	point_mass_capacity *= uint(end_base <= uvec4_data.data.length());
+
+	for (uint point_mass_index = 0u; point_mass_index < point_mass_capacity; ++point_mass_index)
+	{
+		uvec4_data.data[point_mass_position_velocity_base + point_mass_index] = uvec4(0u);
+		float_data.data[point_mass_inverse_mass_base + point_mass_index] = 1.0;
+		uint_data.data[point_mass_constraint_count_base + point_mass_index] = 0u;
+		uvec4_data.data[point_mass_read_force_turn_flags_base + point_mass_index] = uvec4(0u);
+		uvec4_data.data[point_mass_read_impulses_base + point_mass_index] = uvec4(0u);
+		uvec4_data.data[point_mass_write_force_turn_flags_base + point_mass_index] = uvec4(0u);
+		uvec4_data.data[point_mass_write_impulses_base + point_mass_index] = uvec4(0u);
+	}
+}

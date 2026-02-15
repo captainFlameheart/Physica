@@ -157,5 +157,10 @@ namespace game_logic::initialize::query_layouts
 			program, "Fixed_Data.draw_arrays_commands[0].base_instance",
 			environment.state.layouts.fixed_data.draw_arrays_commands_base_instance_properties
 		);
+		::game_logic::shader_util::query::query_shader_storage_buffer_data_size
+		(
+			program, "Fixed_Data",
+			environment.state.layouts.fixed_data.block_properties
+		);
 	}
 }
