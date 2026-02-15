@@ -17,7 +17,6 @@ namespace game_logic::initialize::buffers::GPU_only
 			(
 				environment.state.buffers.GPU_only.buffers[buffer_index], environment.state.buffers.GPU_only.size, nullptr, 0u
 			);
-			std::cout << environment.state.buffers.GPU_only.buffers[buffer_index] << std::endl;
 		}
 	}
 }

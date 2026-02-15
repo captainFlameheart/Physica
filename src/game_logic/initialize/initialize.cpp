@@ -21,11 +21,7 @@ namespace game_logic::initialize
 		::game_logic::binding_util::bind_GPU_only_buffer(environment, 0u);
 
 		glUseProgram(environment.state.shaders.state.initialize.state.initialize);
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, environment.state.buffers.GPU_only.buffers[0u]);
-
 		glDispatchCompute(1u, 1u, 1u);
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);
-
-		std::cout << environment.state.shaders.state.initialize.state.initialize << std::endl;
 	}
 }
