@@ -7,7 +7,7 @@
 
 namespace game_logic::initialize::compile_shaders
 {
-	void compile_update_tick_counts
+	void compile_process_rigid_bodies
 	(
 		game_environment::Environment& environment, ::game_state::initialize::compile_shaders::environment::Environment compile_environment
 	)
@@ -16,12 +16,10 @@ namespace game_logic::initialize::compile_shaders
 		(
 			compile_environment.shader_group.compute_shader,
 			compile_environment.writable_prefix_source,
-			::util::shader::file_to_string("tick/update_counts.comp")
+			::util::shader::file_to_string("tick/bodies/rigid_bodies/process.comp")
 		);
 
-		::game_logic::shader_util::print_source(compile_environment.shader_group.compute_shader);
-
-		environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::tick::update_counts::Indices::update_counts)] = ::util::shader::create_program
+		environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bodies::Indices::rigid_bodies)] = ::util::shader::create_program
 		(
 			compile_environment.shader_group.compute_shader
 		);

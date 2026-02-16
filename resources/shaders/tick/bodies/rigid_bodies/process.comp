@@ -1,0 +1,10 @@
+layout(local_size_x = process_rigid_bodies_local_size) in;
+void main()
+{
+	uint index = gl_GlobalInvocationID.x;
+	uint count = fixed_data.read_counts[rigid_body_type_index];
+	if (index >= count)
+	{
+		return;
+	}
+}

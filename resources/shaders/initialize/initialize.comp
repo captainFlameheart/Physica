@@ -52,6 +52,8 @@ void main()
 
 	for (uint dispatch_program_index = 0u; dispatch_program_index < dispatch_program_count; ++dispatch_program_index)
 	{
+		fixed_data.dispatch_command_flags[dispatch_program_index] = dispatch_command_enabled_mask;
+
 		fixed_data.dispatch_commands[dispatch_program_index].work_group_count_x = 0u;
 		fixed_data.dispatch_commands[dispatch_program_index].work_group_count_y = 1u;
 		fixed_data.dispatch_commands[dispatch_program_index].work_group_count_z = 1u;
@@ -60,6 +62,8 @@ void main()
 
 	for (uint draw_arrays_program_index = 0u; draw_arrays_program_index < draw_arrays_program_count; ++draw_arrays_program_index)
 	{
+		fixed_data.draw_arrays_command_flags[draw_arrays_program_index] = draw_arrays_command_enabled_mask;
+
 		fixed_data.draw_arrays_commands[draw_arrays_program_index].count = 0u;
 		fixed_data.draw_arrays_commands[draw_arrays_program_index].instance_count = 1u;
 		fixed_data.draw_arrays_commands[draw_arrays_program_index].first = 0u;
@@ -67,8 +71,6 @@ void main()
 	}
 
 	// TODO: Let this be set by other shader
-	const uint process_point_masses_index = 0u;	// TODO: Set from CPU
-	fixed_data.dispatch_commands[process_point_masses_index].work_group_count_x = 1u;
 	const uint draw_point_masses_index = 0u;	// TODO: Set from CPU
 	fixed_data.draw_arrays_commands[draw_point_masses_index].count = point_mass_count * 6u;
 	

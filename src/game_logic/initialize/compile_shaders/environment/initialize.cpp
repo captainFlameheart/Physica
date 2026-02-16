@@ -47,7 +47,7 @@ namespace game_logic::initialize::compile_shaders::environment
 			GLuint local_size{ ::game_state::local_sizes::process_entities_local_sizes[dispatch_command_index] };
 			dispatch_command_blueprints += "	uvec2(" + std::to_string(entity_type_index) + ", " + std::to_string(local_size) + "),\n";
 		}
-		dispatch_command_blueprints += "};";
+		dispatch_command_blueprints += "};\n";
 
 		GLuint update_tick_counts_local_size{ ::game_state::local_sizes::update_tick_counts_local_size };
 		GLuint update_draw_counts_local_size{ ::game_state::local_sizes::update_draw_counts_local_size };
@@ -83,6 +83,7 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uint draw_arrays_program_count = " + std::to_string(draw_arrays_program_count) + ";\n"
 
 			"const uint point_mass_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::Indices::point_mass)) + ";\n"
+			"const uint rigid_body_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::Indices::rigid_body)) + ";\n"
 			"const uint point_mass_distance_constraint_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::Indices::point_mass_distance_constraint)) + ";\n"
 			"const uint point_mass_uniform_force_constraint_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::Indices::point_mass_uniform_force_constraint)) + ";\n"
 	
@@ -92,6 +93,7 @@ namespace game_logic::initialize::compile_shaders::environment
 			
 			"const uint update_tick_counts_local_size = " + ::std::to_string(update_tick_counts_local_size) + ";\n"
 			"const uint process_point_masses_local_size = " + ::std::to_string(process_point_masses_local_size) + ";\n"
+			"const uint process_rigid_bodies_local_size = " + ::std::to_string(process_rigid_bodies_local_size) + ";\n"
 			"const uint process_point_mass_distance_constraints_local_size = " + ::std::to_string(process_point_mass_distance_constraints_local_size) + ";\n"
 			"const uint process_point_mass_uniform_force_constraints_local_size = " + ::std::to_string(process_point_mass_uniform_force_constraints_local_size) + ";\n"
 

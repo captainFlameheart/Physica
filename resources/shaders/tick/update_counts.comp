@@ -1,7 +1,7 @@
 layout(local_size_x = update_tick_counts_local_size) in;
 void main()
 {
-	uint command_index = gl_GlobalInvocationID.x
+	uint command_index = gl_GlobalInvocationID.x;
 	if (command_index >= dispatch_program_count)
 	{
 		return;
