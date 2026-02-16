@@ -1,18 +1,25 @@
 #pragma once
 #include "glad_glfw.h"
+#include "game_state/shader_indices/include.h"
+#include <array>
 
 namespace game_state::local_sizes
 {
 	constexpr GLuint default_local_size{ 256u };
 
-	struct Local_Sizes
+	constexpr GLuint update_tick_counts_local_size{ default_local_size };
+	constexpr GLuint update_draw_counts_local_size{ default_local_size };
+
+	constexpr std::array<GLuint, ::game_state::shader_indices::tick::process_entities::count> initialize_process_entities_local_sizes()
 	{
-		GLuint process_point_masses{ default_local_size };
-		GLuint process_point_mass_distance_constraints{ default_local_size };
-		GLuint process_point_mass_uniform_force_constraints{ default_local_size };
-	};
+		std::array<GLuint, ::game_state::shader_indices::tick::process_entities::count> local_sizes{};
+		constexpr GLuint base{ ::game_state::shader_indices::tick::process_entities::base };
+		local_sizes[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bodies::Indices::point_masses) - base] = default_local_size;
+		local_sizes[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bodies::Indices::rigid_bodies) - base] = default_local_size;
+		local_sizes[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraints::Indices::point_mass_distance_constraints) - base] = default_local_size;
+		local_sizes[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraints::Indices::point_mass_uniform_force_constraints) - base] = default_local_size;
+		return local_sizes;
+	}
 
-	constexpr Local_Sizes local_sizes{};
-
-	constexpr GLuint dispatch_program_count{ sizeof(Local_Sizes) / sizeof(GLuint) };
+	constexpr std::array<GLuint, ::game_state::shader_indices::tick::process_entities::count> process_entities_local_sizes{ initialize_process_entities_local_sizes() };
 }

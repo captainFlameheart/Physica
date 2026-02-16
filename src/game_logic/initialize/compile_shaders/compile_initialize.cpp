@@ -19,7 +19,7 @@ namespace game_logic::initialize::compile_shaders
 			::util::shader::file_to_string("initialize/initialize.comp")
 		);
 
-		environment.state.shaders.state.initialize.state.initialize = ::util::shader::create_program
+		environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::initialize::Indices::initialize)] = ::util::shader::create_program
 		(
 			compile_environment.shader_group.compute_shader
 		);

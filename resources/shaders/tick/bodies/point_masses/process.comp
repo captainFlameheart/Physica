@@ -2,7 +2,7 @@ layout(local_size_x = process_point_masses_local_size) in;
 void main()
 {
 	uint index = gl_GlobalInvocationID.x;
-	uint count = fixed_data.read_counts[point_mass_count_index];
+	uint count = fixed_data.read_counts[point_mass_type_index];
 	if (index >= count)
 	{
 		return;

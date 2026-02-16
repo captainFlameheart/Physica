@@ -1,9 +1,9 @@
-const uint command_blueprints[draw_arrays_program_count] = 
+/*const uint command_blueprints[draw_arrays_program_count] = 
 {	// (count_index, vertex_factor)
 	uvec2(point_mass_count_index, draw_point_masses_vertex_factor),
 	uvec2(point_mass_distance_constraint_count_index, draw_point_mass_distance_constraints_vertex_factor),
 	uvec2(point_mass_uniform_force_constraint_count_index, draw_point_mass_uniform_force_constraints_vertex_factor),
-};
+};*/
 
 layout(local_size_x = update_draw_counts_local_size) in;
 void main()

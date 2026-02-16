@@ -6,7 +6,7 @@ namespace game_logic::tick
 {
 	void tick(game_environment::Environment& environment)
 	{
-		glUseProgram(environment.state.shaders.state.tick.state.bodies.state.point_masses.state.process);
+		glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bodies::Indices::point_masses)]);
 		constexpr GLuint process_point_masses_index{ 0u };
 		GLintptr process_point_masses_command_offset
 		{

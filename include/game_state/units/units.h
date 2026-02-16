@@ -10,4 +10,6 @@ namespace game_state::units
 	constexpr GLfloat time_unit_in_seconds{ 1.0f / second_in_time_units };
 
 	constexpr GLfloat meters_per_second_in_length_units_per_time_unit{ meter_in_length_units / second_in_time_units };
+
+	constexpr GLfloat meters_per_second_squared_in_length_units_per_time_unit_squared{ meter_in_length_units / (second_in_time_units * second_in_time_units) };
 }

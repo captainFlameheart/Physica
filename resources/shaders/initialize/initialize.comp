@@ -47,8 +47,8 @@ void main()
 
 	uint point_mass_count = point_mass_capacity;
 
-	fixed_data.read_counts[point_mass_count_index] = point_mass_count;
-	fixed_data.write_counts[point_mass_count_index] = point_mass_count;
+	fixed_data.read_counts[point_mass_type_index] = point_mass_count;
+	fixed_data.write_counts[point_mass_type_index] = point_mass_count;
 
 	for (uint dispatch_program_index = 0u; dispatch_program_index < dispatch_program_count; ++dispatch_program_index)
 	{
@@ -74,10 +74,10 @@ void main()
 	
 	for (uint point_mass_index = 0u; point_mass_index < point_mass_count; ++point_mass_index)
 	{
-		uvec4_data.data[point_mass_position_velocity_base + point_mass_index] = uvec4(0u, 0u, 0.5 * meters_per_second_in_length_units_per_time_unit, 0u);
+		uvec4_data.data[point_mass_position_velocity_base + point_mass_index] = uvec4(0u, 0u, 1.0 * meters_per_second_in_length_units_per_time_unit, 4.0 * meters_per_second_in_length_units_per_time_unit);
 		float_data.data[point_mass_inverse_mass_base + point_mass_index] = 1.0;
 		uint_data.data[point_mass_constraint_count_base + point_mass_index] = 0u;
-		uvec4_data.data[point_mass_read_force_turn_flags_base + point_mass_index] = uvec4(0u);
+		uvec4_data.data[point_mass_read_force_turn_flags_base + point_mass_index] = uvec4(0u, -9.81 * meters_per_second_squared_in_length_units_per_time_unit_squared, 0u, 0u);
 		uvec4_data.data[point_mass_read_impulses_base + point_mass_index] = uvec4(0u);
 		uvec4_data.data[point_mass_write_force_turn_flags_base + point_mass_index] = uvec4(0u);
 		uvec4_data.data[point_mass_write_impulses_base + point_mass_index] = uvec4(0u);

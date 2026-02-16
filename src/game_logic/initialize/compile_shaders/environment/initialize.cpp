@@ -5,7 +5,8 @@
 #include "util/shader/shader.h"
 #include "game_state/bindings/include.h"
 #include "game_state/local_sizes/include.h"
-#include "game_state/entity_types/entity_types.h"
+#include "game_state/entity_type_indices/entity_type_indices.h"
+#include "game_state/shader_to_entity_type/shader_to_entity_type.h"
 #include "game_state/units/include.h"
 #include <iostream>
 
@@ -35,24 +36,65 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uint fixed_data_binding = " + std::to_string(::game_state::bindings::shader_storage::fixed_data) + ";\n"
 		;
 		
+		std::string	dispatch_command_blueprints
+		{
+			"const uvec2 dispatch_command_blueprints[" + std::to_string(::game_state::shader_indices::tick::process_entities::count) + "] = \n"
+			"{	// (entity_type_index, local_size)\n"
+		};
+		for (GLuint dispatch_command_index{ 0u }; dispatch_command_index < ::game_state::shader_indices::tick::process_entities::count; ++dispatch_command_index)
+		{
+			GLuint entity_type_index{ static_cast<GLuint>(::game_state::shader_to_entity_type::shader_to_entity_type[dispatch_command_index]) };
+			GLuint local_size{ ::game_state::local_sizes::process_entities_local_sizes[dispatch_command_index] };
+			dispatch_command_blueprints += "	uvec2(" + std::to_string(entity_type_index) + ", " + std::to_string(local_size) + "),\n";
+		}
+		dispatch_command_blueprints += "};";
+
+		GLuint update_tick_counts_local_size{ ::game_state::local_sizes::update_tick_counts_local_size };
+		GLuint update_draw_counts_local_size{ ::game_state::local_sizes::update_draw_counts_local_size };
+
+		constexpr GLuint tick_entities_local_size_base{ ::game_state::shader_indices::tick::process_entities::base };
+
+		GLuint process_point_masses_local_size{ ::game_state::local_sizes::process_entities_local_sizes[
+			static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bodies::Indices::point_masses) - tick_entities_local_size_base
+		] };
+		GLuint process_rigid_bodies_local_size{ ::game_state::local_sizes::process_entities_local_sizes[
+			static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bodies::Indices::rigid_bodies) - tick_entities_local_size_base
+		] };
+
+		GLuint process_point_mass_distance_constraints_local_size{ ::game_state::local_sizes::process_entities_local_sizes[
+			static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraints::Indices::point_mass_distance_constraints) - tick_entities_local_size_base
+		] };
+		GLuint process_point_mass_uniform_force_constraints_local_size{ ::game_state::local_sizes::process_entities_local_sizes[
+			static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraints::Indices::point_mass_uniform_force_constraints) - tick_entities_local_size_base
+		] };
+
 		compile_environment.constant_definitions = 
+			dispatch_command_blueprints + 
 			"const float meter_in_length_units = " + std::to_string(game_state::units::meter_in_length_units) + ";\n"
 			"const float length_unit_in_meters = " + std::to_string(game_state::units::length_unit_in_meters) + ";\n"
 			"const float second_in_time_units = " + std::to_string(game_state::units::second_in_time_units) + ";\n"
 			"const float time_unit_in_seconds = " + std::to_string(game_state::units::time_unit_in_seconds) + ";\n"
 			"const float meters_per_second_in_length_units_per_time_unit = " + std::to_string(game_state::units::meters_per_second_in_length_units_per_time_unit) + ";\n"
-			"const uint entity_type_count = " + std::to_string(game_state::entity_types::count) + ";\n"
-			"const uint dispatch_program_count = " + std::to_string(::game_state::local_sizes::dispatch_program_count) + ";\n"
+			"const float meters_per_second_squared_in_length_units_per_time_unit_squared = " + std::to_string(game_state::units::meters_per_second_squared_in_length_units_per_time_unit_squared) + ";\n"
+
+			"const uint entity_type_count = " + std::to_string(game_state::entity_type_indices::count) + ";\n"
+
+			"const uint dispatch_program_count = " + std::to_string(::game_state::shader_indices::tick::process_entities::count) + ";\n"
 			"const uint draw_arrays_program_count = " + std::to_string(draw_arrays_program_count) + ";\n"
-			"const uint point_mass_count_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_types::Count_Indices::point_mass)) + ";\n"
-			"const uint point_mass_distance_constraint_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_types::Count_Indices::point_mass_distance_constraint)) + ";\n"
-			"const uint point_mass_uniform_force_constraint_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_types::Count_Indices::point_mass_uniform_force_constraint)) + ";\n"
+
+			"const uint point_mass_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::Indices::point_mass)) + ";\n"
+			"const uint point_mass_distance_constraint_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::Indices::point_mass_distance_constraint)) + ";\n"
+			"const uint point_mass_uniform_force_constraint_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::Indices::point_mass_uniform_force_constraint)) + ";\n"
+	
 			"const uint uvec4_data_binding = " + std::to_string(::game_state::bindings::shader_storage::uvec4_data) + ";\n"
 			"const uint uint_data_binding = " + ::std::to_string(::game_state::bindings::shader_storage::uint_data) + ";\n"
 			"const uint float_data_binding = " + ::std::to_string(::game_state::bindings::shader_storage::float_data) + ";\n"
-			"const uint process_point_masses_local_size = " + ::std::to_string(::game_state::local_sizes::local_sizes.process_point_masses) + ";\n"
-			"const uint process_point_mass_distance_constraints_local_size = " + ::std::to_string(::game_state::local_sizes::local_sizes.process_point_mass_distance_constraints) + ";\n"
-			"const uint process_point_mass_uniform_force_constraints_local_size = " + ::std::to_string(::game_state::local_sizes::local_sizes.process_point_mass_uniform_force_constraints) + ";\n"
+			
+			"const uint update_tick_counts_local_size = " + ::std::to_string(update_tick_counts_local_size) + ";\n"
+			"const uint process_point_masses_local_size = " + ::std::to_string(process_point_masses_local_size) + ";\n"
+			"const uint process_point_mass_distance_constraints_local_size = " + ::std::to_string(process_point_mass_distance_constraints_local_size) + ";\n"
+			"const uint process_point_mass_uniform_force_constraints_local_size = " + ::std::to_string(process_point_mass_uniform_force_constraints_local_size) + ";\n"
+
 			"const uint fixed_data_buffer_data_size = " + ::std::to_string(environment.state.layouts.fixed_data.block_state.buffer_data_size) + ";\n"
 			"const uint uvec4_data_offset = " + std::to_string(environment.state.layouts.uvec4_data.state.offset) + ";\n"
 			"const uint uvec4_data_array_stride = " + std::to_string(environment.state.layouts.uvec4_data.state.array_stride) + ";\n"

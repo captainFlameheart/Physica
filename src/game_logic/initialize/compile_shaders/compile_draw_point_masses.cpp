@@ -26,7 +26,7 @@ namespace game_logic::initialize::compile_shaders
 			::util::shader::file_to_string("draw/bodies/point_masses/default/draw.frag")
 		);
 
-		environment.state.shaders.state.draw.state.bodies.state.point_masses.state.draw = ::util::shader::create_program
+		environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::draw::entities::bodies::Indices::point_masses)] = ::util::shader::create_program
 		(
 			compile_environment.shader_group.vertex_shader, compile_environment.shader_group.fragment_shader
 		);

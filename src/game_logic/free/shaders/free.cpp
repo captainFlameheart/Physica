@@ -5,7 +5,9 @@ namespace game_logic::free::shaders
 {
 	void free(game_environment::Environment& environment)
 	{
-		glDeleteProgram(environment.state.shaders.state.tick.state.bodies.state.point_masses.state.process);
-		glDeleteProgram(environment.state.shaders.state.draw.state.bodies.state.point_masses.state.draw);
+		for (GLuint shader_index{ 0u }; shader_index < ::game_state::shader_indices::count; ++shader_index)
+		{
+			glDeleteProgram(environment.state.shaders[shader_index]);
+		}
 	}
 }

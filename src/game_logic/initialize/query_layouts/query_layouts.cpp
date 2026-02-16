@@ -2,7 +2,7 @@
 #include "game_environment/Environment.h"
 #include "util/shader/shader.h"
 #include "game_state/device_requirements/OpenGL_versions.h"
-#include "game_state/entity_types/entity_types.h"
+#include "game_state/entity_type_indices/entity_type_indices.h"
 #include "game_state/local_sizes/include.h"
 #include <string>
 
@@ -26,8 +26,8 @@ namespace game_logic::initialize::query_layouts
 			"const uint uvec4_data_binding = 1;\n"
 			"const uint uint_data_binding = 2;\n"
 			"const uint float_data_binding = 3;\n"
-			"const uint entity_type_count = " + std::to_string(::game_state::entity_types::count) + ";\n"
-			"const uint dispatch_program_count = " + std::to_string(::game_state::local_sizes::dispatch_program_count) + ";\n"
+			"const uint entity_type_count = " + std::to_string(::game_state::entity_type_indices::count) + ";\n"
+			"const uint dispatch_program_count = " + std::to_string(::game_state::shader_indices::tick::process_entities::count) + ";\n"
 			"const uint draw_arrays_program_count = " + std::to_string(draw_arrays_program_count) + ";\n"
 			,
 			::util::shader::file_to_string("blocks/Fixed_Data"),

@@ -8,7 +8,7 @@ namespace game_logic::draw
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		glUseProgram(environment.state.shaders.state.draw.state.bodies.state.point_masses.state.draw);
+		glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::draw::entities::bodies::Indices::point_masses)]);
 		constexpr GLuint draw_point_masses_index{ 0u };
 		GLintptr draw_point_masses_command_offset
 		{
