@@ -45,14 +45,16 @@ void main()
 	uint end_base = address_to_uint_index(end_base_address);
 	point_mass_capacity *= uint(end_base <= uvec4_data.data.length());
 
-	fixed_data.read_counts[point_mass_count_index] = point_mass_capacity;
-	fixed_data.write_counts[point_mass_count_index] = point_mass_capacity;
+	uint point_mass_count = point_mass_capacity;
+
+	fixed_data.read_counts[point_mass_count_index] = point_mass_count;
+	fixed_data.write_counts[point_mass_count_index] = point_mass_count;
 
 	for (uint dispatch_program_index = 0u; dispatch_program_index < dispatch_program_count; ++dispatch_program_index)
 	{
 		fixed_data.dispatch_commands[dispatch_program_index].work_group_count_x = 0u;
-		fixed_data.dispatch_commands[dispatch_program_index].work_group_count_y = 0u;
-		fixed_data.dispatch_commands[dispatch_program_index].work_group_count_z = 0u;
+		fixed_data.dispatch_commands[dispatch_program_index].work_group_count_y = 1u;
+		fixed_data.dispatch_commands[dispatch_program_index].work_group_count_z = 1u;
 		fixed_data.dispatch_commands[dispatch_program_index].pad = 0u;
 	}
 
@@ -65,10 +67,12 @@ void main()
 	}
 
 	// TODO: Let this be set by other shader
+	const uint process_point_masses_index = 0u;	// TODO: Set from CPU
+	fixed_data.dispatch_commands[process_point_masses_index].work_group_count_x = 1u;
 	const uint draw_point_masses_index = 0u;	// TODO: Set from CPU
-	fixed_data.draw_arrays_commands[draw_point_masses_index].count = point_mass_capacity * 6u;
-
-	for (uint point_mass_index = 0u; point_mass_index < point_mass_capacity; ++point_mass_index)
+	fixed_data.draw_arrays_commands[draw_point_masses_index].count = point_mass_count * 6u;
+	
+	for (uint point_mass_index = 0u; point_mass_index < point_mass_count; ++point_mass_index)
 	{
 		uvec4_data.data[point_mass_position_velocity_base + point_mass_index] = uvec4(0u, 0u, 0.5 * meters_per_second_in_length_units_per_time_unit, 0u);
 		float_data.data[point_mass_inverse_mass_base + point_mass_index] = 1.0;
