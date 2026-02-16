@@ -5,6 +5,7 @@
 #else
 #include "game_logic/game.h"
 #include "game_logic/initialize/include.h"
+#include "game_logic/tick/include.h"
 #include "game_logic/draw/draw.h"
 #include "game_logic/free/include.h"
 #endif
@@ -17,7 +18,7 @@ namespace game_logic
 #if RUN_LEGACY
 		::legacy::game_logic::initialize(environment);
 #else
-		::game_logic::initialize::initialize(environment);
+		initialize::initialize(environment);
 #endif
 	}
 
@@ -115,6 +116,7 @@ namespace game_logic
 #if RUN_LEGACY
 		::legacy::game_logic::tick(environment);
 #else
+		tick::tick(environment);
 #endif
 	}
 
@@ -123,7 +125,7 @@ namespace game_logic
 #if RUN_LEGACY
 		::legacy::game_logic::render(environment);
 #else
-		::game_logic::draw::draw(environment);
+		game_logic::draw::draw(environment);
 #endif
 	}
 

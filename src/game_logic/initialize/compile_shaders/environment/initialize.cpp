@@ -6,6 +6,7 @@
 #include "game_state/bindings/include.h"
 #include "game_state/local_sizes/include.h"
 #include "game_state/entity_types/entity_types.h"
+#include "game_state/units/include.h"
 #include <iostream>
 
 namespace game_logic::initialize::compile_shaders::environment
@@ -35,6 +36,11 @@ namespace game_logic::initialize::compile_shaders::environment
 		;
 		
 		compile_environment.constant_definitions = 
+			"const float meter_in_length_units = " + std::to_string(game_state::units::meter_in_length_units) + ";\n"
+			"const float length_unit_in_meters = " + std::to_string(game_state::units::length_unit_in_meters) + ";\n"
+			"const float second_in_time_units = " + std::to_string(game_state::units::second_in_time_units) + ";\n"
+			"const float time_unit_in_seconds = " + std::to_string(game_state::units::time_unit_in_seconds) + ";\n"
+			"const float meters_per_second_in_length_units_per_time_unit = " + std::to_string(game_state::units::meters_per_second_in_length_units_per_time_unit) + ";\n"
 			"const uint entity_type_count = " + std::to_string(game_state::entity_types::count) + ";\n"
 			"const uint dispatch_program_count = " + std::to_string(::game_state::local_sizes::dispatch_program_count) + ";\n"
 			"const uint draw_arrays_program_count = " + std::to_string(draw_arrays_program_count) + ";\n"

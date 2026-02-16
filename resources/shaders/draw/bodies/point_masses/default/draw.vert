@@ -36,6 +36,8 @@ void main()
 	radius = 1.0 / (inverse_mass * pi_times_density);
 	offset *= radius;
 
-	vec4 camera_offset = vec4(vec2(ivec2(position_velocity.xy - camera_position.xy)) + offset, float(-int(camera_position.z)), float(1u));
+	vec4 camera_offset = vec4(ivec2(position_velocity.xy - camera_position.xy), int(-camera_position.z), 1.0f);
+	camera_offset.xyz *= length_unit_in_meters;
+	camera_offset.xy += offset;
 	gl_Position = camera_offset_to_clip_coordinates * camera_offset;
 }

@@ -1,9 +1,10 @@
 #include <glad/glad.h>
 #include "game_runner/game_loop.h"
 #include "game_logic/game.h"
-#include "game_logic/util/tick/delta_time/SECONDS.h"
-#include "game_logic/util/tick/MAX_TICKS_PER_FRAME.h"
-#include "macros/macros.h"
+//#include "game_logic/util/tick/delta_time/SECONDS.h"
+//#include "game_logic/util/tick/MAX_TICKS_PER_FRAME.h"
+//#include "macros/macros.h"
+#include "game_state/units/include.h"
 
 namespace game_runner
 {
@@ -77,6 +78,7 @@ namespace game_runner
 
 		glfwPollEvents();
 
+#if RUN_LEGACY == 1 
 		while (!glfwWindowShouldClose(window))
 		{
 			game_environment.ticks_this_frame = 0u;
@@ -103,6 +105,35 @@ namespace game_runner
 
 			glfwPollEvents();
 		}
+#else
+		constexpr GLuint max_ticks_per_frame{ 100u };
+		while (!glfwWindowShouldClose(window))
+		{
+			game_environment.ticks_this_frame = 0u;
+			while
+			(
+				(game_environment.lag = static_cast<GLfloat>(glfwGetTime()) >= ::game_state::units::time_unit_in_seconds) &&
+				game_environment.ticks_this_frame < max_ticks_per_frame
+			)
+			{
+				game_logic::_tick(game_environment);
+				glfwSetTime(glfwGetTime() - static_cast<double>(::game_state::units::time_unit_in_seconds));
+				++game_environment.ticks_this_frame;
+			}
+
+			if (game_environment.lag >= ::game_state::units::time_unit_in_seconds)
+			{
+				glfwSetTime(0.0);
+				game_environment.lag = 0.0f;
+				DEBUG_LOG("Game loop tick limit hit!");
+			}
+
+			game_logic::_draw(game_environment);
+			glfwSwapBuffers(window);
+
+			glfwPollEvents();
+		}
+#endif
 
 		game_logic::_free(game_environment);
 		glfwSetWindowUserPointer(window, nullptr);
