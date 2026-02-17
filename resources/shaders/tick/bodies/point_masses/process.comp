@@ -24,8 +24,8 @@ void main()
 
 	uvec4 position_velocity = uvec4_data.data[position_velocity_index];
 	// float inverse_mass = float_data.data[inverse_mass_index];
-	uvec4 force_turn_flags = uvec4_data.data[read_force_turn_flags_index];
-	uvec4 impulses = uvec4_data.data[read_impulses_index];
+	uvec4 force_turn_flags = uvec4_data.data[write_force_turn_flags_index];
+	uvec4 impulses = uvec4_data.data[write_impulses_index];
 
 	// TODO: Update position based on position impulse
 	position_velocity.zw += force_turn_flags.xy + impulses.xy;
@@ -35,13 +35,11 @@ void main()
 
 	force_turn_flags.z += 1;
 
-	uvec4_data.data[read_force_turn_flags_index] = force_turn_flags;
-
-	uvec4 previous_force_turn_flags = uvec4_data.data[write_force_turn_flags_index];
+	uvec4 previous_force_turn_flags = uvec4_data.data[read_force_turn_flags_index];
 	impulses.xy += force_turn_flags.xy - previous_force_turn_flags.xy;
 
 	// TODO: Update position impulse
-
+	uvec4_data.data[read_force_turn_flags_index] = force_turn_flags;
 	uvec4_data.data[read_impulses_index] = impulses;
 
 	uvec4_data.data[write_force_turn_flags_index] = force_turn_flags;

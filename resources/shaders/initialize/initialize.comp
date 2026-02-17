@@ -78,12 +78,12 @@ void main()
 		));
 		float_data.data[point_mass_inverse_mass_base + point_mass_index] = 1.0;
 		uint_data.data[point_mass_constraint_count_base + point_mass_index] = 0u;
-		uvec4_data.data[point_mass_read_force_turn_flags_base + point_mass_index] = uvec4(0u, -9.81 * meters_per_second_squared_in_length_units_per_time_unit_squared, 0u, 0u);
+		uvec4_data.data[point_mass_read_force_turn_flags_base + point_mass_index] = uvec4(0u);
 		uvec4_data.data[point_mass_read_impulses_base + point_mass_index] = uvec4(0u);
-		uvec4_data.data[point_mass_write_force_turn_flags_base + point_mass_index] = uvec4(0u);
+		uvec4_data.data[point_mass_write_force_turn_flags_base + point_mass_index] = uvec4(0u, -9.81 * meters_per_second_squared_in_length_units_per_time_unit_squared, 0u, 0u);
 		uvec4_data.data[point_mass_write_impulses_base + point_mass_index] = uvec4(0u);
 	}
 
 	float_data.data[point_mass_inverse_mass_base + 0u] = 0.0;
-	uvec4_data.data[point_mass_read_force_turn_flags_base + 0u].xy = uvec2(0u);
+	uvec4_data.data[point_mass_write_force_turn_flags_base + 0u].xy = uvec2(0u);
 }
