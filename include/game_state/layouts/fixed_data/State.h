@@ -29,22 +29,22 @@ namespace game_state::layouts::fixed_data
 		GLint offset;
 	};
 
-	struct point_mass_read_force_turn_flags_base
+	struct point_mass_read_acceleration_turn_flags_base
 	{
 		GLint offset;
 	};
 
-	struct point_mass_read_impulses_base
+	struct point_mass_read_deltas_base
 	{
 		GLint offset;
 	};
 
-	struct point_mass_write_force_turn_flags_base
+	struct point_mass_write_acceleration_turn_flags_base
 	{
 		GLint offset;
 	};
 
-	struct point_mass_write_impulses_base
+	struct point_mass_write_deltas_base
 	{
 		GLint offset;
 	};
@@ -69,17 +69,17 @@ namespace game_state::layouts::fixed_data
 		GLint offset;
 	};
 
-	struct point_mass_distance_constraint_applied_forces_base
+	struct point_mass_distance_constraint_applied_accelerations_base
 	{
 		GLint offset;
 	};
 
-	struct point_mass_distance_constraint_impulses_base
+	struct point_mass_distance_constraint_delta_velocities_base
 	{
 		GLint offset;
 	};
 
-	struct point_mass_distance_constraint_position_impulses_base
+	struct point_mass_distance_constraint_delta_positions_base
 	{
 		GLint offset;
 	};
@@ -94,12 +94,12 @@ namespace game_state::layouts::fixed_data
 		GLint offset;
 	};
 
-	struct point_mass_uniform_force_constraint_target_and_applied_forces_base
+	struct point_mass_uniform_force_constraint_target_and_applied_accelerations_base
 	{
 		GLint offset;
 	};
 
-	struct point_mass_uniform_force_constraint_impulses_base
+	struct point_mass_uniform_force_constraint_deltas_base
 	{
 		GLint offset;
 	};
@@ -196,23 +196,23 @@ namespace game_state::layouts::fixed_data
 		};
 		union
 		{
-			point_mass_read_force_turn_flags_base point_mass_read_force_turn_flags_base_state;
-			GLint point_mass_read_force_turn_flags_base_properties[sizeof(point_mass_read_force_turn_flags_base) / sizeof(GLint)];
+			point_mass_read_acceleration_turn_flags_base point_mass_read_acceleration_turn_flags_base_state;
+			GLint point_mass_read_acceleration_turn_flags_base_properties[sizeof(point_mass_read_acceleration_turn_flags_base) / sizeof(GLint)];
 		};
 		union
 		{
-			point_mass_read_impulses_base point_mass_read_impulses_base_state;
-			GLint point_mass_read_impulses_base_properties[sizeof(point_mass_read_impulses_base) / sizeof(GLint)];
+			point_mass_read_deltas_base point_mass_read_deltas_base_state;
+			GLint point_mass_read_deltas_base_properties[sizeof(point_mass_read_deltas_base) / sizeof(GLint)];
 		};
 		union
 		{
-			point_mass_write_force_turn_flags_base point_mass_write_force_turn_flags_base_state;
-			GLint point_mass_write_force_turn_flags_base_properties[sizeof(point_mass_write_force_turn_flags_base) / sizeof(GLint)];
+			point_mass_write_acceleration_turn_flags_base point_mass_write_acceleration_turn_flags_base_state;
+			GLint point_mass_write_acceleration_turn_flags_base_properties[sizeof(point_mass_write_acceleration_turn_flags_base) / sizeof(GLint)];
 		};
 		union
 		{
-			point_mass_write_impulses_base point_mass_write_impulses_base_state;
-			GLint point_mass_write_impulses_base_properties[sizeof(point_mass_write_impulses_base) / sizeof(GLint)];
+			point_mass_write_deltas_base point_mass_write_deltas_base_state;
+			GLint point_mass_write_deltas_base_properties[sizeof(point_mass_write_deltas_base) / sizeof(GLint)];
 		};
 		union
 		{
@@ -236,18 +236,18 @@ namespace game_state::layouts::fixed_data
 		};
 		union
 		{
-			point_mass_distance_constraint_applied_forces_base point_mass_distance_constraint_applied_forces_base_state;
-			GLint point_mass_distance_constraint_applied_forces_base_properties[sizeof(point_mass_distance_constraint_applied_forces_base) / sizeof(GLint)];
+			point_mass_distance_constraint_applied_accelerations_base point_mass_distance_constraint_applied_accelerations_base_state;
+			GLint point_mass_distance_constraint_applied_accelerations_base_properties[sizeof(point_mass_distance_constraint_applied_accelerations_base) / sizeof(GLint)];
 		};
 		union
 		{
-			point_mass_distance_constraint_impulses_base point_mass_distance_constraint_impulses_base_state;
-			GLint point_mass_distance_constraint_impulses_base_properties[sizeof(point_mass_distance_constraint_impulses_base) / sizeof(GLint)];
+			point_mass_distance_constraint_delta_velocities_base point_mass_distance_constraint_delta_velocities_base_state;
+			GLint point_mass_distance_constraint_delta_velocities_base_properties[sizeof(point_mass_distance_constraint_delta_velocities_base) / sizeof(GLint)];
 		};
 		union
 		{
-			point_mass_distance_constraint_position_impulses_base point_mass_distance_constraint_position_impulses_base_state;
-			GLint point_mass_distance_constraint_position_impulses_base_properties[sizeof(point_mass_distance_constraint_position_impulses_base) / sizeof(GLint)];
+			point_mass_distance_constraint_delta_positions_base point_mass_distance_constraint_delta_positions_base_state;
+			GLint point_mass_distance_constraint_delta_positions_base_properties[sizeof(point_mass_distance_constraint_delta_positions_base) / sizeof(GLint)];
 		};
 		union
 		{
@@ -261,13 +261,13 @@ namespace game_state::layouts::fixed_data
 		};
 		union
 		{
-			point_mass_uniform_force_constraint_target_and_applied_forces_base point_mass_uniform_force_constraint_target_and_applied_forces_base_state;
-			GLint point_mass_uniform_force_constraint_target_and_applied_forces_base_properties[sizeof(point_mass_uniform_force_constraint_target_and_applied_forces_base) / sizeof(GLint)];
+			point_mass_uniform_force_constraint_target_and_applied_accelerations_base point_mass_uniform_force_constraint_target_and_applied_accelerations_base_state;
+			GLint point_mass_uniform_force_constraint_target_and_applied_accelerations_base_properties[sizeof(point_mass_uniform_force_constraint_target_and_applied_accelerations_base) / sizeof(GLint)];
 		};
 		union
 		{
-			point_mass_uniform_force_constraint_impulses_base point_mass_uniform_force_constraint_impulses_base_state;
-			GLint point_mass_uniform_force_constraint_impulses_base_properties[sizeof(point_mass_uniform_force_constraint_impulses_base) / sizeof(GLint)];
+			point_mass_uniform_force_constraint_deltas_base point_mass_uniform_force_constraint_deltas_base_state;
+			GLint point_mass_uniform_force_constraint_deltas_base_properties[sizeof(point_mass_uniform_force_constraint_deltas_base) / sizeof(GLint)];
 		};
 		union
 		{

@@ -34,23 +34,23 @@ namespace game_logic::initialize::query_layouts
 		);
 		::game_logic::shader_util::query::query_shader_storage_variable_offset
 		(
-			program, "Fixed_Data.point_mass_read_force_turn_flags_base",
-			environment.state.layouts.fixed_data.point_mass_read_force_turn_flags_base_properties
+			program, "Fixed_Data.point_mass_read_acceleration_turn_flags_base",
+			environment.state.layouts.fixed_data.point_mass_read_acceleration_turn_flags_base_properties
 		);
 		::game_logic::shader_util::query::query_shader_storage_variable_offset
 		(
-			program, "Fixed_Data.point_mass_read_impulses_base",
-			environment.state.layouts.fixed_data.point_mass_read_impulses_base_properties
+			program, "Fixed_Data.point_mass_read_deltas_base",
+			environment.state.layouts.fixed_data.point_mass_read_deltas_base_properties
 		);
 		::game_logic::shader_util::query::query_shader_storage_variable_offset
 		(
-			program, "Fixed_Data.point_mass_write_force_turn_flags_base",
-			environment.state.layouts.fixed_data.point_mass_write_force_turn_flags_base_properties
+			program, "Fixed_Data.point_mass_write_acceleration_turn_flags_base",
+			environment.state.layouts.fixed_data.point_mass_write_acceleration_turn_flags_base_properties
 		);
 		::game_logic::shader_util::query::query_shader_storage_variable_offset
 		(
-			program, "Fixed_Data.point_mass_write_impulses_base",
-			environment.state.layouts.fixed_data.point_mass_write_impulses_base_properties
+			program, "Fixed_Data.point_mass_write_deltas_base",
+			environment.state.layouts.fixed_data.point_mass_write_deltas_base_properties
 		);
 		::game_logic::shader_util::query::query_shader_storage_variable_offset
 		(
@@ -74,18 +74,18 @@ namespace game_logic::initialize::query_layouts
 		);
 		::game_logic::shader_util::query::query_shader_storage_variable_offset
 		(
-			program, "Fixed_Data.point_mass_distance_constraint_applied_forces_base",
-			environment.state.layouts.fixed_data.point_mass_distance_constraint_applied_forces_base_properties
+			program, "Fixed_Data.point_mass_distance_constraint_applied_accelerations_base",
+			environment.state.layouts.fixed_data.point_mass_distance_constraint_applied_accelerations_base_properties
 		);
 		::game_logic::shader_util::query::query_shader_storage_variable_offset
 		(
-			program, "Fixed_Data.point_mass_distance_constraint_impulses_base",
-			environment.state.layouts.fixed_data.point_mass_distance_constraint_impulses_base_properties
+			program, "Fixed_Data.point_mass_distance_constraint_delta_velocities_base",
+			environment.state.layouts.fixed_data.point_mass_distance_constraint_delta_velocities_base_properties
 		);
 		::game_logic::shader_util::query::query_shader_storage_variable_offset
 		(
-			program, "Fixed_Data.point_mass_distance_constraint_position_impulses_base",
-			environment.state.layouts.fixed_data.point_mass_distance_constraint_position_impulses_base_properties
+			program, "Fixed_Data.point_mass_distance_constraint_delta_positions_base",
+			environment.state.layouts.fixed_data.point_mass_distance_constraint_delta_positions_base_properties
 		);
 		::game_logic::shader_util::query::query_shader_storage_variable_offset
 		(
@@ -99,13 +99,13 @@ namespace game_logic::initialize::query_layouts
 		);
 		::game_logic::shader_util::query::query_shader_storage_variable_offset
 		(
-			program, "Fixed_Data.point_mass_uniform_force_constraint_target_and_applied_forces_base",
-			environment.state.layouts.fixed_data.point_mass_uniform_force_constraint_target_and_applied_forces_base_properties
+			program, "Fixed_Data.point_mass_uniform_force_constraint_target_and_applied_accelerations_base",
+			environment.state.layouts.fixed_data.point_mass_uniform_force_constraint_target_and_applied_accelerations_base_properties
 		);
 		::game_logic::shader_util::query::query_shader_storage_variable_offset
 		(
-			program, "Fixed_Data.point_mass_uniform_force_constraint_impulses_base",
-			environment.state.layouts.fixed_data.point_mass_uniform_force_constraint_impulses_base_properties
+			program, "Fixed_Data.point_mass_uniform_force_constraint_deltas_base",
+			environment.state.layouts.fixed_data.point_mass_uniform_force_constraint_deltas_base_properties
 		);
 		::game_logic::shader_util::query::query_shader_storage_variable_offset
 		(

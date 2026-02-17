@@ -18,30 +18,30 @@ void main()
 	uint point_mass_position_velocity_base_address = align_up(fixed_data_buffer_data_size);
 	uint point_mass_inverse_mass_base_address = align_up(point_mass_position_velocity_base_address + point_mass_capacity * uvec4_data_array_stride);
 	uint point_mass_constraint_count_base_address = align_up(point_mass_inverse_mass_base_address + point_mass_capacity * float_data_array_stride);
-	uint point_mass_read_force_turn_flags_base_address = align_up(point_mass_constraint_count_base_address + point_mass_capacity * uint_data_array_stride);
-	uint point_mass_read_impulses_base_address = align_up(point_mass_read_force_turn_flags_base_address + point_mass_capacity * uvec4_data_array_stride);
-	uint point_mass_write_force_turn_flags_base_address = align_up(point_mass_read_impulses_base_address + point_mass_capacity * uvec4_data_array_stride);
-	uint point_mass_write_impulses_base_address = align_up(point_mass_write_force_turn_flags_base_address + point_mass_capacity * uvec4_data_array_stride);
+	uint point_mass_read_acceleration_turn_flags_base_address = align_up(point_mass_constraint_count_base_address + point_mass_capacity * uint_data_array_stride);
+	uint point_mass_read_deltas_base_address = align_up(point_mass_read_acceleration_turn_flags_base_address + point_mass_capacity * uvec4_data_array_stride);
+	uint point_mass_write_acceleration_turn_flags_base_address = align_up(point_mass_read_deltas_base_address + point_mass_capacity * uvec4_data_array_stride);
+	uint point_mass_write_deltas_base_address = align_up(point_mass_write_acceleration_turn_flags_base_address + point_mass_capacity * uvec4_data_array_stride);
 
 	uint point_mass_position_velocity_base = address_to_uvec4_index(point_mass_position_velocity_base_address);
 	uint point_mass_inverse_mass_base = address_to_uint_index(point_mass_inverse_mass_base_address);
 	uint point_mass_constraint_count_base = address_to_uint_index(point_mass_constraint_count_base_address);
-	uint point_mass_read_force_turn_flags_base = address_to_uvec4_index(point_mass_read_force_turn_flags_base_address);
-	uint point_mass_read_impulses_base = address_to_uvec4_index(point_mass_read_impulses_base_address);
-	uint point_mass_write_force_turn_flags_base = address_to_uvec4_index(point_mass_write_force_turn_flags_base_address);
-	uint point_mass_write_impulses_base = address_to_uvec4_index(point_mass_write_impulses_base_address);
+	uint point_mass_read_acceleration_turn_flags_base = address_to_uvec4_index(point_mass_read_acceleration_turn_flags_base_address);
+	uint point_mass_read_deltas_base = address_to_uvec4_index(point_mass_read_deltas_base_address);
+	uint point_mass_write_acceleration_turn_flags_base = address_to_uvec4_index(point_mass_write_acceleration_turn_flags_base_address);
+	uint point_mass_write_deltas_base = address_to_uvec4_index(point_mass_write_deltas_base_address);
 
 	fixed_data.point_mass_position_velocity_base = point_mass_position_velocity_base;
 	fixed_data.point_mass_inverse_mass_base = point_mass_inverse_mass_base;
 	fixed_data.point_mass_constraint_count_base = point_mass_constraint_count_base;
-	fixed_data.point_mass_read_force_turn_flags_base = point_mass_read_force_turn_flags_base;
-	fixed_data.point_mass_read_impulses_base = point_mass_read_impulses_base;
-	fixed_data.point_mass_write_force_turn_flags_base = point_mass_write_force_turn_flags_base;
-	fixed_data.point_mass_write_impulses_base = point_mass_write_impulses_base;
+	fixed_data.point_mass_read_acceleration_turn_flags_base = point_mass_read_acceleration_turn_flags_base;
+	fixed_data.point_mass_read_deltas_base = point_mass_read_deltas_base;
+	fixed_data.point_mass_write_acceleration_turn_flags_base = point_mass_write_acceleration_turn_flags_base;
+	fixed_data.point_mass_write_deltas_base = point_mass_write_deltas_base;
 
 	fixed_data.point_mass_capacity = point_mass_capacity;
 
-	uint end_base_address = point_mass_write_impulses_base_address + point_mass_capacity * uvec4_data_array_stride;
+	uint end_base_address = point_mass_write_deltas_base_address + point_mass_capacity * uvec4_data_array_stride;
 	uint end_base = address_to_uint_index(end_base_address);
 	point_mass_capacity *= uint(end_base <= uvec4_data.data.length());
 
@@ -78,12 +78,12 @@ void main()
 		));
 		float_data.data[point_mass_inverse_mass_base + point_mass_index] = 1.0;
 		uint_data.data[point_mass_constraint_count_base + point_mass_index] = 0u;
-		uvec4_data.data[point_mass_read_force_turn_flags_base + point_mass_index] = uvec4(0u);
-		uvec4_data.data[point_mass_read_impulses_base + point_mass_index] = uvec4(0u);
-		uvec4_data.data[point_mass_write_force_turn_flags_base + point_mass_index] = uvec4(0u, -9.81 * meters_per_second_squared_in_length_units_per_time_unit_squared, 0u, 0u);
-		uvec4_data.data[point_mass_write_impulses_base + point_mass_index] = uvec4(0u);
+		uvec4_data.data[point_mass_read_acceleration_turn_flags_base + point_mass_index] = uvec4(0u);
+		uvec4_data.data[point_mass_read_deltas_base + point_mass_index] = uvec4(0u);
+		uvec4_data.data[point_mass_write_acceleration_turn_flags_base + point_mass_index] = uvec4(0u, -9.81 * meters_per_second_squared_in_length_units_per_time_unit_squared, 0u, 0u);
+		uvec4_data.data[point_mass_write_deltas_base + point_mass_index] = uvec4(0u);
 	}
 
 	float_data.data[point_mass_inverse_mass_base + 0u] = 0.0;
-	uvec4_data.data[point_mass_write_force_turn_flags_base + 0u].xy = uvec2(0u);
+	uvec4_data.data[point_mass_write_acceleration_turn_flags_base + 0u].xy = uvec2(0u);
 }

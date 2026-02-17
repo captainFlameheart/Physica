@@ -1,4 +1,4 @@
-layout(local_size_x = UPDATE_TICK_COUNTS_LOCAL_SIZE) in;
+layout(local_size_x = process_point_mass_distance_constraints_local_size) in;
 void main()
 {
 	// REALLY FRICKIN COOL TODO: Make constraints "pull" the memory addresses of their bodies towards each other!
