@@ -12,8 +12,6 @@ namespace game_logic::initialize::query_layouts
 	{
 		// TODO: Do avoid repeates of constants and file loads
 
-		constexpr GLuint draw_arrays_program_count = 3u;
-
 		GLuint compute_shader{ ::util::shader::create_shader(GL_COMPUTE_SHADER) };
 		::util::shader::set_shader_statically
 		(
@@ -28,7 +26,7 @@ namespace game_logic::initialize::query_layouts
 			"const uint float_data_binding = 3;\n"
 			"const uint entity_type_count = " + std::to_string(::game_state::entity_type_indices::count) + ";\n"
 			"const uint dispatch_program_count = " + std::to_string(::game_state::shader_indices::tick::process_entities::count) + ";\n"
-			"const uint draw_arrays_program_count = " + std::to_string(draw_arrays_program_count) + ";\n"
+			"const uint draw_arrays_program_count = " + std::to_string(::game_state::shader_indices::draw::entities::count) + ";\n"
 			,
 			::util::shader::file_to_string("blocks/Fixed_Data"),
 			::util::shader::file_to_string("blocks/shader_storage/uvec4_Data"),

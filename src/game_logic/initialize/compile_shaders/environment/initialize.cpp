@@ -20,8 +20,6 @@ namespace game_logic::initialize::compile_shaders::environment
 	{
 		::game_logic::shader_group::initialize(compile_environment.shader_group);
 
-		constexpr GLuint draw_arrays_program_count = 3u;
-
 		compile_environment.version_directive = "#version " + std::string{ ::game_state::device_requirements::OpenGL_versions::version_string } + '\n';
 		
 		compile_environment.readonly_constant_definitions =
@@ -63,6 +61,8 @@ namespace game_logic::initialize::compile_shaders::environment
 		}
 		draw_arrays_command_blueprints += "};\n";
 
+		std::cout << draw_arrays_command_blueprints << std::endl;
+
 		GLuint update_tick_counts_local_size{ ::game_state::local_sizes::update_tick_counts_local_size };
 		GLuint update_draw_counts_local_size{ ::game_state::local_sizes::update_draw_counts_local_size };
 
@@ -96,7 +96,7 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uint entity_type_count = " + std::to_string(game_state::entity_type_indices::count) + ";\n"
 
 			"const uint dispatch_program_count = " + std::to_string(::game_state::shader_indices::tick::process_entities::count) + ";\n"
-			"const uint draw_arrays_program_count = " + std::to_string(draw_arrays_program_count) + ";\n"
+			"const uint draw_arrays_program_count = " + std::to_string(::game_state::shader_indices::draw::entities::count) + ";\n"
 
 			"const uint point_mass_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::Indices::point_mass)) + ";\n"
 			"const uint rigid_body_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::Indices::rigid_body)) + ";\n"
