@@ -11,6 +11,11 @@ namespace game_logic::initialize
 		glCreateVertexArrays(1u, &environment.state.vertex_array);
 		glBindVertexArray(environment.state.vertex_array);
 
+		environment.state.tick_count = 0u;
+		environment.state.draw_count = 0u;
+
+		// TODO: Initialize viewport and glfw data
+
 		::game_logic::OpenGL_capabilities::query(environment.state.OpenGL_capabilities);
 		::game_logic::OpenGL_capabilities::print(environment.state.OpenGL_capabilities);
 

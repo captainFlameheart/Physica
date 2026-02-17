@@ -41,5 +41,7 @@ namespace game_logic::draw
 				reinterpret_cast<const void*>(static_cast<intptr_t>(command_offset))
 			);
 		}
+
+		++environment.state.draw_count;
 	}
 }

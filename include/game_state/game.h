@@ -12,6 +12,9 @@ namespace game_state
 	{
 		GLuint vertex_array;	// Required for drawing anything at all
 
+		GLuint tick_count;
+		GLuint draw_count;
+
 		glfw::State glfw;
 
 		OpenGL_capabilities::State OpenGL_capabilities;
