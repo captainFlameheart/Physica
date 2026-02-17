@@ -1,5 +1,6 @@
 #include "game_environment/environment.h"
 #include "game_state/local_sizes/include.h"
+#include "game_state/draw_primitive_types/include.h"
 #include <iostream>
 
 namespace game_logic::draw
@@ -15,22 +16,30 @@ namespace game_logic::draw
 		};
 		glDispatchCompute(update_draw_count_work_group_count, 1u, 1u);
 
-		glMemoryBarrier(GL_COMMAND_BARRIER_BIT);	// Assuming we don't need to read the vertex counts
+		glMemoryBarrier(GL_COMMAND_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);	// Assuming we don't need to read the vertex counts
 
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::draw::entities::bodies::Indices::point_masses)]);
-		constexpr GLuint draw_point_masses_index{ 0u };
-		GLintptr draw_point_masses_command_offset
+		for (GLuint draw_entities_shader_index{ ::game_state::shader_indices::draw::entities::base }; draw_entities_shader_index < ::game_state::shader_indices::draw::entities::end; ++draw_entities_shader_index)
 		{
-			environment.state.layouts.fixed_data.draw_arrays_commands_count_state.offset +
-			draw_point_masses_index * environment.state.layouts.fixed_data.draw_arrays_commands_count_state.top_level_array_stride
-		};
-		glDrawArraysIndirect
-		(
-			GL_TRIANGLES,
-			reinterpret_cast<const void*>(static_cast<intptr_t>(draw_point_masses_command_offset))
-		);
+			if (draw_entities_shader_index != ::game_state::shader_indices::draw::entities::base)
+			{
+				break;	// TODO: Remove
+			}
+
+			glUseProgram(environment.state.shaders[draw_entities_shader_index]);
+			GLuint index_in_draw_entities_shader_array{ draw_entities_shader_index - ::game_state::shader_indices::draw::entities::base };
+			GLintptr command_offset
+			{
+				environment.state.layouts.fixed_data.draw_arrays_commands_count_state.offset +
+				index_in_draw_entities_shader_array * environment.state.layouts.fixed_data.draw_arrays_commands_count_state.top_level_array_stride
+			};
+			glDrawArraysIndirect
+			(
+				::game_state::draw_primitive_types::entities_primitive_types[index_in_draw_entities_shader_array],
+				reinterpret_cast<const void*>(static_cast<intptr_t>(command_offset))
+			);
+		}
 	}
 }
