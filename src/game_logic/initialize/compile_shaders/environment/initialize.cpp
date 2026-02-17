@@ -5,6 +5,7 @@
 #include "util/shader/shader.h"
 #include "game_state/bindings/include.h"
 #include "game_state/local_sizes/include.h"
+#include "game_state/vertex_factors/include.h"
 #include "game_state/entity_type_indices/entity_type_indices.h"
 #include "game_state/shader_to_entity_type/shader_to_entity_type.h"
 #include "game_state/units/include.h"
@@ -49,6 +50,19 @@ namespace game_logic::initialize::compile_shaders::environment
 		}
 		dispatch_command_blueprints += "};\n";
 
+		std::string	draw_arrays_command_blueprints
+		{
+			"const uvec2 draw_arrays_command_blueprints[" + std::to_string(::game_state::shader_indices::draw::entities::count) + "] = \n"
+			"{	// (entity_type_index, vertex_factor)\n"
+		};
+		for (GLuint draw_arrays_command_index{ 0u }; draw_arrays_command_index < ::game_state::shader_indices::draw::entities::count; ++draw_arrays_command_index)
+		{
+			GLuint entity_type_index{ static_cast<GLuint>(::game_state::shader_to_entity_type::shader_to_entity_type[::game_state::shader_indices::tick::process_entities::count + draw_arrays_command_index]) };
+			GLuint vertex_factor{ ::game_state::vertex_factors::draw_entities_vertex_factors[draw_arrays_command_index] };
+			draw_arrays_command_blueprints += "	uvec2(" + std::to_string(entity_type_index) + ", " + std::to_string(vertex_factor) + "),\n";
+		}
+		draw_arrays_command_blueprints += "};\n";
+
 		GLuint update_tick_counts_local_size{ ::game_state::local_sizes::update_tick_counts_local_size };
 		GLuint update_draw_counts_local_size{ ::game_state::local_sizes::update_draw_counts_local_size };
 
@@ -69,7 +83,9 @@ namespace game_logic::initialize::compile_shaders::environment
 		] };
 
 		compile_environment.constant_definitions = 
-			dispatch_command_blueprints + 
+			dispatch_command_blueprints +
+			draw_arrays_command_blueprints +
+
 			"const float meter_in_length_units = " + std::to_string(game_state::units::meter_in_length_units) + ";\n"
 			"const float length_unit_in_meters = " + std::to_string(game_state::units::length_unit_in_meters) + ";\n"
 			"const float second_in_time_units = " + std::to_string(game_state::units::second_in_time_units) + ";\n"
@@ -96,6 +112,7 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uint process_rigid_bodies_local_size = " + ::std::to_string(process_rigid_bodies_local_size) + ";\n"
 			"const uint process_point_mass_distance_constraints_local_size = " + ::std::to_string(process_point_mass_distance_constraints_local_size) + ";\n"
 			"const uint process_point_mass_uniform_force_constraints_local_size = " + ::std::to_string(process_point_mass_uniform_force_constraints_local_size) + ";\n"
+			"const uint update_draw_counts_local_size = " + ::std::to_string(update_draw_counts_local_size) + ";\n"
 
 			"const uint fixed_data_buffer_data_size = " + ::std::to_string(environment.state.layouts.fixed_data.block_state.buffer_data_size) + ";\n"
 			"const uint uvec4_data_offset = " + std::to_string(environment.state.layouts.uvec4_data.state.offset) + ";\n"

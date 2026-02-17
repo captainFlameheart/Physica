@@ -14,6 +14,9 @@ namespace game_logic::tick
 			(tick_entities_shader_count + update_tick_count_local_size - 1u) / update_tick_count_local_size
 		};
 		glDispatchCompute(update_tick_count_work_group_count, 1u, 1u);
+
+		// MUST TODO: Update read counts in separate shader!!!
+
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_COMMAND_BARRIER_BIT);
 
 		for (GLuint tick_bodies_shader_index{ ::game_state::shader_indices::tick::process_entities::bodies::base }; tick_bodies_shader_index < ::game_state::shader_indices::tick::process_entities::bodies::end; ++tick_bodies_shader_index)

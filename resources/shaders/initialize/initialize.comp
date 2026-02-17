@@ -69,10 +69,6 @@ void main()
 		fixed_data.draw_arrays_commands[draw_arrays_program_index].first = 0u;
 		fixed_data.draw_arrays_commands[draw_arrays_program_index].base_instance = 0u;
 	}
-
-	// TODO: Let this be set by other shader
-	const uint draw_point_masses_index = 0u;	// TODO: Set from CPU
-	fixed_data.draw_arrays_commands[draw_point_masses_index].count = point_mass_count * 6u;
 	
 	for (uint point_mass_index = 0u; point_mass_index < point_mass_count; ++point_mass_index)
 	{
