@@ -25,7 +25,7 @@ namespace game_logic::draw
 		{
 			if (draw_entities_shader_index != ::game_state::shader_indices::draw::entities::base)
 			{
-				break;	// TODO: Remove
+				//break;	// TODO: Remove
 			}
 
 			glUseProgram(environment.state.shaders[draw_entities_shader_index]);
