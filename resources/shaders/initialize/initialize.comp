@@ -13,7 +13,7 @@ void main()
 	);
 	fixed_data.camera_offset_to_clip_coordinates = camera_projection * camera_offset_to_local;
 
-	uint point_mass_capacity = 1u;
+	uint point_mass_capacity = 2u;
 
 	uint point_mass_position_velocity_base_address = align_up(fixed_data_buffer_data_size);
 	uint point_mass_inverse_mass_base_address = align_up(point_mass_position_velocity_base_address + point_mass_capacity * uvec4_data_array_stride);
@@ -72,7 +72,10 @@ void main()
 	
 	for (uint point_mass_index = 0u; point_mass_index < point_mass_count; ++point_mass_index)
 	{
-		uvec4_data.data[point_mass_position_velocity_base + point_mass_index] = uvec4(0u, 0u, 1.0 * meters_per_second_in_length_units_per_time_unit, 4.0 * meters_per_second_in_length_units_per_time_unit);
+		uvec4_data.data[point_mass_position_velocity_base + point_mass_index] = uvec4(ivec4(
+			0.0 * meter_in_length_units, -0.5 * float(point_mass_index * meter_in_length_units), 
+			0.0 * meters_per_second_in_length_units_per_time_unit, 0.0 * meters_per_second_in_length_units_per_time_unit
+		));
 		float_data.data[point_mass_inverse_mass_base + point_mass_index] = 1.0;
 		uint_data.data[point_mass_constraint_count_base + point_mass_index] = 0u;
 		uvec4_data.data[point_mass_read_force_turn_flags_base + point_mass_index] = uvec4(0u, -9.81 * meters_per_second_squared_in_length_units_per_time_unit_squared, 0u, 0u);
@@ -80,4 +83,7 @@ void main()
 		uvec4_data.data[point_mass_write_force_turn_flags_base + point_mass_index] = uvec4(0u);
 		uvec4_data.data[point_mass_write_impulses_base + point_mass_index] = uvec4(0u);
 	}
+
+	float_data.data[point_mass_inverse_mass_base + 0u] = 0.0;
+	uvec4_data.data[point_mass_read_force_turn_flags_base + 0u].xy = uvec2(0u);
 }
