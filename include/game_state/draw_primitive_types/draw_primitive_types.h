@@ -12,6 +12,7 @@ namespace game_state::draw_primitive_types
 		std::array<GLenum, ::game_state::shader_indices::draw::entities::count> primitive_types{};
 		constexpr GLuint base{ ::game_state::shader_indices::draw::entities::base };
 		primitive_types[static_cast<GLuint>(::game_state::shader_indices::draw::entities::bodies::Indices::point_masses) - base] = default_primitive_type;
+		primitive_types[static_cast<GLuint>(::game_state::shader_indices::draw::entities::bodies::Indices::point_mass_velocities) - base] = GL_LINES;
 		primitive_types[static_cast<GLuint>(::game_state::shader_indices::draw::entities::bodies::Indices::rigid_bodies) - base] = default_primitive_type;
 		primitive_types[static_cast<GLuint>(::game_state::shader_indices::draw::entities::constraints::Indices::point_mass_distance_constraints) - base] = default_primitive_type;
 		primitive_types[static_cast<GLuint>(::game_state::shader_indices::draw::entities::constraints::Indices::point_mass_uniform_force_constraints) - base] = default_primitive_type;

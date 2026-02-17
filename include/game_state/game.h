@@ -4,12 +4,15 @@
 #include "layouts/include.h"
 #include "buffers/include.h"
 #include "shader_indices/include.h"
+#include "glfw/include.h"
 
 namespace game_state
 {
 	struct Game
 	{
 		GLuint vertex_array;	// Required for drawing anything at all
+
+		glfw::State glfw;
 
 		OpenGL_capabilities::State OpenGL_capabilities;
 		GLuint shaders[shader_indices::count];

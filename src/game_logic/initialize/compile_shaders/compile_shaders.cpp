@@ -22,6 +22,7 @@ namespace game_logic::initialize::compile_shaders
 		compile_update_draw_counts(environment, compile_environment);
 
 		compile_draw_point_masses(environment, compile_environment);
+		compile_draw_point_mass_velocities(environment, compile_environment);
 
 		environment::free(environment, compile_environment);
 	}

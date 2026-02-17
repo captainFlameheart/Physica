@@ -29,6 +29,8 @@ namespace game_state::shader_to_entity_type
 
 		shader_to_entity_type[static_cast<GLuint>(::game_state::shader_indices::draw::entities::bodies::Indices::point_masses) - draw_entities_base] =
 			::game_state::entity_type_indices::Indices::point_mass;
+		shader_to_entity_type[static_cast<GLuint>(::game_state::shader_indices::draw::entities::bodies::Indices::point_mass_velocities) - draw_entities_base] =
+			::game_state::entity_type_indices::Indices::point_mass;
 		shader_to_entity_type[static_cast<GLuint>(::game_state::shader_indices::draw::entities::bodies::Indices::rigid_bodies) - draw_entities_base] =
 			::game_state::entity_type_indices::Indices::rigid_body;
 		shader_to_entity_type[static_cast<GLuint>(::game_state::shader_indices::draw::entities::constraints::Indices::point_mass_distance_constraints) - draw_entities_base] =

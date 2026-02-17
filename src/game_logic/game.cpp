@@ -5,6 +5,7 @@
 #else
 #include "game_logic/game.h"
 #include "game_logic/initialize/include.h"
+#include "game_logic/on_framebuffer_size_changed/include.h"
 #include "game_logic/tick/include.h"
 #include "game_logic/draw/draw.h"
 #include "game_logic/free/include.h"
@@ -34,6 +35,7 @@ namespace game_logic
 			width, height
 		);
 #else
+		on_framebuffer_size_changed::on_framebuffer_size_changed(environment, width, height);
 #endif
 	}
 

@@ -19,8 +19,6 @@ namespace game_logic::initialize::compile_shaders
 			::util::shader::file_to_string("draw/update_counts.comp")
 		);
 
-		::game_logic::shader_util::print_source(compile_environment.shader_group.compute_shader);
-
 		environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::draw::update_counts::Indices::update_counts)] = ::util::shader::create_program
 		(
 			compile_environment.shader_group.compute_shader

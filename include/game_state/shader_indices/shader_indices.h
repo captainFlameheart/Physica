@@ -112,6 +112,7 @@ namespace game_state::shader_indices
 				enum struct Indices : GLuint
 				{
 					point_masses = base,
+					point_mass_velocities,
 					rigid_bodies,
 
 					end
