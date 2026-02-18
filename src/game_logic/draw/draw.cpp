@@ -23,12 +23,6 @@ namespace game_logic::draw
 
 		for (GLuint draw_entities_shader_index{ ::game_state::shader_indices::draw::entities::base }; draw_entities_shader_index < ::game_state::shader_indices::draw::entities::end; ++draw_entities_shader_index)
 		{
-			if (environment.state.shaders[draw_entities_shader_index] == 3435973836u)	// TODO: Remove
-			{
-				std::cout << draw_entities_shader_index << std::endl;
-				continue;
-			}
-
 			glUseProgram(environment.state.shaders[draw_entities_shader_index]);
 			GLuint index_in_draw_entities_shader_array{ draw_entities_shader_index - ::game_state::shader_indices::draw::entities::base };
 			GLintptr command_offset

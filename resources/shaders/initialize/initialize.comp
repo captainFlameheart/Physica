@@ -122,7 +122,7 @@ void main()
 
 	for (uint point_mass_distance_constraint_index = 0u; point_mass_distance_constraint_index < point_mass_distance_constraint_count; ++point_mass_distance_constraint_index)
 	{
-		uint_data.data[point_mass_distance_constraint_flags_base + point_mass_distance_constraint_index] = point_mass_distance_constraint_observe_impulses_mask;
+		uint_data.data[point_mass_distance_constraint_flags_base + point_mass_distance_constraint_index] = point_mass_distance_constraint_observe_deltas_mask;
 
 		uint index_0 = point_mass_distance_constraint_index;
 		uint index_1 = point_mass_distance_constraint_index + 1u;

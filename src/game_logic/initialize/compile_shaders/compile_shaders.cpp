@@ -18,6 +18,8 @@ namespace game_logic::initialize::compile_shaders
 		
 		compile_process_point_masses(environment, compile_environment);
 		compile_process_rigid_bodies(environment, compile_environment);
+
+		compile_tick_point_mass_distance_constraints(environment, compile_environment);
 		
 		compile_update_draw_counts(environment, compile_environment);
 

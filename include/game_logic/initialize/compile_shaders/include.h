@@ -9,4 +9,5 @@
 #include "compile_update_draw_counts.h"
 #include "compile_update_tick_counts.h"
 #include "compile_shaders.h"
+#include "compile_tick_point_mass_distance_constraints.h"
 #include "game_state/shader_indices/include.h"

@@ -14,13 +14,13 @@ const uint align_up_mask = ~align_up_addition;
 const uint point_mass_distance_constraint_is_dead_shift = 0u;
 const uint point_mass_distance_constraint_is_dead_mask = 1u << point_mass_distance_constraint_is_dead_shift;
 
-const uint point_mass_distance_constraint_observe_impulse_0_shift = 1u;
-const uint point_mass_distance_constraint_observe_impulse_0_mask = 1u << point_mass_distance_constraint_observe_impulse_0_shift;
+const uint point_mass_distance_constraint_observe_deltas_0_shift = 1u;
+const uint point_mass_distance_constraint_observe_deltas_0_mask = 1u << point_mass_distance_constraint_observe_deltas_0_shift;
 
-const uint point_mass_distance_constraint_observe_impulse_1_shift = 2u;
-const uint point_mass_distance_constraint_observe_impulse_1_mask = 1u << point_mass_distance_constraint_observe_impulse_1_shift;
+const uint point_mass_distance_constraint_observe_deltas_1_shift = 2u;
+const uint point_mass_distance_constraint_observe_deltas_1_mask = 1u << point_mass_distance_constraint_observe_deltas_1_shift;
 
-const uint point_mass_distance_constraint_observe_impulses_mask = point_mass_distance_constraint_observe_impulse_0_mask | point_mass_distance_constraint_observe_impulse_1_mask;
+const uint point_mass_distance_constraint_observe_deltas_mask = point_mass_distance_constraint_observe_deltas_0_mask | point_mass_distance_constraint_observe_deltas_1_mask;
 
 const uint dispatch_command_enabled_shift = 0u;
 const uint dispatch_command_enabled_mask = 1u << dispatch_command_enabled_shift;
