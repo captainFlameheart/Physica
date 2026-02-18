@@ -95,8 +95,8 @@ void main()
 	float counter_delta_velocity_0 = point_mass_inverse_mass_0 * counter_impulse;
 	float counter_delta_velocity_1 = point_mass_inverse_mass_1 * counter_impulse;
 	
-	delta_velocities.xy += ivec2(direction * counter_delta_velocity_0);
-	delta_velocities.zw -= ivec2(direction * counter_delta_velocity_1);
+	delta_velocities.xy += uvec2(ivec2(direction * counter_delta_velocity_0));
+	delta_velocities.zw -= uvec2(ivec2(direction * counter_delta_velocity_1));
 
 	point_mass_acceleration_turn_flags_0.xy -= applied_accelerations.xy;
 	point_mass_acceleration_turn_flags_1.xy -= applied_accelerations.zw;
@@ -106,14 +106,14 @@ void main()
 
 	vec2 relative_velocity = vec2(ivec2(point_mass_position_velocity_0.zw - point_mass_position_velocity_1.zw));
 	float velocity = dot(relative_velocity, direction);
-	float acceleration = -velocity;
+	float acceleration = -velocity;	// TODO: Optimize away negation
 	float force = mass * acceleration;
 
 	float acceleration_0 = point_mass_inverse_mass_0 * force;
 	float acceleration_1 = point_mass_inverse_mass_1 * force;
 
-	ivec2 acceleration_0_vector = ivec2(direction * acceleration_0);
-	ivec2 acceleration_1_vector = ivec2(direction * (-acceleration_1));
+	uvec2 acceleration_0_vector = uvec2(ivec2(direction * acceleration_0));
+	uvec2 acceleration_1_vector = uvec2(ivec2(direction * (-acceleration_1)));
 
 	flags |= point_mass_distance_constraint_observe_deltas_mask;
 
