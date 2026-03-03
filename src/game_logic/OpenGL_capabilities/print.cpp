@@ -20,6 +20,7 @@ namespace game_logic::OpenGL_capabilities
 			"	max_uniform_block_size: " << state.max_uniform_block_size << '\n' <<
 			"	max_vertex_shader_storage_blocks: " << state.max_vertex_shader_storage_blocks << '\n' <<
 			"	max_vertex_uniform_blocks: " << state.max_vertex_uniform_blocks << '\n' <<
+			"	uniform_buffer_offset_alignment: " << state.uniform_buffer_offset_alignment << '\n' <<
 			std::endl;
 	}
 }

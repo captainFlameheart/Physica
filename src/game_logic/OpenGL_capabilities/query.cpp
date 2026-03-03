@@ -18,5 +18,6 @@ namespace game_logic::OpenGL_capabilities
 		glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &state.max_uniform_block_size);
 		glGetIntegerv(GL_MAX_VERTEX_SHADER_STORAGE_BLOCKS, &state.max_vertex_shader_storage_blocks);
 		glGetIntegerv(GL_MAX_VERTEX_UNIFORM_BLOCKS, &state.max_vertex_uniform_blocks);
+		glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT , &state.uniform_buffer_offset_alignment);
 	}
 }

@@ -17,5 +17,6 @@ namespace game_state::OpenGL_capabilities
 		GLint max_uniform_block_size;
 		GLint max_vertex_shader_storage_blocks;
 		GLint max_vertex_uniform_blocks;
+		GLint uniform_buffer_offset_alignment;
 	};
 }
