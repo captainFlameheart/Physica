@@ -31,7 +31,7 @@ void main()
 	}
 	
 	uvec4 indices_turns = uvec4_data.data[indices_turns_index];
-	uvec4 target_distance = uvec4_data.data[target_distance_index];
+	uint target_distance = uint_data.data[target_distance_index];
 	uvec4 applied_accelerations = uvec4_data.data[applied_accelerations_index];
 	uvec4 delta_velocities = uvec4_data.data[delta_velocities_index];
 	uvec4 delta_positions = uvec4_data.data[delta_positions_index];
@@ -80,6 +80,11 @@ void main()
 	point_mass_deltas_0 *= (flags >> point_mass_distance_constraint_observe_deltas_0_shift) & 1u;
 	point_mass_deltas_1 *= (flags >> point_mass_distance_constraint_observe_deltas_1_shift) & 1u;
 
+	point_mass_position_velocity_0.xy += delta_positions.xy;
+	point_mass_position_velocity_1.xy += delta_positions.zw;
+
+	// Here, point_mass_deltas.zw represent the observed positional steps taken. These can be used for continous collision detection.
+	
 	vec2 direction = vec2(ivec2(point_mass_position_velocity_0.xy - point_mass_position_velocity_1.xy));
 	float distance = length(direction);
 	direction /= distance;
@@ -88,6 +93,20 @@ void main()
 	float mass = 1.0 / inverse_mass;
 
 	vec4 relative_deltas = vec4(ivec4(point_mass_deltas_0 - point_mass_deltas_1));
+
+	// TODO: Consider how we can do this in fixed point properly
+	float distance_error = distance - float(int(target_distance));
+	float delta_distance = -distance_error;
+	float position_impulse = mass * delta_distance;
+	
+	position_impulse *= 0.01;	// TODO: Remove
+
+	float delta_position_0 = point_mass_inverse_mass_0 * position_impulse;
+	float delta_position_1 = point_mass_inverse_mass_1 * position_impulse;
+
+	delta_positions.xy += uvec2(ivec2(direction * delta_position_0));
+	delta_positions.zw -= uvec2(ivec2(direction * delta_position_1));
+
 	float observed_delta_velocity = dot(relative_deltas.xy, direction);
 	float counter_delta_velocity = -observed_delta_velocity;	// TODO: Optimize away negation
 	float counter_impulse = mass * counter_delta_velocity;
@@ -98,11 +117,14 @@ void main()
 	delta_velocities.xy += uvec2(ivec2(direction * counter_delta_velocity_0));
 	delta_velocities.zw -= uvec2(ivec2(direction * counter_delta_velocity_1));
 
+	point_mass_position_velocity_0.zw += delta_velocities.xy;
+	point_mass_position_velocity_1.zw += delta_velocities.zw;
+
 	point_mass_acceleration_turn_flags_0.xy -= applied_accelerations.xy;
 	point_mass_acceleration_turn_flags_1.xy -= applied_accelerations.zw;
 
-	point_mass_position_velocity_0.zw += delta_velocities.xy + point_mass_acceleration_turn_flags_0.xy;
-	point_mass_position_velocity_1.zw += delta_velocities.zw + point_mass_acceleration_turn_flags_1.xy;
+	point_mass_position_velocity_0.zw += point_mass_acceleration_turn_flags_0.xy;
+	point_mass_position_velocity_1.zw += point_mass_acceleration_turn_flags_1.xy;
 
 	vec2 relative_velocity = vec2(ivec2(point_mass_position_velocity_0.zw - point_mass_position_velocity_1.zw));
 	float velocity = dot(relative_velocity, direction);

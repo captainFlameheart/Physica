@@ -58,6 +58,6 @@ void main()
 
 	vec4 camera_offset = vec4(ivec2(endpoint_position_velocity.xy - camera_position.xy), int(-camera_position.z), 1.0f);
 	camera_offset.xyz *= length_unit_in_meters;
-	camera_offset.xy += (0.0 * direction_sign) * direction + (0.005 * orthogonal_direction_sign) * orthogonal_direction;
+	camera_offset.xy += (0.0 * direction_sign) * direction + (0.003 * orthogonal_direction_sign) * orthogonal_direction;
 	gl_Position = camera_offset_to_clip_coordinates * camera_offset;
 }

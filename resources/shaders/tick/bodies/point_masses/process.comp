@@ -27,9 +27,9 @@ void main()
 	uvec4 acceleration_turn_flags = uvec4_data.data[write_acceleration_turn_flags_index];
 	uvec4 deltas = uvec4_data.data[write_deltas_index];
 
-	// TODO: Update position based on position impulse
 	position_velocity.zw += acceleration_turn_flags.xy + deltas.xy;
-	position_velocity.xy += position_velocity.zw;
+	deltas.zw += position_velocity.zw;
+	position_velocity.xy += deltas.zw;
 
 	uvec4_data.data[position_velocity_index] = position_velocity;
 

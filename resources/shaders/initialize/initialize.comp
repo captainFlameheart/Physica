@@ -2,8 +2,8 @@ layout(local_size_x = 1u) in;
 void main()
 {
 	const uint distance = uint(int(0.05 * meter_in_length_units));
-	const uint rows = 10u;
-	const uint columns = 10u;
+	const uint rows = 12u;
+	const uint columns = 12u;
 
 	fixed_data.camera_position = uvec4(1.0 * meter_in_length_units, -1.0 * meter_in_length_units, 1.0 * meter_in_length_units, 0u);
 	mat4 camera_offset_to_local = mat4(1.0);
