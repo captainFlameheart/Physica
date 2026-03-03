@@ -1,0 +1,5 @@
+layout(shared, binding = private_input_binding)
+uniform Key_Event
+{
+	ivec4 key_scancode_action_mods;
+} key_event;

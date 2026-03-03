@@ -6,6 +6,7 @@
 #include "game_logic/game.h"
 #include "game_logic/initialize/include.h"
 #include "game_logic/on_framebuffer_size_changed/include.h"
+#include "game_logic/on_key_event/include.h"
 #include "game_logic/tick/include.h"
 #include "game_logic/draw/draw.h"
 #include "game_logic/free/include.h"
@@ -57,6 +58,13 @@ namespace game_logic
 			mods
 		);
 #else
+		on_key_event::on_key_event(
+			environment,
+			key,
+			scancode,
+			action,
+			mods
+		);
 #endif
 	}
 

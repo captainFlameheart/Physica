@@ -2,5 +2,11 @@
 
 namespace game_state::bindings::uniform
 {
-	constexpr GLuint fixed_data{ 0u };
+	enum bindings : GLuint
+	{
+		fixed_data,
+		private_input,
+
+		count
+	};
 }

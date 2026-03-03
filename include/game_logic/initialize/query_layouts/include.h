@@ -1,6 +1,7 @@
 #pragma once
 #include "query_fixed_data_layout.h"
 #include "query_float_data_layout.h"
+#include "query_key_event_layout.h"
 #include "query_layouts.h"
 #include "query_uint_data_layout.h"
 #include "query_uvec4_data_layout.h"
