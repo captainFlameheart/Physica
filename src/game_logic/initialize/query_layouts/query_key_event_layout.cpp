@@ -10,8 +10,12 @@ namespace game_logic::initialize::query_layouts
 		::game_logic::shader_util::query::query_uniform_variable_offset
 		(
 			program, "Key_Event.key_scancode_action_mods",
-			environment.state.layouts.key_event.properties
+			environment.state.layouts.key_event.key_scancode_action_mods_properties
 		);
-		std::cout << environment.state.layouts.key_event.state.key_scancode_action_mods_offset << std::endl;
+		::game_logic::shader_util::query::query_uniform_buffer_data_size
+		(
+			program, "Key_Event",
+			environment.state.layouts.key_event.block_properties
+		);
 	}
 }

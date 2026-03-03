@@ -13,6 +13,6 @@ namespace game_state::layouts
 		uvec4_data::Aliased_State uvec4_data;
 		uint_data::Aliased_State uint_data;
 		float_data::Aliased_State float_data;
-		key_event::Aliased_State key_event;
+		key_event::State key_event;
 	};
 }

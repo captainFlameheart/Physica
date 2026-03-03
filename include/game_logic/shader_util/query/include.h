@@ -6,4 +6,5 @@
 #include "query_shader_storage_variable_offset_array_stride_array_size.h"
 #include "query_shader_storage_variable_offset_matrix_stride.h"
 #include "query_shader_storage_variable_offset_top_level_array_stride_top_level_array_size.h"
+#include "query_uniform_buffer_data_size.h"
 #include "query_uniform_variable_offset.h"
