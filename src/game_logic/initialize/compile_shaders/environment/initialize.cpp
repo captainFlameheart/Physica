@@ -106,6 +106,7 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uint uvec4_data_binding = " + std::to_string(::game_state::bindings::shader_storage::uvec4_data) + ";\n"
 			"const uint uint_data_binding = " + ::std::to_string(::game_state::bindings::shader_storage::uint_data) + ";\n"
 			"const uint float_data_binding = " + ::std::to_string(::game_state::bindings::shader_storage::float_data) + ";\n"
+			"const uint private_input_binding = " + ::std::to_string(::game_state::bindings::uniform::private_input) + ";\n"
 			
 			"const uint update_tick_counts_local_size = " + ::std::to_string(update_tick_counts_local_size) + ";\n"
 			"const uint process_point_masses_local_size = " + ::std::to_string(process_point_masses_local_size) + ";\n"

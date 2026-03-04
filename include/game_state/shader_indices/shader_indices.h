@@ -20,9 +20,24 @@ namespace game_state::shader_indices
 		constexpr GLuint count{ end - base };
 	}
 
-	namespace tick
+	namespace on_key_event
 	{
 		constexpr GLuint base{ ::game_state::shader_indices::initialize::end };
+
+		enum struct Indices : GLuint
+		{
+			on_key_event = base,
+
+			end
+		};
+
+		constexpr GLuint end{ static_cast<GLuint>(Indices::end) };
+		constexpr GLuint count{ end - base };
+	}
+
+	namespace tick
+	{
+		constexpr GLuint base{ ::game_state::shader_indices::on_key_event::end };
 
 		namespace update_counts
 		{

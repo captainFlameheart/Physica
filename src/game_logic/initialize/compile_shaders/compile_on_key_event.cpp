@@ -6,7 +6,7 @@
 
 namespace game_logic::initialize::compile_shaders
 {
-	void compile_initialize
+	void compile_on_key_event
 	(
 		game_environment::Environment& environment, ::game_state::initialize::compile_shaders::environment::Environment compile_environment
 	)
@@ -15,10 +15,11 @@ namespace game_logic::initialize::compile_shaders
 		(
 			compile_environment.shader_group.compute_shader,
 			compile_environment.writable_prefix_source,
-			::util::shader::file_to_string("initialize/initialize.comp")
+			::util::shader::file_to_string("blocks/uniform/Key_Event"),
+			::util::shader::file_to_string("on_key_event/on_key_event.comp")
 		);
 
-		environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::initialize::Indices::initialize)] = ::util::shader::create_program
+		environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::on_key_event::Indices::on_key_event)] = ::util::shader::create_program
 		(
 			compile_environment.shader_group.compute_shader
 		);

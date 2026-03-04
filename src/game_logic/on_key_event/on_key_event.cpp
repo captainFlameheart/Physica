@@ -12,6 +12,8 @@ namespace game_logic::on_key_event
 	)
 	{
 		std::cout << "Key event" << std::endl;
-		
+		glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::on_key_event::Indices::on_key_event)]);
+		glDispatchCompute(1u, 1u, 1u);
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 	}
 }

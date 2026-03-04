@@ -4,6 +4,7 @@
 #include "compile_draw_point_mass_forces.h"
 #include "compile_draw_point_mass_velocities.h"
 #include "compile_initialize.h"
+#include "compile_on_key_event.h"
 #include "compile_process_point_masses.h"
 #include "compile_process_rigid_bodies.h"
 #include "compile_update_draw_counts.h"

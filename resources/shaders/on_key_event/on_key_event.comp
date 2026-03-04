@@ -1,0 +1,5 @@
+layout(local_size_x = 1u) in;
+void main()
+{
+	fixed_data.camera_position.x += uint(int(0.1 * meter_in_length_units));
+}
