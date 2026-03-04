@@ -71,7 +71,11 @@ void main()
 	const float fast_factor = 5.0;
 	const float slow_factor = 1.0 / fast_factor;
 	
-	vec3 velocity = vec3(int(key_d_state) - int(key_a_state), int(key_w_state) - int(key_s_state), int(key_down_state) - int(key_up_state));
+	vec3 velocity = vec3
+	(
+		float(int(key_d_state) - int(key_a_state)) * right + float(int(key_w_state) - int(key_s_state)) * up, 
+		int(key_down_state) - int(key_up_state)
+	);
 	normalize(velocity);
 	float speed = base_speed * (1.0 + is_fast * (fast_factor - 1.0)) * (1.0 + is_slow * (slow_factor - 1.0));
 	velocity *= speed;
