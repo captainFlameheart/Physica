@@ -8,8 +8,9 @@ namespace game_state::buffers::uniform
 	struct State
 	{
 		GLuint buffer;
+		GLbyte* mapping;
 		
-		GLuint key_event_offsets[key_event_capacity];
+		GLuint key_event_offset;
 		GLsync key_event_fences[key_event_capacity];
 		GLuint key_event_index;
 	};

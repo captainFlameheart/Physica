@@ -12,5 +12,6 @@ namespace game_logic::on_key_event
 	)
 	{
 		std::cout << "Key event" << std::endl;
+		
 	}
 }
