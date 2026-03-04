@@ -61,8 +61,6 @@ namespace game_logic::initialize::compile_shaders::environment
 		}
 		draw_arrays_command_blueprints += "};\n";
 
-		std::cout << draw_arrays_command_blueprints << std::endl;
-
 		GLuint update_tick_counts_local_size{ ::game_state::local_sizes::update_tick_counts_local_size };
 		GLuint update_draw_counts_local_size{ ::game_state::local_sizes::update_draw_counts_local_size };
 
@@ -85,6 +83,8 @@ namespace game_logic::initialize::compile_shaders::environment
 		compile_environment.constant_definitions = 
 			dispatch_command_blueprints +
 			draw_arrays_command_blueprints +
+
+			initialize_input_constants(environment, compile_environment) +
 
 			"const float meter_in_length_units = " + std::to_string(game_state::units::meter_in_length_units) + ";\n"
 			"const float length_unit_in_meters = " + std::to_string(game_state::units::length_unit_in_meters) + ";\n"
