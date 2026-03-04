@@ -1,0 +1,57 @@
+layout(local_size_x = 1u) in;
+void main()
+{
+	uvec4 camera_position = fixed_data.camera_position;
+	//mat4 camera_
+	
+	const uint key_a_index = key_a >> uint_bits_shift;
+	const uint key_a_bit_index = key_a & uint_bits_mask;
+	uint key_a_state = (fixed_data.key_state[key_a_index] >> key_a_bit_index) & 1u;
+
+	const uint key_d_index = key_d >> uint_bits_shift;
+	const uint key_d_bit_index = key_d & uint_bits_mask;
+	uint key_d_state = (fixed_data.key_state[key_d_index] >> key_d_bit_index) & 1u;
+
+	const uint key_s_index = key_s >> uint_bits_shift;
+	const uint key_s_bit_index = key_s & uint_bits_mask;
+	uint key_s_state = (fixed_data.key_state[key_s_index] >> key_s_bit_index) & 1u;
+
+	const uint key_w_index = key_w >> uint_bits_shift;
+	const uint key_w_bit_index = key_w & uint_bits_mask;
+	uint key_w_state = (fixed_data.key_state[key_w_index] >> key_w_bit_index) & 1u;
+
+	const uint key_down_index = key_down >> uint_bits_shift;
+	const uint key_down_bit_index = key_down & uint_bits_mask;
+	uint key_down_state = (fixed_data.key_state[key_down_index] >> key_down_bit_index) & 1u;
+
+	const uint key_up_index = key_up >> uint_bits_shift;
+	const uint key_up_bit_index = key_up & uint_bits_mask;
+	uint key_up_state = (fixed_data.key_state[key_up_index] >> key_up_bit_index) & 1u;
+
+	const uint key_left_control_index = key_left_control >> uint_bits_shift;
+	const uint key_left_control_bit_index = key_left_control & uint_bits_mask;
+	uint key_left_control_state = (fixed_data.key_state[key_left_control_index] >> key_left_control_bit_index) & 1u;
+
+	const uint key_left_shift_index = key_left_shift >> uint_bits_shift;
+	const uint key_left_shift_bit_index = key_left_shift & uint_bits_mask;
+	uint key_left_shift_state = (fixed_data.key_state[key_left_shift_index] >> key_left_shift_bit_index) & 1u;
+
+	const float base_speed = 1.0;
+	const float fast_factor = 5.0;
+	const float slow_factor = 1.0 / fast_factor;
+	
+	float speed = 1.0 * (1.0 + float(key_left_shift_state) * (fast_factor - 1.0)) * (1.0 + float(key_left_control_state) * (slow_factor - 1.0));
+
+	int x_direction = int(key_d_state) - int(key_a_state);
+	camera_position.x += uint(x_direction * int(speed * meters_per_second_in_length_units_per_time_unit));
+
+	int y_direction = int(key_w_state) - int(key_s_state);
+	camera_position.y += uint(y_direction * int(speed * meters_per_second_in_length_units_per_time_unit));
+	
+	int z_direction = int(key_down_state) - int(key_up_state);
+	camera_position.z += uint(z_direction * int(speed * meters_per_second_in_length_units_per_time_unit));
+
+	//float angle = camera
+
+	fixed_data.camera_position = camera_position;
+}

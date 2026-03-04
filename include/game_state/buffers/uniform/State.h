@@ -3,7 +3,7 @@
 
 namespace game_state::buffers::uniform
 {
-	constexpr GLuint key_event_capacity{ 3u };
+	constexpr GLuint key_event_capacity{ 4u };
 
 	struct State
 	{

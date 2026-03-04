@@ -84,7 +84,7 @@ namespace game_logic::initialize::compile_shaders::environment
 			dispatch_command_blueprints +
 			draw_arrays_command_blueprints +
 
-			initialize_input_constants(environment, compile_environment) +
+			initialize_input_constants(environment) +
 
 			"const float meter_in_length_units = " + std::to_string(game_state::units::meter_in_length_units) + ";\n"
 			"const float length_unit_in_meters = " + std::to_string(game_state::units::length_unit_in_meters) + ";\n"

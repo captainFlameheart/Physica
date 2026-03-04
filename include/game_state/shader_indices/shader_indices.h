@@ -46,6 +46,7 @@ namespace game_state::shader_indices
 			enum struct Indices : GLuint
 			{
 				update_counts = base,
+				on_update_counts,
 
 				end
 			};

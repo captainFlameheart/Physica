@@ -16,11 +16,51 @@ namespace game_logic::initialize::compile_shaders::environment
 {
 	std::string initialize_input_constants
 	(
-		game_environment::Environment& environment, ::game_state::initialize::compile_shaders::environment::Environment& compile_environment
+		game_environment::Environment& environment
 	)
 	{
 		return (
 			"const uint key_space = " STRINGIFY(GLFW_KEY_SPACE) ";\n"
+			
+			"const uint key_a = " STRINGIFY(GLFW_KEY_A) ";\n"
+			"const uint key_b = " STRINGIFY(GLFW_KEY_B) ";\n"
+			"const uint key_c = " STRINGIFY(GLFW_KEY_C) ";\n"
+			"const uint key_d = " STRINGIFY(GLFW_KEY_D) ";\n"
+			"const uint key_e = " STRINGIFY(GLFW_KEY_E) ";\n"
+			"const uint key_f = " STRINGIFY(GLFW_KEY_F) ";\n"
+			"const uint key_g = " STRINGIFY(GLFW_KEY_G) ";\n"
+			"const uint key_h = " STRINGIFY(GLFW_KEY_H) ";\n"
+			"const uint key_i = " STRINGIFY(GLFW_KEY_I) ";\n"
+			"const uint key_j = " STRINGIFY(GLFW_KEY_J) ";\n"
+			"const uint key_k = " STRINGIFY(GLFW_KEY_K) ";\n"
+			"const uint key_l = " STRINGIFY(GLFW_KEY_L) ";\n"
+			"const uint key_m = " STRINGIFY(GLFW_KEY_M) ";\n"
+			"const uint key_n = " STRINGIFY(GLFW_KEY_N) ";\n"
+			"const uint key_o = " STRINGIFY(GLFW_KEY_O) ";\n"
+			"const uint key_p = " STRINGIFY(GLFW_KEY_P) ";\n"
+			"const uint key_q = " STRINGIFY(GLFW_KEY_Q) ";\n"
+			"const uint key_r = " STRINGIFY(GLFW_KEY_R) ";\n"
+			"const uint key_s = " STRINGIFY(GLFW_KEY_S) ";\n"
+			"const uint key_t = " STRINGIFY(GLFW_KEY_T) ";\n"
+			"const uint key_u = " STRINGIFY(GLFW_KEY_U) ";\n"
+			"const uint key_v = " STRINGIFY(GLFW_KEY_V) ";\n"
+			"const uint key_w = " STRINGIFY(GLFW_KEY_W) ";\n"
+			"const uint key_x = " STRINGIFY(GLFW_KEY_X) ";\n"
+			"const uint key_y = " STRINGIFY(GLFW_KEY_Y) ";\n"
+			"const uint key_z = " STRINGIFY(GLFW_KEY_Z) ";\n"
+
+			"const uint key_right = " STRINGIFY(GLFW_KEY_RIGHT) ";\n"
+			"const uint key_left = " STRINGIFY(GLFW_KEY_LEFT) ";\n"
+			"const uint key_down = " STRINGIFY(GLFW_KEY_DOWN) ";\n"
+			"const uint key_up = " STRINGIFY(GLFW_KEY_UP) ";\n"
+
+			"const uint key_left_shift = " STRINGIFY(GLFW_KEY_LEFT_SHIFT) ";\n"
+			"const uint key_left_control = " STRINGIFY(GLFW_KEY_LEFT_CONTROL) ";\n"
+
+			"const uint key_menu = " STRINGIFY(GLFW_KEY_MENU) ";\n"
+			"const uint key_last = " STRINGIFY(GLFW_KEY_LAST) ";\n"
+			
+			"const uint key_count = " STRINGIFY(GLFW_KEY_LAST + 1) ";\n"
 		);
 	}
 }

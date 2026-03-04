@@ -4,6 +4,10 @@ const float pi = 3.141592653589793;
 const uint uint_size_shift = 2u;
 const uint uint_size = 1u << uint_size_shift;
 
+const uint uint_bits_shift = 5u;
+const uint uint_bits = 1u << uint_bits_shift;
+const uint uint_bits_mask = uint_bits - 1u;
+
 const uint uvec4_size_shift = 4u;
 const uint uvec4_size = 1u << uvec4_size_shift;
 
@@ -62,6 +66,7 @@ layout(shared, binding = fixed_data_binding) FIXED_DATA_RESTRICT_PLACEHOLDER
 FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 {
 	uvec4 camera_position;	// (x, y, z, 0u)
+	uint camera_angle;
 	mat4 camera_offset_to_clip_coordinates;
 
 	uint point_mass_position_velocity_base;
@@ -101,4 +106,6 @@ FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 	
 	uint draw_arrays_command_flags[draw_arrays_program_count];
 	Draw_Arrays_Command draw_arrays_commands[draw_arrays_program_count];
+
+	uint key_state[(key_count + uint_bits - 1u) >> uint_bits_shift];
 } fixed_data;

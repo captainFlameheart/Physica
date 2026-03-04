@@ -1,8 +1,12 @@
 layout(local_size_x = 1u) in;
 void main()
 {
-	if (key_event.key_scancode_action_mods.x == key_space)
-	{
-		fixed_data.camera_position.x += uint(int(0.1 * meter_in_length_units));
-	}
+	uvec4 key_scancode_action_mods = key_event.key_scancode_action_mods;
+	
+	uint key_state_index = key_scancode_action_mods.x >> uint_bits_shift;
+	uint key_state_bit_index = key_scancode_action_mods.x & uint_bits_mask;
+
+	uint is_pressed = uint(key_scancode_action_mods.z != 0);
+	fixed_data.key_state[key_state_index] =
+		(fixed_data.key_state[key_state_index] & ~(1 << key_state_bit_index)) | (is_pressed << key_state_bit_index);
 }
