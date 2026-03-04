@@ -2,7 +2,7 @@ layout(local_size_x = 1u) in;
 void main()
 {
 	uvec4 camera_position = fixed_data.camera_position;
-	//mat4 camera_
+	uint camera_angle = fixed_data.camera_angle;
 	
 	const uint key_a_index = key_a >> uint_bits_shift;
 	const uint key_a_bit_index = key_a & uint_bits_mask;
@@ -20,6 +20,14 @@ void main()
 	const uint key_w_bit_index = key_w & uint_bits_mask;
 	uint key_w_state = (fixed_data.key_state[key_w_index] >> key_w_bit_index) & 1u;
 
+	const uint key_left_index = key_left >> uint_bits_shift;
+	const uint key_left_bit_index = key_left & uint_bits_mask;
+	uint key_left_state = (fixed_data.key_state[key_left_index] >> key_left_bit_index) & 1u;
+
+	const uint key_right_index = key_right >> uint_bits_shift;
+	const uint key_right_bit_index = key_right & uint_bits_mask;
+	uint key_right_state = (fixed_data.key_state[key_right_index] >> key_right_bit_index) & 1u;
+
 	const uint key_down_index = key_down >> uint_bits_shift;
 	const uint key_down_bit_index = key_down & uint_bits_mask;
 	uint key_down_state = (fixed_data.key_state[key_down_index] >> key_down_bit_index) & 1u;
@@ -36,22 +44,59 @@ void main()
 	const uint key_left_shift_bit_index = key_left_shift & uint_bits_mask;
 	uint key_left_shift_state = (fixed_data.key_state[key_left_shift_index] >> key_left_shift_bit_index) & 1u;
 
-	const float base_speed = 1.0;
+	float is_slow = float(key_left_control_state);
+	float is_fast = float(key_left_shift_state);
+
+	const float base_angle_speed = 1.0 * radians_per_second_in_angle_units_per_time_unit;
+	const float fast_angle_factor = 5.0;
+	const float slow_angle_factor = 1.0 / fast_angle_factor;
+	
+	float angle_speed = base_angle_speed * 
+		(1.0 + is_fast * (fast_angle_factor - 1.0)) *
+		(1.0 + is_slow * (slow_angle_factor - 1.0));
+
+	int angle_direction = int(key_left_state) - int(key_right_state);
+	camera_angle += uint(angle_direction * int(angle_speed));
+
+	fixed_data.camera_angle = camera_angle;
+
+	// TODO: Handle large angle precision
+	float angle_in_radians = float(int(camera_angle)) * angle_unit_in_radians;
+	float angle_cos = cos(angle_in_radians);
+	float angle_sin = sin(angle_in_radians);
+	vec2 right = vec2(angle_cos, angle_sin);
+	vec2 up = vec2(-angle_sin, angle_cos);
+
+	const float base_speed = 1.0 * meters_per_second_in_length_units_per_time_unit;
 	const float fast_factor = 5.0;
 	const float slow_factor = 1.0 / fast_factor;
 	
-	float speed = 1.0 * (1.0 + float(key_left_shift_state) * (fast_factor - 1.0)) * (1.0 + float(key_left_control_state) * (slow_factor - 1.0));
-
-	int x_direction = int(key_d_state) - int(key_a_state);
-	camera_position.x += uint(x_direction * int(speed * meters_per_second_in_length_units_per_time_unit));
-
-	int y_direction = int(key_w_state) - int(key_s_state);
-	camera_position.y += uint(y_direction * int(speed * meters_per_second_in_length_units_per_time_unit));
-	
-	int z_direction = int(key_down_state) - int(key_up_state);
-	camera_position.z += uint(z_direction * int(speed * meters_per_second_in_length_units_per_time_unit));
-
-	//float angle = camera
+	vec3 velocity = vec3(int(key_d_state) - int(key_a_state), int(key_w_state) - int(key_s_state), int(key_down_state) - int(key_up_state));
+	normalize(velocity);
+	float speed = base_speed * (1.0 + is_fast * (fast_factor - 1.0)) * (1.0 + is_slow * (slow_factor - 1.0));
+	velocity *= speed;
+	camera_position.xyz += uvec3(ivec3(velocity));
 
 	fixed_data.camera_position = camera_position;
+
+	mat4 camera_offset_to_local = mat4
+	(
+		angle_cos, -angle_sin, 0.0, 0.0,
+		angle_sin, angle_cos, 0.0, 0.0,
+		0.0, 0.0, 1.0, 0.0,
+		0.0, 0.0, 0.0, 1.0
+	);
+	fixed_data.camera_offset_to_local = camera_offset_to_local;
+
+	vec2 projection = vec2(0.5, 1.0);
+	mat4 camera_projection = mat4
+	(
+		projection.x, 0.0, 0.0, 0.0,
+		0.0, projection.y, 0.0, 0.0,
+		0.0, 0.0, 0.0, -1.0,
+		0.0, 0.0, 0.0, 0.0
+	);
+	fixed_data.camera_projection = camera_projection;
+
+	fixed_data.camera_offset_to_clip_coordinates = camera_projection * camera_offset_to_local;
 }

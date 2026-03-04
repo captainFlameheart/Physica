@@ -88,10 +88,14 @@ namespace game_logic::initialize::compile_shaders::environment
 
 			"const float meter_in_length_units = " + std::to_string(game_state::units::meter_in_length_units) + ";\n"
 			"const float length_unit_in_meters = " + std::to_string(game_state::units::length_unit_in_meters) + ";\n"
+			"const float radian_in_angle_units = " + std::to_string(game_state::units::radian_in_angle_units) + ";\n"
+			"const float angle_unit_in_radians = " + std::to_string(game_state::units::angle_unit_in_radians) + ";\n"
 			"const float second_in_time_units = " + std::to_string(game_state::units::second_in_time_units) + ";\n"
 			"const float time_unit_in_seconds = " + std::to_string(game_state::units::time_unit_in_seconds) + ";\n"
 			"const float meters_per_second_in_length_units_per_time_unit = " + std::to_string(game_state::units::meters_per_second_in_length_units_per_time_unit) + ";\n"
 			"const float meters_per_second_squared_in_length_units_per_time_unit_squared = " + std::to_string(game_state::units::meters_per_second_squared_in_length_units_per_time_unit_squared) + ";\n"
+			"const float radians_per_second_in_angle_units_per_time_unit = " + std::to_string(game_state::units::radians_per_second_in_angle_units_per_time_unit) + ";\n"
+			"const float radians_per_second_squared_in_angle_units_per_time_unit_squared = " + std::to_string(game_state::units::radians_per_second_squared_in_angle_units_per_time_unit_squared) + ";\n"
 
 			"const uint entity_type_count = " + std::to_string(game_state::entity_type_indices::count) + ";\n"
 

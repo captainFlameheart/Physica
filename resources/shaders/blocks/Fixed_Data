@@ -67,6 +67,10 @@ FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 {
 	uvec4 camera_position;	// (x, y, z, 0u)
 	uint camera_angle;
+	mat4 camera_offset_to_local;
+	float camera_aspect_ratio;
+	float camera_near_plane_distance;
+	mat4 camera_projection;
 	mat4 camera_offset_to_clip_coordinates;
 
 	uint point_mass_position_velocity_base;

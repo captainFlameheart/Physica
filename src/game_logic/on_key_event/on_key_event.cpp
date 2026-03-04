@@ -36,7 +36,6 @@ namespace game_logic::on_key_event
 		}
 		glDeleteSync(fence);
 
-		// TODO: Write to mapping
 		GLuint key_scancode_action_mods[4u]{ key, scancode, action, mods };
 		std::memcpy(mapping + environment.state.layouts.key_event.key_scancode_action_mods_state.offset, key_scancode_action_mods, sizeof(key_scancode_action_mods));
 

@@ -6,7 +6,12 @@ void main()
 	const uint columns = 12u;
 
 	fixed_data.camera_position = uvec4(1.0 * meter_in_length_units, -1.0 * meter_in_length_units, 1.0 * meter_in_length_units, 0u);
+	uint camera_angle = 0u;
 	mat4 camera_offset_to_local = mat4(1.0);
+	
+	fixed_data.camera_angle = camera_angle;
+	fixed_data.camera_offset_to_local = camera_offset_to_local;
+
 	vec2 projection = vec2(0.5, 1.0);
 	mat4 camera_projection = mat4
 	(
@@ -15,6 +20,7 @@ void main()
 		0.0, 0.0, 0.0, -1.0,
 		0.0, 0.0, 0.0, 0.0
 	);
+	
 	fixed_data.camera_offset_to_clip_coordinates = camera_projection * camera_offset_to_local;
 
 	uint point_mass_capacity = rows * columns;
