@@ -37,14 +37,14 @@ void main()
 
 	uvec4 indices_turns = uvec4_data.data[indices_turns_index];
 
-	uint point_mass_position_velocity_base = fixed_data.point_mass_position_velocity_base;
+	uint point_mass_write_position_velocity_base = fixed_data.point_mass_write_position_velocity_base;
 
-	uint point_mass_position_velocity_index_0 = point_mass_position_velocity_base + indices_turns.x;
-	uint point_mass_position_velocity_index_1 = point_mass_position_velocity_base + indices_turns.y;
+	uint point_mass_write_position_velocity_index_0 = point_mass_write_position_velocity_base + indices_turns.x;
+	uint point_mass_write_position_velocity_index_1 = point_mass_write_position_velocity_base + indices_turns.y;
 
 	uvec4 point_mass_position_velocities[2u] = uvec4[2u](
-		uvec4_data.data[point_mass_position_velocity_index_0],
-		uvec4_data.data[point_mass_position_velocity_index_1]
+		uvec4_data.data[point_mass_write_position_velocity_index_0],
+		uvec4_data.data[point_mass_write_position_velocity_index_1]
 	);
 
 	vec2 direction = normalize(vec2(ivec2(point_mass_position_velocities[0u].xy - point_mass_position_velocities[1u].xy)));
@@ -58,6 +58,6 @@ void main()
 
 	vec4 camera_offset = vec4(ivec2(endpoint_position_velocity.xy - camera_position.xy), int(-camera_position.z), 1.0f);
 	camera_offset.xyz *= length_unit_in_meters;
-	camera_offset.xy += (0.0 * direction_sign) * direction + (0.003 * orthogonal_direction_sign) * orthogonal_direction;
+	camera_offset.xy += (0.0 * direction_sign) * direction + (0.005 * orthogonal_direction_sign) * orthogonal_direction;
 	gl_Position = camera_offset_to_clip_coordinates * camera_offset;
 }

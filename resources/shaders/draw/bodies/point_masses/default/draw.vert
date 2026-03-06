@@ -24,13 +24,13 @@ void main()
 	uvec4 camera_position = fixed_data.camera_position;
 	mat4 camera_offset_to_clip_coordinates = fixed_data.camera_offset_to_clip_coordinates;
 
-	uint position_velocity_base = fixed_data.point_mass_position_velocity_base;
+	uint write_position_velocity_base = fixed_data.point_mass_write_position_velocity_base;
 	uint inverse_mass_base = fixed_data.point_mass_inverse_mass_base;
 
-	uint position_velocity_index = position_velocity_base + index;
+	uint write_position_velocity_index = write_position_velocity_base + index;
 	uint inverse_mass_index = inverse_mass_base + index;
 
-	uvec4 position_velocity = uvec4_data.data[position_velocity_index];
+	uvec4 position_velocity = uvec4_data.data[write_position_velocity_index];
 	float inverse_mass = float_data.data[inverse_mass_index];
 	
 	float has_infinite_mass = float(inverse_mass == 0.0);
