@@ -110,6 +110,7 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uint uvec4_data_binding = " + std::to_string(::game_state::bindings::shader_storage::uvec4_data) + ";\n"
 			"const uint uvec2_data_binding = " + std::to_string(::game_state::bindings::shader_storage::uvec2_data) + ";\n"
 			"const uint uint_data_binding = " + ::std::to_string(::game_state::bindings::shader_storage::uint_data) + ";\n"
+			"const uint vec2_data_binding = " + ::std::to_string(::game_state::bindings::shader_storage::vec2_data) + ";\n"
 			"const uint float_data_binding = " + ::std::to_string(::game_state::bindings::shader_storage::float_data) + ";\n"
 			"const uint private_input_binding = " + ::std::to_string(::game_state::bindings::uniform::private_input) + ";\n"
 			
@@ -127,6 +128,8 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uint uvec2_data_array_stride = " + std::to_string(environment.state.layouts.uvec2_data.state.array_stride) + ";\n"
 			"const uint uint_data_offset = " + std::to_string(environment.state.layouts.uint_data.state.offset) + ";\n"
 			"const uint uint_data_array_stride = " + std::to_string(environment.state.layouts.uint_data.state.array_stride) + ";\n"
+			"const uint vec2_data_offset = " + std::to_string(environment.state.layouts.vec2_data.state.offset) + ";\n"
+			"const uint vec2_data_array_stride = " + std::to_string(environment.state.layouts.vec2_data.state.array_stride) + ";\n"
 			"const uint float_data_offset = " + std::to_string(environment.state.layouts.float_data.state.offset) + ";\n"
 			"const uint float_data_array_stride = " + std::to_string(environment.state.layouts.float_data.state.array_stride) + ";\n"
 		;
@@ -135,6 +138,7 @@ namespace game_logic::initialize::compile_shaders::environment
 		compile_environment.uvec4_data_source = ::util::shader::file_to_string("blocks/shader_storage/uvec4_Data");
 		compile_environment.uvec2_data_source = ::util::shader::file_to_string("blocks/shader_storage/uvec2_Data");
 		compile_environment.uint_data_source = ::util::shader::file_to_string("blocks/shader_storage/uint_Data");
+		compile_environment.vec2_data_source = ::util::shader::file_to_string("blocks/shader_storage/vec2_Data");
 		compile_environment.float_data_source = ::util::shader::file_to_string("blocks/shader_storage/float_Data");
 		
 		compile_environment.combined_data_source =
@@ -142,6 +146,7 @@ namespace game_logic::initialize::compile_shaders::environment
 			compile_environment.uvec4_data_source +
 			compile_environment.uvec2_data_source +
 			compile_environment.uint_data_source +
+			compile_environment.vec2_data_source +
 			compile_environment.float_data_source;
 
 		compile_environment.constants_and_data_source = compile_environment.constant_definitions + compile_environment.combined_data_source;

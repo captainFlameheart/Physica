@@ -3,6 +3,7 @@
 #include "compile_draw_point_mass_distance_constraints.h"
 #include "compile_draw_point_mass_forces.h"
 #include "compile_draw_point_mass_velocities.h"
+#include "compile_draw_rigid_bodies.h"
 #include "compile_initialize.h"
 #include "compile_on_key_event.h"
 #include "compile_on_update_tick_counts.h"

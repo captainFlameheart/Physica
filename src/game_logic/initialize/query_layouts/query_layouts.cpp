@@ -53,6 +53,7 @@ namespace game_logic::initialize::query_layouts
 			query_uvec4_data_layout(environment, program);
 			query_uvec2_data_layout(environment, program);
 			query_uint_data_layout(environment, program);
+			query_vec2_data_layout(environment, program);
 			query_float_data_layout(environment, program);
 
 			::util::shader::delete_program(program);

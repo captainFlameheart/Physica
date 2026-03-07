@@ -1,0 +1,5 @@
+layout(shared, binding = vec2_data_binding) restrict READ_ONLY_PLACEHOLDER
+buffer vec2_Data
+{
+	vec2 data[];
+} vec2_data;
