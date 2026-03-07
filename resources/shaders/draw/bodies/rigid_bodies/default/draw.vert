@@ -19,7 +19,7 @@ const vec2 offsets[12u] = vec2[12u]
 	vec2(thickness, 1.0)
 );
 
-const float density = 1.0 / (0.02 * pi);
+const float density = 1.0 / (0.05 * pi);
 const float pi_times_density = pi * density;
 
 void main()
