@@ -5,7 +5,7 @@
 
 namespace game_logic::initialize::compile_shaders
 {
-	void compile_process_rigid_bodies
+	void compile_tick_rigid_bodies
 	(
 		game_environment::Environment& environment, ::game_state::initialize::compile_shaders::environment::Environment compile_environment
 	);

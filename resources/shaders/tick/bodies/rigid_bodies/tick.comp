@@ -1,0 +1,34 @@
+layout(local_size_x = tick_rigid_bodies_local_size) in;
+void main()
+{
+	uint index = gl_GlobalInvocationID.x;
+	uint count = fixed_data.read_counts[rigid_body_type_index];
+	if (index >= count)
+	{
+		return;
+	}
+
+	// uint inverse_mass_inertia_base = fixed_data.rigid_body_inverse_mass_inertia_base;
+	uint read_position_turn_base = fixed_data.rigid_body_read_position_turn_base;
+	uint read_velocity_flags_base = fixed_data.rigid_body_read_velocity_flags_base;
+	uint write_position_turn_base = fixed_data.rigid_body_write_position_turn_base;
+	uint write_velocity_flags_base = fixed_data.rigid_body_write_velocity_flags_base;
+
+	// uint inverse_mass_inertia_index = inverse_mass_inertia_base + index;
+	uint read_position_turn_index = read_position_turn_base + index;
+	uint read_velocity_flags_index = read_velocity_flags_base + index;
+	uint write_position_turn_index = write_position_turn_base + index;
+	uint write_velocity_flags_index = write_velocity_flags_base + index;
+
+	uvec4 position_turn = uvec4_data.data[write_position_turn_index];
+	uvec4 velocity_flags = uvec4_data.data[write_velocity_flags_index];
+
+	position_turn.xyz += velocity_flags.xyz;
+	++position_turn.w;
+
+	uvec4_data.data[read_position_turn_index] = position_turn;
+	uvec4_data.data[read_velocity_flags_index] = velocity_flags;
+
+	uvec4_data.data[write_position_turn_index] = position_turn;
+	// uvec4_data.data[write_velocity_flags_index] = velocity_flags;
+}

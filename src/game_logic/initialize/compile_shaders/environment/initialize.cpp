@@ -69,7 +69,7 @@ namespace game_logic::initialize::compile_shaders::environment
 		GLuint process_point_masses_local_size{ ::game_state::local_sizes::process_entities_local_sizes[
 			static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bodies::Indices::point_masses) - tick_entities_local_size_base
 		] };
-		GLuint process_rigid_bodies_local_size{ ::game_state::local_sizes::process_entities_local_sizes[
+		GLuint tick_rigid_bodies_local_size{ ::game_state::local_sizes::process_entities_local_sizes[
 			static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bodies::Indices::rigid_bodies) - tick_entities_local_size_base
 		] };
 
@@ -115,7 +115,7 @@ namespace game_logic::initialize::compile_shaders::environment
 			
 			"const uint update_tick_counts_local_size = " + ::std::to_string(update_tick_counts_local_size) + ";\n"
 			"const uint process_point_masses_local_size = " + ::std::to_string(process_point_masses_local_size) + ";\n"
-			"const uint process_rigid_bodies_local_size = " + ::std::to_string(process_rigid_bodies_local_size) + ";\n"
+			"const uint tick_rigid_bodies_local_size = " + ::std::to_string(tick_rigid_bodies_local_size) + ";\n"
 			"const uint tick_point_mass_distance_constraints_local_size = " + ::std::to_string(process_point_mass_distance_constraints_local_size) + ";\n"
 			"const uint process_point_mass_uniform_force_constraints_local_size = " + ::std::to_string(process_point_mass_uniform_force_constraints_local_size) + ";\n"
 			"const uint update_draw_counts_local_size = " + ::std::to_string(update_draw_counts_local_size) + ";\n"
