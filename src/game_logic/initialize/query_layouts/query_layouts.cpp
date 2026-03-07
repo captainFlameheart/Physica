@@ -24,7 +24,8 @@ namespace game_logic::initialize::query_layouts
 			"const uint uvec4_data_binding = 1;\n"
 			"const uint uvec2_data_binding = 2;\n"
 			"const uint uint_data_binding = 3;\n"
-			"const uint float_data_binding = 4;\n"
+			"const uint vec2_data_binding = 4;\n"
+			"const uint float_data_binding = 5;\n"
 			"const uint private_input_binding = " + std::to_string(::game_state::bindings::uniform::private_input) + ";\n"
 			"const uint entity_type_count = " + std::to_string(::game_state::entity_type_indices::count) + ";\n"
 			"const uint dispatch_program_count = " + std::to_string(::game_state::shader_indices::tick::process_entities::count) + ";\n"
@@ -34,6 +35,7 @@ namespace game_logic::initialize::query_layouts
 			::util::shader::file_to_string("blocks/shader_storage/uvec4_Data") +
 			::util::shader::file_to_string("blocks/shader_storage/uvec2_Data") +
 			::util::shader::file_to_string("blocks/shader_storage/uint_Data") +
+			::util::shader::file_to_string("blocks/shader_storage/vec2_Data") +
 			::util::shader::file_to_string("blocks/shader_storage/float_Data") +
 			::util::shader::file_to_string("dummies/compute.comp")
 		};

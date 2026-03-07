@@ -1,4 +1,4 @@
-const float thickness = 0.1;
+const float thickness = 0.2;
 
 const vec2 offsets[12u] = vec2[12u]
 (
@@ -45,7 +45,7 @@ void main()
 	float radius = 1.0 / (inverse_mass_inertia.x * pi_times_density);
 	offset *= radius;
 	// TODO: Handle large angle precision.
-	float angle = float(position_turn.z) * angle_unit_in_radians;
+	float angle = float(int(position_turn.z)) * angle_unit_in_radians;
 	float angle_cos = cos(angle);
 	float angle_sin = sin(angle);
 	offset = mat2

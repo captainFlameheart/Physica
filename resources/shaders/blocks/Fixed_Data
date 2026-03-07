@@ -8,14 +8,17 @@ const uint uint_bits_shift = 5u;
 const uint uint_bits = 1u << uint_bits_shift;
 const uint uint_bits_mask = uint_bits - 1u;
 
-const uint float_size_shift = 2u;
-const uint float_size = 1u << float_size_shift;
-
 const uint uvec2_size_shift = 3u;
 const uint uvec2_size = 1u << uvec2_size_shift;
 
 const uint uvec4_size_shift = 4u;
 const uint uvec4_size = 1u << uvec4_size_shift;
+
+const uint float_size_shift = 2u;
+const uint float_size = 1u << float_size_shift;
+
+const uint vec2_size_shift = 3u;
+const uint vec2_size = 1u << vec2_size_shift;
 
 const uint alignment = 128u;	// Must be power of two and at least 4!
 const uint align_up_addition = alignment - 1u;
@@ -71,6 +74,11 @@ uint address_to_uvec2_index(uint address)
 uint address_to_uint_index(uint address)
 {
 	return address >> uint_size_shift;
+}
+
+uint address_to_vec2_index(uint address)
+{
+	return address >> vec2_size_shift;
 }
 
 uint address_to_float_index(uint address)
