@@ -7,6 +7,7 @@ namespace game_state::entity_type_indices
 	{
 		point_mass,
 		rigid_body,
+		rigid_body_triangle,
 		point_mass_distance_constraint,
 		point_mass_uniform_force_constraint,
 

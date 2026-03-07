@@ -1,11 +1,11 @@
 layout(local_size_x = 1u) in;
 void main()
 {
-	const uint distance = uint(int(0.2 * meter_in_length_units));
+	const uint distance = uint(int(0.5 * meter_in_length_units));
 	uint rows = 10u;
 	uint columns = 10u;
 
-	fixed_data.camera_position = uvec4(0.0 * meter_in_length_units, 0.0 * meter_in_length_units, 1.0 * meter_in_length_units, 0u);
+	fixed_data.camera_position = uvec4(0.0 * meter_in_length_units, 0.0 * meter_in_length_units, 5.0 * meter_in_length_units, 0u);
 	uint camera_angle = 0u;
 	mat4 camera_offset_to_local = mat4(1.0);
 	
@@ -71,9 +71,20 @@ void main()
 	fixed_data.rigid_body_write_velocity_flags_base = rigid_body_write_velocity_flags_base;
 	fixed_data.rigid_body_write_constraint_count_base = rigid_body_write_constraint_count_base;
 
+	uint rigid_body_triangle_capacity = rigid_body_capacity;
+	
+	uint rigid_body_triangle_body_base_address = align_up(rigid_body_write_constraint_count_base_address + rigid_body_capacity * uint_data_array_stride);
+	uint rigid_body_triangle_vertex_base_address = align_up(rigid_body_triangle_body_base_address + rigid_body_triangle_capacity * uint_data_array_stride);
+
+	uint rigid_body_triangle_body_base = address_to_uint_index(rigid_body_triangle_body_base_address);
+	uint rigid_body_triangle_vertex_base = address_to_vec2_index(rigid_body_triangle_vertex_base_address);
+
+	fixed_data.rigid_body_triangle_body_base = rigid_body_triangle_body_base;
+	fixed_data.rigid_body_triangle_vertex_base = rigid_body_triangle_vertex_base;
+
 	uint point_mass_distance_constraint_capacity = columns * (rows - 1u) + rows * (columns - 1u);
 
-	uint point_mass_distance_constraint_flags_target_distance_base_address = align_up(rigid_body_write_constraint_count_base_address + rigid_body_capacity * uint_data_array_stride);
+	uint point_mass_distance_constraint_flags_target_distance_base_address = align_up(rigid_body_triangle_vertex_base_address + rigid_body_triangle_capacity * vec2_data_array_stride);
 	uint point_mass_distance_constraint_indices_turns_base_address = align_up(point_mass_distance_constraint_flags_target_distance_base_address + point_mass_distance_constraint_capacity * uvec2_data_array_stride);
 	uint point_mass_distance_constraint_delta_position_velocity_base_address = align_up(point_mass_distance_constraint_indices_turns_base_address + point_mass_distance_constraint_capacity * uvec4_data_array_stride);
 
@@ -89,6 +100,7 @@ void main()
 
 	uint point_mass_count = point_mass_capacity;
 	uint rigid_body_count = rigid_body_capacity;
+	uint rigid_body_triangle_count = rigid_body_triangle_capacity;
 	uint point_mass_distance_constraint_count = point_mass_distance_constraint_capacity;
 
 	uint end_base_address = point_mass_distance_constraint_delta_position_velocity_base_address + point_mass_distance_constraint_capacity * uvec4_data_array_stride;
@@ -97,6 +109,7 @@ void main()
 
 	point_mass_count *= has_enough_memory;
 	rigid_body_count *= has_enough_memory;
+	rigid_body_triangle_count *= has_enough_memory;
 	point_mass_distance_constraint_count *= has_enough_memory;
 	rows *= has_enough_memory;
 	columns *= has_enough_memory;
@@ -106,6 +119,9 @@ void main()
 
 	fixed_data.read_counts[rigid_body_type_index] = rigid_body_count;
 	fixed_data.write_counts[rigid_body_type_index] = rigid_body_count;
+
+	fixed_data.read_counts[rigid_body_triangle_type_index] = rigid_body_triangle_count;
+	fixed_data.write_counts[rigid_body_triangle_type_index] = rigid_body_triangle_count;
 
 	fixed_data.read_counts[point_mass_distance_constraint_type_index] = point_mass_distance_constraint_count;
 	fixed_data.write_counts[point_mass_distance_constraint_type_index] = point_mass_distance_constraint_count;
@@ -175,6 +191,15 @@ void main()
 			)
 		);
 		uint_data.data[rigid_body_write_constraint_count_base + rigid_body_index] = 0u;
+	}
+
+	for (uint rigid_body_triangle_index = 0u; rigid_body_triangle_index < rigid_body_triangle_count; ++rigid_body_triangle_index)
+	{
+		uint_data.data[rigid_body_triangle_body_base + rigid_body_triangle_index] = rigid_body_triangle_index;
+		uint vertex_index = rigid_body_triangle_vertex_base + rigid_body_triangle_index * 3u;
+		vec2_data.data[vertex_index] = vec2(0.0, 1.0);
+		vec2_data.data[vertex_index + 1u] = vec2(-1.0, -1.0);
+		vec2_data.data[vertex_index + 2u] = vec2(1.0, -1.0);
 	}
 
 	uint point_mass_distance_constraint_base_index = 0u;

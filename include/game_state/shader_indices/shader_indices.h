@@ -130,6 +130,7 @@ namespace game_state::shader_indices
 					point_masses = base,
 					point_mass_velocities,
 					point_mass_forces,
+					rigid_body_triangles,
 					rigid_bodies,
 
 					end

@@ -12,7 +12,7 @@ const vec2 offsets[6u] = vec2[6u]
 out vec2 offset;
 out vec4 color_radius;
 
-const float density = 1.0 / (0.02 * pi);
+const float density = 1.0 / (0.05 * pi);
 const float pi_times_density = pi * density;
 
 void main()
