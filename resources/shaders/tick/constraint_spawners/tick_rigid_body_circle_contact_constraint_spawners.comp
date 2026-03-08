@@ -1,0 +1,76 @@
+layout(local_size_x = tick_rigid_body_circle_contact_constraint_spawners_local_size) in;
+void main()
+{
+	// REALLY FRICKIN COOL TODO: Make constraints "pull" the memory addresses of their bodies towards each other!
+
+	uint index = gl_GlobalInvocationID.x;
+	uint count = fixed_data.read_counts[rigid_body_circle_contact_constraint_spawner_type_index];
+	if (index >= count)
+	{
+		return;
+	}
+	
+	uint indices_flags_base = fixed_data.rigid_body_circle_contact_constraint_spawner_indices_flags_base;
+
+	uint indices_flags_index = indices_flags_base + index;
+
+	uvec4 indices_flags = uvec4_data.data[indices_flags_index];
+
+	if (indices_flags.z & rigid_body_circle_contact_constraint_spawner_is_dead_mask != 0u)
+	{
+		return;
+	}
+
+	uint circle_body_position_radius_base = fixed_data.rigid_body_circle_body_position_radius_base;
+
+	uint circle_body_position_radius_index_0 = circle_body_position_radius_base + indices_flags.x;
+	uint circle_body_position_radius_index_1 = circle_body_position_radius_base + indices_flags.y;
+
+	uvec4 circle_body_position_radius_0 = uvec4_data.data[circle_body_position_radius_index_0];
+	uvec4 circle_body_position_radius_1 = uvec4_data.data[circle_body_position_radius_index_1];
+
+	uint body_read_position_flags_base = fixed_data.rigid_body_read_position_flags_base;
+
+	uint body_read_position_flags_index_0 = body_read_position_flags_base + circle_body_position_radius_0.x;
+	uint body_read_position_flags_index_1 = body_read_position_flags_base + circle_body_position_radius_1.x;
+
+	uint body_read_position_flags_0 = uvec4_data.data[body_read_position_flags_index_0];
+	uint body_read_position_flags_1 = uvec4_data.data[body_read_position_flags_index_1];
+
+	vec2 displacement = vec2(ivec2(body_read_position_flags_0.xy - body_read_position_flags_1.xy));
+	float distance_squared = dot(displacement, displacement) * (length_unit_in_meters * length_unit_in_meters);
+	float hit_distance = circle_body_position_radius_0.w + circle_body_position_radius_1.w;
+	if (distance_squared < hit_distance * hit_distance)
+	{
+		// TODO: Spawn constraint and despawn this spawner.
+		uint constraint_index = atomicAdd(fixed_data.read_counts[rigid_body_circle_contact_constraint_type_index], 1u);
+		if (constraint_index >= fixed_data.rigid_body_circle_contact_constraint_capacity)
+		{
+			atomicAdd(fixed_data.read_counts[rigid_body_circle_contact_constraint_type_index], decrement_uint);
+			return;
+		}
+
+		uint tick = fixed_data.tick;
+
+		uint body_constraint_start_base = fixed_data.rigid_body_constraint_start_base;
+
+		uint body_constraint_start_index_0 = body_constraint_start_base + circle_body_position_radius_0.x;
+		uint body_constraint_start_index_1 = body_constraint_start_base + circle_body_position_radius_1.x;
+
+		uint turn_0 = tick + atomicAdd(uint_data.data[body_constraint_start_index_0], decrement_uint) - 1u;
+		uint turn_1 = tick + atomicAdd(uint_data.data[body_constraint_start_index_1], decrement_uint) - 1u;
+
+		uint constraint_flags_base = fixed_data.rigid_body_circle_contact_constraint_flags_base;
+		uint constraint_indices_turns_base = fixed_data.rigid_body_circle_contact_constraint_indices_turns_base;
+
+		uint constraint_flags_index = constraint_flags_base + constraint_index;
+		uint constraint_indices_turns_index = constraint_indices_turns_base + constraint_index;
+
+		uint_data.data[constraint_flags_index] = 0u;
+		uvec4_data.data[constraint_indices_turns_index] = uvec4(indices, turn_0, turn_1);
+
+		indices_flags.z |= rigid_body_circle_contact_constraint_spawner_is_dead_mask;
+		uvec4_data.data[indices_flags_index] = indices_flags;
+		// TODO: Append to kill list
+	}
+}

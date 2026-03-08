@@ -106,6 +106,7 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uint rigid_body_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::Indices::rigid_body)) + ";\n"
 			"const uint rigid_body_triangle_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::Indices::rigid_body_triangle)) + ";\n"
 			"const uint rigid_body_circle_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::Indices::rigid_body_circle)) + ";\n"
+			"const uint rigid_body_circle_contact_constraint_spawner_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::Indices::rigid_body_circle_contact_constraint_spawner)) + ";\n"
 			"const uint point_mass_distance_constraint_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::Indices::point_mass_distance_constraint)) + ";\n"
 			"const uint point_mass_uniform_force_constraint_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::Indices::point_mass_uniform_force_constraint)) + ";\n"
 	

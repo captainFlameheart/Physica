@@ -54,7 +54,7 @@ void main()
 	
 	fixed_data.point_mass_capacity = point_mass_capacity;
 
-	uint rigid_body_capacity = 10000u;
+	uint rigid_body_capacity = 2u;
 
 	uint rigid_body_inverse_mass_inertia_base_address = align_up(point_mass_write_position_velocity_base_address + point_mass_capacity * uvec4_data_array_stride);
 	uint rigid_body_constraint_start_base_address = align_up(rigid_body_inverse_mass_inertia_base_address + rigid_body_capacity * vec2_data_array_stride);
@@ -80,6 +80,8 @@ void main()
 	fixed_data.rigid_body_write_position_flags_base = rigid_body_write_position_flags_base;
 	fixed_data.rigid_body_write_velocity_flags_base = rigid_body_write_velocity_flags_base;
 
+	fixed_data.rigid_body_capacity = rigid_body_capacity;
+
 	uint rigid_body_triangle_capacity = rigid_body_capacity;
 	
 	uint rigid_body_triangle_body_base_address = align_up(rigid_body_write_velocity_flags_base_address + rigid_body_capacity * uvec4_data_array_stride);
@@ -91,6 +93,8 @@ void main()
 	fixed_data.rigid_body_triangle_body_base = rigid_body_triangle_body_base;
 	fixed_data.rigid_body_triangle_vertex_base = rigid_body_triangle_vertex_base;
 
+	fixed_data.rigid_body_triangle_capacity = rigid_body_triangle_capacity;
+
 	uint rigid_body_circle_capacity = rigid_body_capacity;
 
 	uint rigid_body_circle_body_position_radius_base_address = align_up(rigid_body_triangle_vertex_base_address + rigid_body_triangle_capacity * 3u * vec2_data_array_stride);
@@ -99,9 +103,21 @@ void main()
 
 	fixed_data.rigid_body_circle_body_position_radius_base = rigid_body_circle_body_position_radius_base;
 
+	fixed_data.rigid_body_circle_capacity = rigid_body_circle_capacity;
+
+	uint rigid_body_circle_contact_constraint_spawner_capacity = rigid_body_circle_capacity * (rigid_body_circle_capacity - 1u) / 2u;
+
+	uint rigid_body_circle_contact_constraint_spawner_indices_flags_base_address = align_up(rigid_body_circle_body_position_radius_base_address + rigid_body_circle_capacity * uvec4_data_array_stride);
+
+	uint rigid_body_circle_contact_constraint_spawner_indices_flags_base = address_to_uvec4_index(rigid_body_circle_contact_constraint_spawner_indices_flags_base_address);
+
+	fixed_data.rigid_body_circle_contact_constraint_spawner_indices_flags_base = rigid_body_circle_contact_constraint_spawner_indices_flags_base;
+
+	fixed_data.rigid_body_circle_contact_constraint_spawner_capacity = rigid_body_circle_contact_constraint_spawner_capacity;
+
 	uint point_mass_distance_constraint_capacity = columns * (rows - 1u) + rows * (columns - 1u);
 
-	uint point_mass_distance_constraint_flags_target_distance_base_address = align_up(rigid_body_circle_body_position_radius_base_address + rigid_body_circle_capacity * uvec4_data_array_stride);
+	uint point_mass_distance_constraint_flags_target_distance_base_address = align_up(rigid_body_circle_contact_constraint_spawner_indices_flags_base_address + rigid_body_circle_contact_constraint_spawner_capacity * uvec4_data_array_stride);
 	uint point_mass_distance_constraint_indices_turns_base_address = align_up(point_mass_distance_constraint_flags_target_distance_base_address + point_mass_distance_constraint_capacity * uvec2_data_array_stride);
 	uint point_mass_distance_constraint_delta_position_velocity_base_address = align_up(point_mass_distance_constraint_indices_turns_base_address + point_mass_distance_constraint_capacity * uvec4_data_array_stride);
 
@@ -119,6 +135,7 @@ void main()
 	uint rigid_body_count = rigid_body_capacity;
 	uint rigid_body_triangle_count = rigid_body_triangle_capacity * 0u;
 	uint rigid_body_circle_count = rigid_body_circle_capacity;
+	uint rigid_body_circle_contact_constraint_spawner_count = rigid_body_circle_contact_constraint_spawner_capacity;
 	uint point_mass_distance_constraint_count = point_mass_distance_constraint_capacity;
 
 	uint end_base_address = point_mass_distance_constraint_delta_position_velocity_base_address + point_mass_distance_constraint_capacity * uvec4_data_array_stride;
@@ -129,6 +146,7 @@ void main()
 	rigid_body_count *= has_enough_memory;
 	rigid_body_triangle_count *= has_enough_memory;
 	rigid_body_circle_count *= has_enough_memory;
+	rigid_body_circle_contact_constraint_spawner_count *= has_enough_memory;
 	point_mass_distance_constraint_count *= has_enough_memory;
 	rows *= has_enough_memory;
 	columns *= has_enough_memory;
@@ -144,6 +162,9 @@ void main()
 
 	fixed_data.read_counts[rigid_body_circle_type_index] = rigid_body_circle_count;
 	fixed_data.write_counts[rigid_body_circle_type_index] = rigid_body_circle_count;
+
+	fixed_data.read_counts[rigid_body_circle_contact_constraint_spawner_type_index] = rigid_body_circle_contact_constraint_spawner_count;
+	fixed_data.write_counts[rigid_body_circle_contact_constraint_spawner_type_index] = rigid_body_circle_contact_constraint_spawner_count;
 
 	fixed_data.read_counts[point_mass_distance_constraint_type_index] = point_mass_distance_constraint_count;
 	fixed_data.write_counts[point_mass_distance_constraint_type_index] = point_mass_distance_constraint_count;
@@ -208,7 +229,7 @@ void main()
 		(
 			ivec4
 			(
-				(rigid_body_index % rigid_body_columns) * meter_in_length_units, (rigid_body_index / rigid_body_columns) * meter_in_length_units,
+				4.0 * (rigid_body_index % rigid_body_columns) * meter_in_length_units, (3.0 + float(rigid_body_index / rigid_body_columns)) * meter_in_length_units,
 				0.0 * radian_in_angle_units, 0
 			)
 		);
@@ -216,8 +237,8 @@ void main()
 		(
 			ivec4
 			(
-				1.0 * meters_per_second_in_length_units_per_time_unit, 0.0 * meters_per_second_in_length_units_per_time_unit,
-				1.0 * radians_per_second_in_angle_units_per_time_unit, 0u
+				float(1 - 2 * int(rigid_body_index & 1)) * 1.0 * meters_per_second_in_length_units_per_time_unit, 0.0 * meters_per_second_in_length_units_per_time_unit,
+				0.0 * radians_per_second_in_angle_units_per_time_unit, 0u
 			)
 		);
 	}
@@ -240,6 +261,18 @@ void main()
 			rigid_body_circle_index,
 			floatBitsToUint(vec3(0.0, 0.0, 0.5))
 		);
+	}
+
+	uint rigid_body_circle_contact_constraint_spawner_index = 0u;
+	for (uint rigid_body_circle_index_0 = 0u; rigid_body_circle_index_0 < rigid_body_circle_count - 1u; ++rigid_body_circle_index_0)
+	{
+		for (uint rigid_body_circle_index_1 = rigid_body_circle_index_0 + 1u; rigid_body_circle_index_1 < rigid_body_circle_count - 1u; ++rigid_body_circle_index_1)
+		{
+			uvec4_data.data[rigid_body_circle_contact_constraint_spawner_indices_flags_base + rigid_body_circle_contact_constraint_spawner_index] =
+				uvec4(rigid_body_circle_index_0, rigid_body_circle_index_1, 0u, 0u);
+
+			++rigid_body_circle_contact_constraint_spawner_index;
+		}
 	}
 
 	uint point_mass_distance_constraint_base_index = 0u;

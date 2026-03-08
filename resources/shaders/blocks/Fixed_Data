@@ -1,6 +1,8 @@
 // IMPORTANT TODO: Switch to std430 layout if shared layout does not match needs!
 const float pi = 3.141592653589793;
 
+const uint decrement_uint = uint(-1);
+
 const uint uint_size_shift = 2u;
 const uint uint_size = 1u << uint_size_shift;
 
@@ -27,19 +29,11 @@ const uint align_up_mask = ~align_up_addition;
 const uint point_mass_is_dead_shift = 0u;
 const uint point_mass_is_dead_mask = 1u << point_mass_is_dead_shift;
 
-const uint point_mass_requeue_constraint_shift = 1u;
-const uint point_mass_requeue_constraint_mask = 1u << point_mass_requeue_constraint_shift;
+const uint rigid_body_circle_contact_constraint_spawner_is_dead_shift = 0u;
+const uint rigid_body_circle_contact_constraint_spawner_is_dead_mask = 1u << rigid_body_circle_contact_constraint_spawner_is_dead_shift;
 
 const uint point_mass_distance_constraint_is_dead_shift = 0u;
 const uint point_mass_distance_constraint_is_dead_mask = 1u << point_mass_distance_constraint_is_dead_shift;
-
-/*const uint point_mass_distance_constraint_observe_deltas_0_shift = 1u;
-const uint point_mass_distance_constraint_observe_deltas_0_mask = 1u << point_mass_distance_constraint_observe_deltas_0_shift;
-
-const uint point_mass_distance_constraint_observe_deltas_1_shift = 2u;
-const uint point_mass_distance_constraint_observe_deltas_1_mask = 1u << point_mass_distance_constraint_observe_deltas_1_shift;
-
-const uint point_mass_distance_constraint_observe_deltas_mask = point_mass_distance_constraint_observe_deltas_0_mask | point_mass_distance_constraint_observe_deltas_1_mask;*/
 
 const uint dispatch_command_enabled_shift = 0u;
 const uint dispatch_command_enabled_mask = 1u << dispatch_command_enabled_shift;
@@ -133,6 +127,10 @@ FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 	uint rigid_body_circle_body_position_radius_base;
 
 	uint rigid_body_circle_capacity;
+
+	uint rigid_body_circle_contact_constraint_spawner_indices_flags_base;
+
+	uint rigid_body_circle_contact_constraint_spawner_capacity;
 
 	uint point_mass_distance_constraint_flags_target_distance_base;
 	uint point_mass_distance_constraint_indices_turns_base;

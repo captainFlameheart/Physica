@@ -9,6 +9,9 @@ namespace game_state::entity_type_indices
 		rigid_body,
 		rigid_body_triangle,
 		rigid_body_circle,
+
+		rigid_body_circle_contact_constraint_spawner,
+
 		point_mass_distance_constraint,
 		point_mass_uniform_force_constraint,
 
