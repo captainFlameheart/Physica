@@ -116,12 +116,17 @@ FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 	uint point_mass_capacity;
 
 	uint rigid_body_inverse_mass_inertia_base;
-	uint rigid_body_read_position_turn_base;
+	uint rigid_body_constraint_start_base;
+	uint rigid_body_constraint_end_base;
+	uint rigid_body_read_position_flags_base;
 	uint rigid_body_read_velocity_flags_base;
-	uint rigid_body_read_constraint_count_base;
-	uint rigid_body_write_position_turn_base;
+	uint rigid_body_write_position_flags_base;
 	uint rigid_body_write_velocity_flags_base;
-	uint rigid_body_write_constraint_count_base;
+	
+	//uint rigid_body_read_position_turn_base;
+	//uint rigid_body_read_constraint_count_base;
+	//uint rigid_body_write_position_turn_base;
+	//uint rigid_body_write_constraint_count_base;
 
 	uint rigid_body_capacity;
 
@@ -129,6 +134,10 @@ FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 	uint rigid_body_triangle_vertex_base;
 
 	uint rigid_body_triangle_capacity;
+
+	uint rigid_body_circle_body_position_radius_base;
+
+	uint rigid_body_circle_capacity;
 
 	uint point_mass_distance_constraint_flags_target_distance_base;
 	uint point_mass_distance_constraint_indices_turns_base;
