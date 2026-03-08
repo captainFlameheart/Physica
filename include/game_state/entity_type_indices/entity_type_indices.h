@@ -14,6 +14,7 @@ namespace game_state::entity_type_indices
 
 		point_mass_distance_constraint,
 		point_mass_uniform_force_constraint,
+		rigid_body_circle_contact_constraint,
 
 		count
 	};

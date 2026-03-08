@@ -109,7 +109,8 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uint rigid_body_circle_contact_constraint_spawner_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::Indices::rigid_body_circle_contact_constraint_spawner)) + ";\n"
 			"const uint point_mass_distance_constraint_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::Indices::point_mass_distance_constraint)) + ";\n"
 			"const uint point_mass_uniform_force_constraint_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::Indices::point_mass_uniform_force_constraint)) + ";\n"
-	
+			"const uint rigid_body_circle_contact_constraint_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::Indices::rigid_body_circle_contact_constraint)) + ";\n"
+
 			"const uint uvec4_data_binding = " + std::to_string(::game_state::bindings::shader_storage::uvec4_data) + ";\n"
 			"const uint uvec2_data_binding = " + std::to_string(::game_state::bindings::shader_storage::uvec2_data) + ";\n"
 			"const uint uint_data_binding = " + ::std::to_string(::game_state::bindings::shader_storage::uint_data) + ";\n"
