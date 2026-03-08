@@ -12,107 +12,188 @@ void main()
 
 	uint tick = fixed_data.tick;
 
-	//uint 
+	uint flags_base = fixed_data.rigid_body_circle_contact_constraint_flags_base;
+	uint indices_turns_base = fixed_data.rigid_body_circle_contact_constraint_indices_turns_base;
+	uint impulse_base = fixed_data.rigid_body_circle_contact_constraint_impulse_base;
 
-	/*uint index = gl_GlobalInvocationID.x;
-	uint count = fixed_data.read_counts[point_mass_distance_constraint_type_index];
-	if (index >= count)
+	uint flags_index = flags_base + index;
+	uint indices_turns_index = indices_turns_base + index;
+	uint impulse_index = impulse_base + index;
+
+	uint flags = uint_data.data[flags_index];
+
+	if (flags & rigid_body_circle_contact_constraint_is_dead_mask != 0u)
 	{
 		return;
 	}
-	
-	uint tick = fixed_data.tick;
 
-	uint flags_target_distance_base = fixed_data.point_mass_distance_constraint_flags_target_distance_base;
-	uint indices_turns_base = fixed_data.point_mass_distance_constraint_indices_turns_base;
-	uint delta_position_velocity_base = fixed_data.point_mass_distance_constraint_delta_position_velocity_base;
-
-	uint flags_target_distance_index = flags_target_distance_base + index;
-	uint indices_turns_index = indices_turns_base + index;
-	uint delta_position_velocity_index = delta_position_velocity_base + index;
-
-	uvec2 flags_target_distance = uvec2_data.data[flags_target_distance_index];
 	uvec4 indices_turns = uvec4_data.data[indices_turns_index];
-	uvec4 delta_position_velocity = uvec4_data.data[delta_position_velocity_index];
+	vec4 impulse = vec4_data.data[impulse_index];
 
-	uint point_mass_inverse_mass_base = fixed_data.point_mass_inverse_mass_base;
-	uint point_mass_constraint_start_base = fixed_data.point_mass_constraint_start_base;
-	uint point_mass_constraint_end_base = fixed_data.point_mass_constraint_end_base;
-	uint point_mass_read_position_velocity_base = fixed_data.point_mass_read_position_velocity_base;
-	uint point_mass_write_position_velocity_base = fixed_data.point_mass_write_position_velocity_base;
+	uint circle_body_position_radius_base = fixed_data.rigid_body_circle_body_position_radius_base;
 
-	uint point_mass_inverse_mass_index_0 = point_mass_inverse_mass_base + indices_turns.x;
-	uint point_mass_inverse_mass_index_1 = point_mass_inverse_mass_base + indices_turns.y;
+	uint circle_body_position_radius_index_0 = circle_body_position_radius_base + indices_turns.x;
+	uint circle_body_position_radius_index_1 = circle_body_position_radius_base + indices_turns.y;
 
-	uint point_mass_constraint_start_index_0 = point_mass_constraint_start_base + indices_turns.x;
-	uint point_mass_constraint_start_index_1 = point_mass_constraint_start_base + indices_turns.y;
+	uvec4 circle_body_position_radius_0 = uvec4_data.data[circle_body_position_radius_index_0];
+	uvec4 circle_body_position_radius_1 = uvec4_data.data[circle_body_position_radius_index_1];
 
-	uint point_mass_constraint_end_index_0 = point_mass_constraint_end_base + indices_turns.x;
-	uint point_mass_constraint_end_index_1 = point_mass_constraint_end_base + indices_turns.y;
+	vec3 circle_position_radius_0 = uintBitsToFloat(circle_body_position_radius_0.yzw);
+	vec3 circle_position_radius_1 = uintBitsToFloat(circle_body_position_radius_1.yzw);
 
-	uint point_mass_read_position_velocity_index_0 = point_mass_read_position_velocity_base + indices_turns.x;
-	uint point_mass_read_position_velocity_index_1 = point_mass_read_position_velocity_base + indices_turns.y;
+	uint rigid_body_inverse_mass_inertia_base = fixed_data.rigid_body_inverse_mass_inertia_base;
+	uint rigid_body_constraint_start_base = fixed_data.rigid_body_constraint_start_base;
+	uint rigid_body_constraint_end_base = fixed_data.rigid_body_constraint_end_base;
+	uint rigid_body_read_position_flags_base = fixed_data.rigid_body_read_position_flags_base;
+	uint rigid_body_read_velocity_flags_base = fixed_data.rigid_body_read_velocity_flags_base;
+	uint rigid_body_write_position_flags_base = fixed_data.rigid_body_write_position_flags_base;
+	uint rigid_body_write_velocity_flags_base = fixed_data.rigid_body_write_velocity_flags_base;
 
-	uint point_mass_write_position_velocity_index_0 = point_mass_write_position_velocity_base + indices_turns.x;
-	uint point_mass_write_position_velocity_index_1 = point_mass_write_position_velocity_base + indices_turns.y;
+	uint rigid_body_inverse_mass_inertia_index_0 = rigid_body_inverse_mass_inertia_base + circle_body_position_radius_0.x;
+	uint rigid_body_inverse_mass_inertia_index_1 = rigid_body_inverse_mass_inertia_base + circle_body_position_radius_1.x;
 
-	float point_mass_inverse_mass_0 = float_data.data[point_mass_inverse_mass_index_0];
-	float point_mass_inverse_mass_1 = float_data.data[point_mass_inverse_mass_index_1];
+	uint rigid_body_constraint_start_index_0 = rigid_body_constraint_start_base + circle_body_position_radius_0.x;
+	uint rigid_body_constraint_start_index_1 = rigid_body_constraint_start_base + circle_body_position_radius_1.x;
 
-	uint point_mass_constraint_start_0 = uint_data.data[point_mass_constraint_start_index_0];
-	uint point_mass_constraint_start_1 = uint_data.data[point_mass_constraint_start_index_1];
+	uint rigid_body_constraint_end_index_0 = rigid_body_constraint_end_base + circle_body_position_radius_0.x;
+	uint rigid_body_constraint_end_index_1 = rigid_body_constraint_end_base + circle_body_position_radius_1.x;
 
-	uvec4 point_mass_position_velocity_0 = uvec4_data.data[point_mass_read_position_velocity_index_0];
-	uvec4 point_mass_position_velocity_1 = uvec4_data.data[point_mass_read_position_velocity_index_1];
+	uint rigid_body_read_position_flags_index_0 = rigid_body_read_position_flags_base + circle_body_position_radius_0.x;
+	uint rigid_body_read_position_flags_index_1 = rigid_body_read_position_flags_base + circle_body_position_radius_1.x;
 
-	ivec4 relative_position_velocity = ivec4(point_mass_position_velocity_0 - point_mass_position_velocity_1);
+	uint rigid_body_read_velocity_flags_index_0 = rigid_body_read_velocity_flags_base + circle_body_position_radius_0.x;
+	uint rigid_body_read_velocity_flags_index_1 = rigid_body_read_velocity_flags_base + circle_body_position_radius_1.x;
 
-	vec2 direction = vec2(relative_position_velocity.xy);
-	float distance_error = length(direction);
-	direction /= distance_error;
+	uint rigid_body_write_position_flags_index_0 = rigid_body_write_position_flags_base + circle_body_position_radius_0.x;
+	uint rigid_body_write_position_flags_index_1 = rigid_body_write_position_flags_base + circle_body_position_radius_1.x;
 
-	float inverse_mass = point_mass_inverse_mass_0 + point_mass_inverse_mass_1;
-	float mass = 1.0 / inverse_mass;
+	uint rigid_body_write_velocity_flags_index_0 = rigid_body_write_velocity_flags_base + circle_body_position_radius_0.x;
+	uint rigid_body_write_velocity_flags_index_1 = rigid_body_write_velocity_flags_base + circle_body_position_radius_1.x;
 
-	// TODO: Handle precision for large distances.
-	distance_error += float(int(delta_position_velocity.x + delta_position_velocity.y - flags_target_distance.y));
-	float flipped_position_impulse = mass * distance_error;
-	
-	delta_position_velocity.x -= uint(int(point_mass_inverse_mass_0 * flipped_position_impulse));
-	delta_position_velocity.y -= uint(int(point_mass_inverse_mass_1 * flipped_position_impulse));
+	vec2 rigid_body_inverse_mass_inertia_0 = vec2_data.data[rigid_body_inverse_mass_inertia_index_0];
+	vec2 rigid_body_inverse_mass_inertia_1 = vec2_data.data[rigid_body_inverse_mass_inertia_index_1];
 
-	float velocity = dot(direction, vec2(relative_position_velocity.zw));
-	velocity += float(int(delta_position_velocity.z + delta_position_velocity.w));
-	float flipped_impulse = mass * velocity;
+	uint rigid_body_constraint_start_0 = uint_data.data[rigid_body_constraint_start_index_0];
+	uint rigid_body_constraint_start_1 = uint_data.data[rigid_body_constraint_start_index_1];
 
-	delta_position_velocity.z -= uint(int(point_mass_inverse_mass_0 * flipped_impulse));
-	delta_position_velocity.w -= uint(int(point_mass_inverse_mass_1 * flipped_impulse));
+	uvec4 rigid_body_position_flags_0 = uvec4_data.data[rigid_body_read_position_flags_index_0];
+	uvec4 rigid_body_position_flags_1 = uvec4_data.data[rigid_body_read_position_flags_index_1];
 
-	if (indices_turns.z == tick + point_mass_constraint_start_0)
+	uvec4 rigid_body_velocity_flags_0 = uvec4_data.data[rigid_body_read_velocity_flags_index_0];
+	uvec4 rigid_body_velocity_flags_1 = uvec4_data.data[rigid_body_read_velocity_flags_index_1];
+
+	// TODO: Treat offsets, radii, etc. as being in length units, even if they are floats!
+	// TODO: Consider circle position.
+	vec2 normal = vec2(ivec2(body_position_flags_0.xy - body_position_flags_1.xy));
+	float distance_squared_in_length_units = dot(normal, normal);
+	float distance_squared = distance_squared_in_length_units * (length_unit_in_meters * length_unit_in_meters);
+	float hit_distance = circle_body_position_radius_0.w + circle_body_position_radius_1.w;
+	if ((flags & rigid_body_circle_contact_constraint_is_dying_mask) == 0 & distance_squared >= hit_distance * hit_distance)
 	{
-		uvec4_data.data[point_mass_write_position_velocity_index_0] = point_mass_position_velocity_0 + uvec4
-		(
-			ivec4(float(int(delta_position_velocity.x)) * direction, float(int(delta_position_velocity.z)) * direction)
-		);
-		delta_position_velocity.x = 0u;
-		delta_position_velocity.z = 0u;
+		uint spawner_index = atomicAdd(fixed_data.read_counts[rigid_body_circle_contact_constraint_spawner_type_index], 1u);
+		if (spawner_index >= fixed_data.rigid_body_circle_contact_constraint_spawner_capacity)
+		{
+			atomicAdd(fixed_data.read_counts[rigid_body_circle_contact_constraint_spawner_type_index], decrement_uint);
+			return;
+		}
 
-		uint point_mass_constraint_end_0 = uint_data.data[point_mass_constraint_end_index_0];
-		indices_turns.z = tick + point_mass_constraint_end_0;
+		uint spawner_indices_flags_base = fixed_data.rigid_body_circle_contact_constraint_spawner_indices_flags_base;
+
+		uint spawner_indices_flags_index = spawner_indices_flags_base + spawner_index;
+
+		uvec4_data.data[spawner_indices_flags_index] = uvec4(indices_turns.xy, 0u, 0u);
+
+		flags |= rigid_body_circle_contact_constraint_is_dying_mask;
 	}
-	if (indices_turns.w == tick + point_mass_constraint_start_1)
-	{
-		uvec4_data.data[point_mass_write_position_velocity_index_1] = point_mass_position_velocity_1 - uvec4
-		(
-			ivec4(float(int(delta_position_velocity.y)) * direction, float(int(delta_position_velocity.w)) * direction)
-		);
-		delta_position_velocity.y = 0u;
-		delta_position_velocity.w = 0u;
 
-		uint point_mass_constraint_end_1 = uint_data.data[point_mass_constraint_end_index_1];
-		indices_turns.w = tick + point_mass_constraint_end_1;
+	if (flags & rigid_body_circle_contact_constraint_is_dying_mask != 0u)
+	{
+		if (indices_turns.z == tick + rigid_body_constraint_start_0)
+		{
+			uint_data.data[rigid_body_constraint_end_index_0] = uint_data.data[rigid_body_constraint_end_index_0] + decrement_uint;
+			flags |= rigid_body_circle_contact_constraint_released_0_mask;
+		}
+		if (indices_turns.z == tick + rigid_body_constraint_start_1)
+		{
+			uint_data.data[rigid_body_constraint_end_index_1] = uint_data.data[rigid_body_constraint_end_index_1] + decrement_uint;
+			flags |= rigid_body_circle_contact_constraint_released_1_mask;
+		}
+		
+		if (flags & rigid_body_circle_contact_constraint_released_both_mask != 0u)
+		{
+			flags |= rigid_body_circle_contact_constraint_is_dead_mask;
+			// TODO: Append to kill list
+		}
+
+		uint_data.data[flags_index] = flags;
+		return;
+	}
+
+	normal /= sqrt(distance_squared_in_length_units);
+	vec2 offset_0 = -circle_position_radius_0.w * normal;
+	vec2 offset_1 = circle_position_radius_1.w * normal;
+
+	// TODO: Express as dot products using permuted offsets below.
+	float normal_cross_0 = offset_0.x * normal.y - offset_0.y * normal.x;
+	float normal_cross_1 = offset_1.x * normal.y - offset_1.y * normal.x;
+
+	float normal_inverse_mass =
+		rigid_body_inverse_mass_inertia_0.x + normal_cross_0 * normal_cross_0 * rigid_body_inverse_mass_inertia_0.y +
+		rigid_body_inverse_mass_inertia_1.x + normal_cross_1 * normal_cross_1 * rigid_body_inverse_mass_inertia_1.y;
+
+	float tangent_cross_0 = dot(offset_0, normal);
+	float tangent_cross_1 = dot(offset_1, normal);
+
+	float tangent_inverse_mass =
+		rigid_body_inverse_mass_inertia_0.x + tangent_cross_0 * tangent_cross_0 * rigid_body_inverse_mass_inertia_0.y +
+		rigid_body_inverse_mass_inertia_1.x + tangent_cross_1 * tangent_cross_1 * rigid_body_inverse_mass_inertia_1.y;
+
+	vec2 relative_velocity =
+		(rigid_body_velocity_flags_0.xy + rigid_body_velocity_flags_0.z * vec2(-offset_0.y, offset_0.x)) -
+		(rigid_body_velocity_flags_1.xy + rigid_body_velocity_flags_1.z * vec2(-offset_1.y, offset_1.x));
+	
+	float normal_velocity = dot(normal, relative_velocity);
+	normal_velocity += impulse.z + impulse.w;
+	float flipped_normal_impulse = normal_mass * normal_velocity;
+
+	impulse.z -= flipped_normal_impulse;
+	impulse.w += flipped_normal_impulse;
+
+	if (indices_turns.z == tick + rigid_body_constraint_start_0)
+	{
+		rigid_body_velocity_flags_0.xyz += uvec3
+		(
+			ivec3
+			(
+				(meter_in_length_units * inverse_mass_inertia_0.x * impulse.z) * normal,
+				(radian_in_angle_units * inverse_mass_inertia_0.y * impulse.z) * normal_cross_0
+			)
+		);
+		uvec4_data.data[rigid_body_write_velocity_flags_index_0] = rigid_body_velocity_flags_0;
+		impulse.x = 0.0;
+		impulse.z = 0.0;
+
+		uint rigid_body_constraint_end_0 = uint_data.data[rigid_body_constraint_end_index_0];
+		indices_turns.z = tick + rigid_body_constraint_end_0;
+	}
+	if (indices_turns.w == tick + rigid_body_constraint_start_1)
+	{
+		rigid_body_velocity_flags_1.xyz -= uvec3
+		(
+			ivec3
+			(
+				(meter_in_length_units * inverse_mass_inertia_1.x * impulse.w) * normal,
+				(radian_in_angle_units * inverse_mass_inertia_1.y * impulse.w) * normal_cross_1
+			)
+		);
+		uvec4_data.data[rigid_body_write_velocity_flags_index_1] = rigid_body_velocity_flags_1;
+		impulse.y = 0.0;
+		impulse.w = 0.0;
+
+		uint rigid_body_constraint_end_1 = uint_data.data[rigid_body_constraint_end_index_1];
+		indices_turns.w = tick + rigid_body_constraint_end_1;
 	}
 
 	uvec4_data.data[indices_turns_index] = indices_turns;
-	uvec4_data.data[delta_position_velocity_index] = delta_position_velocity;*/
+	uvec4_data.data[impulse_index] = impulse;
 }

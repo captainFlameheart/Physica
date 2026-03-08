@@ -38,6 +38,20 @@ const uint rigid_body_circle_contact_constraint_spawner_is_dead_mask = 1u << rig
 const uint point_mass_distance_constraint_is_dead_shift = 0u;
 const uint point_mass_distance_constraint_is_dead_mask = 1u << point_mass_distance_constraint_is_dead_shift;
 
+const uint rigid_body_circle_contact_constraint_is_dead_shift = 0u;
+const uint rigid_body_circle_contact_constraint_is_dead_mask = 1u << rigid_body_circle_contact_constraint_is_dead_shift;
+
+const uint rigid_body_circle_contact_constraint_is_dying_shift = 1u;
+const uint rigid_body_circle_contact_constraint_is_dying_mask = 1u << rigid_body_circle_contact_constraint_is_dying_shift;
+
+const uint rigid_body_circle_contact_constraint_released_0_shift = 2u;
+const uint rigid_body_circle_contact_constraint_released_0_mask = 1u << rigid_body_circle_contact_constraint_released_0_shift;
+
+const uint rigid_body_circle_contact_constraint_released_1_shift = 2u;
+const uint rigid_body_circle_contact_constraint_released_1_mask = 1u << rigid_body_circle_contact_constraint_released_1_shift;
+
+const uint rigid_body_circle_contact_constraint_released_both_mask = rigid_body_circle_contact_constraint_released_0_mask | rigid_body_circle_contact_constraint_released_1_mask;
+
 const uint dispatch_command_enabled_shift = 0u;
 const uint dispatch_command_enabled_mask = 1u << dispatch_command_enabled_shift;
 
