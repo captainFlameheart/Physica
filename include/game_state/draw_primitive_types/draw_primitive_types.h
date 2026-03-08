@@ -15,6 +15,7 @@ namespace game_state::draw_primitive_types
 		primitive_types[static_cast<GLuint>(::game_state::shader_indices::draw::entities::bodies::Indices::point_mass_velocities) - base] = GL_LINES;
 		primitive_types[static_cast<GLuint>(::game_state::shader_indices::draw::entities::bodies::Indices::point_mass_forces) - base] = GL_LINES;
 		primitive_types[static_cast<GLuint>(::game_state::shader_indices::draw::entities::bodies::Indices::rigid_body_triangles) - base] = default_primitive_type;
+		primitive_types[static_cast<GLuint>(::game_state::shader_indices::draw::entities::bodies::Indices::rigid_body_circles) - base] = default_primitive_type;
 		primitive_types[static_cast<GLuint>(::game_state::shader_indices::draw::entities::bodies::Indices::rigid_bodies) - base] = default_primitive_type;
 		primitive_types[static_cast<GLuint>(::game_state::shader_indices::draw::entities::constraints::Indices::point_mass_distance_constraints) - base] = default_primitive_type;
 		primitive_types[static_cast<GLuint>(::game_state::shader_indices::draw::entities::constraints::Indices::point_mass_uniform_force_constraints) - base] = default_primitive_type;

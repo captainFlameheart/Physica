@@ -30,6 +30,7 @@ namespace game_logic::initialize::compile_shaders
 		compile_draw_point_mass_velocities(environment, compile_environment);
 		compile_draw_point_mass_forces(environment, compile_environment);
 
+		compile_draw_rigid_body_circles(environment, compile_environment);
 		compile_draw_rigid_body_triangles(environment, compile_environment);
 		compile_draw_rigid_bodies(environment, compile_environment);
 

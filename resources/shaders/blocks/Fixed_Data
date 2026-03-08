@@ -122,11 +122,6 @@ FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 	uint rigid_body_read_velocity_flags_base;
 	uint rigid_body_write_position_flags_base;
 	uint rigid_body_write_velocity_flags_base;
-	
-	//uint rigid_body_read_position_turn_base;
-	//uint rigid_body_read_constraint_count_base;
-	//uint rigid_body_write_position_turn_base;
-	//uint rigid_body_write_constraint_count_base;
 
 	uint rigid_body_capacity;
 

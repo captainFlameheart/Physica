@@ -24,7 +24,6 @@ void main()
 	uvec4 velocity_flags = uvec4_data.data[write_velocity_flags_index];
 
 	position_flags.xyz += velocity_flags.xyz;
-	++position_flags.w;
 
 	uvec4_data.data[read_position_flags_index] = position_flags;
 	uvec4_data.data[read_velocity_flags_index] = velocity_flags;

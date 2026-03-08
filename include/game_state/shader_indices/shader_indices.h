@@ -131,6 +131,7 @@ namespace game_state::shader_indices
 					point_mass_velocities,
 					point_mass_forces,
 					rigid_body_triangles,
+					rigid_body_circles,
 					rigid_bodies,
 
 					end

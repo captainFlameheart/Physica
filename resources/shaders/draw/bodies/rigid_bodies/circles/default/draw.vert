@@ -10,7 +10,7 @@ const vec2 offsets[6u] = vec2[6u]
 );
 
 out vec2 offset;
-out vec4 color_radius;
+out float radius;
 
 const float density = 1.0 / (0.05 * pi);
 const float pi_times_density = pi * density;
@@ -29,25 +29,30 @@ void main()
 	uint body_position_radius_index = body_position_radius_base + index;
 
 	uvec4 body_position_radius = uvec4_data.data[body_position_radius_index];
+	vec3 position_radius = uintBitsToFloat(body_position_radius.yzw);
+	radius = position_radius.z;
 
-	uint rigid_body_position_
+	uint rigid_body_write_position_flags_base = fixed_data.rigid_body_write_position_flags_base;
 
-	uint rigid_body_position = uvec4_data.data[];
+	uint rigid_body_write_position_flags_index = rigid_body_write_position_flags_base + body_position_radius.x;
 
-	uint point_mass_write_position_velocity_base = fixed_data.point_mass_write_position_velocity_base;
+	uvec4 rigid_body_position_flags = uvec4_data.data[rigid_body_write_position_flags_index];
 
-	uint point_mass_write_position_velocity_index = point_mass_write_position_velocity_base + index;
-
-	uvec4 position_velocity = uvec4_data.data[write_position_velocity_index];
+	offset *= radius;
+	vec2 vertex = offset + position_radius.xy;
 	
-	float has_infinite_mass = float(inverse_mass == 0.0);
-	inverse_mass = mix(inverse_mass, 1.0, has_infinite_mass);
-	color_radius.a = 1.0 / (inverse_mass * pi_times_density);
-	offset *= color_radius.a;
-	color_radius.rgb = mix(vec3(1.0, 1.0, 1.0), vec3(1.0, 0.0, 0.0), has_infinite_mass);
+	// TODO: Handle large angle precision.
+	float angle = float(int(rigid_body_position_flags.z)) * angle_unit_in_radians;
+	float angle_cos = cos(angle);
+	float angle_sin = sin(angle);
+	vertex = mat2
+	(
+		angle_cos, angle_sin,
+		-angle_sin, angle_cos
+	) * vertex;
 
-	vec4 camera_offset = vec4(ivec2(position_velocity.xy - camera_position.xy), int(-camera_position.z), 1.0f);
+	vec4 camera_offset = vec4(ivec2(rigid_body_position_flags.xy - camera_position.xy), int(-camera_position.z), 1.0f);
 	camera_offset.xyz *= length_unit_in_meters;
-	camera_offset.xy += offset;
+	camera_offset.xy += vertex;
 	gl_Position = camera_offset_to_clip_coordinates * camera_offset;
 }
