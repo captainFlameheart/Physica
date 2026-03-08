@@ -24,16 +24,22 @@ const uint alignment = 128u;	// Must be power of two and at least 4!
 const uint align_up_addition = alignment - 1u;
 const uint align_up_mask = ~align_up_addition;
 
+const uint point_mass_is_dead_shift = 0u;
+const uint point_mass_is_dead_mask = 1u << point_mass_is_dead_shift;
+
+const uint point_mass_requeue_constraint_shift = 1u;
+const uint point_mass_requeue_constraint_mask = 1u << point_mass_requeue_constraint_shift;
+
 const uint point_mass_distance_constraint_is_dead_shift = 0u;
 const uint point_mass_distance_constraint_is_dead_mask = 1u << point_mass_distance_constraint_is_dead_shift;
 
-const uint point_mass_distance_constraint_observe_deltas_0_shift = 1u;
+/*const uint point_mass_distance_constraint_observe_deltas_0_shift = 1u;
 const uint point_mass_distance_constraint_observe_deltas_0_mask = 1u << point_mass_distance_constraint_observe_deltas_0_shift;
 
 const uint point_mass_distance_constraint_observe_deltas_1_shift = 2u;
 const uint point_mass_distance_constraint_observe_deltas_1_mask = 1u << point_mass_distance_constraint_observe_deltas_1_shift;
 
-const uint point_mass_distance_constraint_observe_deltas_mask = point_mass_distance_constraint_observe_deltas_0_mask | point_mass_distance_constraint_observe_deltas_1_mask;
+const uint point_mass_distance_constraint_observe_deltas_mask = point_mass_distance_constraint_observe_deltas_0_mask | point_mass_distance_constraint_observe_deltas_1_mask;*/
 
 const uint dispatch_command_enabled_shift = 0u;
 const uint dispatch_command_enabled_mask = 1u << dispatch_command_enabled_shift;
@@ -89,6 +95,8 @@ uint address_to_float_index(uint address)
 layout(shared, binding = fixed_data_binding) FIXED_DATA_RESTRICT_PLACEHOLDER
 FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 {
+	uint tick;
+
 	uvec4 camera_position;	// (x, y, z, 0u)
 	uint camera_angle;
 	mat4 camera_offset_to_local;
@@ -98,10 +106,12 @@ FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 	mat4 camera_offset_to_clip_coordinates;
 
 	uint point_mass_inverse_mass_base;
+	uint point_mass_constraint_start_base;
+	uint point_mass_constraint_end_base;
+	uint point_mass_read_flags_base;
 	uint point_mass_read_position_velocity_base;
-	uint point_mass_read_flags_turn_constraint_count_base;
+	uint point_mass_write_flags_base;
 	uint point_mass_write_position_velocity_base;
-	uint point_mass_write_flags_turn_constraint_count_base;
 
 	uint point_mass_capacity;
 

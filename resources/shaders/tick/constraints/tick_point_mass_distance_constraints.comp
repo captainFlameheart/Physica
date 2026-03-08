@@ -10,6 +10,8 @@ void main()
 		return;
 	}
 	
+	uint tick = fixed_data.tick;
+
 	uint flags_target_distance_base = fixed_data.point_mass_distance_constraint_flags_target_distance_base;
 	uint indices_turns_base = fixed_data.point_mass_distance_constraint_indices_turns_base;
 	uint delta_position_velocity_base = fixed_data.point_mass_distance_constraint_delta_position_velocity_base;
@@ -23,34 +25,34 @@ void main()
 	uvec4 delta_position_velocity = uvec4_data.data[delta_position_velocity_index];
 
 	uint point_mass_inverse_mass_base = fixed_data.point_mass_inverse_mass_base;
+	uint point_mass_constraint_start_base = fixed_data.point_mass_constraint_start_base;
+	uint point_mass_constraint_end_base = fixed_data.point_mass_constraint_end_base;
 	uint point_mass_read_position_velocity_base = fixed_data.point_mass_read_position_velocity_base;
-	uint point_mass_read_flags_turn_constraint_count_base = fixed_data.point_mass_read_flags_turn_constraint_count_base;
 	uint point_mass_write_position_velocity_base = fixed_data.point_mass_write_position_velocity_base;
-	uint point_mass_write_flags_turn_constraint_count_base = fixed_data.point_mass_write_flags_turn_constraint_count_base;
 
 	uint point_mass_inverse_mass_index_0 = point_mass_inverse_mass_base + indices_turns.x;
 	uint point_mass_inverse_mass_index_1 = point_mass_inverse_mass_base + indices_turns.y;
 
+	uint point_mass_constraint_start_index_0 = point_mass_constraint_start_base + indices_turns.x;
+	uint point_mass_constraint_start_index_1 = point_mass_constraint_start_base + indices_turns.y;
+
+	uint point_mass_constraint_end_index_0 = point_mass_constraint_end_base + indices_turns.x;
+	uint point_mass_constraint_end_index_1 = point_mass_constraint_end_base + indices_turns.y;
+
 	uint point_mass_read_position_velocity_index_0 = point_mass_read_position_velocity_base + indices_turns.x;
 	uint point_mass_read_position_velocity_index_1 = point_mass_read_position_velocity_base + indices_turns.y;
-
-	uint point_mass_read_flags_turn_constraint_count_index_0 = point_mass_read_flags_turn_constraint_count_base + indices_turns.x;
-	uint point_mass_read_flags_turn_constraint_count_index_1 = point_mass_read_flags_turn_constraint_count_base + indices_turns.y;
 
 	uint point_mass_write_position_velocity_index_0 = point_mass_write_position_velocity_base + indices_turns.x;
 	uint point_mass_write_position_velocity_index_1 = point_mass_write_position_velocity_base + indices_turns.y;
 
-	uint point_mass_write_flags_turn_constraint_count_index_0 = point_mass_write_flags_turn_constraint_count_base + indices_turns.x;
-	uint point_mass_write_flags_turn_constraint_count_index_1 = point_mass_write_flags_turn_constraint_count_base + indices_turns.y;
-
 	float point_mass_inverse_mass_0 = float_data.data[point_mass_inverse_mass_index_0];
 	float point_mass_inverse_mass_1 = float_data.data[point_mass_inverse_mass_index_1];
 
+	uint point_mass_constraint_start_0 = uint_data.data[point_mass_constraint_start_index_0];
+	uint point_mass_constraint_start_1 = uint_data.data[point_mass_constraint_start_index_1];
+
 	uvec4 point_mass_position_velocity_0 = uvec4_data.data[point_mass_read_position_velocity_index_0];
 	uvec4 point_mass_position_velocity_1 = uvec4_data.data[point_mass_read_position_velocity_index_1];
-
-	uvec4 point_mass_flags_turn_constraint_count_0 = uvec4_data.data[point_mass_read_flags_turn_constraint_count_index_0];
-	uvec4 point_mass_flags_turn_constraint_count_1 = uvec4_data.data[point_mass_read_flags_turn_constraint_count_index_1];
 
 	ivec4 relative_position_velocity = ivec4(point_mass_position_velocity_0 - point_mass_position_velocity_1);
 
@@ -75,7 +77,7 @@ void main()
 	delta_position_velocity.z -= uint(int(point_mass_inverse_mass_0 * flipped_impulse));
 	delta_position_velocity.w -= uint(int(point_mass_inverse_mass_1 * flipped_impulse));
 
-	if (indices_turns.z == point_mass_flags_turn_constraint_count_0.y)
+	if (indices_turns.z == tick + point_mass_constraint_start_0)
 	{
 		uvec4_data.data[point_mass_write_position_velocity_index_0] = point_mass_position_velocity_0 + uvec4
 		(
@@ -83,9 +85,11 @@ void main()
 		);
 		delta_position_velocity.x = 0u;
 		delta_position_velocity.z = 0u;
-		indices_turns.z += point_mass_flags_turn_constraint_count_0.z;
+
+		uint point_mass_constraint_end_0 = uint_data.data[point_mass_constraint_end_index_0];
+		indices_turns.z = tick + point_mass_constraint_end_0;
 	}
-	if (indices_turns.w == point_mass_flags_turn_constraint_count_1.y)
+	if (indices_turns.w == tick + point_mass_constraint_start_1)
 	{
 		uvec4_data.data[point_mass_write_position_velocity_index_1] = point_mass_position_velocity_1 - uvec4
 		(
@@ -93,7 +97,9 @@ void main()
 		);
 		delta_position_velocity.y = 0u;
 		delta_position_velocity.w = 0u;
-		indices_turns.w += point_mass_flags_turn_constraint_count_1.z;
+
+		uint point_mass_constraint_end_1 = uint_data.data[point_mass_constraint_end_index_1];
+		indices_turns.w = tick + point_mass_constraint_end_1;
 	}
 
 	uvec4_data.data[indices_turns_index] = indices_turns;

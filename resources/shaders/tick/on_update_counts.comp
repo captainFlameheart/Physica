@@ -1,6 +1,10 @@
 layout(local_size_x = 1u) in;
 void main()
 {
+	uint tick = fixed_data.tick;
+	++tick;
+	fixed_data.tick = tick;
+
 	uvec4 camera_position = fixed_data.camera_position;
 	uint camera_angle = fixed_data.camera_angle;
 	
