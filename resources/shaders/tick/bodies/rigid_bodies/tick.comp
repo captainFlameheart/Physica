@@ -23,7 +23,7 @@ void main()
 	uvec4 position_flags = uvec4_data.data[write_position_flags_index];
 	uvec4 velocity_flags = uvec4_data.data[write_velocity_flags_index];
 
-	velocity_flags.x -= uint(int(float(int(position_flags.x)) * length_unit_in_meters * meters_per_second_squared_in_length_units_per_time_unit_squared));
+	velocity_flags.xy -= uvec2(ivec2(vec2(ivec2(position_flags.xy)) * length_unit_in_meters * meters_per_second_squared_in_length_units_per_time_unit_squared));
 	position_flags.xyz += velocity_flags.xyz;
 
 	uvec4_data.data[read_position_flags_index] = position_flags;

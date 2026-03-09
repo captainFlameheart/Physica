@@ -164,12 +164,12 @@ void main()
 
 	// TODO: Handle large velocity precision
 	vec2 relative_velocity =
-		(float(ivec2(rigid_body_velocity_flags_0.xy)) * length_unit_in_meters + float(int(rigid_body_velocity_flags_0.z)) * angle_unit_in_radians * vec2(-offset_0.y, offset_0.x)) -
-		(float(ivec2(rigid_body_velocity_flags_1.xy)) * length_unit_in_meters + float(int(rigid_body_velocity_flags_1.z)) * angle_unit_in_radians * vec2(-offset_1.y, offset_1.x));
+		(vec2(ivec2(rigid_body_velocity_flags_0.xy)) * length_unit_in_meters + float(int(rigid_body_velocity_flags_0.z)) * angle_unit_in_radians * vec2(-offset_0.y, offset_0.x)) -
+		(vec2(ivec2(rigid_body_velocity_flags_1.xy)) * length_unit_in_meters + float(int(rigid_body_velocity_flags_1.z)) * angle_unit_in_radians * vec2(-offset_1.y, offset_1.x));
 	
 	float normal_velocity = dot(normal, relative_velocity);
 	normal_velocity += impulse.z + impulse.w;
-	float flipped_normal_impulse = min(0.0, normal_mass * (1.0 + 1.0) * normal_velocity);
+	float flipped_normal_impulse = min(0.0, normal_mass * (1.0 + 0.0) * normal_velocity);
 
 	impulse.z -= flipped_normal_impulse;
 	impulse.w -= flipped_normal_impulse;

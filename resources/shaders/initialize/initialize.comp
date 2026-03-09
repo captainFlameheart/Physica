@@ -54,7 +54,7 @@ void main()
 	
 	fixed_data.point_mass_capacity = point_mass_capacity;
 
-	uint rigid_body_capacity = 2u;
+	uint rigid_body_capacity = 3u;
 
 	uint rigid_body_inverse_mass_inertia_base_address = align_up(point_mass_write_position_velocity_base_address + point_mass_capacity * uvec4_data_array_stride);
 	uint rigid_body_constraint_start_base_address = align_up(rigid_body_inverse_mass_inertia_base_address + rigid_body_capacity * vec2_data_array_stride);
@@ -107,7 +107,7 @@ void main()
 
 	uint rigid_body_circle_contact_constraint_spawner_count = rigid_body_circle_capacity * (rigid_body_circle_capacity - 1u) / 2u;
 	
-	const uint rigid_body_circle_contact_constraint_spawner_capacity_factor = 10u;
+	const uint rigid_body_circle_contact_constraint_spawner_capacity_factor = 100u;
 	uint rigid_body_circle_contact_constraint_spawner_capacity = 
 		rigid_body_circle_contact_constraint_spawner_capacity_factor *
 		rigid_body_circle_contact_constraint_spawner_count;
@@ -257,8 +257,10 @@ void main()
 		(
 			ivec4
 			(
-				4.0 * (rigid_body_index % rigid_body_columns) * meter_in_length_units, (3.0 + float(rigid_body_index / rigid_body_columns)) * meter_in_length_units,
-				0.0 * radian_in_angle_units, 0
+				4.0 * (rigid_body_index % rigid_body_columns) * meter_in_length_units,
+				(3.0 + float(rigid_body_index / rigid_body_columns) + 0.1 * float(rigid_body_index)) * meter_in_length_units,
+				0.0 * float(rigid_body_index) * radian_in_angle_units,
+				0
 			)
 		);
 		uvec4_data.data[rigid_body_write_velocity_flags_base + rigid_body_index] = uvec4
