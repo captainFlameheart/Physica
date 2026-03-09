@@ -94,7 +94,19 @@ void main()
 		if (spawner_index >= fixed_data.rigid_body_circle_contact_constraint_spawner_capacity)
 		{
 			atomicAdd(fixed_data.read_counts[rigid_body_circle_contact_constraint_spawner_type_index], decrement_uint);
-			// MUST TODO: Perform turn update!
+			
+			if (indices_turns.z == tick + rigid_body_constraint_start_0)
+			{
+				uint rigid_body_constraint_end_0 = uint_data.data[rigid_body_constraint_end_index_0];
+				indices_turns.z = tick + rigid_body_constraint_end_0;
+			}
+			if (indices_turns.w == tick + rigid_body_constraint_start_1)
+			{
+				uint rigid_body_constraint_end_1 = uint_data.data[rigid_body_constraint_end_index_1];
+				indices_turns.w = tick + rigid_body_constraint_end_1;
+			}
+			uvec4_data.data[indices_turns_index] = indices_turns;
+			
 			return;
 		}
 
