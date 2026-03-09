@@ -105,10 +105,12 @@ void main()
 
 	fixed_data.rigid_body_circle_capacity = rigid_body_circle_capacity;
 
+	uint rigid_body_circle_contact_constraint_spawner_count = rigid_body_circle_capacity * (rigid_body_circle_capacity - 1u) / 2u;
+	
 	const uint rigid_body_circle_contact_constraint_spawner_capacity_factor = 10u;
 	uint rigid_body_circle_contact_constraint_spawner_capacity = 
 		rigid_body_circle_contact_constraint_spawner_capacity_factor *
-		rigid_body_circle_capacity * (rigid_body_circle_capacity - 1u) / 2u;
+		rigid_body_circle_contact_constraint_spawner_count;
 
 	uint rigid_body_circle_contact_constraint_spawner_indices_flags_base_address = align_up(rigid_body_circle_body_position_radius_base_address + rigid_body_circle_capacity * uvec4_data_array_stride);
 
@@ -154,7 +156,7 @@ void main()
 	uint rigid_body_count = rigid_body_capacity;
 	uint rigid_body_triangle_count = rigid_body_triangle_capacity * 0u;
 	uint rigid_body_circle_count = rigid_body_circle_capacity;
-	uint rigid_body_circle_contact_constraint_spawner_count = rigid_body_circle_contact_constraint_spawner_capacity;
+	//uint rigid_body_circle_contact_constraint_spawner_count = rigid_body_circle_contact_constraint_spawner_capacity;
 	uint point_mass_distance_constraint_count = point_mass_distance_constraint_capacity;
 	uint rigid_body_circle_contact_constraint_count = 0u;
 

@@ -87,7 +87,7 @@ void main()
 	vec2 normal = vec2(ivec2(rigid_body_position_flags_0.xy - rigid_body_position_flags_1.xy));
 	float distance_squared_in_length_units = dot(normal, normal);
 	float distance_squared = distance_squared_in_length_units * (length_unit_in_meters * length_unit_in_meters);
-	float hit_distance = circle_body_position_radius_0.w + circle_body_position_radius_1.w;
+	float hit_distance = circle_position_radius_0.z + circle_position_radius_1.z;
 	if ((flags & rigid_body_circle_contact_constraint_is_dying_mask) == 0 && (distance_squared >= hit_distance * hit_distance))
 	{
 		uint spawner_index = atomicAdd(fixed_data.read_counts[rigid_body_circle_contact_constraint_spawner_type_index], 1u);
@@ -152,15 +152,15 @@ void main()
 
 	// TODO: Handle large velocity precision
 	vec2 relative_velocity =
-		(float(rigid_body_velocity_flags_0.xy) * length_unit_in_meters + float(rigid_body_velocity_flags_0.z) * angle_unit_in_radians * vec2(-offset_0.y, offset_0.x)) -
-		(float(rigid_body_velocity_flags_1.xy) * length_unit_in_meters + float(rigid_body_velocity_flags_1.z) * angle_unit_in_radians * vec2(-offset_1.y, offset_1.x));
+		(float(ivec2(rigid_body_velocity_flags_0.xy)) * length_unit_in_meters + float(int(rigid_body_velocity_flags_0.z)) * angle_unit_in_radians * vec2(-offset_0.y, offset_0.x)) -
+		(float(ivec2(rigid_body_velocity_flags_1.xy)) * length_unit_in_meters + float(int(rigid_body_velocity_flags_1.z)) * angle_unit_in_radians * vec2(-offset_1.y, offset_1.x));
 	
 	float normal_velocity = dot(normal, relative_velocity);
 	normal_velocity += impulse.z + impulse.w;
-	float flipped_normal_impulse = normal_mass * normal_velocity;
+	float flipped_normal_impulse = min(0.0, normal_mass * (1.0 + 1.0) * normal_velocity);
 
 	impulse.z -= flipped_normal_impulse;
-	impulse.w += flipped_normal_impulse;
+	impulse.w -= flipped_normal_impulse;
 
 	if (indices_turns.z == tick + rigid_body_constraint_start_0)
 	{

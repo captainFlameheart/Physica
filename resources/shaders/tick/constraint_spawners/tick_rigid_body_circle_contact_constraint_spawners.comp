@@ -61,8 +61,8 @@ void main()
 		uint body_constraint_start_index_0 = body_constraint_start_base + circle_body_position_radius_0.x;
 		uint body_constraint_start_index_1 = body_constraint_start_base + circle_body_position_radius_1.x;
 
-		uint turn_0 = tick + atomicAdd(uint_data.data[body_constraint_start_index_0], decrement_uint) - 1u;
-		uint turn_1 = tick + atomicAdd(uint_data.data[body_constraint_start_index_1], decrement_uint) - 1u;
+		uint turn_0 = tick + atomicAdd(uint_data.data[body_constraint_start_index_0], decrement_uint);
+		uint turn_1 = tick + atomicAdd(uint_data.data[body_constraint_start_index_1], decrement_uint);
 
 		uint constraint_flags_base = fixed_data.rigid_body_circle_contact_constraint_flags_base;
 		uint constraint_indices_turns_base = fixed_data.rigid_body_circle_contact_constraint_indices_turns_base;

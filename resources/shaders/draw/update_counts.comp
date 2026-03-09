@@ -8,7 +8,8 @@ void main()
 	}
 	
 	uvec2 command_blueprint = draw_arrays_command_blueprints[command_index];
-	uint count = fixed_data.write_counts[command_blueprint.x];
+	// TODO: Determine how to use write_counts.
+	uint count = fixed_data.read_counts[command_blueprint.x];
 
 	uint flag = fixed_data.draw_arrays_command_flags[command_index];
 	count *= (flag >> draw_arrays_command_enabled_shift) & 1u;
