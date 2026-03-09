@@ -28,5 +28,20 @@ namespace game_logic::initialize
 		glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::initialize::Indices::initialize)]);
 		glDispatchCompute(1u, 1u, 1u);
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);
+
+		{
+			glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::tick::update_counts::Indices::update_counts)]);
+			constexpr GLuint tick_entities_shader_count{ ::game_state::shader_indices::tick::process_entities::count };
+			constexpr GLuint update_tick_count_local_size{ ::game_state::local_sizes::update_tick_counts_local_size };
+			constexpr GLuint update_tick_count_work_group_count
+			{
+				(tick_entities_shader_count + update_tick_count_local_size - 1u) / update_tick_count_local_size
+			};
+			glDispatchCompute(update_tick_count_work_group_count, 1u, 1u);
+
+			// MUST TODO: Update read counts in separate shader!!!
+
+			glMemoryBarrier(GL_ALL_BARRIER_BITS);
+		}
 	}
 }

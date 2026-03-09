@@ -29,6 +29,9 @@ void main()
 	uvec4 circle_body_position_radius_0 = uvec4_data.data[circle_body_position_radius_index_0];
 	uvec4 circle_body_position_radius_1 = uvec4_data.data[circle_body_position_radius_index_1];
 
+	vec3 circle_position_radius_0 = uintBitsToFloat(circle_body_position_radius_0.yzw);
+	vec3 circle_position_radius_1 = uintBitsToFloat(circle_body_position_radius_1.yzw);
+
 	uint body_read_position_flags_base = fixed_data.rigid_body_read_position_flags_base;
 
 	uint body_read_position_flags_index_0 = body_read_position_flags_base + circle_body_position_radius_0.x;
@@ -40,7 +43,7 @@ void main()
 	// TODO: Consider circle position.
 	vec2 displacement = vec2(ivec2(body_position_flags_0.xy - body_position_flags_1.xy));
 	float distance_squared = dot(displacement, displacement) * (length_unit_in_meters * length_unit_in_meters);
-	float hit_distance = circle_body_position_radius_0.w + circle_body_position_radius_1.w;
+	float hit_distance = circle_position_radius_0.z + circle_position_radius_1.z;
 	if (distance_squared < hit_distance * hit_distance)
 	{
 		// TODO: Spawn constraint and despawn this spawner.

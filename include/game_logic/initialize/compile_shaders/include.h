@@ -5,6 +5,7 @@
 #include "compile_draw_point_mass_velocities.h"
 #include "compile_draw_rigid_bodies.h"
 #include "compile_draw_rigid_body_circles.h"
+#include "compile_draw_rigid_body_circle_contact_constraint_spawners.h"
 #include "compile_draw_rigid_body_triangles.h"
 #include "compile_initialize.h"
 #include "compile_on_key_event.h"

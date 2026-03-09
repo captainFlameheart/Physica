@@ -48,6 +48,8 @@ namespace game_logic::initialize::compile_shaders::environment
 		}
 		dispatch_command_blueprints += "};\n";
 
+		std::cout << dispatch_command_blueprints << std::endl;
+
 		std::string	draw_arrays_command_blueprints
 		{
 			"const uvec2 draw_arrays_command_blueprints[" + std::to_string(::game_state::shader_indices::draw::entities::count) + "] = \n"
