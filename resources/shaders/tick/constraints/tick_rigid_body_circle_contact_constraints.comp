@@ -22,7 +22,7 @@ void main()
 
 	uint flags = uint_data.data[flags_index];
 
-	if (flags & rigid_body_circle_contact_constraint_is_dead_mask != 0u)
+	if ((flags & rigid_body_circle_contact_constraint_is_dead_mask) != 0u)
 	{
 		return;
 	}
@@ -84,16 +84,17 @@ void main()
 
 	// TODO: Treat offsets, radii, etc. as being in length units, even if they are floats!
 	// TODO: Consider circle position.
-	vec2 normal = vec2(ivec2(body_position_flags_0.xy - body_position_flags_1.xy));
+	vec2 normal = vec2(ivec2(rigid_body_position_flags_0.xy - rigid_body_position_flags_1.xy));
 	float distance_squared_in_length_units = dot(normal, normal);
 	float distance_squared = distance_squared_in_length_units * (length_unit_in_meters * length_unit_in_meters);
 	float hit_distance = circle_body_position_radius_0.w + circle_body_position_radius_1.w;
-	if ((flags & rigid_body_circle_contact_constraint_is_dying_mask) == 0 & distance_squared >= hit_distance * hit_distance)
+	if ((flags & rigid_body_circle_contact_constraint_is_dying_mask) == 0 && (distance_squared >= hit_distance * hit_distance))
 	{
 		uint spawner_index = atomicAdd(fixed_data.read_counts[rigid_body_circle_contact_constraint_spawner_type_index], 1u);
 		if (spawner_index >= fixed_data.rigid_body_circle_contact_constraint_spawner_capacity)
 		{
 			atomicAdd(fixed_data.read_counts[rigid_body_circle_contact_constraint_spawner_type_index], decrement_uint);
+			// MUST TODO: Perform turn update!
 			return;
 		}
 
@@ -106,7 +107,7 @@ void main()
 		flags |= rigid_body_circle_contact_constraint_is_dying_mask;
 	}
 
-	if (flags & rigid_body_circle_contact_constraint_is_dying_mask != 0u)
+	if ((flags & rigid_body_circle_contact_constraint_is_dying_mask) != 0u)
 	{
 		if (indices_turns.z == tick + rigid_body_constraint_start_0)
 		{
@@ -119,7 +120,7 @@ void main()
 			flags |= rigid_body_circle_contact_constraint_released_1_mask;
 		}
 		
-		if (flags & rigid_body_circle_contact_constraint_released_both_mask != 0u)
+		if ((flags & rigid_body_circle_contact_constraint_released_both_mask) != 0u)
 		{
 			flags |= rigid_body_circle_contact_constraint_is_dead_mask;
 			// TODO: Append to kill list
@@ -130,8 +131,8 @@ void main()
 	}
 
 	normal /= sqrt(distance_squared_in_length_units);
-	vec2 offset_0 = -circle_position_radius_0.w * normal;
-	vec2 offset_1 = circle_position_radius_1.w * normal;
+	vec2 offset_0 = -circle_position_radius_0.z * normal;
+	vec2 offset_1 = circle_position_radius_1.z * normal;
 
 	// TODO: Express as dot products using permuted offsets below.
 	float normal_cross_0 = offset_0.x * normal.y - offset_0.y * normal.x;
@@ -140,6 +141,7 @@ void main()
 	float normal_inverse_mass =
 		rigid_body_inverse_mass_inertia_0.x + normal_cross_0 * normal_cross_0 * rigid_body_inverse_mass_inertia_0.y +
 		rigid_body_inverse_mass_inertia_1.x + normal_cross_1 * normal_cross_1 * rigid_body_inverse_mass_inertia_1.y;
+	float normal_mass = 1.0 / normal_inverse_mass;
 
 	float tangent_cross_0 = dot(offset_0, normal);
 	float tangent_cross_1 = dot(offset_1, normal);
@@ -150,8 +152,8 @@ void main()
 
 	// TODO: Handle large velocity precision
 	vec2 relative_velocity =
-		(rigid_body_velocity_flags_0.xy * length_unit_in_meters + float(rigid_body_velocity_flags_0.z) * angle_unit_in_radians * vec2(-offset_0.y, offset_0.x)) -
-		(rigid_body_velocity_flags_1.xy * length_unit_in_meters + float(rigid_body_velocity_flags_1.z) * angle_unit_in_radians * vec2(-offset_1.y, offset_1.x));
+		(float(rigid_body_velocity_flags_0.xy) * length_unit_in_meters + float(rigid_body_velocity_flags_0.z) * angle_unit_in_radians * vec2(-offset_0.y, offset_0.x)) -
+		(float(rigid_body_velocity_flags_1.xy) * length_unit_in_meters + float(rigid_body_velocity_flags_1.z) * angle_unit_in_radians * vec2(-offset_1.y, offset_1.x));
 	
 	float normal_velocity = dot(normal, relative_velocity);
 	normal_velocity += impulse.z + impulse.w;
@@ -166,8 +168,8 @@ void main()
 		(
 			ivec3
 			(
-				(meter_in_length_units * inverse_mass_inertia_0.x * impulse.z) * normal,
-				(radian_in_angle_units * inverse_mass_inertia_0.y * impulse.z) * normal_cross_0
+				(meter_in_length_units * rigid_body_inverse_mass_inertia_0.x * impulse.z) * normal,
+				(radian_in_angle_units * rigid_body_inverse_mass_inertia_0.y * impulse.z) * normal_cross_0
 			)
 		);
 		uvec4_data.data[rigid_body_write_velocity_flags_index_0] = rigid_body_velocity_flags_0;
@@ -183,8 +185,8 @@ void main()
 		(
 			ivec3
 			(
-				(meter_in_length_units * inverse_mass_inertia_1.x * impulse.w) * normal,
-				(radian_in_angle_units * inverse_mass_inertia_1.y * impulse.w) * normal_cross_1
+				(meter_in_length_units * rigid_body_inverse_mass_inertia_1.x * impulse.w) * normal,
+				(radian_in_angle_units * rigid_body_inverse_mass_inertia_1.y * impulse.w) * normal_cross_1
 			)
 		);
 		uvec4_data.data[rigid_body_write_velocity_flags_index_1] = rigid_body_velocity_flags_1;
@@ -196,5 +198,5 @@ void main()
 	}
 
 	uvec4_data.data[indices_turns_index] = indices_turns;
-	uvec4_data.data[impulse_index] = impulse;
+	vec4_data.data[impulse_index] = impulse;
 }
