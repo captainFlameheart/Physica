@@ -19,6 +19,7 @@ namespace game_state::initialize::compile_shaders::environment
 		std::string uvec4_data_source;
 		std::string uvec2_data_source;
 		std::string uint_data_source;
+		std::string vec4_data_source;
 		std::string vec2_data_source;
 		std::string float_data_source;
 		

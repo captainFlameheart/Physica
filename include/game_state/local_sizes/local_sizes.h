@@ -16,8 +16,13 @@ namespace game_state::local_sizes
 		constexpr GLuint base{ ::game_state::shader_indices::tick::process_entities::base };
 		local_sizes[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bodies::Indices::point_masses) - base] = default_local_size;
 		local_sizes[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bodies::Indices::rigid_bodies) - base] = default_local_size;
+		
+		local_sizes[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraint_spawners::Indices::rigid_body_circle_contact_constraint_spawners) - base] = default_local_size;
+
 		local_sizes[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraints::Indices::point_mass_distance_constraints) - base] = default_local_size;
 		local_sizes[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraints::Indices::point_mass_uniform_force_constraints) - base] = default_local_size;
+		local_sizes[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraints::Indices::rigid_body_circle_contact_constraints) - base] = default_local_size;
+
 		return local_sizes;
 	}
 

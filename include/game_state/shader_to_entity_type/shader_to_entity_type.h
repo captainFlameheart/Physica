@@ -22,10 +22,14 @@ namespace game_state::shader_to_entity_type
 			::game_state::entity_type_indices::Indices::point_mass;
 		shader_to_entity_type[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bodies::Indices::rigid_bodies) - tick_entities_base] = 
 			::game_state::entity_type_indices::Indices::rigid_body;
+		shader_to_entity_type[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraint_spawners::Indices::rigid_body_circle_contact_constraint_spawners) - tick_entities_base] =
+			::game_state::entity_type_indices::Indices::rigid_body_circle_contact_constraint_spawner;
 		shader_to_entity_type[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraints::Indices::point_mass_distance_constraints) - tick_entities_base] = 
 			::game_state::entity_type_indices::Indices::point_mass_distance_constraint;
 		shader_to_entity_type[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraints::Indices::point_mass_uniform_force_constraints) - tick_entities_base] =
 			::game_state::entity_type_indices::Indices::point_mass_uniform_force_constraint;
+		shader_to_entity_type[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraints::Indices::rigid_body_circle_contact_constraints) - tick_entities_base] =
+			::game_state::entity_type_indices::Indices::rigid_body_circle_contact_constraint;
 
 		shader_to_entity_type[static_cast<GLuint>(::game_state::shader_indices::draw::entities::bodies::Indices::point_masses) - draw_entities_base] =
 			::game_state::entity_type_indices::Indices::point_mass;

@@ -73,11 +73,19 @@ namespace game_logic::initialize::compile_shaders::environment
 			static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bodies::Indices::rigid_bodies) - tick_entities_local_size_base
 		] };
 
+		GLuint tick_rigid_body_circle_contact_constraint_spawners_local_size{ ::game_state::local_sizes::process_entities_local_sizes[
+			static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraint_spawners::Indices::rigid_body_circle_contact_constraint_spawners) - tick_entities_local_size_base
+		] };
+
 		GLuint process_point_mass_distance_constraints_local_size{ ::game_state::local_sizes::process_entities_local_sizes[
 			static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraints::Indices::point_mass_distance_constraints) - tick_entities_local_size_base
 		] };
 		GLuint process_point_mass_uniform_force_constraints_local_size{ ::game_state::local_sizes::process_entities_local_sizes[
 			static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraints::Indices::point_mass_uniform_force_constraints) - tick_entities_local_size_base
+		] };
+
+		GLuint tick_rigid_body_circle_contact_constraints_local_size{ ::game_state::local_sizes::process_entities_local_sizes[
+			static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraints::Indices::rigid_body_circle_contact_constraints) - tick_entities_local_size_base
 		] };
 
 		compile_environment.constant_definitions = 
@@ -114,6 +122,7 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uint uvec4_data_binding = " + std::to_string(::game_state::bindings::shader_storage::uvec4_data) + ";\n"
 			"const uint uvec2_data_binding = " + std::to_string(::game_state::bindings::shader_storage::uvec2_data) + ";\n"
 			"const uint uint_data_binding = " + ::std::to_string(::game_state::bindings::shader_storage::uint_data) + ";\n"
+			"const uint vec4_data_binding = " + ::std::to_string(::game_state::bindings::shader_storage::vec4_data) + ";\n"
 			"const uint vec2_data_binding = " + ::std::to_string(::game_state::bindings::shader_storage::vec2_data) + ";\n"
 			"const uint float_data_binding = " + ::std::to_string(::game_state::bindings::shader_storage::float_data) + ";\n"
 			"const uint private_input_binding = " + ::std::to_string(::game_state::bindings::uniform::private_input) + ";\n"
@@ -121,8 +130,10 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uint update_tick_counts_local_size = " + ::std::to_string(update_tick_counts_local_size) + ";\n"
 			"const uint process_point_masses_local_size = " + ::std::to_string(process_point_masses_local_size) + ";\n"
 			"const uint tick_rigid_bodies_local_size = " + ::std::to_string(tick_rigid_bodies_local_size) + ";\n"
+			"const uint tick_rigid_body_circle_contact_constraint_spawners_local_size = " + ::std::to_string(tick_rigid_body_circle_contact_constraint_spawners_local_size) + ";\n"
 			"const uint tick_point_mass_distance_constraints_local_size = " + ::std::to_string(process_point_mass_distance_constraints_local_size) + ";\n"
 			"const uint process_point_mass_uniform_force_constraints_local_size = " + ::std::to_string(process_point_mass_uniform_force_constraints_local_size) + ";\n"
+			"const uint tick_rigid_body_circle_contact_constraints_local_size = " + ::std::to_string(tick_rigid_body_circle_contact_constraints_local_size) + ";\n"
 			"const uint update_draw_counts_local_size = " + ::std::to_string(update_draw_counts_local_size) + ";\n"
 
 			"const uint fixed_data_buffer_data_size = " + ::std::to_string(environment.state.layouts.fixed_data.block_state.buffer_data_size) + ";\n"
@@ -142,6 +153,7 @@ namespace game_logic::initialize::compile_shaders::environment
 		compile_environment.uvec4_data_source = ::util::shader::file_to_string("blocks/shader_storage/uvec4_Data");
 		compile_environment.uvec2_data_source = ::util::shader::file_to_string("blocks/shader_storage/uvec2_Data");
 		compile_environment.uint_data_source = ::util::shader::file_to_string("blocks/shader_storage/uint_Data");
+		compile_environment.vec4_data_source = ::util::shader::file_to_string("blocks/shader_storage/vec4_Data");
 		compile_environment.vec2_data_source = ::util::shader::file_to_string("blocks/shader_storage/vec2_Data");
 		compile_environment.float_data_source = ::util::shader::file_to_string("blocks/shader_storage/float_Data");
 		
@@ -150,6 +162,7 @@ namespace game_logic::initialize::compile_shaders::environment
 			compile_environment.uvec4_data_source +
 			compile_environment.uvec2_data_source +
 			compile_environment.uint_data_source +
+			compile_environment.vec4_data_source +
 			compile_environment.vec2_data_source +
 			compile_environment.float_data_source;
 

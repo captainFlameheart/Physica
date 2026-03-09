@@ -6,10 +6,10 @@ namespace game_state::bindings::shader_storage
 	{
 		fixed_data,
 		uvec4_data,
-		vec4_data,
 		uvec2_data,
-		vec2_data,
 		uint_data,
+		vec4_data,
+		vec2_data,
 		float_data,
 
 		count

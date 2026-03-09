@@ -148,9 +148,10 @@ void main()
 		rigid_body_inverse_mass_inertia_0.x + tangent_cross_0 * tangent_cross_0 * rigid_body_inverse_mass_inertia_0.y +
 		rigid_body_inverse_mass_inertia_1.x + tangent_cross_1 * tangent_cross_1 * rigid_body_inverse_mass_inertia_1.y;
 
+	// TODO: Handle large velocity precision
 	vec2 relative_velocity =
-		(rigid_body_velocity_flags_0.xy + rigid_body_velocity_flags_0.z * vec2(-offset_0.y, offset_0.x)) -
-		(rigid_body_velocity_flags_1.xy + rigid_body_velocity_flags_1.z * vec2(-offset_1.y, offset_1.x));
+		(rigid_body_velocity_flags_0.xy * length_unit_in_meters + float(rigid_body_velocity_flags_0.z) * angle_unit_in_radians * vec2(-offset_0.y, offset_0.x)) -
+		(rigid_body_velocity_flags_1.xy * length_unit_in_meters + float(rigid_body_velocity_flags_1.z) * angle_unit_in_radians * vec2(-offset_1.y, offset_1.x));
 	
 	float normal_velocity = dot(normal, relative_velocity);
 	normal_velocity += impulse.z + impulse.w;

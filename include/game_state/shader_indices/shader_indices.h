@@ -74,14 +74,30 @@ namespace game_state::shader_indices
 				constexpr GLuint count{ end - base };
 			}
 
-			namespace constraints
+			namespace constraint_spawners
 			{
 				constexpr GLuint base{ ::game_state::shader_indices::tick::process_entities::bodies::end };
 
 				enum struct Indices : GLuint
 				{
+					rigid_body_circle_contact_constraint_spawners = base,
+
+					end
+				};
+
+				constexpr GLuint end{ static_cast<GLuint>(Indices::end) };
+				constexpr GLuint count{ end - base };
+			}
+
+			namespace constraints
+			{
+				constexpr GLuint base{ ::game_state::shader_indices::tick::process_entities::constraint_spawners::end };
+
+				enum struct Indices : GLuint
+				{
 					point_mass_distance_constraints = base,
 					point_mass_uniform_force_constraints,
+					rigid_body_circle_contact_constraints,
 
 					end
 				};

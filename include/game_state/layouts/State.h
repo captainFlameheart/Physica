@@ -15,6 +15,7 @@ namespace game_state::layouts
 		uvec4_data::Aliased_State uvec4_data;
 		uvec2_data::Aliased_State uvec2_data;
 		uint_data::Aliased_State uint_data;
+		vec4_data::Aliased_State vec4_data;
 		vec2_data::Aliased_State vec2_data;
 		float_data::Aliased_State float_data;
 		key_event::State key_event;
