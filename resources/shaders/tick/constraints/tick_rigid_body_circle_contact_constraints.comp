@@ -169,7 +169,7 @@ void main()
 	
 	float normal_velocity = dot(normal, relative_velocity);
 	normal_velocity += impulse.z + impulse.w;
-	float flipped_normal_impulse = min(0.0, normal_mass * (1.0 + 0.0) * normal_velocity);
+	float flipped_normal_impulse = min(0.0, normal_mass * (1.0 + 0.5) * normal_velocity);
 
 	impulse.z -= flipped_normal_impulse;
 	impulse.w -= flipped_normal_impulse;
