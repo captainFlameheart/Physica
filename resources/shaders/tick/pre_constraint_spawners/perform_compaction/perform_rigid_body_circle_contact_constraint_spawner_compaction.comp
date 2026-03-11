@@ -1,0 +1,43 @@
+layout(local_size_x = perform_rigid_body_circle_contact_constraint_spawner_compaction_local_size) in;
+void main()
+{
+	uint kill_item = gl_GlobalInvocationID.x;
+	uint kill_base = fixed_data.old_kill_bases[rigid_body_circle_contact_constraint_spawner_entity_type_index];
+	uint kill_end = fixed_data.old_kill_ends[rigid_body_circle_contact_constraint_spawner_entity_type_index];
+	uint kill_item_ring_index = kill_base + kill_item;
+	if (kill_item_ring_index >= kill_end)
+	{
+		return;
+	}
+	uint capacity = fixed_data.rigid_body_circle_contact_constraint_spawner_capacity;
+	kill_item_ring_index -= uint(index >= capacity) * capacity;
+	
+	uint write_count = fixed_data.old_write_counts[rigid_body_circle_contact_constraint_spawner_entity_type_index];
+
+	uint source_kill_items_ring_base = fixed_data.rigid_body_circle_contact_constraint_spawner_source_kill_items_ring_base;
+
+	uint source = kill_item;
+
+	uint default_source_kill_items_index = source_kill_items_ring_base + kill_item_ring_index;
+	uint source_kill_item = uint_data.data[default_source_kill_items_index];
+
+	while (source_kill_item != null_uint)
+	{
+		source = source_kill_item;
+
+		uint source_ring_index = kill_base + source;
+		source_ring_index -= uint(source_ring_index >= capacity) * capacity;
+		source_kill_item = uint_data.data[source_kill_items_ring_base + source_ring_index];
+	}
+
+	source = write_count - 1u - source;
+
+	uint_data.data[default_source_kill_items_index] = null_uint;
+
+	uint killed_ring_base = fixed_data.rigid_body_circle_contact_constraint_spawner_killed_ring_base;
+	uint killed_index = killed_ring_base + kill_item_ring_index;
+	uint killed = uint_data.data[killed_index];
+
+	// TODO: Copy source -> killed
+
+}

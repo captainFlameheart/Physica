@@ -1,7 +1,9 @@
 // IMPORTANT TODO: Switch to std430 layout if shared layout does not match needs!
 const float pi = 3.141592653589793;
 
-const uint decrement_uint = uint(-1);
+const uint minus_1_uint = uint(-1);
+const uint null_uint = minus_1_uint;
+const uint decrement_uint = minus_1_uint;
 
 const uint uint_size_shift = 2u;
 const uint uint_size = 1u << uint_size_shift;
@@ -152,8 +154,8 @@ FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 
 	uint rigid_body_circle_contact_constraint_spawner_indices_flags_base;
 
-	uint rigid_body_circle_contact_constraint_spawner_killed_indices_ring_base;
-	uint rigid_body_circle_contact_constraint_spawner_source_kill_item_indices_ring_base;
+	uint rigid_body_circle_contact_constraint_spawner_killed_ring_base;
+	uint rigid_body_circle_contact_constraint_spawner_source_kill_items_ring_base;
 
 	uint rigid_body_circle_contact_constraint_spawner_capacity;
 

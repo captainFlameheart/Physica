@@ -1,10 +1,10 @@
 layout(local_size_x = plan_rigid_body_circle_contact_constraint_spawner_compaction_local_size) in;
 void main()
 {
-	uint kill_item_index = gl_GlobalInvocationID.x;
+	uint kill_item = gl_GlobalInvocationID.x;
 	uint kill_base = fixed_data.old_kill_bases[rigid_body_circle_contact_constraint_spawner_entity_type_index];
 	uint kill_end = fixed_data.old_kill_ends[rigid_body_circle_contact_constraint_spawner_entity_type_index];
-	uint kill_item_ring_index = kill_base + kill_item_index;
+	uint kill_item_ring_index = kill_base + kill_item;
 	if (kill_item_ring_index >= kill_end)
 	{
 		return;
@@ -14,21 +14,21 @@ void main()
 	
 	uint write_count = fixed_data.old_write_counts[rigid_body_circle_contact_constraint_spawner_entity_type_index];
 
-	uint killed_indices_ring_base = fixed_data.rigid_body_circle_contact_constraint_spawner_killed_indices_ring_base;
-	uint killed_indices_index = killed_indices_ring_base + kill_item_ring_index;
-	uint killed_index = uint_data.data[killed_indices_index];
+	uint killed_ring_base = fixed_data.rigid_body_circle_contact_constraint_spawner_killed_ring_base;
+	uint killed_index = killed_ring_base + kill_item_ring_index;
+	uint killed = uint_data.data[killed_index];
 
 	uint kill_count = kill_end - kill_base;
-	if (killed_index < write_count - kill_count)
+	if (killed < write_count - kill_count)
 	{
 		return;
 	}
 	
-	uint destination_kill_item_ring_index = write_count - 1u - killed_index;
+	uint destination_kill_item_ring_index = write_count - 1u - killed;
 	destination_kill_item_ring_index += kill_base;
 	destination_kill_item_ring_index -= uint(destination_kill_item_ring_index >= capacity) * capacity;
 
-	uint source_kill_item_indices_ring_base = fixed_data.rigid_body_circle_contact_constraint_spawner_source_kill_item_indices_ring_base;
-	uint destination_source_kill_item_indices_index = source_kill_item_indices_ring_base + destination_kill_item_ring_index;
-	uint_data.data[destination_source_kill_item_indices_index] = kill_item_index;
+	uint source_kill_items_ring_base = fixed_data.rigid_body_circle_contact_constraint_spawner_source_kill_items_ring_base;
+	uint destination_source_kill_items_index = source_kill_items_ring_base + destination_kill_item_ring_index;
+	uint_data.data[destination_source_kill_items_index] = kill_item;
 }
