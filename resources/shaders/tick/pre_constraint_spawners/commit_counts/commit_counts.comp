@@ -2,12 +2,12 @@ layout(local_size_x = commit_constraint_spawner_counts_local_size) in;
 void main()
 {
 	uint index = gl_GlobalInvocationID.x;
-	if (index >= constraint_spawner_entity_type_count)
+	if (index >= constraint_spawner_type_count)
 	{
 		return;
 	}
 
-	uint entity_type = constraint_spawner_entity_type_base + index;
+	uint entity_type = constraint_spawner_type_base + index;
 	uint plan_compaction_program_index = constraint_spawner_plan_compaction_program_base + index;
 	uint perform_compaction_program_index = constraint_spawner_perform_compaction_program_base + index;
 	uint tick_entities_program_index = constraint_spawner_tick_entities_program_base + index;

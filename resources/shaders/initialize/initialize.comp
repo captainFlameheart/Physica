@@ -101,7 +101,7 @@ void main()
 
 	uint rigid_body_circle_contact_constraint_spawner_count = capacities[rigid_body_circle_type_index] * (capacities[rigid_body_circle_type_index] - 1u) / 2u;
 	
-	const uint rigid_body_circle_contact_constraint_spawner_capacity_factor = 100u;
+	const uint rigid_body_circle_contact_constraint_spawner_capacity_factor = 1u;
 	capacities[rigid_body_circle_contact_constraint_spawner_type_index] =
 		rigid_body_circle_contact_constraint_spawner_capacity_factor *
 		rigid_body_circle_contact_constraint_spawner_count;

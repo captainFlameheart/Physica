@@ -12,7 +12,7 @@ namespace game_logic::initialize::query_layouts
 {
 	void query_layouts(game_environment::Environment& environment)
 	{
-		// TODO: Do avoid repeates of constants and file loads
+		// TODO: Do avoid repeats of constants and file loads
 		
 		std::string prefix
 		{

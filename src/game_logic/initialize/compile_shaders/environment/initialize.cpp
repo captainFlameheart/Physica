@@ -37,15 +37,40 @@ namespace game_logic::initialize::compile_shaders::environment
 		
 		std::string	dispatch_command_blueprints
 		{
-			"const uvec2 dispatch_command_blueprints[" + std::to_string(::game_state::shader_indices::tick::process_entities::count) + "] = \n"
+			"const uvec2 dispatch_command_blueprints[" + std::to_string(::game_state::shader_indices::tick::process_entities::count + 1u - ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::count) + "] = \n"
 			"{	// (entity_type_index, local_size)\n"
 		};
-		for (GLuint dispatch_command_index{ 0u }; dispatch_command_index < ::game_state::shader_indices::tick::process_entities::count; ++dispatch_command_index)
+		for (GLuint i{ 0u }; i < ::game_state::shader_indices::tick::process_entities::bodies::count; ++i)
+		{
+			GLuint entity_type{ static_cast<GLuint>(::game_state::shader_to_entity_type::tick_bodies_shader_to_entity_type[i]) };
+			constexpr GLuint base{ ::game_state::shader_indices::tick::process_entities::bodies::base - ::game_state::shader_indices::tick::process_entities::base };
+			GLuint local_size{ ::game_state::local_sizes::process_entities_local_sizes[base + i] };
+			dispatch_command_blueprints += "	uvec2(" + std::to_string(entity_type) + ", " + std::to_string(local_size) + "),\n";
+		}
+
+		// TODO: REMOVE
+		dispatch_command_blueprints += "	uvec2(" + std::to_string(0u) + ", " + std::to_string(0u) + "),\n";
+		
+		for (GLuint i{ 0u }; i < ::game_state::shader_indices::tick::process_entities::constraint_spawners::count; ++i)
+		{
+			GLuint entity_type{ static_cast<GLuint>(::game_state::shader_to_entity_type::tick_constraint_spawners_shader_to_entity_type[i]) };
+			constexpr GLuint base{ ::game_state::shader_indices::tick::process_entities::constraint_spawners::base - ::game_state::shader_indices::tick::process_entities::base };
+			GLuint local_size{ ::game_state::local_sizes::process_entities_local_sizes[base + i] };
+			dispatch_command_blueprints += "	uvec2(" + std::to_string(entity_type) + ", " + std::to_string(local_size) + "),\n";
+		}
+		for (GLuint i{ 0u }; i < ::game_state::shader_indices::tick::process_entities::constraints::count; ++i)
+		{
+			GLuint entity_type{ static_cast<GLuint>(::game_state::shader_to_entity_type::tick_constraints_shader_to_entity_type[i]) };
+			constexpr GLuint base{ ::game_state::shader_indices::tick::process_entities::constraints::base - ::game_state::shader_indices::tick::process_entities::base };
+			GLuint local_size{ ::game_state::local_sizes::process_entities_local_sizes[base + i] };
+			dispatch_command_blueprints += "	uvec2(" + std::to_string(entity_type) + ", " + std::to_string(local_size) + "),\n";
+		}
+		/*for (GLuint dispatch_command_index{0u}; dispatch_command_index < ::game_state::shader_indices::tick::process_entities::count; ++dispatch_command_index)
 		{
 			GLuint entity_type_index{ static_cast<GLuint>(::game_state::shader_to_entity_type::shader_to_entity_type[dispatch_command_index]) };
 			GLuint local_size{ ::game_state::local_sizes::process_entities_local_sizes[dispatch_command_index] };
 			dispatch_command_blueprints += "	uvec2(" + std::to_string(entity_type_index) + ", " + std::to_string(local_size) + "),\n";
-		}
+		}*/
 		dispatch_command_blueprints += "};\n";
 
 		std::cout << dispatch_command_blueprints << std::endl;
@@ -55,38 +80,42 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uvec2 draw_arrays_command_blueprints[" + std::to_string(::game_state::shader_indices::draw::entities::count) + "] = \n"
 			"{	// (entity_type_index, vertex_factor)\n"
 		};
-		for (GLuint draw_arrays_command_index{ 0u }; draw_arrays_command_index < ::game_state::shader_indices::draw::entities::count; ++draw_arrays_command_index)
+		for (GLuint draw_arrays_command_index{0u}; draw_arrays_command_index < ::game_state::shader_indices::draw::entities::count; ++draw_arrays_command_index)
 		{
-			GLuint entity_type_index{ static_cast<GLuint>(::game_state::shader_to_entity_type::shader_to_entity_type[::game_state::shader_indices::tick::process_entities::count + draw_arrays_command_index]) };
+			GLuint entity_type_index{ static_cast<GLuint>(::game_state::shader_to_entity_type::draw_entities_shader_to_entity_type[draw_arrays_command_index]) };
 			GLuint vertex_factor{ ::game_state::vertex_factors::draw_entities_vertex_factors[draw_arrays_command_index] };
 			draw_arrays_command_blueprints += "	uvec2(" + std::to_string(entity_type_index) + ", " + std::to_string(vertex_factor) + "),\n";
 		}
 		draw_arrays_command_blueprints += "};\n";
 
-		GLuint update_tick_counts_local_size{ ::game_state::local_sizes::update_tick_counts_local_size };
-		GLuint update_draw_counts_local_size{ ::game_state::local_sizes::update_draw_counts_local_size };
+		constexpr GLuint update_tick_counts_local_size{ ::game_state::local_sizes::update_tick_counts_local_size };
+		constexpr GLuint update_draw_counts_local_size{ ::game_state::local_sizes::update_draw_counts_local_size };
 
 		constexpr GLuint tick_entities_local_size_base{ ::game_state::shader_indices::tick::process_entities::base };
 
-		GLuint process_point_masses_local_size{ ::game_state::local_sizes::process_entities_local_sizes[
+		constexpr GLuint process_point_masses_local_size{ ::game_state::local_sizes::process_entities_local_sizes[
 			static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bodies::Indices::point_masses) - tick_entities_local_size_base
 		] };
-		GLuint tick_rigid_bodies_local_size{ ::game_state::local_sizes::process_entities_local_sizes[
+		constexpr GLuint tick_rigid_bodies_local_size{ ::game_state::local_sizes::process_entities_local_sizes[
 			static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bodies::Indices::rigid_bodies) - tick_entities_local_size_base
 		] };
 
-		GLuint tick_rigid_body_circle_contact_constraint_spawners_local_size{ ::game_state::local_sizes::process_entities_local_sizes[
+		constexpr GLuint commit_constraint_spawner_counts_local_size{ ::game_state::local_sizes::process_entities_local_sizes[
+			static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::commit_counts::Indices::commit_counts) - tick_entities_local_size_base
+		] };
+
+		constexpr GLuint tick_rigid_body_circle_contact_constraint_spawners_local_size{ ::game_state::local_sizes::process_entities_local_sizes[
 			static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraint_spawners::Indices::rigid_body_circle_contact_constraint_spawners) - tick_entities_local_size_base
 		] };
 
-		GLuint process_point_mass_distance_constraints_local_size{ ::game_state::local_sizes::process_entities_local_sizes[
+		constexpr GLuint process_point_mass_distance_constraints_local_size{ ::game_state::local_sizes::process_entities_local_sizes[
 			static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraints::Indices::point_mass_distance_constraints) - tick_entities_local_size_base
 		] };
-		GLuint process_point_mass_uniform_force_constraints_local_size{ ::game_state::local_sizes::process_entities_local_sizes[
+		constexpr GLuint process_point_mass_uniform_force_constraints_local_size{ ::game_state::local_sizes::process_entities_local_sizes[
 			static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraints::Indices::point_mass_uniform_force_constraints) - tick_entities_local_size_base
 		] };
 
-		GLuint tick_rigid_body_circle_contact_constraints_local_size{ ::game_state::local_sizes::process_entities_local_sizes[
+		constexpr GLuint tick_rigid_body_circle_contact_constraints_local_size{ ::game_state::local_sizes::process_entities_local_sizes[
 			static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraints::Indices::rigid_body_circle_contact_constraints) - tick_entities_local_size_base
 		] };
 
@@ -112,14 +141,14 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uint dispatch_program_count = " + std::to_string(::game_state::shader_indices::tick::process_entities::count) + ";\n"
 			"const uint draw_arrays_program_count = " + std::to_string(::game_state::shader_indices::draw::entities::count) + ";\n"
 
-			"const uint point_mass_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::Indices::point_mass)) + ";\n"
-			"const uint rigid_body_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::Indices::rigid_body)) + ";\n"
-			"const uint rigid_body_triangle_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::Indices::rigid_body_triangle)) + ";\n"
-			"const uint rigid_body_circle_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::Indices::rigid_body_circle)) + ";\n"
-			"const uint rigid_body_circle_contact_constraint_spawner_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::Indices::rigid_body_circle_contact_constraint_spawner)) + ";\n"
-			"const uint point_mass_distance_constraint_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::Indices::point_mass_distance_constraint)) + ";\n"
-			"const uint point_mass_uniform_force_constraint_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::Indices::point_mass_uniform_force_constraint)) + ";\n"
-			"const uint rigid_body_circle_contact_constraint_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::Indices::rigid_body_circle_contact_constraint)) + ";\n"
+			"const uint point_mass_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::bodies::Indices::point_mass)) + ";\n"
+			"const uint rigid_body_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::bodies::Indices::rigid_body)) + ";\n"
+			"const uint rigid_body_triangle_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::body_attachments::Indices::rigid_body_triangle)) + ";\n"
+			"const uint rigid_body_circle_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::body_attachments::Indices::rigid_body_circle)) + ";\n"
+			"const uint rigid_body_circle_contact_constraint_spawner_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::constraint_spawners::Indices::rigid_body_circle_contact_constraint_spawner)) + ";\n"
+			"const uint point_mass_distance_constraint_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::constraints::Indices::point_mass_distance_constraint)) + ";\n"
+			"const uint point_mass_uniform_force_constraint_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::constraints::Indices::point_mass_uniform_force_constraint)) + ";\n"
+			"const uint rigid_body_circle_contact_constraint_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::constraints::Indices::rigid_body_circle_contact_constraint)) + ";\n"
 
 			"const uint uvec4_data_binding = " + std::to_string(::game_state::bindings::shader_storage::uvec4_data) + ";\n"
 			"const uint uvec2_data_binding = " + std::to_string(::game_state::bindings::shader_storage::uvec2_data) + ";\n"
@@ -132,6 +161,7 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uint update_tick_counts_local_size = " + ::std::to_string(update_tick_counts_local_size) + ";\n"
 			"const uint process_point_masses_local_size = " + ::std::to_string(process_point_masses_local_size) + ";\n"
 			"const uint tick_rigid_bodies_local_size = " + ::std::to_string(tick_rigid_bodies_local_size) + ";\n"
+			"const uint commit_constraint_spawner_counts_local_size = " + ::std::to_string(commit_constraint_spawner_counts_local_size) + ";\n"
 			"const uint tick_rigid_body_circle_contact_constraint_spawners_local_size = " + ::std::to_string(tick_rigid_body_circle_contact_constraint_spawners_local_size) + ";\n"
 			"const uint tick_point_mass_distance_constraints_local_size = " + ::std::to_string(process_point_mass_distance_constraints_local_size) + ";\n"
 			"const uint process_point_mass_uniform_force_constraints_local_size = " + ::std::to_string(process_point_mass_uniform_force_constraints_local_size) + ";\n"

@@ -1,4 +1,5 @@
 #pragma once
+#include "compile_commit_constraint_spawner_counts.h"
 #include "compile_draw_point_masses.h"
 #include "compile_draw_point_mass_distance_constraints.h"
 #include "compile_draw_point_mass_forces.h"

@@ -38,7 +38,7 @@ namespace game_logic::tick
 
 			// MUST TODO: Update counts after constraint tick as well!
 			glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::tick::update_counts::Indices::update_counts)]);
-			constexpr GLuint tick_entities_shader_count{ ::game_state::shader_indices::tick::process_entities::count };
+			constexpr GLuint tick_entities_shader_count{ ::game_state::shader_indices::tick::process_entities::count - ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::count };
 			constexpr GLuint update_tick_count_local_size{ ::game_state::local_sizes::update_tick_counts_local_size };
 			constexpr GLuint update_tick_count_work_group_count
 			{

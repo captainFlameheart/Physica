@@ -74,9 +74,33 @@ namespace game_state::shader_indices
 				constexpr GLuint count{ end - base };
 			}
 
-			namespace constraint_spawners
+			namespace pre_constraint_spawners
 			{
 				constexpr GLuint base{ ::game_state::shader_indices::tick::process_entities::bodies::end };
+
+				namespace commit_counts
+				{
+					constexpr GLuint base{ ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::base };
+
+					enum struct Indices : GLuint
+					{
+						commit_counts = base,
+
+						end
+					};
+
+					constexpr GLuint end{ static_cast<GLuint>(Indices::end) };
+					constexpr GLuint count{ end - base };
+				}
+
+				// TODO: Remember to change
+				constexpr GLuint end{ static_cast<GLuint>(commit_counts::end) };
+				constexpr GLuint count{ end - base };
+			}
+
+			namespace constraint_spawners
+			{
+				constexpr GLuint base{ ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::end };
 
 				enum struct Indices : GLuint
 				{
