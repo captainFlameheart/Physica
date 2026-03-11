@@ -14,10 +14,15 @@ namespace game_state::local_sizes
 	{
 		std::array<GLuint, ::game_state::shader_indices::tick::process_entities::count> local_sizes{};
 		constexpr GLuint base{ ::game_state::shader_indices::tick::process_entities::base };
+
 		local_sizes[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bodies::Indices::point_masses) - base] = default_local_size;
 		local_sizes[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bodies::Indices::rigid_bodies) - base] = default_local_size;
 		
 		local_sizes[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::commit_counts::Indices::commit_counts) - base] = default_local_size;
+
+		local_sizes[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::plan_compaction::Indices::plan_rigid_body_circle_contact_constraint_spawner_compaction) - base] = default_local_size;
+
+		local_sizes[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::perform_compaction::Indices::perform_rigid_body_circle_contact_constraint_spawner_compaction) - base] = default_local_size;
 
 		local_sizes[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraint_spawners::Indices::rigid_body_circle_contact_constraint_spawners) - base] = default_local_size;
 

@@ -93,8 +93,37 @@ namespace game_state::shader_indices
 					constexpr GLuint count{ end - base };
 				}
 
-				// TODO: Remember to change
-				constexpr GLuint end{ static_cast<GLuint>(commit_counts::end) };
+				namespace plan_compaction
+				{
+					constexpr GLuint base{ ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::commit_counts::end };
+
+					enum struct Indices : GLuint
+					{
+						plan_rigid_body_circle_contact_constraint_spawner_compaction = base,
+						
+						end
+					};
+
+					constexpr GLuint end{ static_cast<GLuint>(Indices::end) };
+					constexpr GLuint count{ end - base };
+				}
+
+				namespace perform_compaction
+				{
+					constexpr GLuint base{ ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::plan_compaction::end };
+
+					enum struct Indices : GLuint
+					{
+						perform_rigid_body_circle_contact_constraint_spawner_compaction = base,
+
+						end
+					};
+
+					constexpr GLuint end{ static_cast<GLuint>(Indices::end) };
+					constexpr GLuint count{ end - base };
+				}
+
+				constexpr GLuint end{ static_cast<GLuint>(perform_compaction::end) };
 				constexpr GLuint count{ end - base };
 			}
 

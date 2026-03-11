@@ -34,10 +34,68 @@ namespace game_logic::initialize::compile_shaders::environment
 			"#define READ_ONLY_PLACEHOLDER \n"
 			"const uint fixed_data_binding = " + std::to_string(::game_state::bindings::shader_storage::fixed_data) + ";\n"
 		;
+
+		constexpr GLuint dispatch_program_count
+		{
+			::game_state::shader_indices::tick::process_entities::count
+			- ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::commit_counts::count
+		};
+
+		constexpr GLuint constraint_spawner_plan_compaction_program_base
+		{
+			::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::plan_compaction::base
+			- ::game_state::shader_indices::tick::process_entities::base
+			- ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::commit_counts::count
+		};
+
+		constexpr GLuint constraint_spawner_perform_compaction_program_base
+		{
+			constraint_spawner_plan_compaction_program_base + ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::plan_compaction::count
+		};
+
+		constexpr GLuint constraint_spawner_tick_entities_program_base
+		{
+			constraint_spawner_perform_compaction_program_base + ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::perform_compaction::count
+		};
+
+		std::string constraint_spawners_local_sizes_flags
+		{
+			"const uvec4 constraint_spawners_local_sizes_flags[" + std::to_string(::game_state::entity_type_indices::constraint_spawners::count) + "] = \n"
+			"{	// (plan_compaction_local_size, perform_compaction_local_size, tick_entities_local_size, flags)\n"
+		};
+		for (GLuint i{ 0u }; i < ::game_state::entity_type_indices::constraint_spawners::count; ++i)
+		{
+			constexpr GLuint plan_compaction_base
+			{
+				::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::plan_compaction::base
+				- ::game_state::shader_indices::tick::process_entities::base
+			};
+			constexpr GLuint perform_compaction_base
+			{
+				::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::perform_compaction::base
+				- ::game_state::shader_indices::tick::process_entities::base
+			};
+			constexpr GLuint tick_entities_base
+			{
+				::game_state::shader_indices::tick::process_entities::constraint_spawners::base
+				- ::game_state::shader_indices::tick::process_entities::base
+			};
+
+			GLuint plan_compaction_local_size{ ::game_state::local_sizes::process_entities_local_sizes[plan_compaction_base + i] };
+			GLuint perform_compaction_local_size{ ::game_state::local_sizes::process_entities_local_sizes[perform_compaction_base + i] };
+			GLuint tick_entities_local_size{ ::game_state::local_sizes::process_entities_local_sizes[tick_entities_base + i] };
+			
+			constraint_spawners_local_sizes_flags += "	uvec4(" + 
+				std::to_string(plan_compaction_local_size) + ", " + 
+				std::to_string(perform_compaction_local_size) + ", " + 
+				std::to_string(tick_entities_local_size) + ", 0u" + "),\n";
+		}
+		constraint_spawners_local_sizes_flags += "};\n";
+		std::cout << constraint_spawners_local_sizes_flags << std::endl;
 		
 		std::string	dispatch_command_blueprints
 		{
-			"const uvec2 dispatch_command_blueprints[" + std::to_string(::game_state::shader_indices::tick::process_entities::count + 1u - ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::count) + "] = \n"
+			"const uvec2 dispatch_command_blueprints[" + std::to_string(::game_state::shader_indices::tick::process_entities::count + 1u - ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::commit_counts::count) + "] = \n"
 			"{	// (entity_type_index, local_size)\n"
 		};
 		for (GLuint i{ 0u }; i < ::game_state::shader_indices::tick::process_entities::bodies::count; ++i)
@@ -50,7 +108,17 @@ namespace game_logic::initialize::compile_shaders::environment
 
 		// TODO: REMOVE
 		dispatch_command_blueprints += "	uvec2(" + std::to_string(0u) + ", " + std::to_string(0u) + "),\n";
-		
+
+		for (GLuint i{ 0u }; i < ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::plan_compaction::count; ++i)
+		{
+			dispatch_command_blueprints += "	uvec2(" + std::to_string(0u) + ", " + std::to_string(0u) + "),\n";
+		}
+
+		for (GLuint i{ 0u }; i < ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::perform_compaction::count; ++i)
+		{
+			dispatch_command_blueprints += "	uvec2(" + std::to_string(0u) + ", " + std::to_string(0u) + "),\n";
+		}
+
 		for (GLuint i{ 0u }; i < ::game_state::shader_indices::tick::process_entities::constraint_spawners::count; ++i)
 		{
 			GLuint entity_type{ static_cast<GLuint>(::game_state::shader_to_entity_type::tick_constraint_spawners_shader_to_entity_type[i]) };
@@ -120,6 +188,8 @@ namespace game_logic::initialize::compile_shaders::environment
 		] };
 
 		compile_environment.constant_definitions = 
+			constraint_spawners_local_sizes_flags +
+
 			dispatch_command_blueprints +
 			draw_arrays_command_blueprints +
 
@@ -137,9 +207,15 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const float radians_per_second_squared_in_angle_units_per_time_unit_squared = " + std::to_string(game_state::units::radians_per_second_squared_in_angle_units_per_time_unit_squared) + ";\n"
 
 			"const uint entity_type_count = " + std::to_string(game_state::entity_type_indices::count) + ";\n"
+			"const uint constraint_spawner_type_base = " + std::to_string(game_state::entity_type_indices::constraint_spawners::base) + ";\n"
+			"const uint constraint_spawner_type_count = " + std::to_string(game_state::entity_type_indices::constraint_spawners::count) + ";\n"
 
 			"const uint dispatch_program_count = " + std::to_string(::game_state::shader_indices::tick::process_entities::count) + ";\n"
 			"const uint draw_arrays_program_count = " + std::to_string(::game_state::shader_indices::draw::entities::count) + ";\n"
+
+			"const uint constraint_spawner_plan_compaction_program_base = " + std::to_string(constraint_spawner_plan_compaction_program_base) + ";\n"
+			"const uint constraint_spawner_perform_compaction_program_base = " + std::to_string(constraint_spawner_perform_compaction_program_base) + ";\n"
+			"const uint constraint_spawner_tick_entities_program_base = " + std::to_string(constraint_spawner_tick_entities_program_base) + ";\n"
 
 			"const uint point_mass_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::bodies::Indices::point_mass)) + ";\n"
 			"const uint rigid_body_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::bodies::Indices::rigid_body)) + ";\n"
