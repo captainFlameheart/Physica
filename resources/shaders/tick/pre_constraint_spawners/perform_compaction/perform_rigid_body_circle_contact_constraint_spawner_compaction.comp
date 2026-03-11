@@ -1,6 +1,7 @@
 layout(local_size_x = perform_rigid_body_circle_contact_constraint_spawner_compaction_local_size) in;
 void main()
 {
+	// TODO: Make into reusable logic.
 	uint kill_item = gl_GlobalInvocationID.x;
 	uint kill_base = fixed_data.old_kill_bases[rigid_body_circle_contact_constraint_spawner_entity_type_index];
 	uint kill_end = fixed_data.old_kill_ends[rigid_body_circle_contact_constraint_spawner_entity_type_index];
@@ -38,6 +39,8 @@ void main()
 	uint killed_index = killed_ring_base + kill_item_ring_index;
 	uint killed = uint_data.data[killed_index];
 
-	// TODO: Copy source -> killed
-
+	// Copy source -> killed.
+	uint indices_flags_base = fixed_data.rigid_body_circle_contact_constraint_spawner_indices_flags_base;
+	
+	uvec4_data.data[indices_flags_base + killed] = uvec4_data.data[indices_flags_base + source];
 }
