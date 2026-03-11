@@ -48,7 +48,7 @@ void main()
 	{
 		// TODO: Spawn constraint and despawn this spawner.
 		uint constraint_index = atomicAdd(fixed_data.read_counts[rigid_body_circle_contact_constraint_type_index], 1u);
-		if (constraint_index >= fixed_data.rigid_body_circle_contact_constraint_capacity)
+		if (constraint_index >= fixed_data.capacities[rigid_body_circle_contact_constraint_type_index])
 		{
 			atomicAdd(fixed_data.read_counts[rigid_body_circle_contact_constraint_type_index], decrement_uint);
 			return;
