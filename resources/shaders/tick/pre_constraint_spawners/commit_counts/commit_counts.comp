@@ -1,0 +1,44 @@
+layout(local_size_x = commit_constraint_spawner_counts_local_size) in;
+void main()
+{
+	uint index = gl_GlobalInvocationID.x;
+	if (index >= constraint_spawner_entity_type_count)
+	{
+		return;
+	}
+
+	uint entity_type = constraint_spawner_entity_type_base + index;
+	uint plan_compaction_program_index = constraint_spawner_plan_compaction_program_base + index;
+	uint perform_compaction_program_index = constraint_spawner_perform_compaction_program_base + index;
+	uint tick_entities_program_index = constraint_spawner_tick_entities_program_base + index;
+	uvec4 local_sizes_flags = pre_constraint_spawners_local_sizes_flags[index];
+
+	uint capacity = fixed_data.capacities[entity_type];
+
+	uint read_count = fixed_data.read_counts[entity_type];
+	uint write_count = fixed_data.write_counts[entity_type];
+	uint kill_base = fixed_data.kill_bases[entity_type];
+	uint kill_end = fixed_data.kill_ends[entity_type];
+	uint kill_count = kill_end - kill_base;
+
+	uint_data.old_write_counts[entity_type] = write_count;
+	uint_data.old_kill_bases[entity_type] = kill_base;
+	uint_data.old_kill_ends[entity_type] = kill_end;
+
+	read_count = write_count - kill_count;
+	write_count = read_count;
+	kill_base = kill_end - uint(kill_end >= capacity) * capacity;
+	kill_end = kill_base;
+
+	fixed_data.read_counts[entity_type] = read_count;
+	fixed_data.write_counts[entity_type] = write_count;
+	fixed_data.kill_bases[entity_type] = kill_base;
+	fixed_data.kill_ends[entity_type] = kill_end;
+
+	fixed_data.dispatch_commands[plan_compaction_program_index].work_group_count_x =
+		(kill_count + local_sizes_flags.x - 1u) / local_sizes_flags.x;
+	fixed_data.dispatch_commands[perform_compaction_program_index].work_group_count_x =
+		(kill_count + local_sizes_flags.y - 1u) / local_sizes_flags.y;
+	fixed_data.dispatch_commands[tick_entities_program_index].work_group_count_x =
+		(read_count + local_sizes_flags.z - 1u) / local_sizes_flags.z;
+}

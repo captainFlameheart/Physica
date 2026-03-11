@@ -188,7 +188,7 @@ FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 	uint kill_ends[entity_type_count];
 
 	// TODO: Move commands into buffer that uses std430 to guarantee correct layout for indirect calls
-	uint dispatch_command_flags[dispatch_program_count];
+	uint dispatch_command_flags[dispatch_program_count];	// TODO: Remove
 	Dispatch_Command dispatch_commands[dispatch_program_count];
 	
 	uint draw_arrays_command_flags[draw_arrays_program_count];
