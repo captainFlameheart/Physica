@@ -3,17 +3,17 @@ void main()
 {
 	// TODO: Make into reusable logic.
 	uint kill_item = gl_GlobalInvocationID.x;
-	uint kill_base = fixed_data.old_kill_bases[rigid_body_circle_contact_constraint_spawner_entity_type_index];
-	uint kill_end = fixed_data.old_kill_ends[rigid_body_circle_contact_constraint_spawner_entity_type_index];
+	uint kill_base = fixed_data.old_kill_bases[rigid_body_circle_contact_constraint_spawner_type_index];
+	uint kill_end = fixed_data.old_kill_ends[rigid_body_circle_contact_constraint_spawner_type_index];
 	uint kill_item_ring_index = kill_base + kill_item;
 	if (kill_item_ring_index >= kill_end)
 	{
 		return;
 	}
-	uint capacity = fixed_data.rigid_body_circle_contact_constraint_spawner_capacity;
-	kill_item_ring_index -= uint(index >= capacity) * capacity;
+	uint capacity = fixed_data.capacities[rigid_body_circle_contact_constraint_spawner_type_index];
+	kill_item_ring_index -= uint(kill_item_ring_index >= capacity) * capacity;
 	
-	uint write_count = fixed_data.old_write_counts[rigid_body_circle_contact_constraint_spawner_entity_type_index];
+	uint write_count = fixed_data.old_write_counts[rigid_body_circle_contact_constraint_spawner_type_index];
 
 	uint source_kill_items_ring_base = fixed_data.rigid_body_circle_contact_constraint_spawner_source_kill_items_ring_base;
 
