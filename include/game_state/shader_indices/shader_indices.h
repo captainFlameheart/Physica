@@ -167,7 +167,9 @@ namespace game_state::shader_indices
 
 					enum struct Indices : GLuint
 					{
-						plan_rigid_body_circle_contact_constraint_compaction = base,
+						plan_point_mass_distance_constraint_compaction = base,
+						plan_point_mass_uniform_force_constraint_compaction,
+						plan_rigid_body_circle_contact_constraint_compaction,
 
 						end
 					};
@@ -182,7 +184,9 @@ namespace game_state::shader_indices
 
 					enum struct Indices : GLuint
 					{
-						perform_rigid_body_circle_contact_constraint_compaction = base,
+						perform_point_mass_distance_constraint_compaction = base,
+						perform_point_mass_uniform_force_constraint_compaction,
+						perform_rigid_body_circle_contact_constraint_compaction,
 
 						end
 					};
