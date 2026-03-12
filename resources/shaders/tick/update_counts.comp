@@ -9,7 +9,7 @@ void main()
 	
 	uvec2 command_blueprint = dispatch_command_blueprints[command_index];
 	// TODO: Consider how to handle write_counts.
-	uint count = fixed_data.read_counts[command_blueprint.x];
+	uint count = fixed_data.write_counts[command_blueprint.x];
 
 	uint flag = fixed_data.dispatch_command_flags[command_index];
 	count *= (flag >> dispatch_command_enabled_shift) & 1u;

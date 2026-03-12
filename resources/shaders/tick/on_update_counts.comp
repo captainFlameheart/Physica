@@ -107,4 +107,10 @@ void main()
 	fixed_data.camera_projection = camera_projection;
 
 	fixed_data.camera_offset_to_clip_coordinates = camera_projection * camera_offset_to_local;
+
+	// MUST TODO: Remove this temporary fix.
+	for (uint entity_type = 0u; entity_type < entity_type_count; ++entity_type)
+	{
+		fixed_data.read_counts[entity_type] = fixed_data.write_counts[entity_type];
+	}
 }
