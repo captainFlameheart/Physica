@@ -40,13 +40,20 @@ namespace game_logic::initialize::compile_shaders::environment
 			::game_state::shader_indices::tick::process_entities::count
 			- ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::commit_counts::count
 		};
-
+		
+		// TODO: Remove commit count programs.
 		constexpr GLuint constraint_spawner_plan_compaction_program_base
 		{
 			::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::plan_compaction::base
 			- ::game_state::shader_indices::tick::process_entities::base
-			- ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::commit_counts::count
 		};
+
+		/*constexpr GLuint constraint_spawner_plan_compaction_program_base
+		{
+			::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::plan_compaction::base
+			- ::game_state::shader_indices::tick::process_entities::base
+			- ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::commit_counts::count
+		};*/
 
 		constexpr GLuint constraint_spawner_perform_compaction_program_base
 		{
@@ -261,6 +268,8 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uint uvec2_data_array_stride = " + std::to_string(environment.state.layouts.uvec2_data.state.array_stride) + ";\n"
 			"const uint uint_data_offset = " + std::to_string(environment.state.layouts.uint_data.state.offset) + ";\n"
 			"const uint uint_data_array_stride = " + std::to_string(environment.state.layouts.uint_data.state.array_stride) + ";\n"
+			"const uint vec4_data_offset = " + std::to_string(environment.state.layouts.vec4_data.state.offset) + ";\n"
+			"const uint vec4_data_array_stride = " + std::to_string(environment.state.layouts.vec4_data.state.array_stride) + ";\n"
 			"const uint vec2_data_offset = " + std::to_string(environment.state.layouts.vec2_data.state.offset) + ";\n"
 			"const uint vec2_data_array_stride = " + std::to_string(environment.state.layouts.vec2_data.state.array_stride) + ";\n"
 			"const uint float_data_offset = " + std::to_string(environment.state.layouts.float_data.state.offset) + ";\n"

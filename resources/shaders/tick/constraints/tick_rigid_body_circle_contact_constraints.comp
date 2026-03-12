@@ -1,6 +1,8 @@
 layout(local_size_x = tick_rigid_body_circle_contact_constraints_local_size) in;
 void main()
 {
+	//return;
+
 	// REALLY FRICKIN COOL TODO: Make constraints "pull" the memory addresses of their bodies towards each other!
 
 	uint index = gl_GlobalInvocationID.x;

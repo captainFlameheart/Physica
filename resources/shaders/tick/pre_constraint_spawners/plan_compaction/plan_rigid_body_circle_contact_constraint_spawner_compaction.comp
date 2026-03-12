@@ -19,7 +19,7 @@ void main()
 	uint killed = uint_data.data[killed_index];
 
 	uint kill_count = kill_end - kill_base;
-	if (killed < write_count - kill_count)
+	if (killed <= write_count - kill_count)
 	{
 		return;
 	}

@@ -54,7 +54,7 @@ void main()
 	fixed_data.point_mass_write_flags_base = point_mass_write_flags_base;
 	fixed_data.point_mass_write_position_velocity_base = point_mass_write_position_velocity_base;
 	
-	capacities[rigid_body_type_index] = 3u;
+	capacities[rigid_body_type_index] = 2u;
 
 	uint rigid_body_inverse_mass_inertia_base_address = align_up(point_mass_write_position_velocity_base_address + capacities[point_mass_type_index] * uvec4_data_array_stride);
 	uint rigid_body_constraint_start_base_address = align_up(rigid_body_inverse_mass_inertia_base_address + capacities[rigid_body_type_index] * vec2_data_array_stride);
@@ -152,12 +152,19 @@ void main()
 		fixed_data.kill_bases[entity_type] = 0u;
 		fixed_data.kill_ends[entity_type] = 0u;
 	}
+
+	uint end_base_address = rigid_body_circle_contact_constraint_impulse_base_address + capacities[rigid_body_circle_contact_constraint_type_index] * vec4_data_array_stride;
+	uint end_base = address_to_uint_index(end_base_address);
+	uint has_enough_memory = uint(end_base <= uint_data.data.length());
 	
-	for (uint rigid_body_circle_contact_constraint_spawner_source_kill_items_index = rigid_body_circle_contact_constraint_spawner_source_kill_items_ring_base; rigid_body_circle_contact_constraint_spawner_source_kill_items_index < capacities[rigid_body_circle_contact_constraint_spawner_type_index]; ++rigid_body_circle_contact_constraint_spawner_source_kill_items_index)
+	uint rigid_body_circle_contact_constraint_spawner_source_kill_items_ring_end = 
+		rigid_body_circle_contact_constraint_spawner_source_kill_items_ring_base +
+		capacities[rigid_body_circle_contact_constraint_spawner_type_index];
+	rigid_body_circle_contact_constraint_spawner_source_kill_items_ring_end *= has_enough_memory;
+	for (uint rigid_body_circle_contact_constraint_spawner_source_kill_items_index = rigid_body_circle_contact_constraint_spawner_source_kill_items_ring_base; rigid_body_circle_contact_constraint_spawner_source_kill_items_index < rigid_body_circle_contact_constraint_spawner_source_kill_items_ring_end; ++rigid_body_circle_contact_constraint_spawner_source_kill_items_index)
 	{
 		uint_data.data[rigid_body_circle_contact_constraint_spawner_source_kill_items_index] = null_uint;
 	}
-
 
 	uint point_mass_count = capacities[point_mass_type_index];//capacities[point_mass_type_index];
 	uint rigid_body_count = capacities[rigid_body_type_index];//capacities[rigid_body_type_index];
@@ -166,10 +173,6 @@ void main()
 	//uint rigid_body_circle_contact_constraint_spawner_count = capacities[rigid_body_circle_contact_constraint_spawner_type_index];//rigid_body_circle_contact_constraint_spawner_capacity;
 	uint point_mass_distance_constraint_count = capacities[point_mass_distance_constraint_type_index];//capacities[point_mass_distance_constraint_type_index];
 	uint rigid_body_circle_contact_constraint_count = 0u;
-
-	uint end_base_address = point_mass_distance_constraint_delta_position_velocity_base_address + capacities[point_mass_distance_constraint_type_index] * uvec4_data_array_stride;
-	uint end_base = address_to_uint_index(end_base_address);
-	uint has_enough_memory = uint(end_base <= uint_data.data.length());
 
 	point_mass_count *= has_enough_memory;
 	rigid_body_count *= has_enough_memory;

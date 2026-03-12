@@ -43,7 +43,7 @@ namespace game_logic::tick
 
 			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_COMMAND_BARRIER_BIT);
 
-			for (GLuint plan_constraint_spawner_compaction_shader_index{ ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::plan_compaction::base }; plan_constraint_spawner_compaction_shader_index < ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::plan_compaction::end; ++plan_constraint_spawner_compaction_shader_index)
+			for (GLuint plan_constraint_spawner_compaction_shader_index{::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::plan_compaction::base}; plan_constraint_spawner_compaction_shader_index < ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::plan_compaction::end; ++plan_constraint_spawner_compaction_shader_index)
 			{
 				glUseProgram(environment.state.shaders[plan_constraint_spawner_compaction_shader_index]);
 				// TODO: We should exclude commit-count shaders.
@@ -58,7 +58,7 @@ namespace game_logic::tick
 
 			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
-			for (GLuint perform_constraint_spawner_compaction_shader_index{ ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::perform_compaction::base }; perform_constraint_spawner_compaction_shader_index < ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::perform_compaction::end; ++perform_constraint_spawner_compaction_shader_index)
+			for (GLuint perform_constraint_spawner_compaction_shader_index{::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::perform_compaction::base}; perform_constraint_spawner_compaction_shader_index < ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::perform_compaction::end; ++perform_constraint_spawner_compaction_shader_index)
 			{
 				glUseProgram(environment.state.shaders[perform_constraint_spawner_compaction_shader_index]);
 				// TODO: We should exclude commit-count shaders.
