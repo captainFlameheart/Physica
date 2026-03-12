@@ -19,12 +19,11 @@ void main()
 	uint killed = uint_data.data[killed_index];
 
 	uint kill_count = kill_end - kill_base;
-	if (killed <= write_count - kill_count)
+	uint destination_kill_item_ring_index = write_count - 1u - killed;
+	if (killed < write_count - kill_count || destination_kill_item_ring_index == kill_item)
 	{
 		return;
 	}
-	
-	uint destination_kill_item_ring_index = write_count - 1u - killed;
 	destination_kill_item_ring_index += kill_base;
 	destination_kill_item_ring_index -= uint(destination_kill_item_ring_index >= capacity) * capacity;
 
