@@ -22,6 +22,25 @@ namespace game_logic::tick
 
 			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
+			glUseProgram
+			(
+				environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::commit_counts::Indices::commit_counts)]
+			);
+			constexpr GLuint constraint_spawner_type_count{ ::game_state::entity_type_indices::constraint_spawners::count };
+			constexpr GLuint commit_constraint_spawner_counts_local_size
+			{
+				::game_state::local_sizes::process_entities_local_sizes
+				[
+					static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::commit_counts::Indices::commit_counts)
+					- static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::base)
+				]
+			};
+			constexpr GLuint commit_constraint_spawner_counts_work_group_count
+			{
+				(constraint_spawner_type_count + commit_constraint_spawner_counts_local_size - 1u) / commit_constraint_spawner_counts_local_size
+			};
+			glDispatchCompute(commit_constraint_spawner_counts_work_group_count, 1u, 1u);
+
 			for (GLuint tick_constraint_spawners_shader_index{::game_state::shader_indices::tick::process_entities::constraint_spawners::base}; tick_constraint_spawners_shader_index < ::game_state::shader_indices::tick::process_entities::constraint_spawners::end; ++tick_constraint_spawners_shader_index)
 			{
 				glUseProgram(environment.state.shaders[tick_constraint_spawners_shader_index]);
@@ -36,6 +55,7 @@ namespace game_logic::tick
 
 			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
+			// TODO: REMOVE.
 			// MUST TODO: Update counts after constraint tick as well!
 			glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::tick::update_counts::Indices::update_counts)]);
 			constexpr GLuint tick_entities_shader_count{ ::game_state::shader_indices::tick::process_entities::count - ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::count };
