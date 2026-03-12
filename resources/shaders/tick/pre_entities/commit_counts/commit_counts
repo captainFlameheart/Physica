@@ -1,0 +1,43 @@
+#define PRE_TICK_ENTITIES_COMMIT_COUNTS(entity_type_base, entity_subtype_count, plan_compaction_program_base, perform_compaction_program_base, tick_entities_program_base, local_sizes_flags)\
+{\
+	uint index = gl_GlobalInvocationID.x;\
+	if (index >= entity_subtype_count)\
+	{\
+		return;\
+	}	\
+	\
+	uint entity_type = entity_type_base + index;\
+	uint plan_compaction_program_index = plan_compaction_program_base + index;\
+	uint perform_compaction_program_index = perform_compaction_program_base + index;\
+	uint tick_entities_program_index = tick_entities_program_base + index;\
+	uvec4 local_sizes_flags = local_sizes_flags[index];\
+	\
+	uint capacity = fixed_data.capacities[entity_type];\
+	\
+	uint read_count = fixed_data.read_counts[entity_type];\
+	uint write_count = fixed_data.write_counts[entity_type];\
+	uint kill_base = fixed_data.kill_bases[entity_type];\
+	uint kill_end = fixed_data.kill_ends[entity_type];\
+	uint kill_count = kill_end - kill_base;\
+	\
+	fixed_data.old_write_counts[entity_type] = write_count;\
+	fixed_data.old_kill_bases[entity_type] = kill_base;\
+	fixed_data.old_kill_ends[entity_type] = kill_end;\
+	\
+	read_count = write_count - kill_count;\
+	write_count = read_count;\
+	kill_base = kill_end - uint(kill_end >= capacity) * capacity;\
+	kill_end = kill_base;\
+	\
+	fixed_data.read_counts[entity_type] = read_count;\
+	fixed_data.write_counts[entity_type] = write_count;\
+	fixed_data.kill_bases[entity_type] = kill_base;\
+	fixed_data.kill_ends[entity_type] = kill_end;\
+	\
+	fixed_data.dispatch_commands[plan_compaction_program_index].work_group_count_x =\
+		(kill_count + local_sizes_flags.x - 1u) / local_sizes_flags.x;\
+	fixed_data.dispatch_commands[perform_compaction_program_index].work_group_count_x =\
+		(kill_count + local_sizes_flags.y - 1u) / local_sizes_flags.y;\
+	fixed_data.dispatch_commands[tick_entities_program_index].work_group_count_x =\
+		(read_count + local_sizes_flags.z - 1u) / local_sizes_flags.z;\
+}

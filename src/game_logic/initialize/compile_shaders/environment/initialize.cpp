@@ -208,6 +208,8 @@ namespace game_logic::initialize::compile_shaders::environment
 			dispatch_command_blueprints +
 			draw_arrays_command_blueprints +
 
+			::util::shader::file_to_string("tick/pre_entities/commit_counts/commit_counts") +
+
 			initialize_input_constants(environment) +
 
 			"const float meter_in_length_units = " + std::to_string(game_state::units::meter_in_length_units) + ";\n"
