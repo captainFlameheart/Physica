@@ -1,0 +1,24 @@
+layout(local_size_x = perform_rigid_body_circle_contact_constraint_compaction_local_size) in;
+void main()
+{
+	uint killed;
+	uint source;
+
+	PRE_TICK_ENTITIES_PERFORM_COMPACTION_DETERMINE_FLOW
+	(
+		rigid_body_circle_contact_constraint_type_index,
+		rigid_body_circle_contact_constraint_killed_ring_base,
+		rigid_body_circle_contact_constraint_source_kill_items_ring_base,
+		killed,
+		source
+	);
+
+	// Copy source -> killed.
+	uint flags_base = fixed_data.rigid_body_circle_contact_constraint_flags_base;
+	uint indices_turns_base = fixed_data.rigid_body_circle_contact_constraint_indices_turns_base;
+	uint impulse_base = fixed_data.rigid_body_circle_contact_constraint_impulse_base;
+	
+	uint_data.data[flags_base + killed] = uint_data.data[flags_base + source];
+	uvec4_data.data[indices_turns_base + killed] = uvec4_data.data[indices_turns_base + source];
+	vec4_data.data[impulse_base + killed] = vec4_data.data[impulse_base + source];
+}
