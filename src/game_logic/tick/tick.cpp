@@ -41,6 +41,38 @@ namespace game_logic::tick
 			};
 			glDispatchCompute(commit_constraint_spawner_counts_work_group_count, 1u, 1u);
 
+			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_COMMAND_BARRIER_BIT);
+
+			for (GLuint plan_constraint_spawner_compaction_shader_index{ ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::plan_compaction::base }; plan_constraint_spawner_compaction_shader_index < ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::plan_compaction::end; ++plan_constraint_spawner_compaction_shader_index)
+			{
+				glUseProgram(environment.state.shaders[plan_constraint_spawner_compaction_shader_index]);
+				// TODO: We should exclude commit-count shaders.
+				GLuint index_in_tick_entities_shader_array{ plan_constraint_spawner_compaction_shader_index - ::game_state::shader_indices::tick::process_entities::base };
+				GLintptr command_offset
+				{
+					environment.state.layouts.fixed_data.dispatch_commands_work_group_count_x_state.offset +
+					index_in_tick_entities_shader_array * environment.state.layouts.fixed_data.dispatch_commands_work_group_count_x_state.top_level_array_stride
+				};
+				glDispatchComputeIndirect(command_offset);
+			}
+
+			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+			for (GLuint perform_constraint_spawner_compaction_shader_index{ ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::perform_compaction::base }; perform_constraint_spawner_compaction_shader_index < ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::perform_compaction::end; ++perform_constraint_spawner_compaction_shader_index)
+			{
+				glUseProgram(environment.state.shaders[perform_constraint_spawner_compaction_shader_index]);
+				// TODO: We should exclude commit-count shaders.
+				GLuint index_in_tick_entities_shader_array{ perform_constraint_spawner_compaction_shader_index - ::game_state::shader_indices::tick::process_entities::base };
+				GLintptr command_offset
+				{
+					environment.state.layouts.fixed_data.dispatch_commands_work_group_count_x_state.offset +
+					index_in_tick_entities_shader_array * environment.state.layouts.fixed_data.dispatch_commands_work_group_count_x_state.top_level_array_stride
+				};
+				glDispatchComputeIndirect(command_offset);
+			}
+
+			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
 			for (GLuint tick_constraint_spawners_shader_index{::game_state::shader_indices::tick::process_entities::constraint_spawners::base}; tick_constraint_spawners_shader_index < ::game_state::shader_indices::tick::process_entities::constraint_spawners::end; ++tick_constraint_spawners_shader_index)
 			{
 				glUseProgram(environment.state.shaders[tick_constraint_spawners_shader_index]);
