@@ -105,6 +105,57 @@ namespace game_logic::tick
 
 			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_COMMAND_BARRIER_BIT);
 
+			glUseProgram
+			(
+				environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::pre_constraints::commit_counts::Indices::commit_counts)]
+			);
+			constexpr GLuint constraint_type_count{ ::game_state::entity_type_indices::constraints::count };
+			constexpr GLuint commit_constraint_counts_local_size
+			{
+				::game_state::local_sizes::process_entities_local_sizes
+				[
+					static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::pre_constraints::commit_counts::Indices::commit_counts)
+					- static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::base)
+				]
+			};
+			constexpr GLuint commit_constraint_counts_work_group_count
+			{
+				(constraint_spawner_type_count + commit_constraint_counts_local_size - 1u) / commit_constraint_counts_local_size
+			};
+			glDispatchCompute(commit_constraint_counts_work_group_count, 1u, 1u);
+
+			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_COMMAND_BARRIER_BIT);
+
+			for (GLuint plan_constraint_compaction_shader_index{::game_state::shader_indices::tick::process_entities::pre_constraints::plan_compaction::base}; plan_constraint_compaction_shader_index < ::game_state::shader_indices::tick::process_entities::pre_constraints::plan_compaction::end; ++plan_constraint_compaction_shader_index)
+			{
+				glUseProgram(environment.state.shaders[plan_constraint_compaction_shader_index]);
+				// TODO: We should exclude commit-count shaders.
+				GLuint index_in_tick_entities_shader_array{ plan_constraint_compaction_shader_index - ::game_state::shader_indices::tick::process_entities::base };
+				GLintptr command_offset
+				{
+					environment.state.layouts.fixed_data.dispatch_commands_work_group_count_x_state.offset +
+					index_in_tick_entities_shader_array * environment.state.layouts.fixed_data.dispatch_commands_work_group_count_x_state.top_level_array_stride
+				};
+				glDispatchComputeIndirect(command_offset);
+			}
+
+			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+			for (GLuint perform_constraint_compaction_shader_index{::game_state::shader_indices::tick::process_entities::pre_constraints::perform_compaction::base}; perform_constraint_compaction_shader_index < ::game_state::shader_indices::tick::process_entities::pre_constraints::perform_compaction::end; ++perform_constraint_compaction_shader_index)
+			{
+				glUseProgram(environment.state.shaders[perform_constraint_compaction_shader_index]);
+				// TODO: We should exclude commit-count shaders.
+				GLuint index_in_tick_entities_shader_array{ perform_constraint_compaction_shader_index - ::game_state::shader_indices::tick::process_entities::base };
+				GLintptr command_offset
+				{
+					environment.state.layouts.fixed_data.dispatch_commands_work_group_count_x_state.offset +
+					index_in_tick_entities_shader_array * environment.state.layouts.fixed_data.dispatch_commands_work_group_count_x_state.top_level_array_stride
+				};
+				glDispatchComputeIndirect(command_offset);
+			}
+
+			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
 			for (GLuint tick_constraints_shader_index{ ::game_state::shader_indices::tick::process_entities::constraints::base }; tick_constraints_shader_index < ::game_state::shader_indices::tick::process_entities::constraints::end; ++tick_constraints_shader_index)
 			{
 				/*if (tick_constraints_shader_index != ::game_state::shader_indices::tick::process_entities::constraints::Indices::point_mass_distance_constraints)
