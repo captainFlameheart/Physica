@@ -1,0 +1,32 @@
+#define PRE_TICK_ENTITIES_PLAN_COMPACTION(entity_type, killed_ring_base, source_kill_items_ring_base)\
+{\
+	uint kill_item = gl_GlobalInvocationID.x;\
+	uint kill_base = fixed_data.old_kill_bases[entity_type];\
+	uint kill_end = fixed_data.old_kill_ends[entity_type];\
+	uint kill_item_ring_index = kill_base + kill_item;\
+	if (kill_item_ring_index >= kill_end)\
+	{\
+		return;\
+	}\
+	uint capacity = fixed_data.capacities[entity_type];\
+	kill_item_ring_index -= uint(kill_item_ring_index >= capacity) * capacity;\
+	\
+	uint write_count = fixed_data.old_write_counts[entity_type];\
+	\
+	uint killed_ring_base = fixed_data.killed_ring_base;\
+	uint killed_index = killed_ring_base + kill_item_ring_index;\
+	uint killed = uint_data.data[killed_index];\
+	\
+	uint kill_count = kill_end - kill_base;\
+	uint destination_kill_item_ring_index = write_count - 1u - killed;\
+	if (killed < write_count - kill_count || destination_kill_item_ring_index == kill_item)\
+	{\
+		return;\
+	}\
+	destination_kill_item_ring_index += kill_base;\
+	destination_kill_item_ring_index -= uint(destination_kill_item_ring_index >= capacity) * capacity;\
+	\
+	uint source_kill_items_ring_base = fixed_data.source_kill_items_ring_base;\
+	uint destination_source_kill_items_index = source_kill_items_ring_base + destination_kill_item_ring_index;\
+	uint_data.data[destination_source_kill_items_index] = kill_item;\
+}

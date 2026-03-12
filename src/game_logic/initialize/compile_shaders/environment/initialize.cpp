@@ -209,6 +209,7 @@ namespace game_logic::initialize::compile_shaders::environment
 			draw_arrays_command_blueprints +
 
 			::util::shader::file_to_string("tick/pre_entities/commit_counts/commit_counts") +
+			::util::shader::file_to_string("tick/pre_entities/plan_compaction/plan_compaction") +
 
 			initialize_input_constants(environment) +
 
