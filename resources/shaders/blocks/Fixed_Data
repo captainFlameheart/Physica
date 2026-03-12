@@ -157,6 +157,9 @@ FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 	uint rigid_body_circle_contact_constraint_indices_turns_base;
 	uint rigid_body_circle_contact_constraint_impulse_base;
 
+	uint rigid_body_circle_contact_constraint_killed_ring_base;
+	uint rigid_body_circle_contact_constraint_source_kill_items_ring_base;
+
 	/*uint point_mass_uniform_force_constraint_indices_turns_base;
 	uint point_mass_uniform_force_constraint_target_and_applied_accelerations_base;
 	uint point_mass_uniform_force_constraint_deltas_base;*/

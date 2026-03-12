@@ -30,6 +30,12 @@ namespace game_logic::initialize::compile_shaders
 
 		compile_tick_rigid_body_circle_contact_constraint_spawners(environment, compile_environment);
 
+		compile_commit_constraint_counts(environment, compile_environment);
+
+		compile_plan_rigid_body_circle_contact_constraint_compaction(environment, compile_environment);
+
+		compile_perform_rigid_body_circle_contact_constraint_compaction(environment, compile_environment);
+
 		compile_tick_point_mass_distance_constraints(environment, compile_environment);
 		compile_tick_rigid_body_circle_contact_constraints(environment, compile_environment);
 		
