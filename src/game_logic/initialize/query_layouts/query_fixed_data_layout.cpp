@@ -57,6 +57,18 @@ namespace game_logic::initialize::query_layouts
 			program, "Fixed_Data.point_mass_capacity",
 			environment.state.layouts.fixed_data.point_mass_capacity_properties
 		);
+		
+		::game_logic::shader_util::query::query_shader_storage_variable_offset
+		(
+			program, "Fixed_Data.rigid_body_circle_contact_constraint_spawner_killed_ring_base",
+			environment.state.layouts.fixed_data.rigid_body_circle_contact_constraint_spawner_killed_ring_base_properties
+		);
+		::game_logic::shader_util::query::query_shader_storage_variable_offset
+		(
+			program, "Fixed_Data.rigid_body_circle_contact_constraint_spawner_source_kill_items_ring_base",
+			environment.state.layouts.fixed_data.rigid_body_circle_contact_constraint_spawner_source_kill_items_ring_base_properties
+		);
+
 		::game_logic::shader_util::query::query_shader_storage_variable_offset
 		(
 			program, "Fixed_Data.point_mass_distance_constraint_flags_base",

@@ -54,6 +54,16 @@ namespace game_state::layouts::fixed_data
 		GLint offset;
 	};
 
+	struct rigid_body_circle_contact_constraint_spawner_killed_ring_base
+	{
+		GLint offset;
+	};
+
+	struct rigid_body_circle_contact_constraint_spawner_source_kill_items_ring_base
+	{
+		GLint offset;
+	};
+
 	struct point_mass_distance_constraint_flags_base
 	{
 		GLint offset;
@@ -278,6 +288,18 @@ namespace game_state::layouts::fixed_data
 			point_mass_capacity point_mass_capacity_state;
 			GLint point_mass_capacity_properties[sizeof(point_mass_capacity) / sizeof(GLint)];
 		};
+		
+		union
+		{
+			rigid_body_circle_contact_constraint_spawner_killed_ring_base rigid_body_circle_contact_constraint_spawner_killed_ring_base_state;
+			GLint rigid_body_circle_contact_constraint_spawner_killed_ring_base_properties[sizeof(rigid_body_circle_contact_constraint_spawner_killed_ring_base) / sizeof(GLint)];
+		};
+		union
+		{
+			rigid_body_circle_contact_constraint_spawner_source_kill_items_ring_base rigid_body_circle_contact_constraint_spawner_source_kill_items_ring_base_state;
+			GLint rigid_body_circle_contact_constraint_spawner_source_kill_items_ring_base_properties[sizeof(rigid_body_circle_contact_constraint_spawner_source_kill_items_ring_base) / sizeof(GLint)];
+		};
+		
 		union
 		{
 			point_mass_distance_constraint_flags_base point_mass_distance_constraint_flags_base_state;
@@ -333,6 +355,7 @@ namespace game_state::layouts::fixed_data
 			point_mass_uniform_force_constraint_capacity point_mass_uniform_force_constraint_capacity_state;
 			GLint point_mass_uniform_force_constraint_capacity_properties[sizeof(point_mass_uniform_force_constraint_capacity) / sizeof(GLint)];
 		};
+
 		union
 		{
 			rigid_body_circle_contact_constraint_killed_ring_base rigid_body_circle_contact_constraint_killed_ring_base_state;

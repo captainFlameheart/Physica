@@ -20,14 +20,14 @@
 	uint default_source_kill_items_index = source_kill_items_ring_base + kill_item_ring_index;\
 	uint source_kill_item = uint_data.data[default_source_kill_items_index];\
 	\
-	while (source_kill_item != null_uint)\
-	{\
-		source = source_kill_item;\
+	/*while (source_kill_item != null_uint)*/\
+	/*{*/\
+		/*source = source_kill_item;*/\
 		\
-		uint source_ring_index = kill_base + source;\
-		source_ring_index -= uint(source_ring_index >= capacity) * capacity;\
-		source_kill_item = uint_data.data[source_kill_items_ring_base + source_ring_index];\
-	}\
+		/*uint source_ring_index = kill_base + source;*/\
+		/*source_ring_index -= uint(source_ring_index >= capacity) * capacity;*/\
+		/*source_kill_item = uint_data.data[source_kill_items_ring_base + source_ring_index];*/\
+	/*}*/\
 	\
 	source = write_count - 1u - source;\
 	\

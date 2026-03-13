@@ -33,28 +33,28 @@ namespace game_logic::debug
 			sizeof(GLuint)
 		);
 
-		GLuint rigid_body_circle_contact_constraint_killed_old_write_count;
+		GLuint rigid_body_circle_contact_constraint_old_write_count;
 		std::memcpy
 		(
-			&rigid_body_circle_contact_constraint_killed_old_write_count,
+			&rigid_body_circle_contact_constraint_old_write_count,
 			fixed_data +
 			environment.state.layouts.fixed_data.old_write_counts_state.offset +
 			rigid_body_circle_contact_constraint_entity_type * environment.state.layouts.fixed_data.old_write_counts_state.array_stride,
 			sizeof(GLuint)
 		);
-		GLuint rigid_body_circle_contact_constraint_killed_old_kill_base;
+		GLuint rigid_body_circle_contact_constraint_old_kill_base;
 		std::memcpy
 		(
-			&rigid_body_circle_contact_constraint_killed_old_kill_base,
+			&rigid_body_circle_contact_constraint_old_kill_base,
 			fixed_data +
 			environment.state.layouts.fixed_data.old_kill_bases_state.offset +
 			rigid_body_circle_contact_constraint_entity_type * environment.state.layouts.fixed_data.old_kill_bases_state.array_stride,
 			sizeof(GLuint)
 		);
-		GLuint rigid_body_circle_contact_constraint_killed_old_kill_end;
+		GLuint rigid_body_circle_contact_constraint_old_kill_end;
 		std::memcpy
 		(
-			&rigid_body_circle_contact_constraint_killed_old_kill_end,
+			&rigid_body_circle_contact_constraint_old_kill_end,
 			fixed_data +
 			environment.state.layouts.fixed_data.old_kill_ends_state.offset +
 			rigid_body_circle_contact_constraint_entity_type * environment.state.layouts.fixed_data.old_kill_ends_state.array_stride,
@@ -98,13 +98,13 @@ namespace game_logic::debug
 			sizeof(GLuint)
 		);
 
-		if (rigid_body_circle_contact_constraint_kill_end - rigid_body_circle_contact_constraint_kill_base != 0u)
+		if (rigid_body_circle_contact_constraint_old_kill_end - rigid_body_circle_contact_constraint_old_kill_base != 0u)
 		{
 			std::cout << "rigid_body_circle_contact_constraint_killed_ring_base: " << rigid_body_circle_contact_constraint_killed_ring_base << '\n';
 			std::cout << "rigid_body_circle_contact_constraint_source_kill_items_ring_base: " << rigid_body_circle_contact_constraint_source_kill_items_ring_base << '\n';
-			std::cout << "rigid_body_circle_contact_constraint_killed_old_write_count: " << rigid_body_circle_contact_constraint_killed_old_write_count << '\n';
-			std::cout << "rigid_body_circle_contact_constraint_killed_old_kill_base: " << rigid_body_circle_contact_constraint_killed_old_kill_base << '\n';
-			std::cout << "rigid_body_circle_contact_constraint_killed_old_kill_end: " << rigid_body_circle_contact_constraint_killed_old_kill_end << '\n';
+			std::cout << "rigid_body_circle_contact_constraint_old_write_count: " << rigid_body_circle_contact_constraint_old_write_count << '\n';
+			std::cout << "rigid_body_circle_contact_constraint_old_kill_base: " << rigid_body_circle_contact_constraint_old_kill_base << '\n';
+			std::cout << "rigid_body_circle_contact_constraint_old_kill_end: " << rigid_body_circle_contact_constraint_old_kill_end << '\n';
 			std::cout << "rigid_body_circle_contact_constraint_read_count: " << rigid_body_circle_contact_constraint_read_count << '\n';
 			std::cout << "rigid_body_circle_contact_constraint_write_count: " << rigid_body_circle_contact_constraint_write_count << '\n';
 			std::cout << "rigid_body_circle_contact_constraint_kill_base: " << rigid_body_circle_contact_constraint_kill_base << '\n';
