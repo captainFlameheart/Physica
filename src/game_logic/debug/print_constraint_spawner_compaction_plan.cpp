@@ -33,6 +33,16 @@ namespace game_logic::debug
 			sizeof(GLuint)
 		);
 
+		GLuint rigid_body_circle_contact_constraint_spawner_capacity;
+		std::memcpy
+		(
+			&rigid_body_circle_contact_constraint_spawner_capacity,
+			fixed_data +
+			environment.state.layouts.fixed_data.capacities_state.offset +
+			rigid_body_circle_contact_constraint_spawner_entity_type * environment.state.layouts.fixed_data.capacities_state.array_stride,
+			sizeof(GLuint)
+		);
+
 		GLuint rigid_body_circle_contact_constraint_spawner_old_write_count;
 		std::memcpy
 		(
@@ -98,10 +108,30 @@ namespace game_logic::debug
 			sizeof(GLuint)
 		);
 
-		if (rigid_body_circle_contact_constraint_spawner_old_kill_end - rigid_body_circle_contact_constraint_spawner_old_kill_base != 0u)
+		GLuint rigid_body_circle_contact_constraint_spawner_kill_count{ rigid_body_circle_contact_constraint_spawner_old_kill_end - rigid_body_circle_contact_constraint_spawner_old_kill_base };
+		if (rigid_body_circle_contact_constraint_spawner_kill_count != 0u)
 		{
+			GLuint rigid_body_circle_contact_constraint_killed_ring_size{ rigid_body_circle_contact_constraint_spawner_capacity * environment.state.layouts.uint_data.state.array_stride };
+			GLubyte* rigid_body_circle_contact_constraint_killed_ring = new GLubyte[rigid_body_circle_contact_constraint_killed_ring_size];
+			glGetNamedBufferSubData
+			(
+				environment.state.buffers.GPU_only.buffers[environment.state.buffers.GPU_only.current],
+				environment.state.layouts.uint_data.state.offset + rigid_body_circle_contact_constraint_spawner_killed_ring_base * environment.state.layouts.uint_data.state.array_stride,
+				rigid_body_circle_contact_constraint_killed_ring_size, rigid_body_circle_contact_constraint_killed_ring
+			);
+
+			GLuint rigid_body_circle_contact_constraint_source_kill_items_ring_size{ rigid_body_circle_contact_constraint_spawner_capacity * environment.state.layouts.uint_data.state.array_stride };
+			GLubyte* rigid_body_circle_contact_constraint_source_kill_items_ring = new GLubyte[rigid_body_circle_contact_constraint_source_kill_items_ring_size];
+			glGetNamedBufferSubData
+			(
+				environment.state.buffers.GPU_only.buffers[environment.state.buffers.GPU_only.current],
+				environment.state.layouts.uint_data.state.offset + rigid_body_circle_contact_constraint_spawner_source_kill_items_ring_base * environment.state.layouts.uint_data.state.array_stride,
+				rigid_body_circle_contact_constraint_source_kill_items_ring_size, rigid_body_circle_contact_constraint_source_kill_items_ring
+			);
+
 			std::cout << "rigid_body_circle_contact_constraint_spawner_killed_ring_base: " << rigid_body_circle_contact_constraint_spawner_killed_ring_base << '\n';
 			std::cout << "rigid_body_circle_contact_constraint_spawner_source_kill_items_ring_base: " << rigid_body_circle_contact_constraint_spawner_source_kill_items_ring_base << '\n';
+			std::cout << "rigid_body_circle_contact_constraint_spawner_capacity: " << rigid_body_circle_contact_constraint_spawner_capacity << '\n';
 			std::cout << "rigid_body_circle_contact_constraint_spawner_old_write_count: " << rigid_body_circle_contact_constraint_spawner_old_write_count << '\n';
 			std::cout << "rigid_body_circle_contact_constraint_spawner_old_kill_base: " << rigid_body_circle_contact_constraint_spawner_old_kill_base << '\n';
 			std::cout << "rigid_body_circle_contact_constraint_spawner_old_kill_end: " << rigid_body_circle_contact_constraint_spawner_old_kill_end << '\n';
@@ -109,8 +139,43 @@ namespace game_logic::debug
 			std::cout << "rigid_body_circle_contact_constraint_spawner_write_count: " << rigid_body_circle_contact_constraint_spawner_write_count << '\n';
 			std::cout << "rigid_body_circle_contact_constraint_spawner_kill_base: " << rigid_body_circle_contact_constraint_spawner_kill_base << '\n';
 			std::cout << "rigid_body_circle_contact_constraint_spawner_kill_end: " << rigid_body_circle_contact_constraint_spawner_kill_end << '\n';
+			std::cout << '\n';
+
+			std::cout << "rigid_body_circle_contact_constraint_spawner_killed:" << '\n';
+			for (GLuint kill_item{ 0u }; kill_item < rigid_body_circle_contact_constraint_spawner_kill_count; ++kill_item)
+			{
+				GLuint kill_item_ring_index{ rigid_body_circle_contact_constraint_spawner_old_kill_base + kill_item };
+				kill_item_ring_index -= static_cast<GLuint>(kill_item_ring_index >= rigid_body_circle_contact_constraint_spawner_capacity) * rigid_body_circle_contact_constraint_spawner_capacity;
+
+				GLuint killed;
+				std::memcpy
+				(
+					&killed,
+					rigid_body_circle_contact_constraint_killed_ring +
+					kill_item_ring_index * environment.state.layouts.uint_data.state.array_stride,
+					sizeof(GLuint)
+				);
+				GLuint source_kill_item;
+				std::memcpy
+				(
+					&source_kill_item,
+					rigid_body_circle_contact_constraint_source_kill_items_ring +
+					kill_item_ring_index * environment.state.layouts.uint_data.state.array_stride,
+					sizeof(GLuint)
+				);
+
+				std::cout
+					<< "kill_item: " << kill_item
+					<< ", kill_item_ring_index: " << kill_item_ring_index
+					<< ", killed: " << killed
+					<< ", source_kill_item: " << source_kill_item
+					<< '\n';
+			}
 
 			std::cout << std::endl;
+
+			delete[] rigid_body_circle_contact_constraint_killed_ring;
+			delete[] rigid_body_circle_contact_constraint_source_kill_items_ring;
 		}
 
 		delete[] fixed_data;

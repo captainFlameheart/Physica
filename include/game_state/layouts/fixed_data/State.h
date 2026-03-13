@@ -129,6 +129,13 @@ namespace game_state::layouts::fixed_data
 		GLint offset;
 	};
 
+	struct capacities
+	{
+		GLint offset;
+		GLint array_stride;
+		GLint array_size;
+	};
+
 	struct old_write_counts
 	{
 		GLint offset;
@@ -365,6 +372,11 @@ namespace game_state::layouts::fixed_data
 		{
 			rigid_body_circle_contact_constraint_source_kill_items_ring_base rigid_body_circle_contact_constraint_source_kill_items_ring_base_state;
 			GLint rigid_body_circle_contact_constraint_source_kill_items_ring_base_properties[sizeof(rigid_body_circle_contact_constraint_source_kill_items_ring_base) / sizeof(GLint)];
+		};
+		union
+		{
+			capacities capacities_state;
+			GLint capacities_properties[sizeof(capacities) / sizeof(GLint)];
 		};
 		union
 		{

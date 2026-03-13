@@ -134,6 +134,13 @@ namespace game_logic::initialize::query_layouts
 			program, "Fixed_Data.rigid_body_circle_contact_constraint_source_kill_items_ring_base",
 			environment.state.layouts.fixed_data.rigid_body_circle_contact_constraint_source_kill_items_ring_base_properties
 		);
+		
+		::game_logic::shader_util::query::query_shader_storage_variable_offset_array_stride_array_size
+		(
+			program, "Fixed_Data.capacities",
+			environment.state.layouts.fixed_data.capacities_properties
+		);
+
 		::game_logic::shader_util::query::query_shader_storage_variable_offset_array_stride_array_size
 		(
 			program, "Fixed_Data.old_write_counts",
