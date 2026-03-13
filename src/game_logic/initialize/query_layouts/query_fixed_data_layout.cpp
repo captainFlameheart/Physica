@@ -112,6 +112,51 @@ namespace game_logic::initialize::query_layouts
 			program, "Fixed_Data.point_mass_uniform_force_constraint_capacity",
 			environment.state.layouts.fixed_data.point_mass_uniform_force_constraint_capacity_properties
 		);
+		::game_logic::shader_util::query::query_shader_storage_variable_offset
+		(
+			program, "Fixed_Data.rigid_body_circle_contact_constraint_killed_ring_base",
+			environment.state.layouts.fixed_data.rigid_body_circle_contact_constraint_killed_ring_base_properties
+		);
+		::game_logic::shader_util::query::query_shader_storage_variable_offset
+		(
+			program, "Fixed_Data.rigid_body_circle_contact_constraint_source_kill_items_ring_base",
+			environment.state.layouts.fixed_data.rigid_body_circle_contact_constraint_source_kill_items_ring_base_properties
+		);
+		::game_logic::shader_util::query::query_shader_storage_variable_offset_array_stride_array_size
+		(
+			program, "Fixed_Data.old_write_counts",
+			environment.state.layouts.fixed_data.old_write_counts_properties
+		);
+		::game_logic::shader_util::query::query_shader_storage_variable_offset_array_stride_array_size
+		(
+			program, "Fixed_Data.old_kill_bases",
+			environment.state.layouts.fixed_data.old_kill_bases_properties
+		);
+		::game_logic::shader_util::query::query_shader_storage_variable_offset_array_stride_array_size
+		(
+			program, "Fixed_Data.old_kill_ends",
+			environment.state.layouts.fixed_data.old_kill_ends_properties
+		);
+		::game_logic::shader_util::query::query_shader_storage_variable_offset_array_stride_array_size
+		(
+			program, "Fixed_Data.read_counts",
+			environment.state.layouts.fixed_data.read_counts_properties
+		);
+		::game_logic::shader_util::query::query_shader_storage_variable_offset_array_stride_array_size
+		(
+			program, "Fixed_Data.write_counts",
+			environment.state.layouts.fixed_data.write_counts_properties
+		);
+		::game_logic::shader_util::query::query_shader_storage_variable_offset_array_stride_array_size
+		(
+			program, "Fixed_Data.kill_bases",
+			environment.state.layouts.fixed_data.kill_bases_properties
+		);
+		::game_logic::shader_util::query::query_shader_storage_variable_offset_array_stride_array_size
+		(
+			program, "Fixed_Data.kill_ends",
+			environment.state.layouts.fixed_data.kill_ends_properties
+		);
 		::game_logic::shader_util::query::query_shader_storage_variable_offset_array_stride_array_size
 		(
 			program, "Fixed_Data.dispatch_command_flags",

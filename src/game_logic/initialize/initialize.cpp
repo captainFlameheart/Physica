@@ -8,6 +8,8 @@ namespace game_logic::initialize
 {
 	void initialize(game_environment::Environment& environment)
 	{
+		environment.state.is_debugging = false;
+
 		glCreateVertexArrays(1u, &environment.state.vertex_array);
 		glBindVertexArray(environment.state.vertex_array);
 

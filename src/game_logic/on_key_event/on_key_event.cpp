@@ -56,5 +56,25 @@ namespace game_logic::on_key_event
 			(environment.state.buffers.uniform.key_event_index + 1u) % ::game_state::buffers::uniform::key_event_capacity;
 
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+		if (action == GLFW_PRESS)
+		{
+			switch (key)
+			{
+			case GLFW_KEY_P:
+				environment.state.is_debugging = !environment.state.is_debugging;
+				if (environment.state.is_debugging)
+				{
+					std::cout << "Debug started." << std::endl;
+				}
+				else
+				{
+					std::cout << "Debug ended." << std::endl;
+				}
+				break;
+			default:
+				break;
+			}
+		}
 	}
 }

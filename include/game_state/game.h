@@ -10,6 +10,8 @@ namespace game_state
 {
 	struct Game
 	{
+		bool is_debugging;
+
 		GLuint vertex_array;	// Required for drawing anything at all
 
 		GLuint tick_count;

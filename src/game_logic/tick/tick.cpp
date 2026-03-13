@@ -141,6 +141,11 @@ namespace game_logic::tick
 
 			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
+			if (environment.state.is_debugging)
+			{
+				debug::print_constraint_compaction_plan(environment);
+			}
+
 			for (GLuint perform_constraint_compaction_shader_index{::game_state::shader_indices::tick::process_entities::pre_constraints::perform_compaction::base}; perform_constraint_compaction_shader_index < ::game_state::shader_indices::tick::process_entities::pre_constraints::perform_compaction::end; ++perform_constraint_compaction_shader_index)
 			{
 				glUseProgram(environment.state.shaders[perform_constraint_compaction_shader_index]);

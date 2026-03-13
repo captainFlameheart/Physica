@@ -6,6 +6,7 @@ namespace game_state::buffers::GPU_only
 	{
 		GLuint size;
 		GLuint count;
+		GLuint current;
 		GLuint* buffers;
 	};
 }

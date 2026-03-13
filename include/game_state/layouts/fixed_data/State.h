@@ -109,6 +109,65 @@ namespace game_state::layouts::fixed_data
 		GLint offset;
 	};
 
+	struct rigid_body_circle_contact_constraint_killed_ring_base
+	{
+		GLint offset;
+	};
+
+	struct rigid_body_circle_contact_constraint_source_kill_items_ring_base
+	{
+		GLint offset;
+	};
+
+	struct old_write_counts
+	{
+		GLint offset;
+		GLint array_stride;
+		GLint array_size;
+	};
+
+	struct old_kill_bases
+	{
+		GLint offset;
+		GLint array_stride;
+		GLint array_size;
+	};
+
+	struct old_kill_ends
+	{
+		GLint offset;
+		GLint array_stride;
+		GLint array_size;
+	};
+
+	struct read_counts
+	{
+		GLint offset;
+		GLint array_stride;
+		GLint array_size;
+	};
+
+	struct write_counts
+	{
+		GLint offset;
+		GLint array_stride;
+		GLint array_size;
+	};
+
+	struct kill_bases
+	{
+		GLint offset;
+		GLint array_stride;
+		GLint array_size;
+	};
+
+	struct kill_ends
+	{
+		GLint offset;
+		GLint array_stride;
+		GLint array_size;
+	};
+
 	struct dispatch_command_flags
 	{
 		GLint offset;
@@ -273,6 +332,51 @@ namespace game_state::layouts::fixed_data
 		{
 			point_mass_uniform_force_constraint_capacity point_mass_uniform_force_constraint_capacity_state;
 			GLint point_mass_uniform_force_constraint_capacity_properties[sizeof(point_mass_uniform_force_constraint_capacity) / sizeof(GLint)];
+		};
+		union
+		{
+			rigid_body_circle_contact_constraint_killed_ring_base rigid_body_circle_contact_constraint_killed_ring_base_state;
+			GLint rigid_body_circle_contact_constraint_killed_ring_base_properties[sizeof(rigid_body_circle_contact_constraint_killed_ring_base) / sizeof(GLint)];
+		};
+		union
+		{
+			rigid_body_circle_contact_constraint_source_kill_items_ring_base rigid_body_circle_contact_constraint_source_kill_items_ring_base_state;
+			GLint rigid_body_circle_contact_constraint_source_kill_items_ring_base_properties[sizeof(rigid_body_circle_contact_constraint_source_kill_items_ring_base) / sizeof(GLint)];
+		};
+		union
+		{
+			old_write_counts old_write_counts_state;
+			GLint old_write_counts_properties[sizeof(old_write_counts) / sizeof(GLint)];
+		};
+		union
+		{
+			old_kill_bases old_kill_bases_state;
+			GLint old_kill_bases_properties[sizeof(old_kill_bases) / sizeof(GLint)];
+		};
+		union
+		{
+			old_kill_ends old_kill_ends_state;
+			GLint old_kill_ends_properties[sizeof(old_kill_ends) / sizeof(GLint)];
+		};
+		union
+		{
+			read_counts read_counts_state;
+			GLint read_counts_properties[sizeof(read_counts) / sizeof(GLint)];
+		};
+		union
+		{
+			write_counts write_counts_state;
+			GLint write_counts_properties[sizeof(write_counts) / sizeof(GLint)];
+		};
+		union
+		{
+			kill_bases kill_bases_state;
+			GLint kill_bases_properties[sizeof(kill_bases) / sizeof(GLint)];
+		};
+		union
+		{
+			kill_ends kill_ends_state;
+			GLint kill_ends_properties[sizeof(kill_ends) / sizeof(GLint)];
 		};
 		union
 		{
