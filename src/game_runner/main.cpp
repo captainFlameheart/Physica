@@ -69,17 +69,6 @@ namespace game_runner
 		glDebugMessageCallback(gl_debug_output, nullptr);
 		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
 #endif
-		GLint extension_count;
-		glGetIntegerv(GL_NUM_EXTENSIONS, &extension_count);
-		std::cout << extension_count << std::endl;
-		for (GLuint extension_index{ 0u }; extension_index < extension_count; ++extension_index)
-		{
-			GLubyte const* extension{ glGetStringi(GL_EXTENSIONS, extension_index) };
-			std::cout << (char const*) extension << std::endl;
-		}
-		/*const char* ext = (const char*)glGetString(GL_EXTENSIONS);
-		std::cout << ext << std::endl;*/
-
 		run_game_loop(window);
 
 		glfwDestroyWindow(window);

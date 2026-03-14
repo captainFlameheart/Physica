@@ -16,7 +16,8 @@ namespace game_logic::draw
 		};
 		glDispatchCompute(update_draw_count_work_group_count, 1u, 1u);
 
-		glMemoryBarrier(GL_COMMAND_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);	// Assuming we don't need to read the vertex counts
+		// IMPORTANT TODO: We might not need GL_SHADER_STORAGE_BARRIER_BIT!
+		glMemoryBarrier(GL_COMMAND_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
 
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
@@ -27,8 +28,8 @@ namespace game_logic::draw
 			GLuint index_in_draw_entities_shader_array{ draw_entities_shader_index - ::game_state::shader_indices::draw::entities::base };
 			GLintptr command_offset
 			{
-				environment.state.layouts.fixed_data.draw_arrays_commands_count_state.offset +
-				index_in_draw_entities_shader_array * environment.state.layouts.fixed_data.draw_arrays_commands_count_state.top_level_array_stride
+				environment.state.layouts.commands.draw_arrays_commands_count_state.offset +
+				index_in_draw_entities_shader_array * environment.state.layouts.commands.draw_arrays_commands_count_state.top_level_array_stride
 			};
 			glDrawArraysIndirect
 			(

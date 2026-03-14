@@ -1,4 +1,5 @@
 #pragma once
+#include "commands/include.h"
 #include "fixed_data/include.h"
 #include "float_data/include.h"
 #include "uint_data/include.h"
@@ -18,6 +19,9 @@ namespace game_state::layouts
 		vec4_data::Aliased_State vec4_data;
 		vec2_data::Aliased_State vec2_data;
 		float_data::Aliased_State float_data;
+
+		commands::State commands;
+
 		key_event::State key_event;
 	};
 }

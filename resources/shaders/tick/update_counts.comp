@@ -16,6 +16,6 @@ void main()
 
 	// TODO: Enforce power of 2 local sizes to replace division with bitwise shift
 	// TODO: Precompute subtraction by 1u
-	fixed_data.dispatch_commands[command_index].work_group_count_x = 
+	commands.dispatch_commands[command_index].work_group_count_x = 
 		(count + command_blueprint.y - 1u) / command_blueprint.y;
 }

@@ -34,10 +34,10 @@
 	fixed_data.kill_bases[entity_type] = kill_base;\
 	fixed_data.kill_ends[entity_type] = kill_end;\
 	\
-	fixed_data.dispatch_commands[plan_compaction_program_index].work_group_count_x =\
+	commands.dispatch_commands[plan_compaction_program_index].work_group_count_x =\
 		(kill_count + local_sizes_flags.x - 1u) / local_sizes_flags.x;\
-	fixed_data.dispatch_commands[perform_compaction_program_index].work_group_count_x =\
+	commands.dispatch_commands[perform_compaction_program_index].work_group_count_x =\
 		(kill_count + local_sizes_flags.y - 1u) / local_sizes_flags.y;\
-	fixed_data.dispatch_commands[tick_entities_program_index].work_group_count_x =\
+	commands.dispatch_commands[tick_entities_program_index].work_group_count_x =\
 		(read_count + local_sizes_flags.z - 1u) / local_sizes_flags.z;\
 }

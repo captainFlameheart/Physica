@@ -8,5 +8,6 @@ namespace game_logic::free::buffers::GPU_only
 	{
 		glDeleteBuffers(environment.state.buffers.GPU_only.count, environment.state.buffers.GPU_only.buffers); 
 		delete[] environment.state.buffers.GPU_only.buffers;
+		glDeleteBuffers(1u, &environment.state.buffers.GPU_only.command_buffer);
 	}
 }

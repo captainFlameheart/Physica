@@ -59,7 +59,6 @@ namespace game_state::entity_type_indices
 		enum struct Indices : GLuint
 		{
 			point_mass_distance_constraint = base,
-			point_mass_uniform_force_constraint,
 			rigid_body_circle_contact_constraint,
 
 			end

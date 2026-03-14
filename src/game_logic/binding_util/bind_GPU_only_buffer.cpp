@@ -9,18 +9,23 @@ namespace game_logic::binding_util
 		environment.state.buffers.GPU_only.current = index;
 		GLuint buffer{ environment.state.buffers.GPU_only.buffers[index] };
 		
-		GLuint buffers[::game_state::bindings::shader_storage::count];
-		for (GLuint i{ 0u }; i < ::game_state::bindings::shader_storage::count; ++i)
+		GLuint buffers[::game_state::bindings::shader_storage::commands];
+		for (GLuint i{ 0u }; i < ::game_state::bindings::shader_storage::commands; ++i)
 		{
 			buffers[i] = buffer;
 		}
+		//buffers[::game_state::bindings::shader_storage::bindings::commands] = environment.state.buffers.GPU_only.command_buffer;
 		glBindBuffersBase
 		(
-			GL_SHADER_STORAGE_BUFFER, ::game_state::bindings::shader_storage::fixed_data, ::game_state::bindings::shader_storage::count, buffers
+			GL_SHADER_STORAGE_BUFFER,
+			::game_state::bindings::shader_storage::fixed_data,
+			::game_state::bindings::shader_storage::commands,
+			buffers
 		);
+		
 		glBindBufferBase(GL_UNIFORM_BUFFER, ::game_state::bindings::uniform::fixed_data, buffer);
 		
-		glBindBuffer(GL_DISPATCH_INDIRECT_BUFFER, buffer);
-		glBindBuffer(GL_DRAW_INDIRECT_BUFFER, buffer);
+		//glBindBuffer(GL_DISPATCH_INDIRECT_BUFFER, buffer);
+		//glBindBuffer(GL_DRAW_INDIRECT_BUFFER, buffer);
 	}
 }

@@ -8,5 +8,8 @@ namespace game_state::buffers::GPU_only
 		GLuint count;
 		GLuint current;
 		GLuint* buffers;
+
+		GLuint command_buffer_size;
+		GLuint command_buffer;
 	};
 }

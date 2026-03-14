@@ -228,20 +228,20 @@ void main()
 	{
 		fixed_data.dispatch_command_flags[dispatch_program_index] = dispatch_command_enabled_mask;
 
-		fixed_data.dispatch_commands[dispatch_program_index].work_group_count_x = 0u;
-		fixed_data.dispatch_commands[dispatch_program_index].work_group_count_y = 1u;
-		fixed_data.dispatch_commands[dispatch_program_index].work_group_count_z = 1u;
-		fixed_data.dispatch_commands[dispatch_program_index].pad = 0u;
+		commands.dispatch_commands[dispatch_program_index].work_group_count_x = 0u;
+		commands.dispatch_commands[dispatch_program_index].work_group_count_y = 1u;
+		commands.dispatch_commands[dispatch_program_index].work_group_count_z = 1u;
+		commands.dispatch_commands[dispatch_program_index].pad = 0u;
 	}
 
 	for (uint draw_arrays_program_index = 0u; draw_arrays_program_index < draw_arrays_program_count; ++draw_arrays_program_index)
 	{
 		fixed_data.draw_arrays_command_flags[draw_arrays_program_index] = draw_arrays_command_enabled_mask;
 
-		fixed_data.draw_arrays_commands[draw_arrays_program_index].count = 0u;
-		fixed_data.draw_arrays_commands[draw_arrays_program_index].instance_count = 1u;
-		fixed_data.draw_arrays_commands[draw_arrays_program_index].first = 0u;
-		fixed_data.draw_arrays_commands[draw_arrays_program_index].base_instance = 0u;
+		commands.draw_arrays_commands[draw_arrays_program_index].count = 100u;
+		commands.draw_arrays_commands[draw_arrays_program_index].instance_count = 1u;
+		commands.draw_arrays_commands[draw_arrays_program_index].first = 0u;
+		commands.draw_arrays_commands[draw_arrays_program_index].base_instance = 0u;
 	}
 
 	// TODO: Initialize key state.

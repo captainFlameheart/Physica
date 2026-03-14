@@ -15,8 +15,25 @@ namespace game_logic::initialize::buffers::GPU_only
 		{
 			glNamedBufferStorage
 			(
-				environment.state.buffers.GPU_only.buffers[buffer_index], environment.state.buffers.GPU_only.size, nullptr, 0u
+				environment.state.buffers.GPU_only.buffers[buffer_index],
+				environment.state.buffers.GPU_only.size,
+				nullptr,
+				0u
 			);
 		}
+
+		environment.state.buffers.GPU_only.command_buffer_size = environment.state.layouts.commands.block_state.buffer_data_size;
+		glCreateBuffers(1u, &environment.state.buffers.GPU_only.command_buffer);
+		glNamedBufferStorage
+		(
+			environment.state.buffers.GPU_only.command_buffer,
+			environment.state.buffers.GPU_only.command_buffer_size,
+			nullptr,
+			0u
+		);
+
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, ::game_state::bindings::shader_storage::commands, environment.state.buffers.GPU_only.command_buffer);
+		glBindBuffer(GL_DISPATCH_INDIRECT_BUFFER, environment.state.buffers.GPU_only.command_buffer);
+		glBindBuffer(GL_DRAW_INDIRECT_BUFFER, environment.state.buffers.GPU_only.command_buffer);
 	}
 }

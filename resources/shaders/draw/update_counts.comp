@@ -14,5 +14,5 @@ void main()
 	uint flag = fixed_data.draw_arrays_command_flags[command_index];
 	count *= (flag >> draw_arrays_command_enabled_shift) & 1u;
 
-	fixed_data.draw_arrays_commands[command_index].count = count * command_blueprint.y;
+	commands.draw_arrays_commands[command_index].count = count * command_blueprint.y;
 }

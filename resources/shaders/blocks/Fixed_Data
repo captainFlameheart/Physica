@@ -60,7 +60,7 @@ const uint dispatch_command_enabled_mask = 1u << dispatch_command_enabled_shift;
 const uint draw_arrays_command_enabled_shift = 0u;
 const uint draw_arrays_command_enabled_mask = 1u << draw_arrays_command_enabled_shift;
 
-struct Dispatch_Command
+struct PLACEHOLDER_Dispatch_Command
 {
 	uint work_group_count_x;
 	uint work_group_count_y;
@@ -68,7 +68,7 @@ struct Dispatch_Command
 	uint pad;
 };
 
-struct Draw_Arrays_Command {
+struct PLACEHOLDER_Draw_Arrays_Command {
     uint count;
     uint instance_count;
     uint first;
@@ -164,10 +164,6 @@ FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 	uint rigid_body_circle_contact_constraint_killed_ring_base;
 	uint rigid_body_circle_contact_constraint_source_kill_items_ring_base;
 
-	/*uint point_mass_uniform_force_constraint_indices_turns_base;
-	uint point_mass_uniform_force_constraint_target_and_applied_accelerations_base;
-	uint point_mass_uniform_force_constraint_deltas_base;*/
-
 	uint capacities[entity_type_count];
 
 	uint old_write_counts[entity_type_count];
@@ -180,12 +176,11 @@ FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 	uint kill_bases[entity_type_count];
 	uint kill_ends[entity_type_count];
 
-	// TODO: Move commands into buffer that uses std430 to guarantee correct layout for indirect calls
 	uint dispatch_command_flags[dispatch_program_count];	// TODO: Remove
-	Dispatch_Command dispatch_commands[dispatch_program_count];
+	PLACEHOLDER_Dispatch_Command dispatch_commands[dispatch_program_count];
 	
 	uint draw_arrays_command_flags[draw_arrays_program_count];
-	Draw_Arrays_Command draw_arrays_commands[draw_arrays_program_count];
+	PLACEHOLDER_Draw_Arrays_Command draw_arrays_commands[draw_arrays_program_count];
 
 	uint key_state[(key_count + uint_bits - 1u) >> uint_bits_shift];
 } fixed_data;

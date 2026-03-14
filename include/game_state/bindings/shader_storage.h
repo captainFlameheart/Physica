@@ -12,6 +12,8 @@ namespace game_state::bindings::shader_storage
 		vec2_data,
 		float_data,
 
+		commands,
+
 		count
 	};
 	/*constexpr GLuint fixed_data{0u};

@@ -51,8 +51,6 @@ namespace game_state::shader_to_entity_type
 
 		shader_to_entity_type[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraints::Indices::point_mass_distance_constraints) - base] =
 			::game_state::entity_type_indices::constraints::Indices::point_mass_distance_constraint;
-		shader_to_entity_type[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraints::Indices::point_mass_uniform_force_constraints) - base] =
-			::game_state::entity_type_indices::constraints::Indices::point_mass_uniform_force_constraint;
 		shader_to_entity_type[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraints::Indices::rigid_body_circle_contact_constraints) - base] =
 			::game_state::entity_type_indices::constraints::Indices::rigid_body_circle_contact_constraint;
 
@@ -86,8 +84,6 @@ namespace game_state::shader_to_entity_type
 
 		shader_to_entity_type[static_cast<GLuint>(::game_state::shader_indices::draw::entities::constraints::Indices::point_mass_distance_constraints) - base] =
 			static_cast<GLuint>(::game_state::entity_type_indices::constraints::Indices::point_mass_distance_constraint);
-		shader_to_entity_type[static_cast<GLuint>(::game_state::shader_indices::draw::entities::constraints::Indices::point_mass_uniform_force_constraints) - base] =
-			static_cast<GLuint>(::game_state::entity_type_indices::constraints::Indices::point_mass_uniform_force_constraint);
 
 		return shader_to_entity_type;
 	}

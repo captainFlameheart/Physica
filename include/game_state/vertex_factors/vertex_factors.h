@@ -9,6 +9,7 @@ namespace game_state::vertex_factors
 	{
 		std::array<GLuint, ::game_state::shader_indices::draw::entities::count> vertex_factors{};
 		constexpr GLuint base{ ::game_state::shader_indices::draw::entities::base };
+		
 		vertex_factors[static_cast<GLuint>(::game_state::shader_indices::draw::entities::bodies::Indices::point_masses) - base] = 6u;
 		vertex_factors[static_cast<GLuint>(::game_state::shader_indices::draw::entities::bodies::Indices::point_mass_velocities) - base] = 2u;
 		vertex_factors[static_cast<GLuint>(::game_state::shader_indices::draw::entities::bodies::Indices::point_mass_forces) - base] = 2u;
@@ -19,7 +20,7 @@ namespace game_state::vertex_factors
 		vertex_factors[static_cast<GLuint>(::game_state::shader_indices::draw::entities::constraint_spawners::Indices::rigid_body_circle_contact_constraint_spawners) - base] = 6u;
 
 		vertex_factors[static_cast<GLuint>(::game_state::shader_indices::draw::entities::constraints::Indices::point_mass_distance_constraints) - base] = 6u;
-		vertex_factors[static_cast<GLuint>(::game_state::shader_indices::draw::entities::constraints::Indices::point_mass_uniform_force_constraints) - base] = 6u;
+
 		return vertex_factors;
 	}
 

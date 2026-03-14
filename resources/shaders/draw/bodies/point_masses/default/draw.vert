@@ -43,4 +43,17 @@ void main()
 	camera_offset.xyz *= length_unit_in_meters;
 	camera_offset.xy += offset;
 	gl_Position = camera_offset_to_clip_coordinates * camera_offset;
+
+	/*if (gl_VertexID == 0u)
+	{
+		gl_Position = vec4(1.0, 1.0, 0.0, 1.0);
+	}
+	if (gl_VertexID == 1u)
+	{
+		gl_Position = vec4(-1.0, 1.0, 0.0, 1.0);
+	}
+	if (gl_VertexID == 2u)
+	{
+		gl_Position = vec4(-1.0, -1.0, 0.0, 1.0);
+	}*/
 }
