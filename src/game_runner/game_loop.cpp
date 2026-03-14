@@ -106,7 +106,7 @@ namespace game_runner
 			glfwPollEvents();
 		}
 #else
-		constexpr GLuint max_ticks_per_frame{ 1u };	// TODO: Increase.
+		constexpr GLuint max_ticks_per_frame{ 40u };	// TODO: Increase.
 		while (!glfwWindowShouldClose(window))
 		{
 			game_environment.ticks_this_frame = 0u;

@@ -21,9 +21,10 @@ const float offset_index_to_orthogonal_direction_sign[6u] = float[6u]
 );
 
 #define CULL_DEAD 0
+#define CULL_ALIVE 1
 
-#if CULL_DEAD == 1
-	out float gl_CullDistance[1];
+#if CULL_DEAD == 1 || CULL_ALIVE == 1
+	out float gl_CullDistance[1u];
 #endif
 
 out vec4 color;
@@ -111,5 +112,8 @@ void main()
 
 	#if CULL_DEAD == 1
 		gl_CullDistance[0u] = -float((indices_flags.z >> rigid_body_circle_contact_constraint_spawner_is_dead_shift) & 1u);
+	#endif
+	#if CULL_ALIVE == 1
+		gl_CullDistance[0u] = -float((indices_flags.z >> rigid_body_circle_contact_constraint_spawner_is_dead_shift) ^ 1u);
 	#endif
 }
