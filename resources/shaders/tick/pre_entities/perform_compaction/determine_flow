@@ -13,27 +13,46 @@
 	\
 	uint write_count = fixed_data.old_write_counts[entity_type];\
 	\
+	uint killed_ring_base = fixed_data.killed_ring_base;\
+	uint killed_index = killed_ring_base + kill_item_ring_index;\
+	killed = uint_data.data[killed_index];\
+	\
 	uint source_kill_items_ring_base = fixed_data.source_kill_items_ring_base;\
 	\
-	source = kill_item;\
+	/*source = kill_item;*/\
+	uint next_source = kill_item;\
 	\
 	uint default_source_kill_items_index = source_kill_items_ring_base + kill_item_ring_index;\
-	uint source_kill_item = uint_data.data[default_source_kill_items_index];\
+	/*uint source_kill_item = uint_data.data[default_source_kill_items_index];*/\
 	\
-	while (source_kill_item != null_uint)\
+	do\
 	{\
-		source = source_kill_item;\
+		source = next_source;\
+		\
+		uint true_source = write_count - 1u - source;\
+		if (true_source <= killed)\
+		{\
+			return;\
+		}\
 		\
 		uint source_ring_index = kill_base + source;\
 		source_ring_index -= uint(source_ring_index >= capacity) * capacity;\
-		source_kill_item = uint_data.data[source_kill_items_ring_base + source_ring_index];\
-	}\
+		next_source = uint_data.data[source_kill_items_ring_base + source_ring_index];\
+	} while (next_source != null_uint);\
+	/*while (source_kill_item != null_uint)*/\
+	/*{*/\
+		/*source = source_kill_item;*/\
+		\
+		/*uint source_ring_index = kill_base + source;*/\
+		/*source_ring_index -= uint(source_ring_index >= capacity) * capacity;*/\
+		/*source_kill_item = uint_data.data[source_kill_items_ring_base + source_ring_index];*/\
+	/*}*/\
 	\
 	source = write_count - 1u - source;\
 	\
 	uint_data.data[default_source_kill_items_index] = null_uint;\
 	\
-	uint killed_ring_base = fixed_data.killed_ring_base;\
-	uint killed_index = killed_ring_base + kill_item_ring_index;\
-	killed = uint_data.data[killed_index];\
+	/*uint killed_ring_base = fixed_data.killed_ring_base;*/\
+	/*uint killed_index = killed_ring_base + kill_item_ring_index;*/\
+	/*killed = uint_data.data[killed_index];*/\
 }
