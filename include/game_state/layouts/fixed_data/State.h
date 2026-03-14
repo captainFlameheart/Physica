@@ -3,6 +3,11 @@
 
 namespace game_state::layouts::fixed_data
 {
+	struct temp
+	{
+		GLint offset;
+	};
+
 	struct camera_position
 	{
 		GLint offset;
@@ -245,6 +250,11 @@ namespace game_state::layouts::fixed_data
 
 	struct State
 	{
+		union
+		{
+			temp temp_state;
+			GLint temp_properties[sizeof(temp) / sizeof(GLint)];
+		};
 		union
 		{
 			camera_position camera_position_state;

@@ -108,6 +108,68 @@ namespace game_logic::debug
 			sizeof(GLuint)
 		);
 
+		GLuint temp;
+		std::memcpy
+		(
+			&temp,
+			fixed_data + environment.state.layouts.fixed_data.temp_state.offset,
+			sizeof(GLuint)
+		);
+
+		GLuint rigid_body_circle_contact_constraint_spawner_work_group_count_x;
+		constexpr GLuint index_in_tick_entities_shader_array{ ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::plan_compaction::base - ::game_state::shader_indices::tick::process_entities::base };
+		std::memcpy
+		(
+			&rigid_body_circle_contact_constraint_spawner_work_group_count_x,
+			fixed_data + 736u,//fixed_data + environment.state.layouts.fixed_data.dispatch_commands_work_group_count_x_state.offset +
+			//index_in_tick_entities_shader_array * environment.state.layouts.fixed_data.dispatch_commands_work_group_count_x_state.top_level_array_stride,
+			sizeof(GLuint)
+		);
+
+		for (GLuint i{ 0u }; i < ::game_state::shader_indices::tick::process_entities::count; ++i)
+		{
+			GLuint index_in_tick_entities_shader_array{ i };
+
+			GLuint work_group_count_x;
+			GLuint work_group_count_x_address{
+				environment.state.layouts.fixed_data.dispatch_commands_work_group_count_x_state.offset +
+				index_in_tick_entities_shader_array * environment.state.layouts.fixed_data.dispatch_commands_work_group_count_x_state.top_level_array_stride
+			};
+			std::memcpy
+			(
+				&work_group_count_x,
+				fixed_data + work_group_count_x_address,
+				sizeof(GLuint)
+			);
+
+			GLuint work_group_count_y;
+			GLuint work_group_count_y_address{
+				environment.state.layouts.fixed_data.dispatch_commands_work_group_count_y_state.offset +
+				index_in_tick_entities_shader_array * environment.state.layouts.fixed_data.dispatch_commands_work_group_count_x_state.top_level_array_stride
+			};
+			std::memcpy
+			(
+				&work_group_count_y,
+				fixed_data + work_group_count_y_address,
+				sizeof(GLuint)
+			);
+
+			GLuint work_group_count_z;
+			GLuint work_group_count_z_address{
+				environment.state.layouts.fixed_data.dispatch_commands_work_group_count_z_state.offset +
+				index_in_tick_entities_shader_array * environment.state.layouts.fixed_data.dispatch_commands_work_group_count_x_state.top_level_array_stride
+			};
+			std::memcpy
+			(
+				&work_group_count_z,
+				fixed_data + work_group_count_z_address,
+				sizeof(GLuint)
+			);
+
+			std::cout << work_group_count_x_address << ": (" << work_group_count_x << ", " << work_group_count_y << ", " << work_group_count_z << ")\n";
+		}
+		std::cout << '\n';
+
 		GLuint rigid_body_circle_contact_constraint_spawner_kill_count{ rigid_body_circle_contact_constraint_spawner_old_kill_end - rigid_body_circle_contact_constraint_spawner_old_kill_base };
 		if (rigid_body_circle_contact_constraint_spawner_kill_count != 0u)
 		{
@@ -129,6 +191,8 @@ namespace game_logic::debug
 				rigid_body_circle_contact_constraint_source_kill_items_ring_size, rigid_body_circle_contact_constraint_source_kill_items_ring
 			);
 
+			std::cout << "temp: " << temp << '\n';
+			std::cout << "rigid_body_circle_contact_constraint_spawner_work_group_count_x: " << rigid_body_circle_contact_constraint_spawner_work_group_count_x << '\n';
 			std::cout << "rigid_body_circle_contact_constraint_spawner_killed_ring_base: " << rigid_body_circle_contact_constraint_spawner_killed_ring_base << '\n';
 			std::cout << "rigid_body_circle_contact_constraint_spawner_source_kill_items_ring_base: " << rigid_body_circle_contact_constraint_spawner_source_kill_items_ring_base << '\n';
 			std::cout << "rigid_body_circle_contact_constraint_spawner_capacity: " << rigid_body_circle_contact_constraint_spawner_capacity << '\n';
@@ -163,6 +227,12 @@ namespace game_logic::debug
 					kill_item_ring_index * environment.state.layouts.uint_data.state.array_stride,
 					sizeof(GLuint)
 				);
+
+				GLuint destination_kill_item_ring_index = rigid_body_circle_contact_constraint_spawner_old_write_count - 1u - killed;
+				destination_kill_item_ring_index += rigid_body_circle_contact_constraint_spawner_old_kill_base;
+				destination_kill_item_ring_index -= static_cast<GLuint>(destination_kill_item_ring_index >= rigid_body_circle_contact_constraint_spawner_capacity) * rigid_body_circle_contact_constraint_spawner_capacity;
+				std::cout << rigid_body_circle_contact_constraint_spawner_old_write_count - rigid_body_circle_contact_constraint_spawner_kill_count << std::endl;
+				std::cout << destination_kill_item_ring_index << std::endl;
 
 				std::cout
 					<< "kill_item: " << kill_item

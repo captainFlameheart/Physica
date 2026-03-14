@@ -1,6 +1,10 @@
 layout(local_size_x = 1u) in;
 void main()
 {
+	fixed_data.temp_dispatch_command = uvec4(1u, 1u, 1u, 0u);
+
+	fixed_data.temp = uint(-1);
+
 	const uint distance = uint(int(0.5 * meter_in_length_units));
 	uint rows = 10u;
 	uint columns = 10u;

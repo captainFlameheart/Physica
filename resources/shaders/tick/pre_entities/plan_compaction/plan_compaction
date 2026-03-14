@@ -4,9 +4,17 @@
 	uint kill_base = fixed_data.old_kill_bases[entity_type];\
 	uint kill_end = fixed_data.old_kill_ends[entity_type];\
 	uint kill_item_ring_index = kill_base + kill_item;\
+	if (gl_GlobalInvocationID.x == 0u)\
+	{\
+		fixed_data.temp = kill_end;\
+	}\
 	if (kill_item_ring_index >= kill_end)\
 	{\
 		return;\
+	}\
+	if (gl_GlobalInvocationID.x == 0u)\
+	{\
+		fixed_data.temp = 5u;\
 	}\
 	uint capacity = fixed_data.capacities[entity_type];\
 	kill_item_ring_index -= uint(kill_item_ring_index >= capacity) * capacity;\

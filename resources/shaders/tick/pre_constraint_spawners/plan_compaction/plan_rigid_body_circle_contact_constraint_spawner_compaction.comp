@@ -1,6 +1,10 @@
 layout(local_size_x = plan_rigid_body_circle_contact_constraint_spawner_compaction_local_size) in;
 void main()
 {
+	if (gl_GlobalInvocationID.x == 0u)
+	{
+		fixed_data.temp = 3u;
+	}
 	PRE_TICK_ENTITIES_PLAN_COMPACTION
 	(
 		rigid_body_circle_contact_constraint_spawner_type_index,

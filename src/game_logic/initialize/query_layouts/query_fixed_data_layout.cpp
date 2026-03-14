@@ -9,6 +9,12 @@ namespace game_logic::initialize::query_layouts
 	{
 		::game_logic::shader_util::query::query_shader_storage_variable_offset
 		(
+			program, "Fixed_Data.temp",
+			environment.state.layouts.fixed_data.temp_properties
+		);
+
+		::game_logic::shader_util::query::query_shader_storage_variable_offset
+		(
 			program, "Fixed_Data.camera_position",
 			environment.state.layouts.fixed_data.camera_position_properties
 		);
