@@ -1,23 +1,27 @@
-#define PRE_TICK_ENTITIES_PERFORM_COMPACTION_DETERMINE_FLOW(entity_type, killed_ring_base, source_kill_items_ring_base, killed, source)\
+#define PRE_TICK_ENTITIES_PERFORM_COMPACTION_DETERMINE_FLOW(entity_type, killed, source)\
 {\
 	uint kill_item = gl_GlobalInvocationID.x;\
-	uint kill_base = fixed_data.old_kill_bases[entity_type];\
-	uint kill_end = fixed_data.old_kill_ends[entity_type];\
-	uint kill_item_ring_index = kill_base + kill_item;\
-	if (kill_item_ring_index >= kill_end)\
+	uint kill_count = fixed_data.old_kill_count[entity_type];
+	/*uint kill_base = fixed_data.old_kill_bases[entity_type];*/\
+	/*uint kill_end = fixed_data.old_kill_ends[entity_type];*/\
+	/*uint kill_item_ring_index = kill_base + kill_item;*/\
+	/*if (kill_item_ring_index >= kill_end)*/\
+	if (kill_item >= kill_count)\
 	{\
 		return;\
 	}\
-	uint capacity = fixed_data.capacities[entity_type];\
-	kill_item_ring_index -= uint(kill_item_ring_index >= capacity) * capacity;\
+	/*uint capacity = fixed_data.capacities[entity_type];*/\
+	/*kill_item_ring_index -= uint(kill_item_ring_index >= capacity) * capacity;*/\
 	\
 	uint write_count = fixed_data.old_write_counts[entity_type];\
 	\
-	uint killed_ring_base = fixed_data.killed_ring_base;\
-	uint killed_index = killed_ring_base + kill_item_ring_index;\
-	killed = uint_data.data[killed_index];\
+	uint killed_base = fixed_data.old_killed_bases[entity_type];\
+	uint death_index_base = fixed_data.old_death_index_bases[entity_type];\
+	/*uint killed_ring_base = fixed_data.killed_ring_base;*/\
+	/*uint killed_index = killed_ring_base + kill_item_ring_index;*/\
+	/*killed = uint_data.data[killed_index];*/\
 	\
-	uint source_kill_items_ring_base = fixed_data.source_kill_items_ring_base;\
+	/*uint source_kill_items_ring_base = fixed_data.source_kill_items_ring_base;*/\
 	\
 	/*source = kill_item;*/\
 	uint next_source = kill_item;\
@@ -27,17 +31,18 @@
 	\
 	do\
 	{\
-		source = next_source;\
+		source = write_count - 1u - next_source;\
 		\
-		uint true_source = write_count - 1u - source;\
-		if (true_source <= killed)\
+		/*uint true_source = write_count - 1u - source;*/\
+		if (source <= killed)\
 		{\
 			return;\
 		}\
 		\
-		uint source_ring_index = kill_base + source;\
-		source_ring_index -= uint(source_ring_index >= capacity) * capacity;\
-		next_source = uint_data.data[source_kill_items_ring_base + source_ring_index];\
+		next_source = uint_data.data[death_index_base + source];\
+		/*uint source_ring_index = kill_base + source;*/\
+		/*source_ring_index -= uint(source_ring_index >= capacity) * capacity;*/\
+		/*next_source = uint_data.data[source_kill_items_ring_base + source_ring_index];*/\
 	} while (next_source != null_uint);\
 	/*while (source_kill_item != null_uint)*/\
 	/*{*/\
@@ -48,9 +53,9 @@
 		/*source_kill_item = uint_data.data[source_kill_items_ring_base + source_ring_index];*/\
 	/*}*/\
 	\
-	source = write_count - 1u - source;\
+	/*source = write_count - 1u - source;*/\
 	\
-	uint_data.data[default_source_kill_items_index] = null_uint;\
+	/*uint_data.data[default_source_kill_items_index] = null_uint;*/\
 	\
 	/*uint killed_ring_base = fixed_data.killed_ring_base;*/\
 	/*uint killed_index = killed_ring_base + kill_item_ring_index;*/\

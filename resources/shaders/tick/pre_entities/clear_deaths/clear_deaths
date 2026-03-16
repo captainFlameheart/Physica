@@ -1,0 +1,15 @@
+#define PRE_TICK_ENTITIES_CLEAR_OLD_KILLS(entity_type)\
+{\
+	uint kill_item = gl_GlobalInvocationID.x;\
+	uint kill_count = fixed_data.old_old_kill_counts[entity_type];\
+	if (kill_item >= kill_count)\
+	{\
+		return;\
+	}\
+	\
+	uint killed_base = fixed_data.killed_bases[entity_type];\
+	uint death_index_base = fixed_data.death_index_bases[entity_type];\
+	\
+	uint killed = uint_data.data[killed_base + kill_item];\
+	uint_data.data[death_index_base + killed] = null_uint;\
+}\

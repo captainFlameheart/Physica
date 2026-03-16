@@ -1,0 +1,5 @@
+layout(local_size_x = clear_rigid_body_circle_contact_constraint_spawner_deaths_local_size) in;
+void main()
+{
+	PRE_TICK_ENTITIES_CLEAR_DEATHS(rigid_body_circle_contact_constraint_spawner_type_index);
+}
