@@ -60,21 +60,6 @@ const uint dispatch_command_enabled_mask = 1u << dispatch_command_enabled_shift;
 const uint draw_arrays_command_enabled_shift = 0u;
 const uint draw_arrays_command_enabled_mask = 1u << draw_arrays_command_enabled_shift;
 
-struct PLACEHOLDER_Dispatch_Command
-{
-	uint work_group_count_x;
-	uint work_group_count_y;
-	uint work_group_count_z;
-	uint pad;
-};
-
-struct PLACEHOLDER_Draw_Arrays_Command {
-    uint count;
-    uint instance_count;
-    uint first;
-    uint base_instance;
-};
-
 uint align_up(uint address)
 {
 	return (address + align_up_addition) & align_up_mask;
@@ -150,13 +135,6 @@ FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 
 	uint rigid_body_circle_contact_constraint_spawner_indices_flags_base;
 
-	//uint rigid_body_circle_contact_constraint_spawner_death_index_base;
-	//uint old_killed_rigid_body_circle_contact_constraint_spawners_base;
-	//uint killed_rigid_body_circle_contact_constraint_spawners_base;
-
-	//uint rigid_body_circle_contact_constraint_spawner_killed_ring_base;
-	//uint rigid_body_circle_contact_constraint_spawner_source_kill_items_ring_base;
-
 	uint point_mass_distance_constraint_flags_target_distance_base;
 	uint point_mass_distance_constraint_indices_turns_base;
 	uint point_mass_distance_constraint_delta_position_velocity_base;
@@ -164,9 +142,6 @@ FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 	uint rigid_body_circle_contact_constraint_flags_base;
 	uint rigid_body_circle_contact_constraint_indices_turns_base;
 	uint rigid_body_circle_contact_constraint_impulse_base;
-
-	//uint rigid_body_circle_contact_constraint_killed_ring_base;
-	//uint rigid_body_circle_contact_constraint_source_kill_items_ring_base;
 
 	uint capacities[entity_type_count];
 
@@ -177,8 +152,6 @@ FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 	uint old_death_index_bases[entity_type_count];
 	uint old_killed_bases[entity_type_count];
 	uint old_kill_counts[entity_type_count];
-	//uint old_kill_bases[entity_type_count];
-	//uint old_kill_ends[entity_type_count];
 
 	// TODO: Pad counts to avoid false sharing (unnecessary conflicts during atomic additions)
 	uint read_counts[entity_type_count];
@@ -186,14 +159,10 @@ FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 	uint death_index_bases[entity_type_count];
 	uint killed_bases[entity_type_count];
 	uint kill_counts[entity_type_count];	// TODO: Switch to ends for faster appends.
-	//uint kill_bases[entity_type_count];
-	//uint kill_ends[entity_type_count];
 
 	uint dispatch_command_flags[dispatch_program_count];	// TODO: Remove.
-	PLACEHOLDER_Dispatch_Command dispatch_commands[dispatch_program_count];	// TODO: Remove.
 	
-	uint draw_arrays_command_flags[draw_arrays_program_count];
-	PLACEHOLDER_Draw_Arrays_Command draw_arrays_commands[draw_arrays_program_count];
+	uint draw_arrays_command_flags[draw_arrays_program_count];	// TODO: Remove?
 
 	uint key_state[(key_count + uint_bits - 1u) >> uint_bits_shift];
 } fixed_data;
