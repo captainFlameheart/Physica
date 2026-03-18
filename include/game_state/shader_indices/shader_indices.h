@@ -108,9 +108,24 @@ namespace game_state::shader_indices
 					constexpr GLuint count{ end - base };
 				}
 
-				namespace perform_compaction
+				namespace clear_deaths
 				{
 					constexpr GLuint base{ ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::plan_compaction::end };
+
+					enum struct Indices : GLuint
+					{
+						clear_rigid_body_circle_contact_constraint_spawner_deaths = base,
+
+						end
+					};
+
+					constexpr GLuint end{ static_cast<GLuint>(Indices::end) };
+					constexpr GLuint count{ end - base };
+				}
+
+				namespace perform_compaction
+				{
+					constexpr GLuint base{ ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::clear_deaths::end };
 
 					enum struct Indices : GLuint
 					{
@@ -177,9 +192,25 @@ namespace game_state::shader_indices
 					constexpr GLuint count{ end - base };
 				}
 
-				namespace perform_compaction
+				namespace clear_deaths
 				{
 					constexpr GLuint base{ ::game_state::shader_indices::tick::process_entities::pre_constraints::plan_compaction::end };
+
+					enum struct Indices : GLuint
+					{
+						clear_point_mass_distance_constraint_deaths = base,
+						clear_rigid_body_circle_contact_constraint_deaths,
+
+						end
+					};
+
+					constexpr GLuint end{ static_cast<GLuint>(Indices::end) };
+					constexpr GLuint count{ end - base };
+				}
+
+				namespace perform_compaction
+				{
+					constexpr GLuint base{ ::game_state::shader_indices::tick::process_entities::pre_constraints::clear_deaths::end };
 
 					enum struct Indices : GLuint
 					{

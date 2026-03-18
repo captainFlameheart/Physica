@@ -47,6 +47,11 @@ namespace game_logic::initialize::compile_shaders::environment
 			::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::plan_compaction::base
 			- ::game_state::shader_indices::tick::process_entities::base
 		};
+		constexpr GLuint constraint_spawner_clear_deaths_program_base
+		{
+			::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::clear_deaths::base
+			- ::game_state::shader_indices::tick::process_entities::base
+		};
 
 		/*constexpr GLuint constraint_spawner_plan_compaction_program_base
 		{
@@ -57,7 +62,7 @@ namespace game_logic::initialize::compile_shaders::environment
 
 		constexpr GLuint constraint_spawner_perform_compaction_program_base
 		{
-			constraint_spawner_plan_compaction_program_base + ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::plan_compaction::count
+			constraint_spawner_clear_deaths_program_base + ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::clear_deaths::count
 		};
 
 		constexpr GLuint constraint_spawner_tick_entities_program_base
@@ -71,9 +76,15 @@ namespace game_logic::initialize::compile_shaders::environment
 			- ::game_state::shader_indices::tick::process_entities::base
 		};
 
+		constexpr GLuint constraint_clear_deaths_program_base
+		{
+			::game_state::shader_indices::tick::process_entities::pre_constraints::clear_deaths::base
+			- ::game_state::shader_indices::tick::process_entities::base
+		};
+
 		constexpr GLuint constraint_perform_compaction_program_base
 		{
-			constraint_plan_compaction_program_base + ::game_state::shader_indices::tick::process_entities::pre_constraints::plan_compaction::count
+			constraint_clear_deaths_program_base + ::game_state::shader_indices::tick::process_entities::pre_constraints::clear_deaths::count
 		};
 
 		constexpr GLuint constraint_tick_entities_program_base
@@ -84,13 +95,13 @@ namespace game_logic::initialize::compile_shaders::environment
 		std::string constraint_spawners_local_sizes_flags
 		{
 			"const uvec4 constraint_spawners_local_sizes_flags[" + std::to_string(::game_state::entity_type_indices::constraint_spawners::count) + "] = \n"
-			"{	// (plan_compaction_local_size, perform_compaction_local_size, tick_entities_local_size, flags)\n"
+			"{	// (clear_deaths_local_size, perform_compaction_local_size, tick_entities_local_size, flags)\n"
 		};
 		for (GLuint i{ 0u }; i < ::game_state::entity_type_indices::constraint_spawners::count; ++i)
 		{
-			constexpr GLuint plan_compaction_base
+			constexpr GLuint clear_deaths_base
 			{
-				::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::plan_compaction::base
+				::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::clear_deaths::base
 				- ::game_state::shader_indices::tick::process_entities::base
 			};
 			constexpr GLuint perform_compaction_base
@@ -104,12 +115,12 @@ namespace game_logic::initialize::compile_shaders::environment
 				- ::game_state::shader_indices::tick::process_entities::base
 			};
 
-			GLuint plan_compaction_local_size{ ::game_state::local_sizes::process_entities_local_sizes[plan_compaction_base + i] };
+			GLuint clear_deaths_local_size{ ::game_state::local_sizes::process_entities_local_sizes[clear_deaths_base + i] };
 			GLuint perform_compaction_local_size{ ::game_state::local_sizes::process_entities_local_sizes[perform_compaction_base + i] };
 			GLuint tick_entities_local_size{ ::game_state::local_sizes::process_entities_local_sizes[tick_entities_base + i] };
 			
 			constraint_spawners_local_sizes_flags += "	uvec4(" + 
-				std::to_string(plan_compaction_local_size) + ", " + 
+				std::to_string(clear_deaths_local_size) + ", " + 
 				std::to_string(perform_compaction_local_size) + ", " + 
 				std::to_string(tick_entities_local_size) + ", 0u" + "),\n";
 		}
@@ -123,9 +134,9 @@ namespace game_logic::initialize::compile_shaders::environment
 		};
 		for (GLuint i{ 0u }; i < ::game_state::entity_type_indices::constraints::count; ++i)
 		{
-			constexpr GLuint plan_compaction_base
+			constexpr GLuint clear_deaths_base
 			{
-				::game_state::shader_indices::tick::process_entities::pre_constraints::plan_compaction::base
+				::game_state::shader_indices::tick::process_entities::pre_constraints::clear_deaths::base
 				- ::game_state::shader_indices::tick::process_entities::base
 			};
 			constexpr GLuint perform_compaction_base
@@ -139,12 +150,12 @@ namespace game_logic::initialize::compile_shaders::environment
 				- ::game_state::shader_indices::tick::process_entities::base
 			};
 
-			GLuint plan_compaction_local_size{ ::game_state::local_sizes::process_entities_local_sizes[plan_compaction_base + i] };
+			GLuint clear_deaths_local_size{ ::game_state::local_sizes::process_entities_local_sizes[clear_deaths_base + i] };
 			GLuint perform_compaction_local_size{ ::game_state::local_sizes::process_entities_local_sizes[perform_compaction_base + i] };
 			GLuint tick_entities_local_size{ ::game_state::local_sizes::process_entities_local_sizes[tick_entities_base + i] };
 
 			constraint_local_sizes_flags += "	uvec4(" +
-				std::to_string(plan_compaction_local_size) + ", " +
+				std::to_string(clear_deaths_local_size) + ", " +
 				std::to_string(perform_compaction_local_size) + ", " +
 				std::to_string(tick_entities_local_size) + ", 0u" + "),\n";
 		}
@@ -172,6 +183,11 @@ namespace game_logic::initialize::compile_shaders::environment
 			dispatch_command_blueprints += "	uvec2(" + std::to_string(0u) + ", " + std::to_string(0u) + "),\n";
 		}
 
+		for (GLuint i{ 0u }; i < ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::clear_deaths::count; ++i)
+		{
+			dispatch_command_blueprints += "	uvec2(" + std::to_string(0u) + ", " + std::to_string(0u) + "),\n";
+		}
+
 		for (GLuint i{ 0u }; i < ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::perform_compaction::count; ++i)
 		{
 			dispatch_command_blueprints += "	uvec2(" + std::to_string(0u) + ", " + std::to_string(0u) + "),\n";
@@ -189,6 +205,11 @@ namespace game_logic::initialize::compile_shaders::environment
 		dispatch_command_blueprints += "	uvec2(" + std::to_string(0u) + ", " + std::to_string(0u) + "),\n";
 
 		for (GLuint i{ 0u }; i < ::game_state::shader_indices::tick::process_entities::pre_constraints::plan_compaction::count; ++i)
+		{
+			dispatch_command_blueprints += "	uvec2(" + std::to_string(0u) + ", " + std::to_string(0u) + "),\n";
+		}
+
+		for (GLuint i{ 0u }; i < ::game_state::shader_indices::tick::process_entities::pre_constraints::clear_deaths::count; ++i)
 		{
 			dispatch_command_blueprints += "	uvec2(" + std::to_string(0u) + ", " + std::to_string(0u) + "),\n";
 		}
@@ -248,6 +269,10 @@ namespace game_logic::initialize::compile_shaders::environment
 			static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::plan_compaction::Indices::plan_rigid_body_circle_contact_constraint_spawner_compaction) - tick_entities_local_size_base
 		] };
 
+		constexpr GLuint clear_rigid_body_circle_contact_constraint_spawner_deaths_local_size{ ::game_state::local_sizes::process_entities_local_sizes[
+			static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::clear_deaths::Indices::clear_rigid_body_circle_contact_constraint_spawner_deaths) - tick_entities_local_size_base
+		] };
+
 		constexpr GLuint perform_rigid_body_circle_contact_constraint_spawner_compaction_local_size{ ::game_state::local_sizes::process_entities_local_sizes[
 			static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::perform_compaction::Indices::perform_rigid_body_circle_contact_constraint_spawner_compaction) - tick_entities_local_size_base
 		] };
@@ -262,6 +287,10 @@ namespace game_logic::initialize::compile_shaders::environment
 
 		constexpr GLuint plan_rigid_body_circle_contact_constraint_compaction_local_size{ ::game_state::local_sizes::process_entities_local_sizes[
 			static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::pre_constraints::plan_compaction::Indices::plan_rigid_body_circle_contact_constraint_compaction) - tick_entities_local_size_base
+		] };
+
+		constexpr GLuint clear_rigid_body_circle_contact_constraint_deaths_local_size{ ::game_state::local_sizes::process_entities_local_sizes[
+			static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::pre_constraints::clear_deaths::Indices::clear_rigid_body_circle_contact_constraint_deaths) - tick_entities_local_size_base
 		] };
 
 		constexpr GLuint perform_rigid_body_circle_contact_constraint_compaction_local_size{ ::game_state::local_sizes::process_entities_local_sizes[
@@ -285,6 +314,7 @@ namespace game_logic::initialize::compile_shaders::environment
 
 			::util::shader::file_to_string("tick/pre_entities/commit_counts/commit_counts") + '\n' +
 			::util::shader::file_to_string("tick/pre_entities/plan_compaction/plan_compaction") + '\n' +
+			::util::shader::file_to_string("tick/pre_entities/clear_deaths/clear_deaths") + '\n' +
 			::util::shader::file_to_string("tick/pre_entities/perform_compaction/determine_flow") + '\n' +
 
 			initialize_input_constants(environment) +
@@ -310,9 +340,10 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uint draw_arrays_program_count = " + std::to_string(::game_state::shader_indices::draw::entities::count) + ";\n"
 
 			"const uint constraint_spawner_plan_compaction_program_base = " + std::to_string(constraint_spawner_plan_compaction_program_base) + ";\n"
+			"const uint constraint_spawner_clear_deaths_program_base = " + std::to_string(constraint_spawner_clear_deaths_program_base) + ";\n"
 			"const uint constraint_spawner_perform_compaction_program_base = " + std::to_string(constraint_spawner_perform_compaction_program_base) + ";\n"
 			"const uint constraint_spawner_tick_entities_program_base = " + std::to_string(constraint_spawner_tick_entities_program_base) + ";\n"
-			"const uint constraint_plan_compaction_program_base = " + std::to_string(constraint_plan_compaction_program_base) + ";\n"
+			"const uint constraint_clear_deaths_program_base = " + std::to_string(constraint_clear_deaths_program_base) + ";\n"
 			"const uint constraint_perform_compaction_program_base = " + std::to_string(constraint_perform_compaction_program_base) + ";\n"
 			"const uint constraint_tick_entities_program_base = " + std::to_string(constraint_tick_entities_program_base) + ";\n"
 
@@ -338,10 +369,13 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uint tick_rigid_bodies_local_size = " + ::std::to_string(tick_rigid_bodies_local_size) + ";\n"
 			"const uint commit_constraint_spawner_counts_local_size = " + ::std::to_string(commit_constraint_spawner_counts_local_size) + ";\n"
 			"const uint plan_rigid_body_circle_contact_constraint_spawner_compaction_local_size = " + ::std::to_string(plan_rigid_body_circle_contact_constraint_spawner_compaction_local_size) + ";\n"
+			"const uint clear_rigid_body_circle_contact_constraint_spawner_deaths_local_size = " + ::std::to_string(clear_rigid_body_circle_contact_constraint_spawner_deaths_local_size) + ";\n"
+
 			"const uint perform_rigid_body_circle_contact_constraint_spawner_compaction_local_size = " + ::std::to_string(perform_rigid_body_circle_contact_constraint_spawner_compaction_local_size) + ";\n"
 			"const uint tick_rigid_body_circle_contact_constraint_spawners_local_size = " + ::std::to_string(tick_rigid_body_circle_contact_constraint_spawners_local_size) + ";\n"
 			"const uint commit_constraint_counts_local_size = " + ::std::to_string(commit_constraint_counts_local_size) + ";\n"
 			"const uint plan_rigid_body_circle_contact_constraint_compaction_local_size = " + ::std::to_string(plan_rigid_body_circle_contact_constraint_compaction_local_size) + ";\n"
+			"const uint clear_rigid_body_circle_contact_constraint_deaths_local_size = " + ::std::to_string(clear_rigid_body_circle_contact_constraint_deaths_local_size) + ";\n"
 			"const uint perform_rigid_body_circle_contact_constraint_compaction_local_size = " + ::std::to_string(perform_rigid_body_circle_contact_constraint_compaction_local_size) + ";\n"
 			"const uint tick_point_mass_distance_constraints_local_size = " + ::std::to_string(process_point_mass_distance_constraints_local_size) + ";\n"
 			"const uint tick_rigid_body_circle_contact_constraints_local_size = " + ::std::to_string(tick_rigid_body_circle_contact_constraints_local_size) + ";\n"

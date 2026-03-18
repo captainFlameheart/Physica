@@ -1,7 +1,7 @@
 #define PRE_TICK_ENTITIES_PERFORM_COMPACTION_DETERMINE_FLOW(entity_type, killed, source)\
 {\
 	uint kill_item = gl_GlobalInvocationID.x;\
-	uint kill_count = fixed_data.old_kill_count[entity_type];
+	uint kill_count = fixed_data.old_kill_counts[entity_type];\
 	/*uint kill_base = fixed_data.old_kill_bases[entity_type];*/\
 	/*uint kill_end = fixed_data.old_kill_ends[entity_type];*/\
 	/*uint kill_item_ring_index = kill_base + kill_item;*/\
@@ -26,7 +26,7 @@
 	/*source = kill_item;*/\
 	uint next_source = kill_item;\
 	\
-	uint default_source_kill_items_index = source_kill_items_ring_base + kill_item_ring_index;\
+	/*uint default_source_kill_items_index = source_kill_items_ring_base + kill_item_ring_index;*/\
 	/*uint source_kill_item = uint_data.data[default_source_kill_items_index];*/\
 	\
 	do\

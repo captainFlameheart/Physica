@@ -4,7 +4,7 @@
 	if (index >= entity_subtype_count)\
 	{\
 		return;\
-	}	\
+	}\
 	\
 	uint entity_type = entity_type_base + index;\
 	/*uint plan_compaction_program_index = plan_compaction_program_base + index;*/	/* TODO: Remove. */\
@@ -43,7 +43,7 @@
 	/*fixed_data.kill_ends[entity_type] = kill_end;*/\
 	\
 	uint previous_old_death_index_base = fixed_data.old_death_index_bases[entity_type];\
-	fixed_data.old_death_index_base[entity_type] = fixed_data.death_index_bases[entity_type];\
+	fixed_data.old_death_index_bases[entity_type] = fixed_data.death_index_bases[entity_type];\
 	fixed_data.death_index_bases[entity_type] = previous_old_death_index_base;\
 	\
 	uint previous_old_killed_base = fixed_data.old_killed_bases[entity_type];\

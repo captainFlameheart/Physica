@@ -4,7 +4,7 @@ void main()
 	PRE_TICK_ENTITIES_COMMIT_COUNTS(
 		constraint_spawner_type_base,
 		constraint_spawner_type_count,
-		constraint_spawner_plan_compaction_program_base,
+		constraint_spawner_clear_deaths_program_base,
 		constraint_spawner_perform_compaction_program_base,
 		constraint_spawner_tick_entities_program_base,
 		constraint_spawners_local_sizes_flags

@@ -4,7 +4,7 @@ void main()
 	PRE_TICK_ENTITIES_COMMIT_COUNTS(
 		constraint_type_base,
 		constraint_type_count,
-		constraint_plan_compaction_program_base,
+		constraint_clear_deaths_program_base,
 		constraint_perform_compaction_program_base,
 		constraint_tick_entities_program_base,
 		constraint_local_sizes_flags

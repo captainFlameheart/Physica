@@ -4,14 +4,7 @@ void main()
 	uint killed;
 	uint source;
 
-	PRE_TICK_ENTITIES_PERFORM_COMPACTION_DETERMINE_FLOW
-	(
-		rigid_body_circle_contact_constraint_spawner_type_index,
-		rigid_body_circle_contact_constraint_spawner_killed_ring_base,
-		rigid_body_circle_contact_constraint_spawner_source_kill_items_ring_base,
-		killed,
-		source
-	);
+	PRE_TICK_ENTITIES_PERFORM_COMPACTION_DETERMINE_FLOW(rigid_body_circle_contact_constraint_spawner_type_index, killed, source);
 
 	// Copy source -> killed.
 	uint indices_flags_base = fixed_data.rigid_body_circle_contact_constraint_spawner_indices_flags_base;

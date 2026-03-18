@@ -1,4 +1,4 @@
-#define PRE_TICK_ENTITIES_CLEAR_OLD_KILLS(entity_type)\
+#define PRE_TICK_ENTITIES_CLEAR_DEATHS(entity_type)\
 {\
 	uint kill_item = gl_GlobalInvocationID.x;\
 	uint kill_count = fixed_data.old_old_kill_counts[entity_type];\
@@ -12,4 +12,4 @@
 	\
 	uint killed = uint_data.data[killed_base + kill_item];\
 	uint_data.data[death_index_base + killed] = null_uint;\
-}\
+}

@@ -1,4 +1,6 @@
 #pragma once
+#include "compile_clear_rigid_body_circle_contact_constraint_deaths.h"
+#include "compile_clear_rigid_body_circle_contact_constraint_spawner_deaths.h"
 #include "compile_commit_constraint_counts.h"
 #include "compile_commit_constraint_spawner_counts.h"
 #include "compile_draw_point_masses.h"

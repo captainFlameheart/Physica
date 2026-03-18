@@ -69,7 +69,7 @@ namespace game_state::layouts::fixed_data
 		GLint offset;
 	};
 
-	struct point_mass_distance_constraint_flags_base
+	struct point_mass_distance_constraint_flags_target_distance_base
 	{
 		GLint offset;
 	};
@@ -319,8 +319,8 @@ namespace game_state::layouts::fixed_data
 		
 		union
 		{
-			point_mass_distance_constraint_flags_base point_mass_distance_constraint_flags_base_state;
-			GLint point_mass_distance_constraint_flags_base_properties[sizeof(point_mass_distance_constraint_flags_base) / sizeof(GLint)];
+			point_mass_distance_constraint_flags_target_distance_base point_mass_distance_constraint_flags_target_distance_base_state;
+			GLint point_mass_distance_constraint_flags_target_distance_base_properties[sizeof(point_mass_distance_constraint_flags_target_distance_base) / sizeof(GLint)];
 		};
 		union
 		{
