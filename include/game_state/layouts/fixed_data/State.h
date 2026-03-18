@@ -141,6 +141,13 @@ namespace game_state::layouts::fixed_data
 		GLint array_size;
 	};
 
+	struct old_old_kill_counts
+	{
+		GLint offset;
+		GLint array_stride;
+		GLint array_size;
+	};
+
 	struct old_write_counts
 	{
 		GLint offset;
@@ -430,6 +437,13 @@ namespace game_state::layouts::fixed_data
 			capacities capacities_state;
 			GLint capacities_properties[sizeof(capacities) / sizeof(GLint)];
 		};
+		
+		union
+		{
+			old_old_kill_counts old_old_kill_counts_state;
+			GLint old_old_kill_counts_properties[sizeof(old_old_kill_counts) / sizeof(GLint)];
+		};
+
 		union
 		{
 			old_write_counts old_write_counts_state;

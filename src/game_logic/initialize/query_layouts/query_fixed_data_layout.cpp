@@ -44,6 +44,12 @@ namespace game_logic::initialize::query_layouts
 
 		::game_logic::shader_util::query::query_shader_storage_variable_offset_array_stride_array_size
 		(
+			program, "Fixed_Data.old_old_kill_counts",
+			environment.state.layouts.fixed_data.old_old_kill_counts_properties
+		);
+
+		::game_logic::shader_util::query::query_shader_storage_variable_offset_array_stride_array_size
+		(
 			program, "Fixed_Data.old_write_counts",
 			environment.state.layouts.fixed_data.old_write_counts_properties
 		);

@@ -21,6 +21,7 @@
 	/*uint killed_index = killed_ring_base + kill_item_ring_index;*/\
 	/*killed = uint_data.data[killed_index];*/\
 	\
+	killed = uint_data.data[killed_base + kill_item];\
 	/*uint source_kill_items_ring_base = fixed_data.source_kill_items_ring_base;*/\
 	\
 	/*source = kill_item;*/\

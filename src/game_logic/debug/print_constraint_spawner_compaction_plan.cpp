@@ -27,6 +27,15 @@ namespace game_logic::debug
 			sizeof(GLuint)
 		);
 
+		GLuint rigid_body_circle_contact_constraint_spawner_old_old_kill_count;
+		std::memcpy
+		(
+			&rigid_body_circle_contact_constraint_spawner_old_old_kill_count,
+			fixed_data + environment.state.layouts.fixed_data.old_old_kill_counts_state.offset +
+			rigid_body_circle_contact_constraint_spawner_type * environment.state.layouts.fixed_data.old_old_kill_counts_state.array_stride,
+			sizeof(GLuint)
+		);
+
 		GLuint rigid_body_circle_contact_constraint_spawner_old_write_count;
 		std::memcpy
 		(
@@ -136,6 +145,8 @@ namespace game_logic::debug
 			std::cout << "temp: " << temp << '\n';
 			std::cout << '\n';
 			std::cout << "rigid_body_circle_contact_constraint_spawner_capacity: " << rigid_body_circle_contact_constraint_spawner_capacity << '\n';
+			std::cout << '\n';
+			std::cout << "rigid_body_circle_contact_constraint_spawner_old_old_kill_count: " << rigid_body_circle_contact_constraint_spawner_old_old_kill_count << '\n';
 			std::cout << '\n';
 			std::cout << "rigid_body_circle_contact_constraint_spawner_old_write_count: " << rigid_body_circle_contact_constraint_spawner_old_write_count << '\n';
 			std::cout << "rigid_body_circle_contact_constraint_spawner_old_death_index_base: " << rigid_body_circle_contact_constraint_spawner_old_death_index_base << '\n';
