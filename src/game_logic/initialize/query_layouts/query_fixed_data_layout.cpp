@@ -47,6 +47,21 @@ namespace game_logic::initialize::query_layouts
 			program, "Fixed_Data.old_write_counts",
 			environment.state.layouts.fixed_data.old_write_counts_properties
 		);
+		::game_logic::shader_util::query::query_shader_storage_variable_offset_array_stride_array_size
+		(
+			program, "Fixed_Data.old_death_index_bases",
+			environment.state.layouts.fixed_data.old_death_index_bases_properties
+		);
+		::game_logic::shader_util::query::query_shader_storage_variable_offset_array_stride_array_size
+		(
+			program, "Fixed_Data.old_killed_bases",
+			environment.state.layouts.fixed_data.old_killed_bases_properties
+		);
+		::game_logic::shader_util::query::query_shader_storage_variable_offset_array_stride_array_size
+		(
+			program, "Fixed_Data.old_kill_counts",
+			environment.state.layouts.fixed_data.old_kill_counts_properties
+		);
 
 		::game_logic::shader_util::query::query_shader_storage_variable_offset_array_stride_array_size
 		(
@@ -57,6 +72,21 @@ namespace game_logic::initialize::query_layouts
 		(
 			program, "Fixed_Data.write_counts",
 			environment.state.layouts.fixed_data.write_counts_properties
+		);
+		::game_logic::shader_util::query::query_shader_storage_variable_offset_array_stride_array_size
+		(
+			program, "Fixed_Data.death_index_bases",
+			environment.state.layouts.fixed_data.death_index_bases_properties
+		);
+		::game_logic::shader_util::query::query_shader_storage_variable_offset_array_stride_array_size
+		(
+			program, "Fixed_Data.killed_bases",
+			environment.state.layouts.fixed_data.killed_bases_properties
+		);
+		::game_logic::shader_util::query::query_shader_storage_variable_offset_array_stride_array_size
+		(
+			program, "Fixed_Data.kill_counts",
+			environment.state.layouts.fixed_data.kill_counts_properties
 		);
 
 		::game_logic::shader_util::query::query_shader_storage_variable_offset_array_stride_array_size

@@ -68,7 +68,7 @@ void main()
 	fixed_data.point_mass_write_flags_base = point_mass_write_flags_base;
 	fixed_data.point_mass_write_position_velocity_base = point_mass_write_position_velocity_base;
 	
-	capacities[rigid_body_type_index] = 2u;
+	capacities[rigid_body_type_index] = 3u;
 
 	uint rigid_body_inverse_mass_inertia_base_address = align_up(point_mass_write_position_velocity_base_address + capacities[point_mass_type_index] * uvec4_data_array_stride);
 	uint rigid_body_constraint_start_base_address = align_up(rigid_body_inverse_mass_inertia_base_address + capacities[rigid_body_type_index] * vec2_data_array_stride);
@@ -431,4 +431,20 @@ void main()
 		1000.0 * meters_per_second_in_length_units_per_time_unit, 0.0 * meters_per_second_in_length_units_per_time_unit
 	));
 	float_data.data[point_mass_inverse_mass_base + last_point_mass_index] = 1.0;
+
+	for (uint entity_type = 0u; entity_type < entity_type_count; ++entity_type)
+	{
+		if (entity_type != rigid_body_circle_contact_constraint_spawner_type_index && entity_type != rigid_body_circle_contact_constraint_type_index)
+		{
+			continue;
+		}
+
+		uint old_death_index_base = old_death_index_bases[entity_type];
+		uint death_index_base = death_index_bases[entity_type];
+		for (uint index = 0u; index < capacities[entity_type]; ++index)
+		{
+			uint_data.data[old_death_index_base + index] = null_uint;
+			uint_data.data[death_index_base + index] = null_uint;
+		}
+	}
 }

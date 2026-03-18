@@ -4,7 +4,7 @@ namespace game_logic::debug
 {
 	void print_constraint_compaction_plan(game_environment::Environment& environment)
 	{
-		glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
+		/*glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
 
 		GLubyte* fixed_data = new GLubyte[environment.state.layouts.fixed_data.block_state.buffer_data_size];
 		glGetNamedBufferSubData
@@ -193,6 +193,6 @@ namespace game_logic::debug
 			delete[] rigid_body_circle_contact_constraint_source_kill_items_ring;
 		}
 
-		delete[] fixed_data;
+		delete[] fixed_data;*/
 	}
 }

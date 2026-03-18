@@ -148,6 +148,27 @@ namespace game_state::layouts::fixed_data
 		GLint array_size;
 	};
 
+	struct old_death_index_bases
+	{
+		GLint offset;
+		GLint array_stride;
+		GLint array_size;
+	};
+
+	struct old_killed_bases
+	{
+		GLint offset;
+		GLint array_stride;
+		GLint array_size;
+	};
+
+	struct old_kill_counts
+	{
+		GLint offset;
+		GLint array_stride;
+		GLint array_size;
+	};
+
 	struct old_kill_bases
 	{
 		GLint offset;
@@ -170,6 +191,27 @@ namespace game_state::layouts::fixed_data
 	};
 
 	struct write_counts
+	{
+		GLint offset;
+		GLint array_stride;
+		GLint array_size;
+	};
+
+	struct death_index_bases
+	{
+		GLint offset;
+		GLint array_stride;
+		GLint array_size;
+	};
+
+	struct killed_bases
+	{
+		GLint offset;
+		GLint array_stride;
+		GLint array_size;
+	};
+
+	struct kill_counts
 	{
 		GLint offset;
 		GLint array_stride;
@@ -395,6 +437,21 @@ namespace game_state::layouts::fixed_data
 		};
 		union
 		{
+			old_death_index_bases old_death_index_bases_state;
+			GLint old_death_index_bases_properties[sizeof(old_death_index_bases) / sizeof(GLint)];
+		};
+		union
+		{
+			old_killed_bases old_killed_bases_state;
+			GLint old_killed_bases_properties[sizeof(old_killed_bases) / sizeof(GLint)];
+		};
+		union
+		{
+			old_kill_counts old_kill_counts_state;
+			GLint old_kill_counts_properties[sizeof(old_kill_counts) / sizeof(GLint)];
+		};
+		union
+		{
 			old_kill_bases old_kill_bases_state;
 			GLint old_kill_bases_properties[sizeof(old_kill_bases) / sizeof(GLint)];
 		};
@@ -415,13 +472,18 @@ namespace game_state::layouts::fixed_data
 		};
 		union
 		{
-			kill_bases kill_bases_state;
-			GLint kill_bases_properties[sizeof(kill_bases) / sizeof(GLint)];
+			death_index_bases death_index_bases_state;
+			GLint death_index_bases_properties[sizeof(death_index_bases) / sizeof(GLint)];
 		};
 		union
 		{
-			kill_ends kill_ends_state;
-			GLint kill_ends_properties[sizeof(kill_ends) / sizeof(GLint)];
+			killed_bases killed_bases_state;
+			GLint killed_bases_properties[sizeof(killed_bases) / sizeof(GLint)];
+		};
+		union
+		{
+			kill_counts kill_counts_state;
+			GLint kill_counts_properties[sizeof(kill_counts) / sizeof(GLint)];
 		};
 		union
 		{

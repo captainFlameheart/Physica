@@ -10,7 +10,7 @@ namespace game_logic::tick
 		{
 			if (environment.state.is_debugging)
 			{
-				::game_logic::debug::print_fixed_data(environment);
+				//::game_logic::debug::print_fixed_data(environment);
 			}
 
 			for (GLuint tick_bodies_shader_index{ ::game_state::shader_indices::tick::process_entities::bodies::base }; tick_bodies_shader_index < ::game_state::shader_indices::tick::process_entities::bodies::end; ++tick_bodies_shader_index)
@@ -48,6 +48,11 @@ namespace game_logic::tick
 
 			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_COMMAND_BARRIER_BIT);
 
+			if (environment.state.is_debugging)
+			{
+				debug::print_constraint_spawner_compaction_plan(environment);
+			}
+
 			for (GLuint clear_constraint_spawner_deaths_shader_index{::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::clear_deaths::base}; clear_constraint_spawner_deaths_shader_index < ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::clear_deaths::end; ++clear_constraint_spawner_deaths_shader_index)
 			{
 				glUseProgram(environment.state.shaders[clear_constraint_spawner_deaths_shader_index]);
@@ -58,7 +63,7 @@ namespace game_logic::tick
 					environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.offset +
 					index_in_tick_entities_shader_array * environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.top_level_array_stride
 				};
-				//glDispatchComputeIndirect(command_offset);
+				glDispatchComputeIndirect(command_offset);
 			}
 
 			/*for (GLuint plan_constraint_spawner_compaction_shader_index{::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::plan_compaction::base}; plan_constraint_spawner_compaction_shader_index < ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::plan_compaction::end; ++plan_constraint_spawner_compaction_shader_index)
@@ -76,11 +81,6 @@ namespace game_logic::tick
 
 			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);*/
 
-			/*if (environment.state.is_debugging)
-			{
-				debug::print_constraint_spawner_compaction_plan(environment);
-			}*/
-
 			for (GLuint perform_constraint_spawner_compaction_shader_index{::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::perform_compaction::base}; perform_constraint_spawner_compaction_shader_index < ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::perform_compaction::end; ++perform_constraint_spawner_compaction_shader_index)
 			{
 				glUseProgram(environment.state.shaders[perform_constraint_spawner_compaction_shader_index]);
@@ -91,7 +91,7 @@ namespace game_logic::tick
 					environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.offset +
 					index_in_tick_entities_shader_array * environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.top_level_array_stride
 				};
-				//glDispatchComputeIndirect(command_offset);
+				glDispatchComputeIndirect(command_offset);
 			}
 
 			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
@@ -165,7 +165,7 @@ namespace game_logic::tick
 					environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.offset +
 					index_in_tick_entities_shader_array * environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.top_level_array_stride
 				};
-				//glDispatchComputeIndirect(command_offset);
+				glDispatchComputeIndirect(command_offset);
 			}
 
 			/*for (GLuint plan_constraint_compaction_shader_index{::game_state::shader_indices::tick::process_entities::pre_constraints::plan_compaction::base}; plan_constraint_compaction_shader_index < ::game_state::shader_indices::tick::process_entities::pre_constraints::plan_compaction::end; ++plan_constraint_compaction_shader_index)
@@ -210,7 +210,7 @@ namespace game_logic::tick
 					environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.offset +
 					index_in_tick_entities_shader_array * environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.top_level_array_stride
 				};
-				//glDispatchComputeIndirect(command_offset);
+				glDispatchComputeIndirect(command_offset);
 			}
 
 			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
