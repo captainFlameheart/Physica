@@ -7,7 +7,6 @@
 	}\
 	\
 	uint entity_type = entity_type_base + index;\
-	/*uint plan_compaction_program_index = plan_compaction_program_base + index;*/	/* TODO: Remove. */\
 	uint clear_deaths_program_index = clear_deaths_program_base + index;\
 	uint perform_compaction_program_index = perform_compaction_program_base + index;\
 	uint tick_entities_program_index = tick_entities_program_base + index;\
@@ -18,29 +17,19 @@
 	uint read_count = fixed_data.read_counts[entity_type];\
 	uint write_count = fixed_data.write_counts[entity_type];\
 	uint kill_count = fixed_data.kill_counts[entity_type];\
-	/*uint kill_base = fixed_data.kill_bases[entity_type];*/\
-	/*uint kill_end = fixed_data.kill_ends[entity_type];*/\
-	/*uint kill_count = kill_end - kill_base;*/\
 	\
 	uint old_kill_count = fixed_data.old_kill_counts[entity_type];\
 	fixed_data.old_old_kill_counts[entity_type] = old_kill_count;\
 	\
 	fixed_data.old_write_counts[entity_type] = write_count;\
 	fixed_data.old_kill_counts[entity_type] = kill_count;\
-	/*fixed_data.old_kill_bases[entity_type] = kill_base;*/\
-	/*fixed_data.old_kill_ends[entity_type] = kill_end;*/\
 	\
 	read_count = write_count - kill_count;\
 	write_count = read_count;\
 	\
-	/*kill_base = kill_end - uint(kill_end >= capacity) * capacity;*/\
-	/*kill_end = kill_base;*/\
-	\
 	fixed_data.read_counts[entity_type] = read_count;\
 	fixed_data.write_counts[entity_type] = write_count;\
 	fixed_data.kill_counts[entity_type] = 0u;\
-	/*fixed_data.kill_bases[entity_type] = kill_base;*/\
-	/*fixed_data.kill_ends[entity_type] = kill_end;*/\
 	\
 	uint previous_old_death_index_base = fixed_data.old_death_index_bases[entity_type];\
 	fixed_data.old_death_index_bases[entity_type] = fixed_data.death_index_bases[entity_type];\
@@ -50,8 +39,6 @@
 	fixed_data.old_killed_bases[entity_type] = fixed_data.killed_bases[entity_type];\
 	fixed_data.killed_bases[entity_type] = previous_old_killed_base;\
 	\
-	/*commands.dispatch_commands[plan_compaction_program_index].work_group_count_x =*/\
-		/*(kill_count + local_sizes_flags.x - 1u) / local_sizes_flags.x;*/\
 	commands.dispatch_commands[clear_deaths_program_index].work_group_count_x =\
 		(old_kill_count + local_sizes_flags.x - 1u) / local_sizes_flags.x;\
 	commands.dispatch_commands[perform_compaction_program_index].work_group_count_x =\
