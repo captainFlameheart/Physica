@@ -142,14 +142,21 @@ void main()
 	uint write_inner_bounding_box_base_address = align_up(write_bounding_box_base_address + next_bounding_box_local_base * uvec4_data_array_stride);
 	fixed_data.write_inner_bounding_box_base = address_to_uvec4_index(write_inner_bounding_box_base_address);
 
+	uint leaf_bounding_box_parent_bases[leaf_bounding_box_type_count];
+	uint read_leaf_bounding_box_bases[leaf_bounding_box_type_count];
+	uint write_leaf_bounding_box_bases[leaf_bounding_box_type_count];
 	for (uint leaf_bounding_box_type = 0u; leaf_bounding_box_type < leaf_bounding_box_type_count; ++leaf_bounding_box_type)
 	{
 		uint local_base = leaf_bounding_box_local_bases[leaf_bounding_box_type];
 
-		fixed_data.leaf_bounding_box_parent_bases[leaf_bounding_box_type] = leaf_bounding_box_parent_base + local_base;
+		leaf_bounding_box_parent_bases[leaf_bounding_box_type] = leaf_bounding_box_parent_base + local_base;
 		// Notice the swap of read and write buffers.
-		fixed_data.read_leaf_bounding_box_bases[leaf_bounding_box_type] = write_bounding_box_base + local_base;
-		fixed_data.write_leaf_bounding_box_bases[leaf_bounding_box_type] = read_bounding_box_base + local_base;
+		read_leaf_bounding_box_bases[leaf_bounding_box_type] = write_bounding_box_base + local_base;
+		write_leaf_bounding_box_bases[leaf_bounding_box_type] = read_bounding_box_base + local_base;
+
+		fixed_data.leaf_bounding_box_parent_bases[leaf_bounding_box_type] = leaf_bounding_box_parent_bases[leaf_bounding_box_type];
+		fixed_data.read_leaf_bounding_box_bases[leaf_bounding_box_type] = read_leaf_bounding_box_bases[leaf_bounding_box_type];
+		fixed_data.write_leaf_bounding_box_bases[leaf_bounding_box_type] = write_leaf_bounding_box_bases[leaf_bounding_box_type];
 	}
 
 	uint rigid_body_circle_contact_constraint_spawner_count = capacities[rigid_body_circle_type_index] * (capacities[rigid_body_circle_type_index] - 1u) / 2u;
@@ -365,6 +372,9 @@ void main()
 			rigid_body_circle_index,
 			floatBitsToUint(vec3(0.0, 0.0, 0.5))
 		);
+		// TODO: Fill leaf_bounding_box_parent_bases[rigid_body_circle_bounding_box_type].
+		uvec4_data.data[read_leaf_bounding_box_bases[rigid_body_circle_bounding_box_type] + rigid_body_circle_index] = uvec4(0u);
+		uvec4_data.data[write_leaf_bounding_box_bases[rigid_body_circle_bounding_box_type] + rigid_body_circle_index] = uvec4(0u);
 	}
 
 	uint rigid_body_circle_contact_constraint_spawner_index = 0u;
