@@ -21,6 +21,8 @@ namespace game_state::vertex_factors
 
 		vertex_factors[static_cast<GLuint>(::game_state::shader_indices::draw::entities::constraints::Indices::point_mass_distance_constraints) - base] = 6u;
 
+		vertex_factors[static_cast<GLuint>(::game_state::shader_indices::draw::entities::bounding_volume_hierarchy::Indices::rigid_body_circle_bounding_boxes) - base] = 6u;
+
 		return vertex_factors;
 	}
 

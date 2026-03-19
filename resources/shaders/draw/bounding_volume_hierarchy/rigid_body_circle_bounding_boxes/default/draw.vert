@@ -9,7 +9,7 @@ const vec2 UVs[6u] = vec2[6u]
 	vec2(1.0, 1.0)
 );
 
-const uvec2 bounding_box_vertex_indices[6u]
+const uvec2 bounding_box_vertex_indices[6u] = uvec2[6u]
 (
 	uvec2(2u, 3u),
 	uvec2(0u, 3u),
@@ -37,6 +37,7 @@ void main()
 	uint read_bounding_box_index = read_bounding_box_base + index;
 
 	uvec4 bounding_box = uvec4_data.data[read_bounding_box_index];
+	bounding_box = uvec4(vec4(-1.0, -1.0, 1.0, 1.0) * meter_in_length_units);
 
 	size = vec2(ivec2(bounding_box.zw - bounding_box.xy));
 

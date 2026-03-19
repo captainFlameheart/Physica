@@ -378,7 +378,22 @@ namespace game_state::shader_indices
 				constexpr GLuint count{ end - base };
 			}
 
-			constexpr GLuint end{ constraints::end };
+			namespace bounding_volume_hierarchy
+			{
+				constexpr GLuint base{ ::game_state::shader_indices::draw::entities::constraints::end };
+
+				enum struct Indices : GLuint
+				{
+					rigid_body_circle_bounding_boxes = base,
+
+					end
+				};
+
+				constexpr GLuint end{ static_cast<GLuint>(Indices::end) };
+				constexpr GLuint count{ end - base };
+			}
+
+			constexpr GLuint end{ bounding_volume_hierarchy::end };
 			constexpr GLuint count{ end - base };
 		}
 
