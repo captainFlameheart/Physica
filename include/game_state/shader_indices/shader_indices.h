@@ -74,9 +74,32 @@ namespace game_state::shader_indices
 				constexpr GLuint count{ end - base };
 			}
 
-			namespace pre_constraint_spawners
+			namespace bounding_volume_hierarchy
 			{
 				constexpr GLuint base{ ::game_state::shader_indices::tick::process_entities::bodies::end };
+
+				namespace leafs
+				{
+					constexpr GLuint base{ ::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::base };
+
+					enum struct Indices : GLuint
+					{
+						rigid_body_circles = base,
+
+						end
+					};
+
+					constexpr GLuint end{ static_cast<GLuint>(Indices::end) };
+					constexpr GLuint count{ end - base };
+				}
+
+				constexpr GLuint end{ static_cast<GLuint>(leafs::end) };
+				constexpr GLuint count{ end - base };
+			}
+
+			namespace pre_constraint_spawners
+			{
+				constexpr GLuint base{ ::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::end };
 
 				namespace commit_counts
 				{

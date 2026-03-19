@@ -34,6 +34,10 @@ void main()
 	) * position_radius.xy;
 
 	vec2 half_size = vec2(position_radius.z);
-	uvec4 bounding_box = rigid_body_position_flags.xy + uvec4(ivec4(vec4(offset - half_size, offset + half_size)));
+	uvec4 bounding_box = uvec4
+	(
+		rigid_body_position_flags.xy + uvec2(ivec2(offset - half_size)),
+		rigid_body_position_flags.xy + uvec2(ivec2(offset + half_size))
+	);
 	uvec4_data.data[write_bounding_box_index] = bounding_box;
 }

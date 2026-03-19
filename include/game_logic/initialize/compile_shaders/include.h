@@ -20,6 +20,7 @@
 #include "compile_plan_rigid_body_circle_contact_constraint_spawner_compaction.h"
 #include "compile_process_point_masses.h"
 #include "compile_tick_rigid_bodies.h"
+#include "compile_tick_rigid_body_circles.h"
 #include "compile_tick_rigid_body_circle_contact_constraints.h"
 #include "compile_tick_rigid_body_circle_contact_constraint_spawners.h"
 #include "compile_update_draw_counts.h"

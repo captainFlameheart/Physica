@@ -22,6 +22,8 @@ namespace game_logic::initialize::compile_shaders
 		compile_process_point_masses(environment, compile_environment);
 		compile_tick_rigid_bodies(environment, compile_environment);
 
+		compile_tick_rigid_body_circles(environment, compile_environment);
+
 		compile_commit_constraint_spawner_counts(environment, compile_environment);
 
 		//compile_plan_rigid_body_circle_contact_constraint_spawner_compaction(environment, compile_environment);
