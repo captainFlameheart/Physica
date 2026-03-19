@@ -27,9 +27,12 @@ const uint vec2_size = 1u << vec2_size_shift;
 const uint vec4_size_shift = 4u;
 const uint vec4_size = 1u << vec4_size_shift;
 
-const uint alignment = 128u;	// Must be power of two and at least 4!
+const uint alignment = 128u;	// Must be a power of two and at least 4!
 const uint align_up_addition = alignment - 1u;
 const uint align_up_mask = ~align_up_addition;
+const uint common_base_alignment = alignment >> 2u;
+const uint align_up_to_common_base_addition = common_base_alignment - 1u;
+const uint align_up_to_common_base_mask = ~align_up_to_common_base_addition;
 
 const uint point_mass_is_dead_shift = 0u;
 const uint point_mass_is_dead_mask = 1u << point_mass_is_dead_shift;
@@ -63,6 +66,11 @@ const uint draw_arrays_command_enabled_mask = 1u << draw_arrays_command_enabled_
 uint align_up(uint address)
 {
 	return (address + align_up_addition) & align_up_mask;
+}
+
+uint align_up_to_common_base(uint base)
+{
+	return (base + align_up_to_common_base_addition) & align_up_to_common_base_mask;
 }
 
 uint address_to_uvec4_index(uint address)
@@ -132,6 +140,13 @@ FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 	uint rigid_body_triangle_vertex_base;
 
 	uint rigid_body_circle_body_position_radius_base;
+
+	uint leaf_bounding_box_parent_bases[leaf_bounding_box_type_count];
+	uint inner_bounding_box_child_pair_base;
+	uint read_leaf_bounding_box_bases[leaf_bounding_box_type_count];
+	uint write_leaf_bounding_box_bases[leaf_bounding_box_type_count];
+	uint read_inner_bounding_box_base;
+	uint write_inner_bounding_box_base;
 
 	uint rigid_body_circle_contact_constraint_spawner_indices_flags_base;
 

@@ -70,22 +70,4 @@ namespace game_state::entity_type_indices
 
 	constexpr GLuint end{ static_cast<GLuint>(constraints::end) };
 	constexpr GLuint count{ end - base };
-
-	/*enum struct Indices : GLuint
-	{
-		point_mass,
-		rigid_body,
-		rigid_body_triangle,
-		rigid_body_circle,
-
-		rigid_body_circle_contact_constraint_spawner,
-
-		point_mass_distance_constraint,
-		point_mass_uniform_force_constraint,
-		rigid_body_circle_contact_constraint,
-
-		count
-	};
-
-	constexpr GLuint count{ static_cast<GLuint>(Indices::count) };*/
 }

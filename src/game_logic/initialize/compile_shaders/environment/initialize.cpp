@@ -336,6 +336,8 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uint constraint_type_base = " + std::to_string(game_state::entity_type_indices::constraints::base) + ";\n"
 			"const uint constraint_type_count = " + std::to_string(game_state::entity_type_indices::constraints::count) + ";\n"
 
+			"const uint leaf_bounding_box_type_count = " + std::to_string(game_state::leaf_bounding_box_types::count) + ";\n"
+
 			"const uint dispatch_program_count = " + std::to_string(::game_state::shader_indices::tick::process_entities::count) + ";\n"
 			"const uint draw_arrays_program_count = " + std::to_string(::game_state::shader_indices::draw::entities::count) + ";\n"
 
@@ -354,6 +356,9 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uint rigid_body_circle_contact_constraint_spawner_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::constraint_spawners::Indices::rigid_body_circle_contact_constraint_spawner)) + ";\n"
 			"const uint point_mass_distance_constraint_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::constraints::Indices::point_mass_distance_constraint)) + ";\n"
 			"const uint rigid_body_circle_contact_constraint_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::constraints::Indices::rigid_body_circle_contact_constraint)) + ";\n"
+
+			"const uint rigid_body_triangle_bounding_box_type = " + std::to_string(static_cast<GLuint>(::game_state::leaf_bounding_box_types::Indices::rigid_body_triangle)) + ";\n"
+			"const uint rigid_body_circle_bounding_box_type = " + std::to_string(static_cast<GLuint>(::game_state::leaf_bounding_box_types::Indices::rigid_body_circle)) + ";\n"
 
 			"const uint uvec4_data_binding = " + std::to_string(::game_state::bindings::shader_storage::uvec4_data) + ";\n"
 			"const uint uvec2_data_binding = " + std::to_string(::game_state::bindings::shader_storage::uvec2_data) + ";\n"

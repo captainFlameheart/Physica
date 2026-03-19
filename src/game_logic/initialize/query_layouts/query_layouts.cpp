@@ -2,7 +2,7 @@
 #include "game_environment/Environment.h"
 #include "util/shader/shader.h"
 #include "game_state/device_requirements/OpenGL_versions.h"
-#include "game_state/entity_type_indices/entity_type_indices.h"
+#include "game_state/entity_type_indices/include.h"
 #include "game_state/local_sizes/include.h"
 #include "game_state/bindings/include.h"
 #include "game_logic/initialize/compile_shaders/environment/include.h"
@@ -30,6 +30,7 @@ namespace game_logic::initialize::query_layouts
 			"const uint commands_binding = 7;\n"
 			"const uint private_input_binding = " + std::to_string(::game_state::bindings::uniform::private_input) + ";\n"
 			"const uint entity_type_count = " + std::to_string(::game_state::entity_type_indices::count) + ";\n"
+			"const uint leaf_bounding_box_type_count = " + std::to_string(::game_state::leaf_bounding_box_types::count) + ";\n"
 			"const uint dispatch_program_count = " + std::to_string(::game_state::shader_indices::tick::process_entities::count) + ";\n"
 			"const uint draw_arrays_program_count = " + std::to_string(::game_state::shader_indices::draw::entities::count) + ";\n" +
 			::game_logic::initialize::compile_shaders::environment::initialize_input_constants(environment) +
