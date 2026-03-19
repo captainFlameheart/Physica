@@ -27,6 +27,20 @@ namespace game_state::shader_to_entity_type
 		return shader_to_entity_type;
 	}
 
+	constexpr std::array<::game_state::entity_type_indices::body_attachments::Indices, ::game_state::shader_indices::tick::process_entities::bodies::count>
+		initialize_tick_bounding_box_leaf_shader_to_entity_type()
+	{
+		std::array<::game_state::entity_type_indices::body_attachments::Indices, ::game_state::shader_indices::tick::process_entities::bodies::count>
+			shader_to_entity_type{};
+
+		constexpr GLuint base{ ::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::leafs::base };
+
+		shader_to_entity_type[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::leafs::Indices::rigid_body_circles) - base] =
+			::game_state::entity_type_indices::body_attachments::Indices::rigid_body_circle;
+
+		return shader_to_entity_type;
+	}
+
 	constexpr std::array<::game_state::entity_type_indices::constraint_spawners::Indices, ::game_state::shader_indices::tick::process_entities::constraint_spawners::count>
 		initialize_tick_constraint_spawners_shader_to_entity_type()
 	{
@@ -91,6 +105,9 @@ namespace game_state::shader_to_entity_type
 	constexpr std::array<::game_state::entity_type_indices::bodies::Indices, ::game_state::shader_indices::tick::process_entities::bodies::count>
 		tick_bodies_shader_to_entity_type{ initialize_tick_bodies_shader_to_entity_type() };
 	
+	constexpr std::array<::game_state::entity_type_indices::body_attachments::Indices, ::game_state::shader_indices::tick::process_entities::bodies::count>
+		tick_bounding_box_leaf_shader_to_entity_type{ initialize_tick_bounding_box_leaf_shader_to_entity_type() };
+
 	constexpr std::array<::game_state::entity_type_indices::constraint_spawners::Indices, ::game_state::shader_indices::tick::process_entities::constraint_spawners::count>
 		tick_constraint_spawners_shader_to_entity_type{ initialize_tick_constraint_spawners_shader_to_entity_type() };
 

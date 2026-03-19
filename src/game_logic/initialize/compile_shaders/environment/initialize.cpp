@@ -176,7 +176,15 @@ namespace game_logic::initialize::compile_shaders::environment
 			dispatch_command_blueprints += "	uvec2(" + std::to_string(entity_type) + ", " + std::to_string(local_size) + "),\n";
 		}
 
-		for (GLuint i{ 0u }; i < ::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::count; ++i)
+		for (GLuint i{ 0u }; i < ::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::leafs::count; ++i)
+		{
+			GLuint entity_type{ static_cast<GLuint>(::game_state::shader_to_entity_type::tick_bounding_box_leaf_shader_to_entity_type[i]) };
+			constexpr GLuint base{ ::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::leafs::base - ::game_state::shader_indices::tick::process_entities::base };
+			GLuint local_size{ ::game_state::local_sizes::process_entities_local_sizes[base + i] };
+			dispatch_command_blueprints += "	uvec2(" + std::to_string(entity_type) + ", " + std::to_string(local_size) + "),\n";
+		}
+
+		for (GLuint i{ 0u }; i < ::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::swap_leaf_bounding_box_buffers::count; ++i)
 		{
 			dispatch_command_blueprints += "	uvec2(" + std::to_string(0u) + ", " + std::to_string(0u) + "),\n";
 		}
