@@ -251,9 +251,24 @@ namespace game_state::shader_indices
 				constexpr GLuint count{ end - base };
 			}
 
-			namespace constraints
+			namespace on_tick_constraints
 			{
 				constexpr GLuint base{ ::game_state::shader_indices::tick::process_entities::pre_constraints::end };
+
+				enum struct Indices : GLuint
+				{
+					on_tick_constraints = base,
+
+					end
+				};
+
+				constexpr GLuint end{ static_cast<GLuint>(Indices::end) };
+				constexpr GLuint count{ end - base };
+			}
+
+			namespace constraints
+			{
+				constexpr GLuint base{ ::game_state::shader_indices::tick::process_entities::on_tick_constraints::end };
 
 				enum struct Indices : GLuint
 				{

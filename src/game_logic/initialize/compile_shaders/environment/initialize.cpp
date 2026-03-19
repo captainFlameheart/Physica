@@ -89,7 +89,8 @@ namespace game_logic::initialize::compile_shaders::environment
 
 		constexpr GLuint constraint_tick_entities_program_base
 		{
-			constraint_perform_compaction_program_base + ::game_state::shader_indices::tick::process_entities::pre_constraints::perform_compaction::count
+			::game_state::shader_indices::tick::process_entities::constraints::base - ::game_state::shader_indices::tick::process_entities::base
+			//constraint_perform_compaction_program_base + ::game_state::shader_indices::tick::process_entities::pre_constraints::perform_compaction::count
 		};
 
 		std::string constraint_spawners_local_sizes_flags
@@ -224,6 +225,11 @@ namespace game_logic::initialize::compile_shaders::environment
 			dispatch_command_blueprints += "	uvec2(" + std::to_string(0u) + ", " + std::to_string(0u) + "),\n";
 		}
 
+		for (GLuint i{ 0u }; i < ::game_state::shader_indices::tick::process_entities::on_tick_constraints::count; ++i)
+		{
+			dispatch_command_blueprints += "	uvec2(" + std::to_string(0u) + ", " + std::to_string(0u) + "),\n";
+		}
+
 		for (GLuint i{ 0u }; i < ::game_state::shader_indices::tick::process_entities::constraints::count; ++i)
 		{
 			GLuint entity_type{ static_cast<GLuint>(::game_state::shader_to_entity_type::tick_constraints_shader_to_entity_type[i]) };
@@ -246,7 +252,7 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uvec2 draw_arrays_command_blueprints[" + std::to_string(::game_state::shader_indices::draw::entities::count) + "] = \n"
 			"{	// (entity_type_index, vertex_factor)\n"
 		};
-		for (GLuint draw_arrays_command_index{0u}; draw_arrays_command_index < ::game_state::shader_indices::draw::entities::count; ++draw_arrays_command_index)
+		for (GLuint draw_arrays_command_index{ 0u }; draw_arrays_command_index < ::game_state::shader_indices::draw::entities::count; ++draw_arrays_command_index)
 		{
 			GLuint entity_type_index{ static_cast<GLuint>(::game_state::shader_to_entity_type::draw_entities_shader_to_entity_type[draw_arrays_command_index]) };
 			GLuint vertex_factor{ ::game_state::vertex_factors::draw_entities_vertex_factors[draw_arrays_command_index] };

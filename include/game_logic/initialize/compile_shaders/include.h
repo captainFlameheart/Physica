@@ -13,6 +13,7 @@
 #include "compile_draw_rigid_body_triangles.h"
 #include "compile_initialize.h"
 #include "compile_on_key_event.h"
+#include "compile_on_tick_constraints.h"
 #include "compile_on_update_tick_counts.h"
 #include "compile_perform_rigid_body_circle_contact_constraint_compaction.h"
 #include "compile_perform_rigid_body_circle_contact_constraint_spawner_compaction.h"
