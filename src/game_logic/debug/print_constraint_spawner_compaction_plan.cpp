@@ -118,6 +118,7 @@ namespace game_logic::debug
 			sizeof(GLuint)
 		);
 
+		std::cout << "temp: " << temp << '\n';
 		std::cout << "rigid_body_circle_contact_constraint_spawner_old_write_count: " << rigid_body_circle_contact_constraint_spawner_old_write_count << '\n';
 		std::cout << "rigid_body_circle_contact_constraint_spawner_write_count: " << rigid_body_circle_contact_constraint_spawner_write_count << '\n';
 		std::cout << '\n';

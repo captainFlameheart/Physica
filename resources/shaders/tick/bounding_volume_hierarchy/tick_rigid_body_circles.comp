@@ -3,6 +3,12 @@ void main()
 {
 	uint index = gl_GlobalInvocationID.x;
 	uint count = fixed_data.read_counts[rigid_body_circle_type_index];
+
+	if (gl_GlobalInvocationID.x == 0u)
+	{
+		fixed_data.temp = count;
+	}
+
 	if (index >= count)
 	{
 		return;
@@ -31,13 +37,16 @@ void main()
 	(
 		angle_cos, angle_sin,
 		-angle_sin, angle_cos
-	) * position_radius.xy;
+	) * position_radius.xy * meter_in_length_units;	// TODO: Store all lengths in length units.
 
-	vec2 half_size = vec2(position_radius.z);
+	vec2 half_size = vec2(position_radius.z * meter_in_length_units);
 	uvec4 bounding_box = uvec4
 	(
 		rigid_body_position_flags.xy + uvec2(ivec2(offset - half_size)),
 		rigid_body_position_flags.xy + uvec2(ivec2(offset + half_size))
 	);
+	uvec4_data.data[write_bounding_box_index] = bounding_box;
+
+	bounding_box = uvec4(vec4(2.0 * float(index), 0.0, 2.0 * float(index) + 1.0, 1.0) * meter_in_length_units);
 	uvec4_data.data[write_bounding_box_index] = bounding_box;
 }
