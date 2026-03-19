@@ -176,7 +176,7 @@ namespace game_logic::initialize::compile_shaders::environment
 			dispatch_command_blueprints += "	uvec2(" + std::to_string(entity_type) + ", " + std::to_string(local_size) + "),\n";
 		}
 
-		for (GLuint i{ 0u }; i < ::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::leafs::count; ++i)
+		for (GLuint i{ 0u }; i < ::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::count; ++i)
 		{
 			dispatch_command_blueprints += "	uvec2(" + std::to_string(0u) + ", " + std::to_string(0u) + "),\n";
 		}
@@ -274,6 +274,10 @@ namespace game_logic::initialize::compile_shaders::environment
 
 		constexpr GLuint tick_rigid_body_circles_local_size{ ::game_state::local_sizes::process_entities_local_sizes[
 			static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::leafs::Indices::rigid_body_circles) - tick_entities_local_size_base
+		] };
+
+		constexpr GLuint swap_leaf_bounding_box_buffers_local_size{ ::game_state::local_sizes::process_entities_local_sizes[
+			static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::swap_leaf_bounding_box_buffers::Indices::swap_leaf_bounding_box_buffers) - tick_entities_local_size_base
 		] };
 
 		constexpr GLuint commit_constraint_spawner_counts_local_size{ ::game_state::local_sizes::process_entities_local_sizes[
@@ -387,6 +391,7 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uint update_tick_counts_local_size = " + ::std::to_string(update_tick_counts_local_size) + ";\n"
 			"const uint process_point_masses_local_size = " + ::std::to_string(process_point_masses_local_size) + ";\n"
 			"const uint tick_rigid_bodies_local_size = " + ::std::to_string(tick_rigid_bodies_local_size) + ";\n"
+			"const uint swap_leaf_bounding_box_buffers_local_size = " + ::std::to_string(swap_leaf_bounding_box_buffers_local_size) + ";\n"
 			"const uint tick_rigid_body_circles_local_size = " + ::std::to_string(tick_rigid_body_circles_local_size) + ";\n"
 			"const uint commit_constraint_spawner_counts_local_size = " + ::std::to_string(commit_constraint_spawner_counts_local_size) + ";\n"
 			"const uint plan_rigid_body_circle_contact_constraint_spawner_compaction_local_size = " + ::std::to_string(plan_rigid_body_circle_contact_constraint_spawner_compaction_local_size) + ";\n"
