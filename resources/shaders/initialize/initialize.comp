@@ -147,8 +147,9 @@ void main()
 		uint local_base = leaf_bounding_box_local_bases[leaf_bounding_box_type];
 
 		fixed_data.leaf_bounding_box_parent_bases[leaf_bounding_box_type] = leaf_bounding_box_parent_base + local_base;
-		fixed_data.read_leaf_bounding_box_bases[leaf_bounding_box_type] = read_bounding_box_base + local_base;
-		fixed_data.write_leaf_bounding_box_bases[leaf_bounding_box_type] = write_bounding_box_base + local_base;
+		// Notice the swap of read and write buffers.
+		fixed_data.read_leaf_bounding_box_bases[leaf_bounding_box_type] = write_bounding_box_base + local_base;
+		fixed_data.write_leaf_bounding_box_bases[leaf_bounding_box_type] = read_bounding_box_base + local_base;
 	}
 
 	uint rigid_body_circle_contact_constraint_spawner_count = capacities[rigid_body_circle_type_index] * (capacities[rigid_body_circle_type_index] - 1u) / 2u;
