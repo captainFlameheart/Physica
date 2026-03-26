@@ -32,12 +32,11 @@ void main()
 	uvec4 camera_position = fixed_data.camera_position;
 	mat4 camera_offset_to_clip_coordinates = fixed_data.camera_offset_to_clip_coordinates;
 
-	uint read_bounding_box_base = fixed_data.read_leaf_bounding_box_bases[index];
+	uint read_bounding_box_base = fixed_data.read_leaf_bounding_box_bases[rigid_body_circle_bounding_box_type];
 
 	uint read_bounding_box_index = read_bounding_box_base + index;
 
 	uvec4 bounding_box = uvec4_data.data[read_bounding_box_index];
-	//bounding_box = uvec4(vec4(2.0 * float(index), 0.0, 2.0 * float(index) + 1.0, 1.0) * meter_in_length_units);
 
 	size = vec2(ivec2(bounding_box.zw - bounding_box.xy));
 

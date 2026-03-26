@@ -28,6 +28,14 @@ namespace game_logic::debug
 		{
 			static_cast<GLuint>(::game_state::entity_type_indices::constraints::Indices::rigid_body_circle_contact_constraint)
 		};
+		constexpr GLuint rigid_body_circle_type
+		{
+			static_cast<GLuint>(::game_state::entity_type_indices::body_attachments::Indices::rigid_body_circle)
+		};
+		constexpr GLuint rigid_body_circle_bounding_box_type
+		{
+			static_cast<GLuint>(::game_state::leaf_bounding_box_types::Indices::rigid_body_circle)
+		};
 
 		GLuint point_mass_inverse_mass_base;
 		std::memcpy
@@ -42,6 +50,16 @@ namespace game_logic::debug
 		(
 			&point_mass_distance_constraint_flags_target_distance_base,
 			fixed_data + environment.state.layouts.fixed_data.point_mass_distance_constraint_flags_target_distance_base_state.offset,
+			sizeof(GLuint)
+		);
+
+		GLuint rigid_body_circle_capacity;
+		std::memcpy
+		(
+			&rigid_body_circle_capacity,
+			fixed_data +
+			environment.state.layouts.fixed_data.capacities_state.offset +
+			rigid_body_circle_type * environment.state.layouts.fixed_data.capacities_state.array_stride,
 			sizeof(GLuint)
 		);
 
@@ -156,6 +174,7 @@ namespace game_logic::debug
 		std::cout << "inner_bounding_box_child_pair_base: " << inner_bounding_box_child_pair_base << '\n';
 
 		std::cout << "read_leaf_bounding_box_bases:\n";
+		GLuint read_leaf_bounding_box_bases[::game_state::leaf_bounding_box_types::count];
 		for (GLuint leaf_bounding_box_type{ 0u }; leaf_bounding_box_type < ::game_state::leaf_bounding_box_types::count; ++leaf_bounding_box_type)
 		{
 			GLuint read_leaf_bounding_box_base;
@@ -167,6 +186,7 @@ namespace game_logic::debug
 				leaf_bounding_box_type * environment.state.layouts.fixed_data.read_leaf_bounding_box_bases_state.array_stride,
 				sizeof(GLuint)
 			);
+			read_leaf_bounding_box_bases[leaf_bounding_box_type] = read_leaf_bounding_box_base;
 			std::cout << "	" << read_leaf_bounding_box_base << '\n';
 		}
 		
@@ -257,5 +277,56 @@ namespace game_logic::debug
 		}
 
 		std::cout << '\n';
+
+		GLuint rigid_body_circle_read_bounding_boxes_size{ rigid_body_circle_capacity * 16u };
+		GLubyte* rigid_body_circle_read_bounding_boxes = new GLubyte[rigid_body_circle_read_bounding_boxes_size];
+		glGetNamedBufferSubData
+		(
+			environment.state.buffers.GPU_only.buffers[environment.state.buffers.GPU_only.current],
+			environment.state.layouts.uvec4_data.state.offset + read_leaf_bounding_box_bases[rigid_body_circle_bounding_box_type] * environment.state.layouts.uvec4_data.state.array_stride,
+			rigid_body_circle_read_bounding_boxes_size,
+			rigid_body_circle_read_bounding_boxes
+		);
+		GLuint rigid_body_circle_read_count;
+		std::memcpy
+		(
+			&rigid_body_circle_read_count,
+			fixed_data +
+			environment.state.layouts.fixed_data.read_counts_state.offset +
+			rigid_body_circle_type * environment.state.layouts.fixed_data.read_counts_state.array_stride,
+			sizeof(GLuint)
+		);
+		GLuint rigid_body_circle_write_count;
+		std::memcpy
+		(
+			&rigid_body_circle_write_count,
+			fixed_data +
+			environment.state.layouts.fixed_data.write_counts_state.offset +
+			rigid_body_circle_type * environment.state.layouts.fixed_data.write_counts_state.array_stride,
+			sizeof(GLuint)
+		);
+		std::cout << "Rigid body circles:\n";
+		for (GLuint rigid_body_circle{ 0u }; rigid_body_circle < rigid_body_circle_write_count; ++rigid_body_circle)
+		{
+			GLuint rigid_body_circle_read_bounding_box[4u];
+			std::memcpy
+			(
+				&rigid_body_circle_read_bounding_box,
+				rigid_body_circle_read_bounding_boxes + rigid_body_circle * 16u,
+				sizeof(GLuint[4u])
+			);
+			std::cout << "read_bounding_box: ("
+				<< rigid_body_circle_read_bounding_box[0u] << ", "
+				<< rigid_body_circle_read_bounding_box[1u] << ", "
+				<< rigid_body_circle_read_bounding_box[2u] << ", "
+				<< rigid_body_circle_read_bounding_box[3u] << ")\n";
+		}
+
+		delete[] rigid_body_circle_read_bounding_boxes;
+
+		std::cout << std::endl;
+
+		delete[] fixed_data;
+		delete[] commands;
 	}
 }
