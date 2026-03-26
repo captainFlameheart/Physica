@@ -59,6 +59,16 @@ namespace game_state::layouts::fixed_data
 		GLint offset;
 	};
 
+	struct rigid_body_write_velocity_flags_base
+	{
+		GLint offset;
+	};
+
+	struct rigid_body_circle_body_position_radius_base
+	{
+		GLint offset;
+	};
+
 	struct leaf_bounding_box_parent_bases
 	{
 		GLint offset;
@@ -91,6 +101,11 @@ namespace game_state::layouts::fixed_data
 	};
 
 	struct write_inner_bounding_box_base
+	{
+		GLint offset;
+	};
+
+	struct rigid_body_circle_contact_constraint_spawner_indices_flags_base
 	{
 		GLint offset;
 	};
@@ -393,6 +408,18 @@ namespace game_state::layouts::fixed_data
 
 		union
 		{
+			rigid_body_write_velocity_flags_base rigid_body_write_velocity_flags_base_state;
+			GLint rigid_body_write_velocity_flags_base_properties[sizeof(rigid_body_write_velocity_flags_base) / sizeof(GLint)];
+		};
+
+		union
+		{
+			rigid_body_circle_body_position_radius_base rigid_body_circle_body_position_radius_base_state;
+			GLint rigid_body_circle_body_position_radius_base_properties[sizeof(rigid_body_circle_body_position_radius_base) / sizeof(GLint)];
+		};
+
+		union
+		{
 			leaf_bounding_box_parent_bases leaf_bounding_box_parent_bases_state;
 			GLint leaf_bounding_box_parent_bases_properties[sizeof(leaf_bounding_box_parent_bases) / sizeof(GLint)];
 		};
@@ -422,6 +449,11 @@ namespace game_state::layouts::fixed_data
 			GLint write_inner_bounding_box_base_properties[sizeof(write_inner_bounding_box_base) / sizeof(GLint)];
 		};
 		
+		union
+		{
+			rigid_body_circle_contact_constraint_spawner_indices_flags_base rigid_body_circle_contact_constraint_spawner_indices_flags_base_state;
+			GLint rigid_body_circle_contact_constraint_spawner_indices_flags_base_properties[sizeof(rigid_body_circle_contact_constraint_spawner_indices_flags_base) / sizeof(GLint)];
+		};
 		union
 		{
 			rigid_body_circle_contact_constraint_spawner_killed_ring_base rigid_body_circle_contact_constraint_spawner_killed_ring_base_state;

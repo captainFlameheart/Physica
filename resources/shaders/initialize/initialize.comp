@@ -6,8 +6,8 @@ void main()
 	fixed_data.temp = uint(-1);
 
 	const uint distance = uint(int(0.5 * meter_in_length_units));
-	uint rows = 10u;
-	uint columns = 10u;
+	uint rows = 2u;//10u;
+	uint columns = 2u;//10u;
 
 	const uint tick = uint(-1);
 	fixed_data.tick = tick;
@@ -110,6 +110,7 @@ void main()
 	uint leaf_bounding_box_capacity = 0u;
 	uint next_bounding_box_local_base = 0u;
 	uint leaf_bounding_box_local_bases[leaf_bounding_box_type_count];
+	leaf_bounding_box_local_bases[rigid_body_triangle_bounding_box_type] = 0u;	// TODO: REPLACE!
 
 	next_bounding_box_local_base = align_up_to_common_base(next_bounding_box_local_base);
 	leaf_bounding_box_local_bases[rigid_body_circle_bounding_box_type] = next_bounding_box_local_base;

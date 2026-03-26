@@ -30,6 +30,18 @@ namespace game_logic::initialize::query_layouts
 			environment.state.layouts.fixed_data.point_mass_inverse_mass_base_properties
 		);
 
+		::game_logic::shader_util::query::query_shader_storage_variable_offset
+		(
+			program, "Fixed_Data.rigid_body_write_velocity_flags_base",
+			environment.state.layouts.fixed_data.rigid_body_write_velocity_flags_base_properties
+		);
+
+		::game_logic::shader_util::query::query_shader_storage_variable_offset
+		(
+			program, "Fixed_Data.rigid_body_circle_body_position_radius_base",
+			environment.state.layouts.fixed_data.rigid_body_circle_body_position_radius_base_properties
+		);
+
 		::game_logic::shader_util::query::query_shader_storage_variable_offset_array_stride_array_size
 		(
 			program, "Fixed_Data.leaf_bounding_box_parent_bases",
@@ -63,8 +75,19 @@ namespace game_logic::initialize::query_layouts
 
 		::game_logic::shader_util::query::query_shader_storage_variable_offset
 		(
+			program, "Fixed_Data.rigid_body_circle_contact_constraint_spawner_indices_flags_base",
+			environment.state.layouts.fixed_data.rigid_body_circle_contact_constraint_spawner_indices_flags_base_properties
+		);
+
+		::game_logic::shader_util::query::query_shader_storage_variable_offset
+		(
 			program, "Fixed_Data.point_mass_distance_constraint_flags_target_distance_base",
 			environment.state.layouts.fixed_data.point_mass_distance_constraint_flags_target_distance_base_properties
+		);
+		::game_logic::shader_util::query::query_shader_storage_variable_offset
+		(
+			program, "Fixed_Data.point_mass_distance_constraint_indices_turns_base",
+			environment.state.layouts.fixed_data.point_mass_distance_constraint_indices_turns_base_properties
 		);
 		
 		::game_logic::shader_util::query::query_shader_storage_variable_offset_array_stride_array_size

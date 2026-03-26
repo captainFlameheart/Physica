@@ -108,7 +108,29 @@ namespace game_logic::debug
 		std::cout << "point_mass_inverse_mass_base: " << point_mass_inverse_mass_base << '\n';
 		
 		std::cout << '\n';
+
+		GLuint rigid_body_write_velocity_flags_base;
+		std::memcpy
+		(
+			&rigid_body_write_velocity_flags_base,
+			fixed_data + environment.state.layouts.fixed_data.rigid_body_write_velocity_flags_base_state.offset,
+			sizeof(GLuint)
+		);
+		std::cout << "rigid_body_write_velocity_flags_base: " << rigid_body_write_velocity_flags_base << '\n';
+
+		std::cout << '\n';
 		
+		GLuint rigid_body_circle_body_position_radius_base;
+		std::memcpy
+		(
+			&rigid_body_circle_body_position_radius_base,
+			fixed_data + environment.state.layouts.fixed_data.rigid_body_circle_body_position_radius_base_state.offset,
+			sizeof(GLuint)
+		);
+		std::cout << "rigid_body_circle_body_position_radius_base: " << rigid_body_circle_body_position_radius_base << '\n';
+
+		std::cout << '\n';
+
 		std::cout << "leaf_bounding_box_parent_bases:\n";
 		for (GLuint leaf_bounding_box_type{ 0u }; leaf_bounding_box_type < ::game_state::leaf_bounding_box_types::count; ++leaf_bounding_box_type)
 		{
@@ -183,8 +205,28 @@ namespace game_logic::debug
 
 		std::cout << '\n';
 		
+		GLuint rigid_body_circle_contact_constraint_spawner_indices_flags_base;
+		std::memcpy
+		(
+			&rigid_body_circle_contact_constraint_spawner_indices_flags_base,
+			fixed_data + environment.state.layouts.fixed_data.rigid_body_circle_contact_constraint_spawner_indices_flags_base_state.offset,
+			sizeof(GLuint)
+		);
+		std::cout << "rigid_body_circle_contact_constraint_spawner_indices_flags_base: " << rigid_body_circle_contact_constraint_spawner_indices_flags_base << '\n';
+
+		std::cout << '\n';
+
 		std::cout << "point_mass_distance_constraint_flags_target_distance_base: " << point_mass_distance_constraint_flags_target_distance_base << '\n';
 		
+		GLuint point_mass_distance_constraint_indices_turns_base;
+		std::memcpy
+		(
+			&point_mass_distance_constraint_indices_turns_base,
+			fixed_data + environment.state.layouts.fixed_data.point_mass_distance_constraint_indices_turns_base_state.offset,
+			sizeof(GLuint)
+		);
+		std::cout << "point_mass_distance_constraint_indices_turns_base: " << point_mass_distance_constraint_indices_turns_base << '\n';
+
 		std::cout << '\n';
 		
 		std::cout << "point_mass_distance_constraint_read_count: " << point_mass_distance_constraint_read_count << '\n';
