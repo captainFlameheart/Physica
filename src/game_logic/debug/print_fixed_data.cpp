@@ -103,17 +103,100 @@ namespace game_logic::debug
 			sizeof(GLuint)
 		);
 
+		std::cout << "Fixed Data:\n";
+
 		std::cout << "point_mass_inverse_mass_base: " << point_mass_inverse_mass_base << '\n';
+		
+		std::cout << '\n';
+		
+		std::cout << "leaf_bounding_box_parent_bases:\n";
+		for (GLuint leaf_bounding_box_type{ 0u }; leaf_bounding_box_type < ::game_state::leaf_bounding_box_types::count; ++leaf_bounding_box_type)
+		{
+			GLuint leaf_bounding_box_parent_base;
+			std::memcpy
+			(
+				&leaf_bounding_box_parent_base,
+				fixed_data +
+				environment.state.layouts.fixed_data.leaf_bounding_box_parent_bases_state.offset +
+				leaf_bounding_box_type * environment.state.layouts.fixed_data.leaf_bounding_box_parent_bases_state.array_stride,
+				sizeof(GLuint)
+			);
+			std::cout << "	" << leaf_bounding_box_parent_base << '\n';
+		}
 
+		GLuint inner_bounding_box_child_pair_base;
+		std::memcpy
+		(
+			&inner_bounding_box_child_pair_base,
+			fixed_data + environment.state.layouts.fixed_data.inner_bounding_box_child_pair_base_state.offset,
+			sizeof(GLuint)
+		);
+		std::cout << "inner_bounding_box_child_pair_base: " << inner_bounding_box_child_pair_base << '\n';
+
+		std::cout << "read_leaf_bounding_box_bases:\n";
+		for (GLuint leaf_bounding_box_type{ 0u }; leaf_bounding_box_type < ::game_state::leaf_bounding_box_types::count; ++leaf_bounding_box_type)
+		{
+			GLuint read_leaf_bounding_box_base;
+			std::memcpy
+			(
+				&read_leaf_bounding_box_base,
+				fixed_data +
+				environment.state.layouts.fixed_data.read_leaf_bounding_box_bases_state.offset +
+				leaf_bounding_box_type * environment.state.layouts.fixed_data.read_leaf_bounding_box_bases_state.array_stride,
+				sizeof(GLuint)
+			);
+			std::cout << "	" << read_leaf_bounding_box_base << '\n';
+		}
+		
+		std::cout << "write_leaf_bounding_box_bases:\n";
+		for (GLuint leaf_bounding_box_type{ 0u }; leaf_bounding_box_type < ::game_state::leaf_bounding_box_types::count; ++leaf_bounding_box_type)
+		{
+			GLuint write_leaf_bounding_box_base;
+			std::memcpy
+			(
+				&write_leaf_bounding_box_base,
+				fixed_data +
+				environment.state.layouts.fixed_data.write_leaf_bounding_box_bases_state.offset +
+				leaf_bounding_box_type * environment.state.layouts.fixed_data.write_leaf_bounding_box_bases_state.array_stride,
+				sizeof(GLuint)
+			);
+			std::cout << "	" << write_leaf_bounding_box_base << '\n';
+		}
+
+		GLuint read_inner_bounding_box_base;
+		std::memcpy
+		(
+			&read_inner_bounding_box_base,
+			fixed_data + environment.state.layouts.fixed_data.read_inner_bounding_box_base_state.offset,
+			sizeof(GLuint)
+		);
+		std::cout << "read_inner_bounding_box_base: " << read_inner_bounding_box_base << '\n';
+
+		GLuint write_inner_bounding_box_base;
+		std::memcpy
+		(
+			&write_inner_bounding_box_base,
+			fixed_data + environment.state.layouts.fixed_data.write_inner_bounding_box_base_state.offset,
+			sizeof(GLuint)
+		);
+		std::cout << "write_inner_bounding_box_base: " << write_inner_bounding_box_base << '\n';
+
+		std::cout << '\n';
+		
 		std::cout << "point_mass_distance_constraint_flags_target_distance_base: " << point_mass_distance_constraint_flags_target_distance_base << '\n';
-
+		
+		std::cout << '\n';
+		
 		std::cout << "point_mass_distance_constraint_read_count: " << point_mass_distance_constraint_read_count << '\n';
 		std::cout << "point_mass_distance_constraint_write_count: " << point_mass_distance_constraint_write_count << '\n';
-
+		
+		std::cout << '\n';
+		
 		std::cout << "rigid_body_circle_contact_constraint_capacity: " << rigid_body_circle_contact_constraint_capacity << '\n';
 		std::cout << "rigid_body_circle_contact_constraint_old_write_count: " << rigid_body_circle_contact_constraint_old_write_count << '\n';
 		std::cout << "rigid_body_circle_contact_constraint_read_count: " << rigid_body_circle_contact_constraint_read_count << '\n';
 		std::cout << "rigid_body_circle_contact_constraint_write_count: " << rigid_body_circle_contact_constraint_write_count << '\n';
+		
 		std::cout << '\n';
 
 		std::cout << "Work group counts: " << '\n';

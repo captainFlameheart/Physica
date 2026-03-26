@@ -23,6 +23,7 @@ namespace game_logic::binding_util
 			buffers
 		);
 		
+		// TODO: Bind range to avoid uniform buffer becoming too big?
 		glBindBufferBase(GL_UNIFORM_BUFFER, ::game_state::bindings::uniform::fixed_data, buffer);
 		
 		//glBindBuffer(GL_DISPATCH_INDIRECT_BUFFER, buffer);

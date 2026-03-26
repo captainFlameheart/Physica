@@ -6,7 +6,8 @@ struct Dispatch_Command
 	uint pad;
 };
 
-struct Draw_Arrays_Command {
+struct Draw_Arrays_Command
+{
     uint count;
     uint instance_count;
     uint first;

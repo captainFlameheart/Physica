@@ -30,6 +30,37 @@ namespace game_logic::initialize::query_layouts
 			environment.state.layouts.fixed_data.point_mass_inverse_mass_base_properties
 		);
 
+		::game_logic::shader_util::query::query_shader_storage_variable_offset_array_stride_array_size
+		(
+			program, "Fixed_Data.leaf_bounding_box_parent_bases",
+			environment.state.layouts.fixed_data.leaf_bounding_box_parent_bases_properties
+		);
+		::game_logic::shader_util::query::query_shader_storage_variable_offset
+		(
+			program, "Fixed_Data.inner_bounding_box_child_pair_base",
+			environment.state.layouts.fixed_data.inner_bounding_box_child_pair_base_properties
+		);
+		::game_logic::shader_util::query::query_shader_storage_variable_offset_array_stride_array_size
+		(
+			program, "Fixed_Data.read_leaf_bounding_box_bases",
+			environment.state.layouts.fixed_data.read_leaf_bounding_box_bases_properties
+		);
+		::game_logic::shader_util::query::query_shader_storage_variable_offset_array_stride_array_size
+		(
+			program, "Fixed_Data.write_leaf_bounding_box_bases",
+			environment.state.layouts.fixed_data.write_leaf_bounding_box_bases_properties
+		);
+		::game_logic::shader_util::query::query_shader_storage_variable_offset
+		(
+			program, "Fixed_Data.read_inner_bounding_box_base",
+			environment.state.layouts.fixed_data.read_inner_bounding_box_base_properties
+		);
+		::game_logic::shader_util::query::query_shader_storage_variable_offset
+		(
+			program, "Fixed_Data.write_inner_bounding_box_base",
+			environment.state.layouts.fixed_data.write_inner_bounding_box_base_properties
+		);
+
 		::game_logic::shader_util::query::query_shader_storage_variable_offset
 		(
 			program, "Fixed_Data.point_mass_distance_constraint_flags_target_distance_base",

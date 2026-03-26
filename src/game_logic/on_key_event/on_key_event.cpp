@@ -72,6 +72,9 @@ namespace game_logic::on_key_event
 					std::cout << "Debug ended." << std::endl;
 				}
 				break;
+			case GLFW_KEY_O:
+				::game_logic::debug::print_fixed_data(environment);
+				break;
 			default:
 				break;
 			}
