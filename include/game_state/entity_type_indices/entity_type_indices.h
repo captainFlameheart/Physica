@@ -37,9 +37,24 @@ namespace game_state::entity_type_indices
 		constexpr GLuint count{ end - base };
 	}
 
-	namespace constraint_spawners
+	namespace bounding_volume_hierarchy
 	{
 		constexpr GLuint base{ ::game_state::entity_type_indices::body_attachments::end };
+
+		enum struct Indices : GLuint
+		{
+			inner_bounding_box = base,
+
+			end
+		};
+
+		constexpr GLuint end{ static_cast<GLuint>(Indices::end) };
+		constexpr GLuint count{ end - base };
+	}
+
+	namespace constraint_spawners
+	{
+		constexpr GLuint base{ ::game_state::entity_type_indices::bounding_volume_hierarchy::end };
 
 		enum struct Indices : GLuint
 		{

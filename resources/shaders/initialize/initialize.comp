@@ -283,7 +283,8 @@ void main()
 	fixed_data.read_counts[rigid_body_circle_contact_constraint_type_index] = rigid_body_circle_contact_constraint_count;
 	fixed_data.write_counts[rigid_body_circle_contact_constraint_type_index] = rigid_body_circle_contact_constraint_count;
 
-	fixed_data.inner_bounding_box_count = inner_bounding_box_count;
+	fixed_data.read_counts[inner_bounding_box_type] = inner_bounding_box_count;
+	fixed_data.write_counts[inner_bounding_box_type] = inner_bounding_box_count;
 
 	for (uint dispatch_program_index = 0u; dispatch_program_index < dispatch_program_count; ++dispatch_program_index)
 	{
@@ -497,8 +498,9 @@ void main()
 			{
 				uvec2_data.data[inner_bounding_box_child_pair_base + inner_bounding_box_index] =
 					uvec2(leaf_index, bounding_volume_hierarchy_root);
-				uvec4_data.data[read_inner_bounding_box_base + inner_bounding_box_index] = uvec4(0u);
-				uvec4_data.data[write_inner_bounding_box_base + inner_bounding_box_index] = uvec4(0u);
+				uvec4 bounding_box = uvec4(vec4(0.0, 0.0, 1.0, 1.0) * meter_in_length_units);
+				uvec4_data.data[read_inner_bounding_box_base + inner_bounding_box_index] = bounding_box;
+				uvec4_data.data[write_inner_bounding_box_base + inner_bounding_box_index] = bounding_box;
 				bounding_volume_hierarchy_root = inner_bounding_box_index;
 				++inner_bounding_box_index;
 			}

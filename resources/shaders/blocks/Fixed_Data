@@ -148,7 +148,6 @@ FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 	uint write_leaf_bounding_box_bases[leaf_bounding_box_type_count];
 	uint read_inner_bounding_box_base;
 	uint write_inner_bounding_box_base;
-	uint inner_bounding_box_count;
 
 	uint rigid_body_circle_contact_constraint_spawner_indices_flags_base;
 
@@ -172,10 +171,10 @@ FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 
 	// TODO: Pad counts to avoid false sharing (unnecessary conflicts during atomic additions)
 	uint read_counts[entity_type_count];
-	uint write_counts[entity_type_count];	// TODO: Switch to ends for faster appends.
+	uint write_counts[entity_type_count];	// TODO: Switch to ends for faster appends?
 	uint death_index_bases[entity_type_count];
 	uint killed_bases[entity_type_count];
-	uint kill_counts[entity_type_count];	// TODO: Switch to ends for faster appends.
+	uint kill_counts[entity_type_count];	// TODO: Switch to ends for faster appends?
 
 	uint dispatch_command_flags[dispatch_program_count];	// TODO: Remove.
 	

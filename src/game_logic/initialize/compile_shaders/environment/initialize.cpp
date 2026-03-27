@@ -380,6 +380,7 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uint rigid_body_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::bodies::Indices::rigid_body)) + ";\n"
 			"const uint rigid_body_triangle_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::body_attachments::Indices::rigid_body_triangle)) + ";\n"
 			"const uint rigid_body_circle_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::body_attachments::Indices::rigid_body_circle)) + ";\n"
+			"const uint inner_bounding_box_type = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::bounding_volume_hierarchy::Indices::inner_bounding_box)) + ";\n"
 			"const uint rigid_body_circle_contact_constraint_spawner_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::constraint_spawners::Indices::rigid_body_circle_contact_constraint_spawner)) + ";\n"
 			"const uint point_mass_distance_constraint_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::constraints::Indices::point_mass_distance_constraint)) + ";\n"
 			"const uint rigid_body_circle_contact_constraint_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::constraints::Indices::rigid_body_circle_contact_constraint)) + ";\n"

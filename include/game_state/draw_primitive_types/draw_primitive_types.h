@@ -24,6 +24,7 @@ namespace game_state::draw_primitive_types
 		primitive_types[static_cast<GLuint>(::game_state::shader_indices::draw::entities::constraints::Indices::point_mass_distance_constraints) - base] = default_primitive_type;
 		
 		primitive_types[static_cast<GLuint>(::game_state::shader_indices::draw::entities::bounding_volume_hierarchy::Indices::rigid_body_circle_bounding_boxes) - base] = default_primitive_type;
+		primitive_types[static_cast<GLuint>(::game_state::shader_indices::draw::entities::bounding_volume_hierarchy::Indices::inner_bounding_boxes) - base] = default_primitive_type;
 
 		return primitive_types;
 	}
