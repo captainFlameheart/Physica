@@ -1,0 +1,24 @@
+layout(local_size_x = tick_inner_bounding_boxes_local_size) in;
+void main()
+{
+	uint index = gl_GlobalInvocationID.x;
+	uint count = fixed_data.read_counts[inner_bounding_box_type];
+	if (index >= count)
+	{
+		return;
+	}
+
+	uint child_pair_base = fixed_data.inner_bounding_box_child_pair_base;
+	uint read_inner_bounding_box_base = fixed_data.read_inner_bounding_box_base;
+	uint write_inner_bounding_box_base = fixed_data.write_inner_bounding_box_base;
+
+	uint child_pair_index = child_pair_base + index;
+	uint write_bounding_box_index = write_inner_bounding_box_base + index;
+
+	uvec2 child_pair = uvec2_data.data[child_pair_index];
+	uvec4 bounding_box_0 = uvec4_data.data[read_inner_bounding_box_base + child_pair.x];
+	uvec4 bounding_box_1 = uvec4_data.data[read_inner_bounding_box_base + child_pair.y];
+
+	uvec4 bounding_box = uvec4(min(bounding_box_0.xy, bounding_box_1.xy), max(bounding_box_0.zw, bounding_box_1.zw));
+	uvec4_data.data[write_bounding_box_index] = bounding_box;
+}

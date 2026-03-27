@@ -3,12 +3,6 @@ void main()
 {
 	uint index = gl_GlobalInvocationID.x;
 	uint count = fixed_data.read_counts[rigid_body_circle_type_index];
-
-	if (gl_GlobalInvocationID.x == 0u)
-	{
-		fixed_data.temp = count;
-	}
-
 	if (index >= count)
 	{
 		return;
