@@ -4,6 +4,7 @@ const float pi = 3.141592653589793;
 const uint minus_1_uint = uint(-1);
 const uint null_uint = minus_1_uint;
 const uint decrement_uint = minus_1_uint;
+const uint max_uint = 0xFFFFFFFF;
 
 const uint uint_size_shift = 2u;
 const uint uint_size = 1u << uint_size_shift;
@@ -147,6 +148,7 @@ FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 	uint write_leaf_bounding_box_bases[leaf_bounding_box_type_count];
 	uint read_inner_bounding_box_base;
 	uint write_inner_bounding_box_base;
+	uint inner_bounding_box_count;
 
 	uint rigid_body_circle_contact_constraint_spawner_indices_flags_base;
 
