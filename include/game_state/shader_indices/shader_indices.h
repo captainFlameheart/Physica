@@ -93,9 +93,24 @@ namespace game_state::shader_indices
 					constexpr GLuint count{ end - base };
 				}
 
-				namespace swap_leaf_bounding_box_buffers
+				namespace inner_bounding_boxes
 				{
 					constexpr GLuint base{ ::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::leafs::end };
+
+					enum struct Indices : GLuint
+					{
+						inner_bounding_boxes = base,
+
+						end
+					};
+
+					constexpr GLuint end{ static_cast<GLuint>(Indices::end) };
+					constexpr GLuint count{ end - base };
+				}
+
+				namespace swap_leaf_bounding_box_buffers
+				{
+					constexpr GLuint base{ ::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::inner_bounding_boxes::end };
 
 					enum struct Indices : GLuint
 					{

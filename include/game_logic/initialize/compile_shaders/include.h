@@ -29,6 +29,7 @@
 #include "compile_update_draw_counts.h"
 #include "compile_update_tick_counts.h"
 #include "compile_shaders.h"
+#include "compile_tick_inner_bounding_boxes.h"
 #include "compile_swap_leaf_bounding_box_buffers.h"
 #include "compile_tick_point_mass_distance_constraints.h"
 #include "game_state/shader_indices/include.h"

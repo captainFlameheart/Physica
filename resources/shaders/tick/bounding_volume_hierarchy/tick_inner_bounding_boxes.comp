@@ -16,8 +16,8 @@ void main()
 	uint write_bounding_box_index = write_inner_bounding_box_base + index;
 
 	uvec2 child_pair = uvec2_data.data[child_pair_index];
-	uvec4 bounding_box_0 = uvec4_data.data[read_inner_bounding_box_base + child_pair.x];
-	uvec4 bounding_box_1 = uvec4_data.data[read_inner_bounding_box_base + child_pair.y];
+	ivec4 bounding_box_0 = ivec4(uvec4_data.data[read_inner_bounding_box_base + child_pair.x]);
+	ivec4 bounding_box_1 = ivec4(uvec4_data.data[read_inner_bounding_box_base + child_pair.y]);
 
 	uvec4 bounding_box = uvec4(min(bounding_box_0.xy, bounding_box_1.xy), max(bounding_box_0.zw, bounding_box_1.zw));
 	uvec4_data.data[write_bounding_box_index] = bounding_box;

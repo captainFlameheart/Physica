@@ -31,7 +31,7 @@ const uint vec4_size = 1u << vec4_size_shift;
 const uint alignment = 128u;	// Must be a power of two and at least 4!
 const uint align_up_addition = alignment - 1u;
 const uint align_up_mask = ~align_up_addition;
-const uint common_base_alignment = alignment >> 2u;
+const uint common_base_alignment = alignment >> 4u;	// TODO: Rename to uvec4_base_alignment
 const uint align_up_to_common_base_addition = common_base_alignment - 1u;
 const uint align_up_to_common_base_mask = ~align_up_to_common_base_addition;
 
@@ -141,6 +141,13 @@ FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 	uint rigid_body_triangle_vertex_base;
 
 	uint rigid_body_circle_body_position_radius_base;
+
+	// read_leaf_bounding_box_bases[leaf_bounding_box_type_count];
+	// write_leaf_bounding_box_bases[leaf_bounding_box_type_count];
+	// read_inner_bounding_box_base;
+	// write_inner_bounding_box_base;
+	// inner_parent_children_color_base;
+	// leaf_parent_children_type_bases[];
 
 	uint leaf_bounding_box_parent_bases[leaf_bounding_box_type_count];
 	uint inner_bounding_box_child_pair_base;

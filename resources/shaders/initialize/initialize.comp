@@ -3,8 +3,6 @@ void main()
 {
 	fixed_data.temp_dispatch_command = uvec4(1u, 1u, 1u, 0u);
 
-	fixed_data.temp = uint(-1);
-
 	const uint distance = uint(int(0.5 * meter_in_length_units));
 	uint rows = 2u;//10u;
 	uint columns = 2u;//10u;
@@ -68,7 +66,7 @@ void main()
 	fixed_data.point_mass_write_flags_base = point_mass_write_flags_base;
 	fixed_data.point_mass_write_position_velocity_base = point_mass_write_position_velocity_base;
 	
-	capacities[rigid_body_type_index] = 10u;
+	capacities[rigid_body_type_index] = 2u;
 
 	uint rigid_body_inverse_mass_inertia_base_address = align_up(point_mass_write_position_velocity_base_address + capacities[point_mass_type_index] * uvec4_data_array_stride);
 	uint rigid_body_constraint_start_base_address = align_up(rigid_body_inverse_mass_inertia_base_address + capacities[rigid_body_type_index] * vec2_data_array_stride);
@@ -475,6 +473,8 @@ void main()
 		}
 	}
 
+	next_bounding_box_local_base = align_up_to_common_base(next_bounding_box_local_base);
+
 	uint bounding_volume_hierarchy_root = max_uint;
 	uint inner_bounding_box_index = 0u;
 	for (uint leaf_bounding_box_type = 0u; leaf_bounding_box_type < leaf_bounding_box_type_count; ++leaf_bounding_box_type)
@@ -487,6 +487,7 @@ void main()
 		uint leaf_count = rigid_body_circle_count;
 		// TODO: Store base in fixed_data.
 		uint base = leaf_bounding_box_local_bases[leaf_bounding_box_type] - next_bounding_box_local_base;
+		fixed_data.temp = base;
 		for (uint leaf = 0u; leaf < leaf_count; ++leaf)
 		{
 			uint leaf_index = base + leaf;
@@ -498,7 +499,7 @@ void main()
 			{
 				uvec2_data.data[inner_bounding_box_child_pair_base + inner_bounding_box_index] =
 					uvec2(leaf_index, bounding_volume_hierarchy_root);
-				uvec4 bounding_box = uvec4(vec4(0.0, 0.0, 1.0, 1.0) * meter_in_length_units);
+				uvec4 bounding_box = uvec4(vec4(float(inner_bounding_box_index), 0.0, 1.0 + float(inner_bounding_box_index), 1.0) * meter_in_length_units);
 				uvec4_data.data[read_inner_bounding_box_base + inner_bounding_box_index] = bounding_box;
 				uvec4_data.data[write_inner_bounding_box_base + inner_bounding_box_index] = bounding_box;
 				bounding_volume_hierarchy_root = inner_bounding_box_index;

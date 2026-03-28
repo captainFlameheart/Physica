@@ -42,6 +42,21 @@ namespace game_logic::tick
 
 			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
+			// MUST TODO: Set work group counts!
+			for (GLuint tick_bounding_volume_hierarchy_inner_boxes_shader_index{ ::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::inner_bounding_boxes::base }; tick_bounding_volume_hierarchy_inner_boxes_shader_index < ::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::inner_bounding_boxes::end; ++tick_bounding_volume_hierarchy_inner_boxes_shader_index)
+			{
+				glUseProgram(environment.state.shaders[tick_bounding_volume_hierarchy_inner_boxes_shader_index]);
+				GLuint index_in_tick_entities_shader_array{ tick_bounding_volume_hierarchy_inner_boxes_shader_index - ::game_state::shader_indices::tick::process_entities::base };
+				GLintptr command_offset
+				{
+					environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.offset +
+					index_in_tick_entities_shader_array * environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.top_level_array_stride
+				};
+				glDispatchComputeIndirect(static_cast<GLintptr>(command_offset));
+			}
+
+			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
 			glUseProgram
 			(
 				environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::swap_leaf_bounding_box_buffers::Indices::swap_leaf_bounding_box_buffers)]

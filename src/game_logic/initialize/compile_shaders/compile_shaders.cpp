@@ -23,6 +23,8 @@ namespace game_logic::initialize::compile_shaders
 		compile_tick_rigid_bodies(environment, compile_environment);
 
 		compile_tick_rigid_body_circles(environment, compile_environment);
+		
+		compile_tick_inner_bounding_boxes(environment, compile_environment);
 
 		compile_swap_leaf_bounding_box_buffers(environment, compile_environment);
 

@@ -2,12 +2,6 @@ layout(local_size_x = tick_point_mass_distance_constraints_local_size) in;
 void main()
 {
 	// REALLY FRICKIN COOL TODO: Make constraints "pull" the memory addresses of their bodies towards each other!
-
-	if (gl_GlobalInvocationID.x == 0u)
-	{
-		fixed_data.temp = 13u;
-	}
-
 	uint index = gl_GlobalInvocationID.x;
 	uint count = fixed_data.read_counts[point_mass_distance_constraint_type_index];
 	if (index >= count)
