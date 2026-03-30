@@ -108,7 +108,7 @@ void main()
 	uint leaf_bounding_box_capacity = 0u;
 	uint next_bounding_box_local_base = 0u;
 	uint leaf_bounding_box_local_bases[leaf_bounding_box_type_count];
-	leaf_bounding_box_local_bases[rigid_body_triangle_bounding_box_type] = 0u;	// TODO: REPLACE!
+	leaf_bounding_box_local_bases[rigid_body_triangle_bounding_box_type] = 0u;
 
 	next_bounding_box_local_base = align_up_to_common_base(next_bounding_box_local_base);
 	leaf_bounding_box_local_bases[rigid_body_circle_bounding_box_type] = next_bounding_box_local_base;
@@ -124,14 +124,20 @@ void main()
 
 	uint inner_bounding_box_capacity = leaf_bounding_box_capacity - 1u;
 	
-	uint leaf_bounding_box_parent_base_address = align_up(rigid_body_circle_body_position_radius_base_address + capacities[rigid_body_circle_type_index] * uvec4_data_array_stride);
-	uint leaf_bounding_box_parent_base = address_to_uint_index(leaf_bounding_box_parent_base_address);
+	uint leaf_bounding_box_parent_pad_pad_type_base_address = align_up(rigid_body_circle_body_position_radius_base_address + capacities[rigid_body_circle_type_index] * uvec4_data_array_stride);
+	uint leaf_bounding_box_parent_pad_pad_type_base = address_to_uvec4_index(leaf_bounding_box_parent_pad_pad_type_base_address);
 
-	uint inner_bounding_box_child_pair_base_address = align_up(leaf_bounding_box_parent_base_address + next_bounding_box_local_base * uint_data_array_stride);
-	uint inner_bounding_box_child_pair_base = address_to_uvec2_index(inner_bounding_box_child_pair_base_address);
-	fixed_data.inner_bounding_box_child_pair_base = inner_bounding_box_child_pair_base;
+	uint inner_bounding_box_parent_children_height_base_address = align_up(leaf_bounding_box_parent_pad_pad_type_base_address + next_bounding_box_local_base * uvec4_data_array_stride);
+	uint inner_bounding_box_parent_children_height_base = address_to_uvec4_index(inner_bounding_box_parent_children_height_base_address);
+	fixed_data.inner_bounding_box_parent_children_height_base = inner_bounding_box_parent_children_height_base;
 
-	uint read_bounding_box_base_address = align_up(inner_bounding_box_child_pair_base_address + inner_bounding_box_capacity * uvec2_data_array_stride);
+	uint bounding_box_base_address = align_up(inner_bounding_box_parent_children_height_base_address + inner_bounding_box_capacity * uvec4_data_array_stride);
+	uint bounding_box_base = address_to_uvec4_index(bounding_box_base_address);
+	uint inner_bounding_box_base_address = align_up(bounding_box_base_address + next_bounding_box_local_base * uvec4_data_array_stride);
+	uint inner_bounding_box_base = address_to_uvec4_index(inner_bounding_box_base_address);
+	fixed_data.inner_bounding_box_base = inner_bounding_box_base;
+
+	/*uint read_bounding_box_base_address = align_up(inner_bounding_box_child_pair_base_address + inner_bounding_box_capacity * uvec2_data_array_stride);
 	uint read_bounding_box_base = address_to_uvec4_index(read_bounding_box_base_address);
 	uint read_inner_bounding_box_base_address = align_up(read_bounding_box_base_address + next_bounding_box_local_base * uvec4_data_array_stride);
 	uint read_inner_bounding_box_base = address_to_uvec4_index(read_inner_bounding_box_base_address);
@@ -141,23 +147,22 @@ void main()
 	uint write_bounding_box_base = address_to_uvec4_index(write_bounding_box_base_address);
 	uint write_inner_bounding_box_base_address = align_up(write_bounding_box_base_address + next_bounding_box_local_base * uvec4_data_array_stride);
 	uint write_inner_bounding_box_base = address_to_uvec4_index(write_inner_bounding_box_base_address);
-	fixed_data.write_inner_bounding_box_base = write_inner_bounding_box_base;
+	fixed_data.write_inner_bounding_box_base = write_inner_bounding_box_base;*/
 
-	uint leaf_bounding_box_parent_bases[leaf_bounding_box_type_count];
-	uint read_leaf_bounding_box_bases[leaf_bounding_box_type_count];
-	uint write_leaf_bounding_box_bases[leaf_bounding_box_type_count];
+	uint leaf_bounding_box_parent_pad_pad_type_bases[leaf_bounding_box_type_count];
+	uint leaf_bounding_box_bases[leaf_bounding_box_type_count];
+	//uint write_leaf_bounding_box_bases[leaf_bounding_box_type_count];
 	for (uint leaf_bounding_box_type = 0u; leaf_bounding_box_type < leaf_bounding_box_type_count; ++leaf_bounding_box_type)
 	{
 		uint local_base = leaf_bounding_box_local_bases[leaf_bounding_box_type];
 
-		leaf_bounding_box_parent_bases[leaf_bounding_box_type] = leaf_bounding_box_parent_base + local_base;
-		// Notice the swap of read and write buffers.
-		read_leaf_bounding_box_bases[leaf_bounding_box_type] = write_bounding_box_base + local_base;
-		write_leaf_bounding_box_bases[leaf_bounding_box_type] = read_bounding_box_base + local_base;
+		leaf_bounding_box_parent_pad_pad_type_bases[leaf_bounding_box_type] = leaf_bounding_box_parent_pad_pad_type_base + local_base;
+		leaf_bounding_box_bases[leaf_bounding_box_type] = bounding_box_base + local_base;
+		//write_leaf_bounding_box_bases[leaf_bounding_box_type] = read_bounding_box_base + local_base;
 
-		fixed_data.leaf_bounding_box_parent_bases[leaf_bounding_box_type] = leaf_bounding_box_parent_bases[leaf_bounding_box_type];
-		fixed_data.read_leaf_bounding_box_bases[leaf_bounding_box_type] = read_leaf_bounding_box_bases[leaf_bounding_box_type];
-		fixed_data.write_leaf_bounding_box_bases[leaf_bounding_box_type] = write_leaf_bounding_box_bases[leaf_bounding_box_type];
+		fixed_data.leaf_bounding_box_parent_pad_pad_type_bases[leaf_bounding_box_type] = leaf_bounding_box_parent_pad_pad_type_bases[leaf_bounding_box_type];
+		fixed_data.leaf_bounding_box_bases[leaf_bounding_box_type] = leaf_bounding_box_bases[leaf_bounding_box_type];
+		//fixed_data.write_leaf_bounding_box_bases[leaf_bounding_box_type] = write_leaf_bounding_box_bases[leaf_bounding_box_type];
 	}
 
 	uint rigid_body_circle_contact_constraint_spawner_count = capacities[rigid_body_circle_type_index] * (capacities[rigid_body_circle_type_index] - 1u) / 2u;
@@ -380,9 +385,10 @@ void main()
 			rigid_body_circle_index,
 			floatBitsToUint(vec3(0.0, 0.0, 0.5))
 		);
-		// TODO: Fill leaf_bounding_box_parent_bases[rigid_body_circle_bounding_box_type].
-		uvec4_data.data[read_leaf_bounding_box_bases[rigid_body_circle_bounding_box_type] + rigid_body_circle_index] = uvec4(0u);
-		uvec4_data.data[write_leaf_bounding_box_bases[rigid_body_circle_bounding_box_type] + rigid_body_circle_index] = uvec4(0u);
+		uvec4_data.data[leaf_bounding_box_parent_pad_pad_type_bases[rigid_body_circle_bounding_box_type] + rigid_body_circle_index] =
+			uvec4(null_uint, 0u, 0u, rigid_body_circle_bounding_box_type);
+		uvec4_data.data[leaf_bounding_box_bases[rigid_body_circle_bounding_box_type] + rigid_body_circle_index] = uvec4(0u);
+		//uvec4_data.data[write_leaf_bounding_box_bases[rigid_body_circle_bounding_box_type] + rigid_body_circle_index] = uvec4(0u);
 	}
 
 	uint rigid_body_circle_contact_constraint_spawner_index = 0u;
@@ -487,7 +493,7 @@ void main()
 		uint leaf_count = rigid_body_circle_count;
 		// TODO: Store base in fixed_data.
 		uint base = leaf_bounding_box_local_bases[leaf_bounding_box_type] - next_bounding_box_local_base;
-		fixed_data.temp = base;
+		fixed_data.temp = base;	// TODO: Remove
 		for (uint leaf = 0u; leaf < leaf_count; ++leaf)
 		{
 			uint leaf_index = base + leaf;
@@ -497,13 +503,21 @@ void main()
 			}
 			else
 			{
-				uvec2_data.data[inner_bounding_box_child_pair_base + inner_bounding_box_index] =
+				uint inner_bounding_box_height = inner_bounding_box_index;
+				uvec4_data.data[inner_bounding_box_parent_children_height_base + inner_bounding_box_index] =
+					uvec4(null_uint, leaf_index, bounding_volume_hierarchy_root, inner_bounding_box_height);
+				uvec4 bounding_box = uvec4(0u);
+				uvec4_data.data[inner_bounding_box_base + inner_bounding_box_index] = bounding_box;
+				bounding_volume_hierarchy_root = inner_bounding_box_index;
+				++inner_bounding_box_index;
+
+				/*uvec2_data.data[inner_bounding_box_child_pair_base + inner_bounding_box_index] =
 					uvec2(leaf_index, bounding_volume_hierarchy_root);
 				uvec4 bounding_box = uvec4(vec4(float(inner_bounding_box_index), 0.0, 1.0 + float(inner_bounding_box_index), 1.0) * meter_in_length_units);
 				uvec4_data.data[read_inner_bounding_box_base + inner_bounding_box_index] = bounding_box;
 				uvec4_data.data[write_inner_bounding_box_base + inner_bounding_box_index] = bounding_box;
 				bounding_volume_hierarchy_root = inner_bounding_box_index;
-				++inner_bounding_box_index;
+				++inner_bounding_box_index;*/
 			}
 		}
 	}
