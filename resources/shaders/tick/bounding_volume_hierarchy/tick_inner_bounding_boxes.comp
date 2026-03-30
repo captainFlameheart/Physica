@@ -1,7 +1,7 @@
 layout(local_size_x = tick_inner_bounding_boxes_local_size) in;
 void main()
 {
-	uint index = gl_GlobalInvocationID.x;
+	/*uint index = gl_GlobalInvocationID.x;
 	uint count = fixed_data.read_counts[inner_bounding_box_type];
 	if (index >= count)
 	{
@@ -20,5 +20,5 @@ void main()
 	ivec4 bounding_box_1 = ivec4(uvec4_data.data[read_inner_bounding_box_base + child_pair.y]);
 
 	uvec4 bounding_box = uvec4(min(bounding_box_0.xy, bounding_box_1.xy), max(bounding_box_0.zw, bounding_box_1.zw));
-	uvec4_data.data[write_bounding_box_index] = bounding_box;
+	uvec4_data.data[write_bounding_box_index] = bounding_box;*/
 }

@@ -9,10 +9,10 @@ void main()
 	}
 
 	uint body_position_radius_base = fixed_data.rigid_body_circle_body_position_radius_base;
-	uint write_bounding_box_base = fixed_data.write_leaf_bounding_box_bases[rigid_body_circle_bounding_box_type];
+	uint bounding_box_base = fixed_data.leaf_bounding_box_bases[rigid_body_circle_bounding_box_type];
 
 	uint body_position_radius_index = body_position_radius_base + index;
-	uint write_bounding_box_index = write_bounding_box_base + index;
+	uint bounding_box_index = bounding_box_base + index;
 
 	uvec4 body_position_radius = uvec4_data.data[body_position_radius_index];
 	vec3 position_radius = uintBitsToFloat(body_position_radius.yzw);
@@ -39,5 +39,5 @@ void main()
 		rigid_body_position_flags.xy + uvec2(ivec2(offset - half_size)),
 		rigid_body_position_flags.xy + uvec2(ivec2(offset + half_size))
 	);
-	uvec4_data.data[write_bounding_box_index] = bounding_box;
+	uvec4_data.data[bounding_box_index] = bounding_box;
 }

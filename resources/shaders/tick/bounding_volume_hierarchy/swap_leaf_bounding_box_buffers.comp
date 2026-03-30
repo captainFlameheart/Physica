@@ -1,7 +1,7 @@
 layout(local_size_x = swap_leaf_bounding_box_buffers_local_size) in;
 void main()
 {
-	uint leaf_bounding_box_type = gl_GlobalInvocationID.x;
+	/*uint leaf_bounding_box_type = gl_GlobalInvocationID.x;
 	if (leaf_bounding_box_type >= leaf_bounding_box_type_count)
 	{
 		return;
@@ -9,5 +9,5 @@ void main()
 
 	uint previous_read_leaf_bounding_box_base = fixed_data.read_leaf_bounding_box_bases[leaf_bounding_box_type];
 	fixed_data.read_leaf_bounding_box_bases[leaf_bounding_box_type] = fixed_data.write_leaf_bounding_box_bases[leaf_bounding_box_type];
-	fixed_data.write_leaf_bounding_box_bases[leaf_bounding_box_type] = previous_read_leaf_bounding_box_base;
+	fixed_data.write_leaf_bounding_box_bases[leaf_bounding_box_type] = previous_read_leaf_bounding_box_base;*/
 }
