@@ -142,19 +142,22 @@ FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 
 	uint rigid_body_circle_body_position_radius_base;
 
-	// read_leaf_bounding_box_bases[leaf_bounding_box_type_count];
-	// write_leaf_bounding_box_bases[leaf_bounding_box_type_count];
-	// read_inner_bounding_box_base;
-	// write_inner_bounding_box_base;
-	// inner_parent_children_color_base;
-	// leaf_parent_children_type_bases[];
-
-	uint leaf_bounding_box_parent_bases[leaf_bounding_box_type_count];
+	/*uint leaf_bounding_box_parent_bases[leaf_bounding_box_type_count];
 	uint inner_bounding_box_child_pair_base;
 	uint read_leaf_bounding_box_bases[leaf_bounding_box_type_count];
 	uint write_leaf_bounding_box_bases[leaf_bounding_box_type_count];
 	uint read_inner_bounding_box_base;
-	uint write_inner_bounding_box_base;
+	uint write_inner_bounding_box_base;*/
+
+	uint leaf_bounding_box_parent_pad_pad_type_bases[leaf_bounding_box_type_count];
+	uint inner_bounding_box_parent_children_height_base;
+	uint leaf_bounding_box_bases[leaf_bounding_box_type_count];
+	uint inner_bounding_box_base;
+
+	uint inner_bounding_box_height_delimiters_base;
+	uint bounding_volume_hierarchy_height;
+	uint inner_bounding_box_migration_list_base;	// (source, source_height, destination_height, pad)
+	uint inner_bounding_box_migration_count;
 
 	uint rigid_body_circle_contact_constraint_spawner_indices_flags_base;
 

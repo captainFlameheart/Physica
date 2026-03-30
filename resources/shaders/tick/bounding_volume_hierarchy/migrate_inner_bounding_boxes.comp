@@ -1,0 +1,73 @@
+// TODO: Parallelize.
+layout(local_size_x = 1u) in;
+void main()
+{
+	uint migration_index = gl_GlobalInvocationID.x;
+	if (migration_index != 0u)
+	{
+		return;
+	}
+
+	uint migration_count = fixed_data.inner_bounding_box_migration_count;
+
+	uint parent_children_height_base = fixed_data.inner_bounding_box_parent_children_height_base;
+	uint box_base = fixed_data.inner_bounding_box_base;
+	uint height_delimiters_base = fixed_data.inner_bounding_box_height_delimiters_base;
+	uint migration_list_base = fixed_data.inner_bounding_box_migration_list_base;
+
+	for (migration_index = 0u; migration_index < migration_count; ++migration_index)
+	{
+		uvec4 migration = uvec4_data.data[migration_list_base + migration_index];
+
+		uvec4 migrated_parent_children_height = uvec4_data.data[parent_children_height_base + migration.x];
+		uvec4 migrated_box = uvec4_data.data[box_base + migration.x];
+
+		int delta_height = int(migration.z - migration.y);
+		int direction = sign(delta_height);
+
+		uint height_delimiter_index = migration.y;
+		uint empty_spot = migration.x;
+
+		do
+		{
+			uint height_delimiter = uint_data.data[height_delimiters_base + height_delimiter_index];
+			height_delimiter -= direction;
+			uint_data.data[height_delimiters_base + height_delimiter_index] = height_delimiter;
+
+			uvec4 moved_parent_children_height = uvec4_data.data[parent_children_height_base + height_delimiter];
+			uvec4 moved_box = uvec4_data.data[box_base + height_delimiter];
+
+			uvec4_data.data[parent_children_height_base + empty_spot] = moved_parent_children_height;
+			uvec4_data.data[box_base + empty_spot] = moved_box;
+
+			// Update parent references to moved node.
+			uvec4_data.data[parent_children_height_base + moved_parent_children_height.y].x = empty_spot;
+			uvec4_data.data[parent_children_height_base + moved_parent_children_height.z].x = empty_spot;
+
+			// Update child reference to moved node.
+			uint moved_parent_parent_children_height_index = parent_children_height_base + moved_parent_children_height.x;
+			uvec4 moved_parent_parent_children_height = uvec4_data.data[moved_parent_parent_children_height_index];
+			uint moved_side = uint(moved_parent_parent_children_height.z == height_delimiter);
+			moved_parent_parent_children_height[1u + moved_side] = empty_spot;
+			uvec4_data.data[moved_parent_parent_children_height_index] = moved_parent_parent_children_height;
+			
+			empty_spot = height_delimiter;
+
+			height_delimiter_index += direction;
+		} while (height_delimiter_index + 1u != migration.z);
+
+		uvec4_data.data[parent_children_height_base + empty_spot] = migrated_parent_children_height;
+		uvec4_data.data[box_base + empty_spot] = migrated_box;
+
+		// Update parent references to migrated node.
+		uvec4_data.data[parent_children_height_base + migrated_parent_children_height.y].x = empty_spot;
+		uvec4_data.data[parent_children_height_base + migrated_parent_children_height.z].x = empty_spot;
+
+		// Update child reference to migrated node.
+		uint migrated_parent_parent_children_height_index = parent_children_height_base + migrated_parent_children_height.x;
+		uvec4 migrated_parent_parent_children_height = uvec4_data.data[migrated_parent_parent_children_height_index];
+		uint migrated_side = uint(migrated_parent_parent_children_height.z == height_delimiter);
+		migrated_parent_parent_children_height[1u + migrated_side] = empty_spot;
+		uvec4_data.data[migrated_parent_parent_children_height_index] = migrated_parent_parent_children_height;
+	}
+}
