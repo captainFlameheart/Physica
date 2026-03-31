@@ -27,7 +27,11 @@ namespace game_logic::tick
 
 			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
+			glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::send_to_CPU::Indices::send_to_CPU)]);
+			glDispatchCompute(1u, 1u, 1u);
+			glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
 			
+			GLsync fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0u);
 
 			// MUST TODO: Set work group counts!
 			for (GLuint tick_bounding_volume_hierarchy_leafs_shader_index{ ::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::leafs::base }; tick_bounding_volume_hierarchy_leafs_shader_index < ::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::leafs::end; ++tick_bounding_volume_hierarchy_leafs_shader_index)
@@ -43,6 +47,30 @@ namespace game_logic::tick
 			}
 
 			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+			GLenum fence_status{ glClientWaitSync(fence, GL_SYNC_FLUSH_COMMANDS_BIT, 0u) };
+			while (fence_status != GL_ALREADY_SIGNALED && fence_status != GL_CONDITION_SATISFIED)
+			{
+				if (fence_status == GL_WAIT_FAILED)
+				{
+					std::cerr << "Failed to wait on bounding volume hierarchy fence!" << std::endl;
+				}
+				if (fence_status == GL_TIMEOUT_EXPIRED)
+				{
+					//std::cout << "Had to wait on bounding volume hierarchy fence!" << std::endl;
+				}
+				fence_status = glClientWaitSync(fence, 0u, 0u);
+			}
+			glDeleteSync(fence);
+
+			GLuint bounding_volume_hierarchy_height;
+			std::memcpy
+			(
+				&bounding_volume_hierarchy_height,
+				environment.state.buffers.bounding_volume_hierarchy.mapping + environment.state.layouts.bounding_volume_hierarchy.height_state.offset,
+				sizeof(GLuint)
+			);
+			std::cout << "Bounding volume hierarchy height: " << bounding_volume_hierarchy_height << std::endl;
 
 			// MUST TODO: Set work group counts!
 			for (GLuint tick_bounding_volume_hierarchy_inner_boxes_shader_index{ ::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::inner_bounding_boxes::base }; tick_bounding_volume_hierarchy_inner_boxes_shader_index < ::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::inner_bounding_boxes::end; ++tick_bounding_volume_hierarchy_inner_boxes_shader_index)

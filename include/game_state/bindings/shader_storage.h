@@ -17,5 +17,5 @@ namespace game_state::bindings::shader_storage
 		count
 	};
 
-	constexpr GLuint bounding_volume_hierarchy = bindings::commands;
+	constexpr GLuint bounding_volume_hierarchy = 8u;//bindings::commands;	// TODO: Reuse binding for maximum compatibility.
 }

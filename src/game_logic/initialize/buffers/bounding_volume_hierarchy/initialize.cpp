@@ -1,4 +1,4 @@
-#include "game_logic/initialize/buffers/bounding_volume_hierarchy/initialize.h"
+#include "game_logic/initialize/buffers/bounding_volume_hierarchy/include.h"
 #include "game_environment/environment.h"
 #include "game_logic/binding_util/include.h"
 #include <iostream>
@@ -15,6 +15,7 @@ namespace game_logic::initialize::buffers::bounding_volume_hierarchy
 			nullptr,
 			GL_MAP_READ_BIT | GL_MAP_PERSISTENT_BIT
 		);
+		
 		environment.state.buffers.bounding_volume_hierarchy.mapping = static_cast<GLbyte*>
 		(
 			glMapNamedBufferRange
@@ -24,7 +25,8 @@ namespace game_logic::initialize::buffers::bounding_volume_hierarchy
 				GL_MAP_READ_BIT | GL_MAP_PERSISTENT_BIT
 			)
 		);
-		environment.state.buffers.bounding_volume_hierarchy.fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0u);
+
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, ::game_state::bindings::shader_storage::bounding_volume_hierarchy, environment.state.buffers.bounding_volume_hierarchy.buffer);
 
 		/*environment.state.buffers.uniform.key_event_offset = 0u;
 		GLuint aligned_key_event_size{ binding_util::align_uniform_block_size(environment, environment.state.layouts.key_event.block_state.buffer_data_size) };

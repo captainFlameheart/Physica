@@ -7,7 +7,5 @@ namespace game_state::buffers::bounding_volume_hierarchy
 	{
 		GLuint buffer;
 		GLbyte* mapping;
-
-		GLsync fence;
 	};
 }

@@ -275,7 +275,7 @@ void main()
 	rows *= has_enough_memory;
 	columns *= has_enough_memory;
 
-	uint inner_bounding_box_count = 0u;
+	uint leaf_bounding_box_count = 0u;
 
 	fixed_data.read_counts[point_mass_type_index] = point_mass_count;
 	fixed_data.write_counts[point_mass_type_index] = point_mass_count;
@@ -285,11 +285,11 @@ void main()
 
 	fixed_data.read_counts[rigid_body_triangle_type_index] = rigid_body_triangle_count;
 	fixed_data.write_counts[rigid_body_triangle_type_index] = rigid_body_triangle_count;
-	inner_bounding_box_count += rigid_body_triangle_count;
+	leaf_bounding_box_count += rigid_body_triangle_count;
 
 	fixed_data.read_counts[rigid_body_circle_type_index] = rigid_body_circle_count;
 	fixed_data.write_counts[rigid_body_circle_type_index] = rigid_body_circle_count;
-	inner_bounding_box_count += rigid_body_circle_count;
+	leaf_bounding_box_count += rigid_body_circle_count;
 
 	fixed_data.read_counts[rigid_body_circle_contact_constraint_spawner_type_index] = rigid_body_circle_contact_constraint_spawner_count;
 	fixed_data.write_counts[rigid_body_circle_contact_constraint_spawner_type_index] = rigid_body_circle_contact_constraint_spawner_count;
@@ -299,6 +299,8 @@ void main()
 
 	fixed_data.read_counts[rigid_body_circle_contact_constraint_type_index] = rigid_body_circle_contact_constraint_count;
 	fixed_data.write_counts[rigid_body_circle_contact_constraint_type_index] = rigid_body_circle_contact_constraint_count;
+
+	uint inner_bounding_box_count = leaf_bounding_box_count - 1u;
 
 	fixed_data.read_counts[inner_bounding_box_type] = inner_bounding_box_count;
 	fixed_data.write_counts[inner_bounding_box_type] = inner_bounding_box_count;
