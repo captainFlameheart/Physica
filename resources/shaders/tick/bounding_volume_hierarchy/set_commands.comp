@@ -1,0 +1,24 @@
+layout(local_size_x = set_bounding_volume_hierarchy_tick_commands_local_size) in;
+void main()
+{
+	uint index = gl_GlobalInvocationID.x;
+	
+	uint inner_bounding_box_parent_children_height_base = fixed_data.inner_bounding_box_parent_children_height_base;
+	uint inner_bounding_box_read_count = fixed_data.read_counts[inner_bounding_box_type];
+	uvec4 root_parent_children_height = uvec4_data.data[inner_bounding_box_parent_children_height_base + inner_bounding_box_read_count - 1u];
+
+	if (index >= root_parent_children_height.w)
+	{
+		return;
+	}
+	
+	uint height_delimiters_base = fixed_data.inner_bounding_box_height_delimiters_base;
+	
+	uint height_start = uint_data.delimiters[height_delimiters_base + index];
+	++index;
+	uint height_end = uint_data.delimiters[height_delimiters_base + index];
+	uint height_count = height_end - height_start;
+
+	commands.remaining_dispatch_commands[index].work_group_count_x =
+		(height_count + tick_inner_bounding_boxes_local_size - 1u) / tick_inner_bounding_boxes_local_size;
+}
