@@ -27,6 +27,8 @@ namespace game_logic::tick
 
 			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
+			
+
 			// MUST TODO: Set work group counts!
 			for (GLuint tick_bounding_volume_hierarchy_leafs_shader_index{ ::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::leafs::base }; tick_bounding_volume_hierarchy_leafs_shader_index < ::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::leafs::end; ++tick_bounding_volume_hierarchy_leafs_shader_index)
 			{
