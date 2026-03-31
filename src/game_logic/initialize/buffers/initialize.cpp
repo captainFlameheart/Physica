@@ -6,5 +6,6 @@ namespace game_logic::initialize::buffers
 	{
 		GPU_only::initialize(environment);
 		uniform::initialize(environment);
+		bounding_volume_hierarchy::initialize(environment);
 	}
 }

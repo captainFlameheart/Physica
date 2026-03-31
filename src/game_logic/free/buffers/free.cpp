@@ -7,5 +7,6 @@ namespace game_logic::free::buffers
 	{
 		GPU_only::free(environment);
 		uniform::free(environment);
+		bounding_volume_hierarchy::free(environment);
 	}
 }

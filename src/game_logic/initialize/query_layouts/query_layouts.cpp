@@ -28,6 +28,7 @@ namespace game_logic::initialize::query_layouts
 			"const uint vec2_data_binding = 5;\n"
 			"const uint float_data_binding = 6;\n"
 			"const uint commands_binding = 7;\n"
+			"const uint bounding_volume_hierarchy_binding = " + std::to_string(::game_state::bindings::shader_storage::bounding_volume_hierarchy) + ";\n"
 			"const uint private_input_binding = " + std::to_string(::game_state::bindings::uniform::private_input) + ";\n"
 			"const uint entity_type_count = " + std::to_string(::game_state::entity_type_indices::count) + ";\n"
 			"const uint leaf_bounding_box_type_count = " + std::to_string(::game_state::leaf_bounding_box_types::count) + ";\n"
@@ -41,7 +42,7 @@ namespace game_logic::initialize::query_layouts
 			::util::shader::file_to_string("blocks/shader_storage/vec4_Data") +
 			::util::shader::file_to_string("blocks/shader_storage/vec2_Data") +
 			::util::shader::file_to_string("blocks/shader_storage/float_Data") +
-			::util::shader::file_to_string("blocks/shader_storage/commands") +
+			::util::shader::file_to_string("blocks/shader_storage/Commands") +
 			::util::shader::file_to_string("dummies/compute.comp")
 		};
 
@@ -73,11 +74,24 @@ namespace game_logic::initialize::query_layouts
 			(
 				compute_shader,
 				prefix,
-				::util::shader::file_to_string("blocks/uniform/key_event")
+				::util::shader::file_to_string("blocks/uniform/Key_Event")
 			);
 			GLuint program{ ::util::shader::create_program(compute_shader) };
 
 			query_key_event_layout(environment, program);
+
+			::util::shader::delete_program(program);
+		}
+		{
+			::util::shader::set_shader_statically
+			(
+				compute_shader,
+				prefix,
+				::util::shader::file_to_string("blocks/shader_storage/Bounding_Volume_Hierarchy")
+			);
+			GLuint program{ ::util::shader::create_program(compute_shader) };
+
+			query_bounding_volume_hierarchy_layout(environment, program);
 
 			::util::shader::delete_program(program);
 		}

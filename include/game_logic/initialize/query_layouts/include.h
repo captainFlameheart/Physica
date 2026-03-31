@@ -1,4 +1,5 @@
 #pragma once
+#include "query_bounding_volume_hierarchy_layout.h"
 #include "query_commands_layout.h"
 #include "query_fixed_data_layout.h"
 #include "query_float_data_layout.h"

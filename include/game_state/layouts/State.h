@@ -1,4 +1,5 @@
 #pragma once
+#include "bounding_volume_hierarchy/include.h"
 #include "commands/include.h"
 #include "fixed_data/include.h"
 #include "float_data/include.h"
@@ -23,5 +24,7 @@ namespace game_state::layouts
 		commands::State commands;
 
 		key_event::State key_event;
+
+		bounding_volume_hierarchy::State bounding_volume_hierarchy;
 	};
 }

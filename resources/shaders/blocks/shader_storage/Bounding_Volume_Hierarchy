@@ -1,0 +1,5 @@
+layout(shared, binding = bounding_volume_hierarchy_binding) restrict writeonly
+buffer Bounding_Volume_Hierarchy
+{
+	uint height;
+} bounding_volume_hierarchy;
