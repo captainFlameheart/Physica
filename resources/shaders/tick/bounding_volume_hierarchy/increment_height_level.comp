@@ -1,0 +1,21 @@
+layout(local_size_x = 1u) in;
+void main()
+{
+	uint index = gl_GlobalInvocationID.x;
+	if (index != 0u)
+	{
+		return;
+	}
+
+	uint height_delimiters_base = fixed_data.inner_bounding_box_height_delimiters_base;
+
+	uint height = fixed_data.current_inner_bounding_box_height;
+	uint height_start = uint_data.delimiters[height_delimiters_base + height];
+	++height;
+	uint height_end = uint_data.delimiters[height_delimiters_base + height];	// TODO: Store delimiter at end.
+	uint height_count = height_end - height_start;
+
+	fixed_data.current_inner_bounding_box_height = height;
+	fixed_data.current_inner_bounding_box_height_start = height_start;
+	fixed_data.current_inner_bounding_box_height_count = height_count;
+}

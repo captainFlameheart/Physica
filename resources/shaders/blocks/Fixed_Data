@@ -158,6 +158,10 @@ FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 	uint inner_bounding_box_migration_list_base;	// (source, source_height, destination_height, pad)
 	uint inner_bounding_box_migration_count;
 
+	uint current_inner_bounding_box_height;
+	uint current_inner_bounding_box_height_start;
+	uint current_inner_bounding_box_height_count;
+
 	uint rigid_body_circle_contact_constraint_spawner_indices_flags_base;
 
 	uint point_mass_distance_constraint_flags_target_distance_base;
