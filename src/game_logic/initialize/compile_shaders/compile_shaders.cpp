@@ -22,6 +22,8 @@ namespace game_logic::initialize::compile_shaders
 		compile_process_point_masses(environment, compile_environment);
 		compile_tick_rigid_bodies(environment, compile_environment);
 
+		compile_send_bounding_volume_hierarchy_to_CPU(environment, compile_environment);
+
 		compile_tick_rigid_body_circles(environment, compile_environment);
 		
 		compile_tick_inner_bounding_boxes(environment, compile_environment);

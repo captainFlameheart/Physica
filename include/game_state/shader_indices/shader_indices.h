@@ -78,9 +78,24 @@ namespace game_state::shader_indices
 			{
 				constexpr GLuint base{ ::game_state::shader_indices::tick::process_entities::bodies::end };
 
-				namespace leafs
+				namespace send_to_CPU
 				{
 					constexpr GLuint base{ ::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::base };
+
+					enum struct Indices : GLuint
+					{
+						send_to_CPU = base,
+
+						end
+					};
+
+					constexpr GLuint end{ static_cast<GLuint>(Indices::end) };
+					constexpr GLuint count{ end - base };
+				}
+
+				namespace leafs
+				{
+					constexpr GLuint base{ ::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::send_to_CPU::end};
 
 					enum struct Indices : GLuint
 					{

@@ -10,5 +10,5 @@ void main()
 	uint inner_bounding_box_parent_children_height_base = fixed_data.inner_bounding_box_parent_children_height_base;
 	uint inner_bounding_box_read_count = fixed_data.read_counts[inner_bounding_box_type];
 	uvec4 root_parent_children_height = uvec4_data.data[inner_bounding_box_parent_children_height_base + inner_bounding_box_read_count - 1u];
-	bounding_volume_hierarchy.height = root_parent_children_height;
+	bounding_volume_hierarchy.height = root_parent_children_height.w;
 }
