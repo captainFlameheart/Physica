@@ -14,9 +14,11 @@ struct Draw_Arrays_Command
     uint base_instance;
 };
 
+// IMPORTANT TODO: Split into two buffers for performance: One for dispatches and another for draw-arrays commands.
 layout(std430, binding = commands_binding) restrict writeonly
 buffer Commands
 {
 	Dispatch_Command dispatch_commands[dispatch_program_count];
 	Draw_Arrays_Command draw_arrays_commands[draw_arrays_program_count];
+	Dispatch_Command remaining_dispatch_commands[];	// TODO: Resize buffer during capacity changes.
 } commands;

@@ -42,6 +42,22 @@ namespace game_state::layouts::commands
 		GLint offset;
 	};
 
+	struct remaining_dispatch_commands_work_group_count_x
+	{
+		GLint offset;
+		GLint top_level_array_stride;
+	};
+
+	struct remaining_dispatch_commands_work_group_count_y
+	{
+		GLint offset;
+	};
+
+	struct remaining_dispatch_commands_work_group_count_z
+	{
+		GLint offset;
+	};
+
 	struct Block
 	{
 		GLint buffer_data_size;
@@ -84,6 +100,22 @@ namespace game_state::layouts::commands
 		{
 			draw_arrays_commands_base_instance draw_arrays_commands_base_instance_state;
 			GLint draw_arrays_commands_base_instance_properties[sizeof(draw_arrays_commands_base_instance) / sizeof(GLint)];
+		};
+
+		union
+		{
+			remaining_dispatch_commands_work_group_count_x remaining_dispatch_commands_work_group_count_x_state;
+			GLint remaining_dispatch_commands_work_group_count_x_properties[sizeof(remaining_dispatch_commands_work_group_count_x) / sizeof(GLint)];
+		};
+		union
+		{
+			remaining_dispatch_commands_work_group_count_y remaining_dispatch_commands_work_group_count_y_state;
+			GLint remaining_dispatch_commands_work_group_count_y_properties[sizeof(remaining_dispatch_commands_work_group_count_y) / sizeof(GLint)];
+		};
+		union
+		{
+			remaining_dispatch_commands_work_group_count_z remaining_dispatch_commands_work_group_count_z_state;
+			GLint remaining_dispatch_commands_work_group_count_z_properties[sizeof(remaining_dispatch_commands_work_group_count_z) / sizeof(GLint)];
 		};
 
 		union

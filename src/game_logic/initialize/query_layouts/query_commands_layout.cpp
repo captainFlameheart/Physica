@@ -44,6 +44,22 @@ namespace game_logic::initialize::query_layouts
 			environment.state.layouts.commands.draw_arrays_commands_base_instance_properties
 		);
 
+		::game_logic::shader_util::query::query_shader_storage_variable_offset_top_level_array_stride
+		(
+			program, "Commands.remaining_dispatch_commands[0].work_group_count_x",
+			environment.state.layouts.commands.remaining_dispatch_commands_work_group_count_x_properties
+		);
+		::game_logic::shader_util::query::query_shader_storage_variable_offset
+		(
+			program, "Commands.remaining_dispatch_commands[0].work_group_count_y",
+			environment.state.layouts.commands.remaining_dispatch_commands_work_group_count_y_properties
+		);
+		::game_logic::shader_util::query::query_shader_storage_variable_offset
+		(
+			program, "Commands.remaining_dispatch_commands[0].work_group_count_z",
+			environment.state.layouts.commands.remaining_dispatch_commands_work_group_count_z_properties
+		);
+
 		::game_logic::shader_util::query::query_shader_storage_buffer_data_size
 		(
 			program, "Commands",

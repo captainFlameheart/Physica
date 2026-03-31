@@ -22,7 +22,14 @@ namespace game_logic::initialize::buffers::GPU_only
 			);
 		}
 
-		environment.state.buffers.GPU_only.command_buffer_size = environment.state.layouts.commands.block_state.buffer_data_size;
+		// MUST TODO: Update command_buffer_remaining_dispatch_commands_capacity during capacity update!
+		environment.state.buffers.GPU_only.command_buffer_remaining_dispatch_commands_capacity = 1000000u;
+		environment.state.buffers.GPU_only.command_buffer_size =
+			environment.state.layouts.commands.remaining_dispatch_commands_work_group_count_x_state.offset +
+			(
+				environment.state.buffers.GPU_only.command_buffer_remaining_dispatch_commands_capacity *
+				environment.state.layouts.commands.remaining_dispatch_commands_work_group_count_x_state.top_level_array_stride
+			);
 		glCreateBuffers(1u, &environment.state.buffers.GPU_only.command_buffer);
 		glNamedBufferStorage
 		(
