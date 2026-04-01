@@ -540,25 +540,9 @@ void main()
 				++inner_bounding_box_index;
 
 				uint_data.data[inner_bounding_box_height_delimiters_base + inner_bounding_box_height] = inner_bounding_box_index;
-
-				/*uvec2_data.data[inner_bounding_box_child_pair_base + inner_bounding_box_index] =
-					uvec2(leaf_index, bounding_volume_hierarchy_root);
-				uvec4 bounding_box = uvec4(vec4(float(inner_bounding_box_index), 0.0, 1.0 + float(inner_bounding_box_index), 1.0) * meter_in_length_units);
-				uvec4_data.data[read_inner_bounding_box_base + inner_bounding_box_index] = bounding_box;
-				uvec4_data.data[write_inner_bounding_box_base + inner_bounding_box_index] = bounding_box;
-				bounding_volume_hierarchy_root = inner_bounding_box_index;
-				++inner_bounding_box_index;*/
 			}
 		}
 	}
 
 	uint bounding_volume_hierarchy_height = inner_bounding_box_index - 1u;
-
-	uint current_inner_bounding_box_height = 1u;
-	uint current_inner_bounding_box_height_start = 2u;
-	uint current_inner_bounding_box_height_count = 1u;
-
-	fixed_data.current_inner_bounding_box_height = current_inner_bounding_box_height;
-	fixed_data.current_inner_bounding_box_height_start = current_inner_bounding_box_height_start;
-	fixed_data.current_inner_bounding_box_height_count = current_inner_bounding_box_height_count;
 }

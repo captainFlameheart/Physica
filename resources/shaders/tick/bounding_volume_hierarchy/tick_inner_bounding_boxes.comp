@@ -1,6 +1,8 @@
 layout(local_size_x = tick_inner_bounding_boxes_local_size) in;
 void main()
 {
+	// IMPORTANT TODO: Write specialized shader for the first height level (which contains the most number of nodes).
+
 	uint index = gl_GlobalInvocationID.x;
 	uint count = fixed_data.current_inner_bounding_box_height_count;
 	if (index >= count)
@@ -18,30 +20,203 @@ void main()
 	uint bounding_box_index = bounding_box_base + index;
 
 	uvec4 parent_children_height = uvec4_data.data[parent_children_height_index];
-	ivec4 bounding_box_0 = ivec4(uvec4_data.data[bounding_box_base + parent_children_height.y]);
-	ivec4 bounding_box_1 = ivec4(uvec4_data.data[bounding_box_base + parent_children_height.z]);
 
-	uvec4 bounding_box = uvec4(min(bounding_box_0.xy, bounding_box_1.xy), max(bounding_box_0.zw, bounding_box_1.zw));
+	ivec4 child_0_bounding_box = ivec4(uvec4_data.data[bounding_box_base + parent_children_height.y]);
+	ivec4 child_1_bounding_box = ivec4(uvec4_data.data[bounding_box_base + parent_children_height.z]);
+
+	uvec4 bounding_box = uvec4(min(child_0_bounding_box.xy, child_1_bounding_box.xy), max(child_0_bounding_box.zw, child_1_bounding_box.zw));
 	uvec4_data.data[bounding_box_index] = bounding_box;
 
-	/*uint index = gl_GlobalInvocationID.x;
-	uint count = fixed_data.read_counts[inner_bounding_box_type];
-	if (index >= count)
+	int child_heights[2u] = int[2u](-1, -1);
+
+	bool child_0_is_inner = int(parent_children_height.y) >= 0;
+	bool child_1_is_inner = int(parent_children_height.z) >= 0;
+	
+	int child_0_cost;
+	uvec4 child_0_parent_children_height;
+
+	uvec4 grandchild_0_parent_children_height;
+	uvec4 grandchild_1_parent_children_height;
+
+	ivec4 grandchild_0_bounding_box;
+	ivec4 grandchild_1_bounding_box;
+
+	int child_1_cost;
+	uvec4 child_1_parent_children_height;
+
+	uvec4 grandchild_2_parent_children_height;
+	uvec4 grandchild_3_parent_children_height;
+
+	ivec4 grandchild_2_bounding_box;
+	ivec4 grandchild_3_bounding_box;
+
+	int best_cost_reduction = 0;
+	uint best_swap;
+
+	if (child_0_is_inner)
 	{
-		return;
+		child_0_cost = (child_0_bounding_box.z - child_0_bounding_box.x) + (child_0_bounding_box.w - child_0_bounding_box.y);
+		child_0_parent_children_height = uvec4_data.data[parent_children_height_base + parent_children_height.y];
+		child_heights[0u] = int(child_0_parent_children_height.w);
+
+		grandchild_0_parent_children_height = uvec4_data.data[parent_children_height_base + child_0_parent_children_height.y];
+		grandchild_1_parent_children_height = uvec4_data.data[parent_children_height_base + child_0_parent_children_height.z];
+
+		grandchild_0_bounding_box = ivec4(uvec4_data.data[parent_children_height_base + child_0_parent_children_height.y]);
+		grandchild_1_bounding_box = ivec4(uvec4_data.data[parent_children_height_base + child_0_parent_children_height.z]);
+
+		ivec4 swap_0_child_0_bounding_box = ivec4(min(grandchild_1_bounding_box.xy, child_1_bounding_box.xy), max(grandchild_1_bounding_box.zw, child_1_bounding_box.zw));
+		int swap_0_child_0_cost = (swap_0_child_0_bounding_box.z - swap_0_child_0_bounding_box.x) + (swap_0_child_0_bounding_box.w - swap_0_child_0_bounding_box.y);
+		int cost_reduction_0 = child_0_cost - swap_0_child_0_cost;
+		if (cost_reduction_0 > best_cost_reduction)
+		{
+			best_cost_reduction = cost_reduction_0;
+			best_swap = 0u;
+		}
+
+		ivec4 swap_1_child_0_bounding_box = ivec4(min(grandchild_0_bounding_box.xy, child_1_bounding_box.xy), max(grandchild_0_bounding_box.zw, child_1_bounding_box.zw));
+		int swap_1_child_0_cost = (swap_1_child_0_bounding_box.z - swap_1_child_0_bounding_box.x) + (swap_1_child_0_bounding_box.w - swap_1_child_0_bounding_box.y);
+		int cost_reduction_1 = child_0_cost - swap_1_child_0_cost;
+		if (cost_reduction_1 > best_cost_reduction)
+		{
+			best_cost_reduction = cost_reduction_1;
+			best_swap = 1u;
+		}
+	}
+	if (child_1_is_inner)
+	{
+		child_1_cost = (child_1_bounding_box.z - child_1_bounding_box.x) + (child_1_bounding_box.w - child_1_bounding_box.y);
+		child_1_parent_children_height = uvec4_data.data[parent_children_height_base + parent_children_height.z];
+		child_heights[1u] = int(child_1_parent_children_height.w);
+
+		grandchild_2_parent_children_height = uvec4_data.data[parent_children_height_base + child_1_parent_children_height.y];
+		grandchild_3_parent_children_height = uvec4_data.data[parent_children_height_base + child_1_parent_children_height.z];
+
+		grandchild_2_bounding_box = ivec4(uvec4_data.data[parent_children_height_base + child_1_parent_children_height.y]);
+		grandchild_3_bounding_box = ivec4(uvec4_data.data[parent_children_height_base + child_1_parent_children_height.z]);
+
+		ivec4 swap_2_child_1_bounding_box = ivec4(min(grandchild_3_bounding_box.xy, child_0_bounding_box.xy), max(grandchild_3_bounding_box.zw, child_0_bounding_box.zw));
+		int swap_2_child_1_cost = (swap_2_child_1_bounding_box.z - swap_2_child_1_bounding_box.x) + (swap_2_child_1_bounding_box.w - swap_2_child_1_bounding_box.y);
+		int cost_reduction_2 = child_1_cost - swap_2_child_1_cost;
+		if (cost_reduction_2 > best_cost_reduction)
+		{
+			best_cost_reduction = cost_reduction_2;
+			best_swap = 2u;
+		}
+
+		ivec4 swap_3_child_1_bounding_box = ivec4(min(grandchild_2_bounding_box.xy, child_0_bounding_box.xy), max(grandchild_2_bounding_box.zw, child_0_bounding_box.zw));
+		int swap_3_child_1_cost = (swap_3_child_1_bounding_box.z - swap_3_child_1_bounding_box.x) + (swap_3_child_1_bounding_box.w - swap_3_child_1_bounding_box.y);
+		int cost_reduction_3 = child_1_cost - swap_3_child_1_cost;
+		if (cost_reduction_3 > best_cost_reduction)
+		{
+			best_cost_reduction = cost_reduction_3;
+			best_swap = 3u;
+		}
+	}
+	// TODO: Maybe put inside previous if statement.
+	if (child_0_is_inner && child_1_is_inner)
+	{
+		ivec4 swap_4_child_0_bounding_box = ivec4(min(grandchild_2_bounding_box.xy, grandchild_1_bounding_box.xy), max(grandchild_2_bounding_box.zw, grandchild_1_bounding_box.zw));
+		int swap_4_child_0_cost = (swap_4_child_0_bounding_box.z - swap_4_child_0_bounding_box.x) + (swap_4_child_0_bounding_box.w - swap_4_child_0_bounding_box.y);
+
+		ivec4 swap_4_child_1_bounding_box = ivec4(min(grandchild_0_bounding_box.xy, grandchild_3_bounding_box.xy), max(grandchild_0_bounding_box.zw, grandchild_3_bounding_box.zw));
+		int swap_4_child_1_cost = (swap_4_child_1_bounding_box.z - swap_4_child_1_bounding_box.x) + (swap_4_child_1_bounding_box.w - swap_4_child_1_bounding_box.y);
+
+		int cost_reduction_4 = (child_0_cost - swap_4_child_0_cost) + (child_1_cost - swap_4_child_1_cost);
+		if (cost_reduction_4 > best_cost_reduction)
+		{
+			best_cost_reduction = cost_reduction_4;
+			best_swap = 4u;
+		}
+
+		ivec4 swap_5_child_0_bounding_box = ivec4(min(grandchild_3_bounding_box.xy, grandchild_1_bounding_box.xy), max(grandchild_3_bounding_box.zw, grandchild_1_bounding_box.zw));
+		int swap_5_child_0_cost = (swap_5_child_0_bounding_box.z - swap_5_child_0_bounding_box.x) + (swap_5_child_0_bounding_box.w - swap_5_child_0_bounding_box.y);
+
+		ivec4 swap_5_child_1_bounding_box = ivec4(min(grandchild_2_bounding_box.xy, grandchild_0_bounding_box.xy), max(grandchild_2_bounding_box.zw, grandchild_0_bounding_box.zw));
+		int swap_5_child_1_cost = (swap_5_child_1_bounding_box.z - swap_5_child_1_bounding_box.x) + (swap_5_child_1_bounding_box.w - swap_5_child_1_bounding_box.y);
+
+		int cost_reduction_5 = (child_0_cost - swap_5_child_0_cost) + (child_1_cost - swap_5_child_1_cost);
+		if (cost_reduction_5 > best_cost_reduction)
+		{
+			best_cost_reduction = cost_reduction_5;
+			best_swap = 5u;
+		}
 	}
 
-	uint child_pair_base = fixed_data.inner_bounding_box_child_pair_base;
-	uint read_inner_bounding_box_base = fixed_data.read_inner_bounding_box_base;
-	uint write_inner_bounding_box_base = fixed_data.write_inner_bounding_box_base;
+	if (best_cost_reduction > 0)
+	{
+		if (best_swap < 4u)	// Child-Grandchild
+		{
+			// IMPORTANT TODO: Only store node data in arrays, do not use separate variables.
+			uvec4 child_parent_children_heights[2u] = ivec4[2u](child_0_parent_children_height, child_1_parent_children_height);
+			ivec4 child_bounding_boxes[2u] = ivec4[2u](child_0_bounding_box, child_1_bounding_box);
+			uvec4 grandchild_parent_children_heights[4u] = uvec4[4u]
+			(
+				grandchild_0_parent_children_height, grandchild_1_parent_children_height,
+				grandchild_2_parent_children_height, grandchild_3_parent_children_height,
+			);
+			ivec4 grandchild_bounding_boxes[4u] = ivec4[4u]
+			(
+				grandchild_0_bounding_box, grandchild_1_bounding_box,
+				grandchild_2_bounding_box, grandchild_3_bounding_box,
+			);
 
-	uint child_pair_index = child_pair_base + index;
-	uint write_bounding_box_index = write_inner_bounding_box_base + index;
+			uint still_child = best_swap >> 1u;
+			uint moved_child = still_child ^ 1u;
+			uint moved_child_incremented = 1u + moved_child;
+			
+			uint moved_grandchild = best_swap & 1u;
+			uint moved_grandchild_incremented = 1u + moved_grandchild;
+			uint global_grandchild_base = 2u * still_child;
+			uint global_moved_grandchild = global_grandchild_base + moved_grandchild;
+			uint still_grandchild = moved_grandchild ^ 1u;
+			uint global_still_grandchild = global_grandchild_base + still_grandchild;
 
-	uvec2 child_pair = uvec2_data.data[child_pair_index];
-	ivec4 bounding_box_0 = ivec4(uvec4_data.data[read_inner_bounding_box_base + child_pair.x]);
-	ivec4 bounding_box_1 = ivec4(uvec4_data.data[read_inner_bounding_box_base + child_pair.y]);
+			uint moved_grandchild_index = still_child_parent_children_height[moved_grandchild_incremented];
 
-	uvec4 bounding_box = uvec4(min(bounding_box_0.xy, bounding_box_1.xy), max(bounding_box_0.zw, bounding_box_1.zw));
-	uvec4_data.data[write_bounding_box_index] = bounding_box;*/
+			// IMPORTANT TODO: Do not set single variable to avoid extra read!
+
+			// Set parent of moved child to still child.
+			uvec4 moved_child_parent_children_height = child_parent_children_heights[moved_child];
+			moved_child_parent_children_height.x = still_child;
+			uvec4_data.data[parent_children_height_base + parent_children_height[moved_child_incremented]] = moved_child_parent_children_height;
+			
+			// Set parent of moved grandchild to root.
+			uvec4 moved_grandchild_parent_children_height = grandchild_parent_children_heights[global_moved_grandchild];
+			moved_grandchild_parent_children_height.x = index;
+			uvec4_data.data[parent_children_height_base + moved_grandchild_index] = moved_grandchild_parent_children_height;
+			
+			// Replace the moved child with the moved grandchild as a child of the root.
+			parent_children_height[moved_child_incremented] = moved_grandchild_index;
+			
+			// Set new child heights as seen by the root.
+			child_heights[still_child] = 1u + max(child_heights[moved_child], grandchild_parent_children_heights[global_still_grandchild].w);
+			child_heights[moved_child] = moved_grandchild_parent_children_height.w;
+
+			// Replace the moved grandchild with the moved child as a child of the still child, and update the height of the still child.
+			still_child_parent_children_height[moved_grandchild_incremented] = moved_child_index;
+			still_child_parent_children_height.w = child_heights[still_child];
+			uvec4_data.data[parent_children_height_base + still_child_index] = still_child_parent_children_height;
+
+			// Update the bounding box of the still child.
+			ivec4 moved_child_bounding_box = child_bounding_boxes[moved_child];
+			ivec4 still_grandchild_bounding_box = grandchild_bounding_boxes[global_still_grandchild];
+			uvec4 still_child_bounding_box = uvec4(min(moved_child_bounding_box.xy, still_grandchild_bounding_box.xy), max(moved_child_bounding_box.zw, still_grandchild_bounding_box.zw));
+			uvec4_data.data[bounding_box_base + still_child_index] = still_child_bounding_box;
+		}
+		else	// Grandchild-Grandchild
+		{
+			// TODO
+		}
+	}
+
+	uint new_height = uint(1 + max(child_heights[0u], child_heights[1u]));
+	if (new_height != parent_children_height.w)
+	{
+		uint migration_list_base = fixed_data.inner_bounding_box_migration_list_base;
+		uint migration_index = atomicAdd(fixed_data.inner_bounding_box_migration_count, 1u);
+		uvec4_data.data[migration_list_base + migration_index] = uvec4(index, parent_children_height.w, new_height, 0u);
+		parent_children_height.w = new_height;
+	}
+	uvec4_data.data[parent_children_height_index] = parent_children_height;
 }
