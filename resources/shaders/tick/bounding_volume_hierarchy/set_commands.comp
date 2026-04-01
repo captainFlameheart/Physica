@@ -1,4 +1,4 @@
-layout(local_size_x = set_bounding_volume_hierarchy_tick_commands_local_size) in;
+layout(local_size_x = set_inner_bounding_box_tick_commands_local_size) in;
 void main()
 {
 	uint index = gl_GlobalInvocationID.x;
@@ -14,9 +14,9 @@ void main()
 	
 	uint height_delimiters_base = fixed_data.inner_bounding_box_height_delimiters_base;
 	
-	uint height_start = uint_data.delimiters[height_delimiters_base + index];
+	uint height_start = uint_data.data[height_delimiters_base + index];
 	++index;
-	uint height_end = uint_data.delimiters[height_delimiters_base + index];
+	uint height_end = uint_data.data[height_delimiters_base + index];
 	uint height_count = height_end - height_start;
 
 	commands.remaining_dispatch_commands[index].work_group_count_x =

@@ -192,6 +192,14 @@ namespace game_logic::initialize::compile_shaders::environment
 			dispatch_command_blueprints += "	uvec2(" + std::to_string(entity_type) + ", " + std::to_string(local_size) + "),\n";
 		}
 
+		for (GLuint i{ 0u }; i < ::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::initialize_inner_bounding_box_traversal::count; ++i)
+		{
+			GLuint entity_type{ static_cast<GLuint>(::game_state::shader_to_entity_type::tick_bounding_box_leaf_shader_to_entity_type[i]) };
+			constexpr GLuint base{ ::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::initialize_inner_bounding_box_traversal::base - ::game_state::shader_indices::tick::process_entities::base };
+			GLuint local_size{ ::game_state::local_sizes::process_entities_local_sizes[base + i] };
+			dispatch_command_blueprints += "	uvec2(" + std::to_string(entity_type) + ", " + std::to_string(local_size) + "),\n";
+		}
+
 		for (GLuint i{ 0u }; i < ::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::inner_bounding_boxes::count; ++i)
 		{
 			GLuint entity_type{ static_cast<GLuint>(::game_state::shader_to_entity_type::tick_bounding_volume_hierarchy_shader_to_entity_type[i]) };
@@ -298,6 +306,10 @@ namespace game_logic::initialize::compile_shaders::environment
 
 		constexpr GLuint tick_rigid_body_circles_local_size{ ::game_state::local_sizes::process_entities_local_sizes[
 			static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::leafs::Indices::rigid_body_circles) - tick_entities_local_size_base
+		] };
+
+		constexpr GLuint set_inner_bounding_box_tick_commands_local_size{ ::game_state::local_sizes::process_entities_local_sizes[
+			static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::initialize_inner_bounding_box_traversal::Indices::set_commands) - tick_entities_local_size_base
 		] };
 
 		constexpr GLuint tick_inner_bounding_boxes_local_size{ ::game_state::local_sizes::process_entities_local_sizes[
@@ -423,6 +435,7 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uint tick_rigid_bodies_local_size = " + ::std::to_string(tick_rigid_bodies_local_size) + ";\n"
 			"const uint swap_leaf_bounding_box_buffers_local_size = " + ::std::to_string(swap_leaf_bounding_box_buffers_local_size) + ";\n"
 			"const uint tick_rigid_body_circles_local_size = " + ::std::to_string(tick_rigid_body_circles_local_size) + ";\n"
+			"const uint set_inner_bounding_box_tick_commands_local_size = " + ::std::to_string(set_inner_bounding_box_tick_commands_local_size) + ";\n"
 			"const uint tick_inner_bounding_boxes_local_size = " + ::std::to_string(tick_inner_bounding_boxes_local_size) + ";\n"
 			"const uint commit_constraint_spawner_counts_local_size = " + ::std::to_string(commit_constraint_spawner_counts_local_size) + ";\n"
 			"const uint plan_rigid_body_circle_contact_constraint_spawner_compaction_local_size = " + ::std::to_string(plan_rigid_body_circle_contact_constraint_spawner_compaction_local_size) + ";\n"

@@ -108,9 +108,25 @@ namespace game_state::shader_indices
 					constexpr GLuint count{ end - base };
 				}
 
-				namespace inner_bounding_boxes
+				namespace initialize_inner_bounding_box_traversal
 				{
 					constexpr GLuint base{ ::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::leafs::end };
+
+					enum struct Indices : GLuint
+					{
+						initialize_inner_bounding_box_traversal = base,
+						set_commands,
+
+						end
+					};
+
+					constexpr GLuint end{ static_cast<GLuint>(Indices::end) };
+					constexpr GLuint count{ end - base };
+				}
+
+				namespace inner_bounding_boxes
+				{
+					constexpr GLuint base{ ::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::initialize_inner_bounding_box_traversal::end };
 
 					enum struct Indices : GLuint
 					{
