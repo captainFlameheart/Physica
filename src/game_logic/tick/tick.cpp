@@ -46,7 +46,7 @@ namespace game_logic::tick
 				glDispatchComputeIndirect(static_cast<GLintptr>(command_offset));
 			}
 
-			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);	// IMPORTANT TODO: Is this needed!?
 
 			GLenum fence_status{ glClientWaitSync(bounding_volume_hierarchy_fence, GL_SYNC_FLUSH_COMMANDS_BIT, 0u) };
 			while (fence_status != GL_ALREADY_SIGNALED && fence_status != GL_CONDITION_SATISFIED)
@@ -73,6 +73,12 @@ namespace game_logic::tick
 			//std::cout << "Bounding volume hierarchy height: " << bounding_volume_hierarchy_height << std::endl;
 
 			// TODO: Migrate
+			{
+				glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::initialize_inner_bounding_box_traversal::Indices::migrate_inner_bounding_boxes)]);
+				glDispatchCompute(1u, 1u, 1u);
+
+				glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+			}
 
 			{
 				glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::initialize_inner_bounding_box_traversal::Indices::initialize_inner_bounding_box_traversal)]);
