@@ -9,12 +9,13 @@ void main()
 
 	uint height_delimiters_base = fixed_data.inner_bounding_box_height_delimiters_base;
 
+	fixed_data.inner_bounding_box_migration_count = 0u;
+
 	fixed_data.current_inner_bounding_box_height = 0u;
 	fixed_data.current_inner_bounding_box_height_start = 0u;
 	uint height_count = uint_data.data[height_delimiters_base];
 	fixed_data.current_inner_bounding_box_height_count = height_count;
 	
-	// MUST TODO: Initialize other work group counts to 1
 	commands.remaining_dispatch_commands[0u].work_group_count_x =
 		(height_count + tick_inner_bounding_boxes_local_size - 1u) / tick_inner_bounding_boxes_local_size;
 }
