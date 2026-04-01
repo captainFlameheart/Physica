@@ -23,9 +23,11 @@ void main()
 		uvec4 migrated_box = uvec4_data.data[box_base + migration.x];
 
 		int delta_height = int(migration.z - migration.y);
-		int direction = sign(delta_height);
+		int direction_bias = delta_height >> 31u;	// -1 or 0
+		int direction = direction_bias | 1;	// -1 or 1
+		direction_bias &= 1;	// 1 or 0
 
-		uint height_delimiter_index = migration.y;
+		uint height_delimiter_index = migration.y - direction_bias;
 		uint empty_spot = migration.x;
 
 		do
@@ -34,8 +36,9 @@ void main()
 			height_delimiter -= direction;
 			uint_data.data[height_delimiters_base + height_delimiter_index] = height_delimiter;
 
-			uvec4 moved_parent_children_height = uvec4_data.data[parent_children_height_base + height_delimiter];
-			uvec4 moved_box = uvec4_data.data[box_base + height_delimiter];
+			uint moved_spot = height_delimiter - direction_bias;
+			uvec4 moved_parent_children_height = uvec4_data.data[parent_children_height_base + moved_spot];
+			uvec4 moved_box = uvec4_data.data[box_base + moved_spot];
 
 			uvec4_data.data[parent_children_height_base + empty_spot] = moved_parent_children_height;
 			uvec4_data.data[box_base + empty_spot] = moved_box;
@@ -47,14 +50,14 @@ void main()
 			// Update child reference to moved node.
 			uint moved_parent_parent_children_height_index = parent_children_height_base + moved_parent_children_height.x;
 			uvec4 moved_parent_parent_children_height = uvec4_data.data[moved_parent_parent_children_height_index];
-			uint moved_side = uint(moved_parent_parent_children_height.z == height_delimiter);
+			uint moved_side = uint(moved_parent_parent_children_height.z == moved_spot);
 			moved_parent_parent_children_height[1u + moved_side] = empty_spot;
 			uvec4_data.data[moved_parent_parent_children_height_index] = moved_parent_parent_children_height;
 			
-			empty_spot = height_delimiter;
+			empty_spot = moved_spot;
 
 			height_delimiter_index += direction;
-		} while (height_delimiter_index + 1u != migration.z);
+		} while (height_delimiter_index + direction_bias != migration.z);
 
 		uvec4_data.data[parent_children_height_base + empty_spot] = migrated_parent_children_height;
 		uvec4_data.data[box_base + empty_spot] = migrated_box;
