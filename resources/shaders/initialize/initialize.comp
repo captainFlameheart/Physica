@@ -325,6 +325,15 @@ void main()
 		commands.draw_arrays_commands[draw_arrays_program_index].base_instance = 0u;
 	}
 
+	// TODO: Parallelize
+	for (uint remaining_dispatch_program_index = 0u; remaining_dispatch_program_index < commands.remaining_dispatch_commands.length(); ++remaining_dispatch_program_index)
+	{
+		commands.remaining_dispatch_commands[remaining_dispatch_program_index].work_group_count_x = 0u;
+		commands.remaining_dispatch_commands[remaining_dispatch_program_index].work_group_count_y = 1u;
+		commands.remaining_dispatch_commands[remaining_dispatch_program_index].work_group_count_z = 1u;
+		commands.remaining_dispatch_commands[remaining_dispatch_program_index].pad = 0u;
+	}
+
 	// TODO: Initialize key state.
 
 	for (uint row = 0u; row < rows; ++row)

@@ -30,6 +30,7 @@ namespace game_logic::initialize::compile_shaders
 		compile_set_inner_bounding_box_tick_commands(environment, compile_environment);
 
 		compile_tick_inner_bounding_boxes(environment, compile_environment);
+		compile_increment_inner_bounding_box_height_level(environment, compile_environment);
 
 		compile_swap_leaf_bounding_box_buffers(environment, compile_environment);
 

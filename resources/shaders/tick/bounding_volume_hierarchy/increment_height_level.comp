@@ -10,9 +10,9 @@ void main()
 	uint height_delimiters_base = fixed_data.inner_bounding_box_height_delimiters_base;
 
 	uint height = fixed_data.current_inner_bounding_box_height;
-	uint height_start = uint_data.delimiters[height_delimiters_base + height];
+	uint height_start = uint_data.data[height_delimiters_base + height];
 	++height;
-	uint height_end = uint_data.delimiters[height_delimiters_base + height];
+	uint height_end = uint_data.data[height_delimiters_base + height];
 	uint height_count = height_end - height_start;
 
 	fixed_data.current_inner_bounding_box_height = height;

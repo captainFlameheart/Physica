@@ -131,6 +131,7 @@ namespace game_state::shader_indices
 					enum struct Indices : GLuint
 					{
 						inner_bounding_boxes = base,
+						increment_height_level,
 
 						end
 					};

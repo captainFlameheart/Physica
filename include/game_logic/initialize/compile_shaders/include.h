@@ -13,6 +13,7 @@
 #include "compile_draw_rigid_body_circle_bounding_boxes.h"
 #include "compile_draw_rigid_body_circle_contact_constraint_spawners.h"
 #include "compile_draw_rigid_body_triangles.h"
+#include "compile_increment_inner_bounding_box_height_level.h"
 #include "compile_initialize.h"
 #include "compile_initialize_inner_bounding_box_traversal.h"
 #include "compile_on_key_event.h"
