@@ -148,20 +148,21 @@ void main()
 		if (best_swap < 4u)	// Child-Grandchild
 		{
 			// IMPORTANT TODO: Only store node data in arrays, do not use separate variables.
-			uvec4 child_parent_children_heights[2u] = ivec4[2u](child_0_parent_children_height, child_1_parent_children_height);
+			uvec4 child_parent_children_heights[2u] = uvec4[2u](child_0_parent_children_height, child_1_parent_children_height);
 			ivec4 child_bounding_boxes[2u] = ivec4[2u](child_0_bounding_box, child_1_bounding_box);
 			uvec4 grandchild_parent_children_heights[4u] = uvec4[4u]
 			(
 				grandchild_0_parent_children_height, grandchild_1_parent_children_height,
-				grandchild_2_parent_children_height, grandchild_3_parent_children_height,
+				grandchild_2_parent_children_height, grandchild_3_parent_children_height
 			);
 			ivec4 grandchild_bounding_boxes[4u] = ivec4[4u]
 			(
 				grandchild_0_bounding_box, grandchild_1_bounding_box,
-				grandchild_2_bounding_box, grandchild_3_bounding_box,
+				grandchild_2_bounding_box, grandchild_3_bounding_box
 			);
 
 			uint still_child = best_swap >> 1u;
+			uint still_child_incremented = 1u + still_child;
 			uint moved_child = still_child ^ 1u;
 			uint moved_child_incremented = 1u + moved_child;
 			
@@ -172,6 +173,10 @@ void main()
 			uint still_grandchild = moved_grandchild ^ 1u;
 			uint global_still_grandchild = global_grandchild_base + still_grandchild;
 
+			uvec4 still_child_parent_children_height = child_parent_children_heights[still_child];
+
+			uint moved_child_index = parent_children_height[moved_child_incremented];
+			uint still_child_index = parent_children_height[still_child_incremented];
 			uint moved_grandchild_index = still_child_parent_children_height[moved_grandchild_incremented];
 
 			// IMPORTANT TODO: Do not set single variable to avoid extra read!
@@ -179,7 +184,7 @@ void main()
 			// Set parent of moved child to still child.
 			uvec4 moved_child_parent_children_height = child_parent_children_heights[moved_child];
 			moved_child_parent_children_height.x = still_child;
-			uvec4_data.data[parent_children_height_base + parent_children_height[moved_child_incremented]] = moved_child_parent_children_height;
+			uvec4_data.data[parent_children_height_base + moved_child_index] = moved_child_parent_children_height;
 			
 			// Set parent of moved grandchild to root.
 			uvec4 moved_grandchild_parent_children_height = grandchild_parent_children_heights[global_moved_grandchild];
@@ -190,8 +195,8 @@ void main()
 			parent_children_height[moved_child_incremented] = moved_grandchild_index;
 			
 			// Set new child heights as seen by the root.
-			child_heights[still_child] = 1u + max(child_heights[moved_child], grandchild_parent_children_heights[global_still_grandchild].w);
-			child_heights[moved_child] = moved_grandchild_parent_children_height.w;
+			child_heights[still_child] = 1 + max(child_heights[moved_child], int(grandchild_parent_children_heights[global_still_grandchild].w));
+			child_heights[moved_child] = int(moved_grandchild_parent_children_height.w);
 
 			// Replace the moved grandchild with the moved child as a child of the still child, and update the height of the still child.
 			still_child_parent_children_height[moved_grandchild_incremented] = moved_child_index;
