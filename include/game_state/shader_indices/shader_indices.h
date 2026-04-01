@@ -114,7 +114,8 @@ namespace game_state::shader_indices
 
 					enum struct Indices : GLuint
 					{
-						initialize_inner_bounding_box_traversal = base,
+						migrate_inner_bounding_boxes = base,
+						initialize_inner_bounding_box_traversal,
 						set_commands,
 
 						end

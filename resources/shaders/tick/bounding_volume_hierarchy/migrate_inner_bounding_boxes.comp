@@ -66,7 +66,7 @@ void main()
 		// Update child reference to migrated node.
 		uint migrated_parent_parent_children_height_index = parent_children_height_base + migrated_parent_children_height.x;
 		uvec4 migrated_parent_parent_children_height = uvec4_data.data[migrated_parent_parent_children_height_index];
-		uint migrated_side = uint(migrated_parent_parent_children_height.z == height_delimiter);
+		uint migrated_side = uint(migrated_parent_parent_children_height.z == migration.x);
 		migrated_parent_parent_children_height[1u + migrated_side] = empty_spot;
 		uvec4_data.data[migrated_parent_parent_children_height_index] = migrated_parent_parent_children_height;
 	}

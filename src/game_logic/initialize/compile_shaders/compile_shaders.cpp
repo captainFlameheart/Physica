@@ -26,6 +26,7 @@ namespace game_logic::initialize::compile_shaders
 
 		compile_tick_rigid_body_circles(environment, compile_environment);
 		
+		compile_migrate_inner_bounding_boxes(environment, compile_environment);
 		compile_initialize_inner_bounding_box_traversal(environment, compile_environment);
 		compile_set_inner_bounding_box_tick_commands(environment, compile_environment);
 
