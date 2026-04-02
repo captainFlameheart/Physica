@@ -150,6 +150,7 @@ namespace game_logic::debug
 		std::cout << '\n';
 
 		std::cout << "leaf_bounding_box_parent_pad_pad_type_bases:\n";
+		GLuint leaf_bounding_box_parent_pad_pad_type_bases[::game_state::leaf_bounding_box_types::count];
 		for (GLuint leaf_bounding_box_type{ 0u }; leaf_bounding_box_type < ::game_state::leaf_bounding_box_types::count; ++leaf_bounding_box_type)
 		{
 			GLuint leaf_bounding_box_parent_base;
@@ -161,6 +162,7 @@ namespace game_logic::debug
 				leaf_bounding_box_type * environment.state.layouts.fixed_data.leaf_bounding_box_parent_pad_pad_type_bases_state.array_stride,
 				sizeof(GLuint)
 			);
+			leaf_bounding_box_parent_pad_pad_type_bases[leaf_bounding_box_type] = leaf_bounding_box_parent_base;
 			std::cout << "	" << leaf_bounding_box_parent_base << '\n';
 		}
 
@@ -312,6 +314,16 @@ namespace game_logic::debug
 
 		std::cout << '\n';
 
+		GLuint rigid_body_circle_parent_pad_pad_types_size{ rigid_body_circle_capacity * 16u };
+		GLubyte* rigid_body_circle_parent_pad_pad_types = new GLubyte[rigid_body_circle_parent_pad_pad_types_size];
+		glGetNamedBufferSubData
+		(
+			environment.state.buffers.GPU_only.buffers[environment.state.buffers.GPU_only.current],
+			environment.state.layouts.uvec4_data.state.offset + leaf_bounding_box_parent_pad_pad_type_bases[rigid_body_circle_bounding_box_type] * environment.state.layouts.uvec4_data.state.array_stride,
+			rigid_body_circle_parent_pad_pad_types_size,
+			rigid_body_circle_parent_pad_pad_types
+		);
+
 		GLuint rigid_body_circle_bounding_boxes_size{ rigid_body_circle_capacity * 16u };
 		GLubyte* rigid_body_circle_bounding_boxes = new GLubyte[rigid_body_circle_bounding_boxes_size];
 		glGetNamedBufferSubData
@@ -321,6 +333,7 @@ namespace game_logic::debug
 			rigid_body_circle_bounding_boxes_size,
 			rigid_body_circle_bounding_boxes
 		);
+
 		GLuint rigid_body_circle_read_count;
 		std::memcpy
 		(
@@ -342,11 +355,24 @@ namespace game_logic::debug
 		std::cout << "Rigid body circles:\n";
 		for (GLuint rigid_body_circle{ 0u }; rigid_body_circle < rigid_body_circle_write_count; ++rigid_body_circle)
 		{
+			GLuint rigid_body_circle_parent_pad_pad_type[4u];
+			std::memcpy
+			(
+				&rigid_body_circle_parent_pad_pad_type,
+				rigid_body_circle_parent_pad_pad_types + rigid_body_circle * environment.state.layouts.uvec4_data.state.array_stride,
+				sizeof(GLuint[4u])
+			);
+			std::cout << "parent_pad_pad_type: ("
+				<< rigid_body_circle_parent_pad_pad_type[0u] << ", "
+				<< rigid_body_circle_parent_pad_pad_type[1u] << ", "
+				<< rigid_body_circle_parent_pad_pad_type[2u] << ", "
+				<< rigid_body_circle_parent_pad_pad_type[3u] << ")\n";
+
 			GLuint rigid_body_circle_bounding_box[4u];
 			std::memcpy
 			(
 				&rigid_body_circle_bounding_box,
-				rigid_body_circle_bounding_boxes + rigid_body_circle * 16u,
+				rigid_body_circle_bounding_boxes + rigid_body_circle * environment.state.layouts.uvec4_data.state.array_stride,
 				sizeof(GLuint[4u])
 			);
 			std::cout << "bounding_box: ("
@@ -356,6 +382,7 @@ namespace game_logic::debug
 				<< rigid_body_circle_bounding_box[3u] << ")\n";
 		}
 
+		delete[] rigid_body_circle_parent_pad_pad_types;
 		delete[] rigid_body_circle_bounding_boxes;
 
 		std::cout << std::endl;
