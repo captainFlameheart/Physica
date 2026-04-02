@@ -69,38 +69,26 @@ namespace game_state::layouts::fixed_data
 		GLint offset;
 	};
 
-	struct leaf_bounding_box_parent_bases
+	struct leaf_bounding_box_parent_pad_pad_type_bases
 	{
 		GLint offset;
 		GLint array_stride;
 		GLint array_size;
 	};
 
-	struct inner_bounding_box_child_pair_base
+	struct inner_bounding_box_parent_children_height_base
 	{
 		GLint offset;
 	};
 
-	struct read_leaf_bounding_box_bases
-	{
-		GLint offset;
-		GLint array_stride;
-		GLint array_size;
-	};
-
-	struct write_leaf_bounding_box_bases
+	struct leaf_bounding_box_bases
 	{
 		GLint offset;
 		GLint array_stride;
 		GLint array_size;
 	};
 
-	struct read_inner_bounding_box_base
-	{
-		GLint offset;
-	};
-
-	struct write_inner_bounding_box_base
+	struct inner_bounding_box_base
 	{
 		GLint offset;
 	};
@@ -420,33 +408,23 @@ namespace game_state::layouts::fixed_data
 
 		union
 		{
-			leaf_bounding_box_parent_bases leaf_bounding_box_parent_bases_state;
-			GLint leaf_bounding_box_parent_bases_properties[sizeof(leaf_bounding_box_parent_bases) / sizeof(GLint)];
+			leaf_bounding_box_parent_pad_pad_type_bases leaf_bounding_box_parent_pad_pad_type_bases_state;
+			GLint leaf_bounding_box_parent_pad_pad_type_bases_properties[sizeof(leaf_bounding_box_parent_pad_pad_type_bases) / sizeof(GLint)];
 		};
 		union
 		{
-			inner_bounding_box_child_pair_base inner_bounding_box_child_pair_base_state;
-			GLint inner_bounding_box_child_pair_base_properties[sizeof(inner_bounding_box_child_pair_base) / sizeof(GLint)];
+			inner_bounding_box_parent_children_height_base inner_bounding_box_parent_children_height_base_state;
+			GLint inner_bounding_box_parent_children_height_base_properties[sizeof(inner_bounding_box_parent_children_height_base) / sizeof(GLint)];
 		};
 		union
 		{
-			read_leaf_bounding_box_bases read_leaf_bounding_box_bases_state;
-			GLint read_leaf_bounding_box_bases_properties[sizeof(read_leaf_bounding_box_bases) / sizeof(GLint)];
+			leaf_bounding_box_bases leaf_bounding_box_bases_state;
+			GLint leaf_bounding_box_bases_properties[sizeof(leaf_bounding_box_bases) / sizeof(GLint)];
 		};
 		union
 		{
-			write_leaf_bounding_box_bases write_leaf_bounding_box_bases_state;
-			GLint write_leaf_bounding_box_bases_properties[sizeof(write_leaf_bounding_box_bases) / sizeof(GLint)];
-		};
-		union
-		{
-			read_inner_bounding_box_base read_inner_bounding_box_base_state;
-			GLint read_inner_bounding_box_base_properties[sizeof(read_inner_bounding_box_base) / sizeof(GLint)];
-		};
-		union
-		{
-			write_inner_bounding_box_base write_inner_bounding_box_base_state;
-			GLint write_inner_bounding_box_base_properties[sizeof(write_inner_bounding_box_base) / sizeof(GLint)];
+			inner_bounding_box_base inner_bounding_box_base_state;
+			GLint inner_bounding_box_base_properties[sizeof(inner_bounding_box_base) / sizeof(GLint)];
 		};
 		
 		union
