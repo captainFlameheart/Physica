@@ -142,13 +142,6 @@ FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 
 	uint rigid_body_circle_body_position_radius_base;
 
-	/*uint leaf_bounding_box_parent_bases[leaf_bounding_box_type_count];
-	uint inner_bounding_box_child_pair_base;
-	uint read_leaf_bounding_box_bases[leaf_bounding_box_type_count];
-	uint write_leaf_bounding_box_bases[leaf_bounding_box_type_count];
-	uint read_inner_bounding_box_base;
-	uint write_inner_bounding_box_base;*/
-
 	uint leaf_bounding_box_parent_pad_pad_type_bases[leaf_bounding_box_type_count];
 	uint inner_bounding_box_parent_children_height_base;
 	uint leaf_bounding_box_bases[leaf_bounding_box_type_count];

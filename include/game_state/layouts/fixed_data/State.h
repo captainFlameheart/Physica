@@ -93,6 +93,36 @@ namespace game_state::layouts::fixed_data
 		GLint offset;
 	};
 
+	struct inner_bounding_box_height_delimiters_base
+	{
+		GLint offset;
+	};
+
+	struct inner_bounding_box_migration_list_base
+	{
+		GLint offset;
+	};
+
+	struct inner_bounding_box_migration_count
+	{
+		GLint offset;
+	};
+
+	struct current_inner_bounding_box_height
+	{
+		GLint offset;
+	};
+
+	struct current_inner_bounding_box_height_start
+	{
+		GLint offset;
+	};
+
+	struct current_inner_bounding_box_height_count
+	{
+		GLint offset;
+	};
+
 	struct rigid_body_circle_contact_constraint_spawner_indices_flags_base
 	{
 		GLint offset;
@@ -427,6 +457,38 @@ namespace game_state::layouts::fixed_data
 			GLint inner_bounding_box_base_properties[sizeof(inner_bounding_box_base) / sizeof(GLint)];
 		};
 		
+		union
+		{
+			inner_bounding_box_height_delimiters_base inner_bounding_box_height_delimiters_base_state;
+			GLint inner_bounding_box_height_delimiters_base_properties[sizeof(inner_bounding_box_height_delimiters_base) / sizeof(GLint)];
+		};
+		union
+		{
+			inner_bounding_box_migration_list_base inner_bounding_box_migration_list_base_state;
+			GLint inner_bounding_box_migration_list_base_properties[sizeof(inner_bounding_box_migration_list_base) / sizeof(GLint)];
+		};
+		union
+		{
+			inner_bounding_box_migration_count inner_bounding_box_migration_count_state;
+			GLint inner_bounding_box_migration_count_properties[sizeof(inner_bounding_box_migration_count) / sizeof(GLint)];
+		};
+
+		union
+		{
+			current_inner_bounding_box_height current_inner_bounding_box_height_state;
+			GLint current_inner_bounding_box_height_properties[sizeof(current_inner_bounding_box_height) / sizeof(GLint)];
+		};
+		union
+		{
+			current_inner_bounding_box_height_start current_inner_bounding_box_height_start_state;
+			GLint current_inner_bounding_box_height_start_properties[sizeof(current_inner_bounding_box_height_start) / sizeof(GLint)];
+		};
+		union
+		{
+			current_inner_bounding_box_height_count current_inner_bounding_box_height_count_state;
+			GLint current_inner_bounding_box_height_count_properties[sizeof(current_inner_bounding_box_height_count) / sizeof(GLint)];
+		};
+
 		union
 		{
 			rigid_body_circle_contact_constraint_spawner_indices_flags_base rigid_body_circle_contact_constraint_spawner_indices_flags_base_state;

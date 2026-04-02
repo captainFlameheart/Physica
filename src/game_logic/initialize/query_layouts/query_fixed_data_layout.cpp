@@ -65,6 +65,38 @@ namespace game_logic::initialize::query_layouts
 
 		::game_logic::shader_util::query::query_shader_storage_variable_offset
 		(
+			program, "Fixed_Data.inner_bounding_box_height_delimiters_base",
+			environment.state.layouts.fixed_data.inner_bounding_box_height_delimiters_base_properties
+		);
+		::game_logic::shader_util::query::query_shader_storage_variable_offset
+		(
+			program, "Fixed_Data.inner_bounding_box_migration_list_base",
+			environment.state.layouts.fixed_data.inner_bounding_box_migration_list_base_properties
+		);
+		::game_logic::shader_util::query::query_shader_storage_variable_offset
+		(
+			program, "Fixed_Data.inner_bounding_box_migration_count",
+			environment.state.layouts.fixed_data.inner_bounding_box_migration_count_properties
+		);
+
+		::game_logic::shader_util::query::query_shader_storage_variable_offset
+		(
+			program, "Fixed_Data.current_inner_bounding_box_height",
+			environment.state.layouts.fixed_data.current_inner_bounding_box_height_properties
+		);
+		::game_logic::shader_util::query::query_shader_storage_variable_offset
+		(
+			program, "Fixed_Data.current_inner_bounding_box_height_start",
+			environment.state.layouts.fixed_data.current_inner_bounding_box_height_start_properties
+		);
+		::game_logic::shader_util::query::query_shader_storage_variable_offset
+		(
+			program, "Fixed_Data.current_inner_bounding_box_height_count",
+			environment.state.layouts.fixed_data.current_inner_bounding_box_height_count_properties
+		);
+
+		::game_logic::shader_util::query::query_shader_storage_variable_offset
+		(
 			program, "Fixed_Data.rigid_body_circle_contact_constraint_spawner_indices_flags_base",
 			environment.state.layouts.fixed_data.rigid_body_circle_contact_constraint_spawner_indices_flags_base_properties
 		);

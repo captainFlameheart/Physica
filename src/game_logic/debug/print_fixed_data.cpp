@@ -200,6 +200,64 @@ namespace game_logic::debug
 		std::cout << "inner_bounding_box_base: " << inner_bounding_box_base << '\n';
 
 		std::cout << '\n';
+
+		GLuint inner_bounding_box_height_delimiters_base;
+		std::memcpy
+		(
+			&inner_bounding_box_height_delimiters_base,
+			fixed_data + environment.state.layouts.fixed_data.inner_bounding_box_height_delimiters_base_state.offset,
+			sizeof(GLuint)
+		);
+		std::cout << "inner_bounding_box_height_delimiters_base: " << inner_bounding_box_height_delimiters_base << '\n';
+
+		GLuint inner_bounding_box_migration_list_base;
+		std::memcpy
+		(
+			&inner_bounding_box_migration_list_base,
+			fixed_data + environment.state.layouts.fixed_data.inner_bounding_box_migration_list_base_state.offset,
+			sizeof(GLuint)
+		);
+		std::cout << "inner_bounding_box_migration_list_base: " << inner_bounding_box_migration_list_base << '\n';
+
+		GLuint inner_bounding_box_migration_count;
+		std::memcpy
+		(
+			&inner_bounding_box_migration_count,
+			fixed_data + environment.state.layouts.fixed_data.inner_bounding_box_migration_count_state.offset,
+			sizeof(GLuint)
+		);
+		std::cout << "inner_bounding_box_migration_count: " << inner_bounding_box_migration_count << '\n';
+
+		std::cout << '\n';
+
+		GLuint current_inner_bounding_box_height;
+		std::memcpy
+		(
+			&current_inner_bounding_box_height,
+			fixed_data + environment.state.layouts.fixed_data.current_inner_bounding_box_height_state.offset,
+			sizeof(GLuint)
+		);
+		std::cout << "current_inner_bounding_box_height: " << current_inner_bounding_box_height << '\n';
+
+		GLuint current_inner_bounding_box_height_start;
+		std::memcpy
+		(
+			&current_inner_bounding_box_height_start,
+			fixed_data + environment.state.layouts.fixed_data.current_inner_bounding_box_height_start_state.offset,
+			sizeof(GLuint)
+		);
+		std::cout << "current_inner_bounding_box_height_start: " << current_inner_bounding_box_height_start << '\n';
+
+		GLuint current_inner_bounding_box_height_count;
+		std::memcpy
+		(
+			&current_inner_bounding_box_height_count,
+			fixed_data + environment.state.layouts.fixed_data.current_inner_bounding_box_height_count_state.offset,
+			sizeof(GLuint)
+		);
+		std::cout << "current_inner_bounding_box_height_count: " << current_inner_bounding_box_height_count << '\n';
+
+		std::cout << '\n';
 		
 		GLuint rigid_body_circle_contact_constraint_spawner_indices_flags_base;
 		std::memcpy
