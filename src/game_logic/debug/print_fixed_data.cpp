@@ -36,6 +36,10 @@ namespace game_logic::debug
 		{
 			static_cast<GLuint>(::game_state::leaf_bounding_box_types::Indices::rigid_body_circle)
 		};
+		constexpr GLuint inner_bounding_box_type
+		{
+			static_cast<GLuint>(::game_state::entity_type_indices::bounding_volume_hierarchy::Indices::inner_bounding_box)
+		};
 
 		GLuint point_mass_inverse_mass_base;
 		std::memcpy
@@ -384,6 +388,82 @@ namespace game_logic::debug
 
 		delete[] rigid_body_circle_parent_pad_pad_types;
 		delete[] rigid_body_circle_bounding_boxes;
+
+		std::cout << '\n';
+
+		GLuint inner_bounding_box_parent_children_heights_size{ rigid_body_circle_capacity * 16u };
+		GLubyte* inner_bounding_box_parent_children_heights = new GLubyte[inner_bounding_box_parent_children_heights_size];
+		glGetNamedBufferSubData
+		(
+			environment.state.buffers.GPU_only.buffers[environment.state.buffers.GPU_only.current],
+			environment.state.layouts.uvec4_data.state.offset + inner_bounding_box_parent_children_height_base * environment.state.layouts.uvec4_data.state.array_stride,
+			inner_bounding_box_parent_children_heights_size,
+			inner_bounding_box_parent_children_heights
+		);
+
+		GLuint leaf_bounding_box_capacity = rigid_body_circle_capacity;
+		GLuint inner_bounding_box_capacity = leaf_bounding_box_capacity - 1u;
+		GLuint inner_bounding_boxes_size{ inner_bounding_box_capacity * 16u };
+		GLubyte* inner_bounding_boxes = new GLubyte[inner_bounding_boxes_size];
+		glGetNamedBufferSubData
+		(
+			environment.state.buffers.GPU_only.buffers[environment.state.buffers.GPU_only.current],
+			environment.state.layouts.uvec4_data.state.offset + inner_bounding_box_base * environment.state.layouts.uvec4_data.state.array_stride,
+			inner_bounding_boxes_size,
+			inner_bounding_boxes
+		);
+
+		GLuint inner_bounding_box_read_count;
+		std::memcpy
+		(
+			&inner_bounding_box_read_count,
+			fixed_data +
+			environment.state.layouts.fixed_data.read_counts_state.offset +
+			inner_bounding_box_type * environment.state.layouts.fixed_data.read_counts_state.array_stride,
+			sizeof(GLuint)
+		);
+		GLuint inner_bounding_box_write_count;
+		std::memcpy
+		(
+			&inner_bounding_box_write_count,
+			fixed_data +
+			environment.state.layouts.fixed_data.write_counts_state.offset +
+			inner_bounding_box_type * environment.state.layouts.fixed_data.write_counts_state.array_stride,
+			sizeof(GLuint)
+		);
+
+		std::cout << "Inner bounding boxes:\n";
+		for (GLuint inner_bounding_box{ 0u }; inner_bounding_box < inner_bounding_box_write_count; ++inner_bounding_box)
+		{
+			GLuint inner_bounding_box_parent_children_height[4u];
+			std::memcpy
+			(
+				&inner_bounding_box_parent_children_height,
+				inner_bounding_box_parent_children_heights + inner_bounding_box * environment.state.layouts.uvec4_data.state.array_stride,
+				sizeof(GLuint[4u])
+			);
+			std::cout << "parent_children_height: ("
+				<< inner_bounding_box_parent_children_height[0u] << ", "
+				<< inner_bounding_box_parent_children_height[1u] << ", "
+				<< inner_bounding_box_parent_children_height[2u] << ", "
+				<< inner_bounding_box_parent_children_height[3u] << ")\n";
+
+			GLuint bounding_box[4u];
+			std::memcpy
+			(
+				&bounding_box,
+				inner_bounding_boxes + inner_bounding_box * environment.state.layouts.uvec4_data.state.array_stride,
+				sizeof(GLuint[4u])
+			);
+			std::cout << "bounding_box: ("
+				<< bounding_box[0u] << ", "
+				<< bounding_box[1u] << ", "
+				<< bounding_box[2u] << ", "
+				<< bounding_box[3u] << ")\n";
+		}
+
+		delete[] inner_bounding_box_parent_children_heights;
+		delete[] inner_bounding_boxes;
 
 		std::cout << std::endl;
 
