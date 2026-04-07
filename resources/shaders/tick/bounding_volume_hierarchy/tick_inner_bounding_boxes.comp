@@ -63,8 +63,8 @@ void main()
 		grandchild_0_parent_children_height = uvec4_data.data[parent_children_height_base + child_0_parent_children_height.y];
 		grandchild_1_parent_children_height = uvec4_data.data[parent_children_height_base + child_0_parent_children_height.z];
 
-		grandchild_0_bounding_box = ivec4(uvec4_data.data[parent_children_height_base + child_0_parent_children_height.y]);
-		grandchild_1_bounding_box = ivec4(uvec4_data.data[parent_children_height_base + child_0_parent_children_height.z]);
+		grandchild_0_bounding_box = ivec4(uvec4_data.data[bounding_box_base + child_0_parent_children_height.y]);
+		grandchild_1_bounding_box = ivec4(uvec4_data.data[bounding_box_base + child_0_parent_children_height.z]);
 
 		ivec4 swap_0_child_0_bounding_box = ivec4(min(grandchild_1_bounding_box.xy, child_1_bounding_box.xy), max(grandchild_1_bounding_box.zw, child_1_bounding_box.zw));
 		int swap_0_child_0_cost = (swap_0_child_0_bounding_box.z - swap_0_child_0_bounding_box.x) + (swap_0_child_0_bounding_box.w - swap_0_child_0_bounding_box.y);
@@ -93,8 +93,8 @@ void main()
 		grandchild_2_parent_children_height = uvec4_data.data[parent_children_height_base + child_1_parent_children_height.y];
 		grandchild_3_parent_children_height = uvec4_data.data[parent_children_height_base + child_1_parent_children_height.z];
 
-		grandchild_2_bounding_box = ivec4(uvec4_data.data[parent_children_height_base + child_1_parent_children_height.y]);
-		grandchild_3_bounding_box = ivec4(uvec4_data.data[parent_children_height_base + child_1_parent_children_height.z]);
+		grandchild_2_bounding_box = ivec4(uvec4_data.data[bounding_box_base + child_1_parent_children_height.y]);
+		grandchild_3_bounding_box = ivec4(uvec4_data.data[bounding_box_base + child_1_parent_children_height.z]);
 
 		ivec4 swap_2_child_1_bounding_box = ivec4(min(grandchild_3_bounding_box.xy, child_0_bounding_box.xy), max(grandchild_3_bounding_box.zw, child_0_bounding_box.zw));
 		int swap_2_child_1_cost = (swap_2_child_1_bounding_box.z - swap_2_child_1_bounding_box.x) + (swap_2_child_1_bounding_box.w - swap_2_child_1_bounding_box.y);
