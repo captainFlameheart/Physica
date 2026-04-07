@@ -75,6 +75,12 @@ namespace game_logic::on_key_event
 			case GLFW_KEY_O:
 				::game_logic::debug::print_fixed_data(environment);
 				break;
+			case GLFW_KEY_COMMA:
+				environment.state.tick_paused = !environment.state.tick_paused;
+				break;
+			case GLFW_KEY_PERIOD:
+				::game_logic::tick::tick(environment);
+				break;
 			default:
 				break;
 			}

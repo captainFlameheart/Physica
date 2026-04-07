@@ -126,7 +126,10 @@ namespace game_logic
 #if RUN_LEGACY
 		::legacy::game_logic::tick(environment);
 #else
-		tick::tick(environment);
+		if (!environment.state.tick_paused)
+		{
+			tick::tick(environment);
+		}
 #endif
 	}
 

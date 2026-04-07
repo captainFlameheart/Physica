@@ -184,8 +184,6 @@ void main()
 			int moved_grandchild_is_inner = int(int(moved_grandchild_index) >= 0);
 			int still_grandchild_is_inner = int(int(still_grandchild_index) >= 0);
 
-			// IMPORTANT TODO: Do not set single variable to avoid extra read!
-
 			// Set parent of moved child to still child.
 			uvec4 moved_child_parent_children_height = child_parent_children_heights[moved_child];
 			moved_child_parent_children_height.x = still_child_index;
@@ -221,7 +219,7 @@ void main()
 		{
 			// TODO
 		}
-	}
+	 }
 
 	uint new_height = uint(1 + max(child_heights[0u], child_heights[1u]));
 	if (new_height != parent_children_height.w)

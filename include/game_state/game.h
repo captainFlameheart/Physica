@@ -12,6 +12,8 @@ namespace game_state
 	{
 		bool is_debugging;
 
+		bool tick_paused;
+
 		GLuint vertex_array;	// Required for drawing anything at all
 
 		GLuint tick_count;
