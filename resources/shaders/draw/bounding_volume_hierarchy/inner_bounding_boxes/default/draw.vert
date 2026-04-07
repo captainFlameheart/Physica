@@ -20,6 +20,14 @@ const uvec2 bounding_box_vertex_indices[6u] = uvec2[6u]
 	uvec2(2u, 3u)
 );
 
+const vec4 height_colors[] = vec4[]
+(
+	vec4(1.0, 0.0, 0.0, 0.2),
+	vec4(0.0, 1.0, 0.0, 0.2),
+	vec4(0.0, 0.0, 1.0, 0.2)
+);
+
+out vec4 color;
 out vec2 UV;
 flat out vec2 size;
 
@@ -32,11 +40,16 @@ void main()
 	uvec4 camera_position = fixed_data.camera_position;
 	mat4 camera_offset_to_clip_coordinates = fixed_data.camera_offset_to_clip_coordinates;
 
+	uint inner_bounding_box_parent_children_height_base = fixed_data.inner_bounding_box_parent_children_height_base;
 	uint inner_bounding_box_base = fixed_data.inner_bounding_box_base;
 
+	uint parent_children_height_index = inner_bounding_box_parent_children_height_base + index;
 	uint bounding_box_index = inner_bounding_box_base + index;
 
+	uvec4 parent_children_height = uvec4_data.data[parent_children_height_index];
 	uvec4 bounding_box = uvec4_data.data[bounding_box_index];
+
+	color = height_colors[parent_children_height.w % height_colors.length()];
 
 	size = vec2(ivec2(bounding_box.zw - bounding_box.xy));
 

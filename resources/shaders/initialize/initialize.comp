@@ -545,4 +545,6 @@ void main()
 	}
 
 	uint bounding_volume_hierarchy_height = inner_bounding_box_index - 1u;
+
+	fixed_data.temp = 0u;
 }

@@ -89,6 +89,7 @@ void main()
 		child_1_cost = (child_1_bounding_box.z - child_1_bounding_box.x) + (child_1_bounding_box.w - child_1_bounding_box.y);
 		child_heights[1u] = int(child_1_parent_children_height.w);
 
+		// IMPORTANT TODO: Only fetch grandchild pointers if necessary for rotation.
 		grandchild_2_parent_children_height = uvec4_data.data[parent_children_height_base + child_1_parent_children_height.y];
 		grandchild_3_parent_children_height = uvec4_data.data[parent_children_height_base + child_1_parent_children_height.z];
 
@@ -147,6 +148,8 @@ void main()
 	{
 		if (best_swap < 4u)	// Child-Grandchild
 		{
+			atomicAdd(fixed_data.temp, best_swap);	// MUST TODO: REMOVE!
+
 			// IMPORTANT TODO: Only store node data in arrays, do not use separate variables.
 			uvec4 child_parent_children_heights[2u] = uvec4[2u](child_0_parent_children_height, child_1_parent_children_height);
 			ivec4 child_bounding_boxes[2u] = ivec4[2u](child_0_bounding_box, child_1_bounding_box);

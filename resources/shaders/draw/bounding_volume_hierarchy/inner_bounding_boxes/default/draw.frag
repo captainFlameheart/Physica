@@ -1,5 +1,6 @@
 #define DISCARD_CENTER 1
 
+in vec4 color;
 in vec2 UV;
 flat in vec2 size;
 
@@ -22,7 +23,7 @@ void main()
         {
             discard;
         }
-        albedo = vec4(1.0, 0.0, 0.0, 0.2);
+        albedo = color;
     #else
         float is_inside_stroke_region = float(distance_from_edge < stroke_width);
 
@@ -31,7 +32,7 @@ void main()
         const float alpha_difference = stroke_alpha - fill_alpha;
         float alpha = fill_alpha + is_inside_stroke_region * alpha_difference;
     
-        albedo = vec4(1.0, 0.0, 0.0, alpha);
+        albedo = vec4(color.rgb, alpha);
     #endif
 
     emission = vec4(albedo.rgb, 0.0);
