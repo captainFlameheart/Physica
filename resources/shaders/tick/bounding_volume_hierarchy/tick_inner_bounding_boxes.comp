@@ -148,8 +148,6 @@ void main()
 	{
 		if (best_swap < 4u)	// Child-Grandchild
 		{
-			atomicAdd(fixed_data.temp, best_swap);	// MUST TODO: REMOVE!
-
 			// IMPORTANT TODO: Only store node data in arrays, do not use separate variables.
 			uvec4 child_parent_children_heights[2u] = uvec4[2u](child_0_parent_children_height, child_1_parent_children_height);
 			ivec4 child_bounding_boxes[2u] = ivec4[2u](child_0_bounding_box, child_1_bounding_box);
@@ -209,7 +207,6 @@ void main()
 			// Replace the moved grandchild with the moved child as a child of the still child, and update the height of the still child.
 			still_child_parent_children_height[moved_grandchild_incremented] = moved_child_index;
 			still_child_parent_children_height.w = uint(child_heights[still_child]);
-			// MUST TODO: Migrate still child if its height changed! But only if it hasn't already been appended to the migration list!!!
 			uvec4_data.data[parent_children_height_base + still_child_index] = still_child_parent_children_height;
 
 			// Update the bounding box of the still child.
@@ -224,13 +221,6 @@ void main()
 		}
 	 }
 
-	uint new_height = uint(1 + max(child_heights[0u], child_heights[1u]));
-	if (new_height != parent_children_height.w)
-	{
-		uint migration_list_base = fixed_data.inner_bounding_box_migration_list_base;
-		uint migration_index = atomicAdd(fixed_data.inner_bounding_box_migration_count, 1u);
-		uvec4_data.data[migration_list_base + migration_index] = uvec4(index, parent_children_height.w, new_height, 0u);
-		parent_children_height.w = new_height;
-	}
+	parent_children_height.w = uint(1 + max(child_heights[0u], child_heights[1u]));
 	uvec4_data.data[parent_children_height_index] = parent_children_height;
 }
