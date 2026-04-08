@@ -1,0 +1,27 @@
+layout(local_size_x = find_inner_bounding_box_height_changes_local_size) in;
+void main()
+{
+	uint index = gl_GlobalInvocationID.x;
+	uint count = fixed_data.read_counts[inner_bounding_box_type];
+	if (index >= count)
+	{
+		return;
+	}
+
+	uint parent_children_height_base = fixed_data.inner_bounding_box_parent_children_height_base;
+	uint old_height_base = fixed_data.inner_bounding_box_old_height_base;
+
+	uint parent_children_height_index = parent_children_height_base + index;
+	uint old_height_index = old_height_base + index;
+
+	uvec4 parent_children_height = uvec4_data.data[parent_children_height_index];
+	uint old_height = uint_data.data[old_height_index];
+
+	if (parent_children_height.w != old_height)
+	{
+		uint migration_list_base = fixed_data.inner_bounding_box_migration_list_base;
+		uint migration_index = atomicAdd(fixed_data.inner_bounding_box_migration_count, 1u);
+		uvec4_data.data[migration_list_base + migration_index] = uvec4(index, old_height, parent_children_height.w, 0u);
+		uint_data.data[old_height_index] = parent_children_height.w;
+	}
+}
