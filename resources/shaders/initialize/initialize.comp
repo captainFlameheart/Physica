@@ -137,17 +137,9 @@ void main()
 	uint inner_bounding_box_base = address_to_uvec4_index(inner_bounding_box_base_address);
 	fixed_data.inner_bounding_box_base = inner_bounding_box_base;
 
-	/*uint read_bounding_box_base_address = align_up(inner_bounding_box_child_pair_base_address + inner_bounding_box_capacity * uvec2_data_array_stride);
-	uint read_bounding_box_base = address_to_uvec4_index(read_bounding_box_base_address);
-	uint read_inner_bounding_box_base_address = align_up(read_bounding_box_base_address + next_bounding_box_local_base * uvec4_data_array_stride);
-	uint read_inner_bounding_box_base = address_to_uvec4_index(read_inner_bounding_box_base_address);
-	fixed_data.read_inner_bounding_box_base = read_inner_bounding_box_base;
-
-	uint write_bounding_box_base_address = align_up(read_inner_bounding_box_base_address + inner_bounding_box_capacity * uvec4_data_array_stride);
-	uint write_bounding_box_base = address_to_uvec4_index(write_bounding_box_base_address);
-	uint write_inner_bounding_box_base_address = align_up(write_bounding_box_base_address + next_bounding_box_local_base * uvec4_data_array_stride);
-	uint write_inner_bounding_box_base = address_to_uvec4_index(write_inner_bounding_box_base_address);
-	fixed_data.write_inner_bounding_box_base = write_inner_bounding_box_base;*/
+	uint inner_bounding_box_old_height_base_address = align_up(inner_bounding_box_base_address + inner_bounding_box_capacity * uvec4_data_array_stride);
+	uint inner_bounding_box_old_height_base = address_to_uint_index(inner_bounding_box_old_height_base_address);
+	fixed_data.inner_bounding_box_old_height_base = inner_bounding_box_old_height_base;
 
 	uint leaf_bounding_box_parent_pad_pad_type_bases[leaf_bounding_box_type_count];
 	uint leaf_bounding_box_bases[leaf_bounding_box_type_count];
@@ -167,7 +159,7 @@ void main()
 
 	uint inner_bounding_box_height_delimiters_capacity = inner_bounding_box_capacity;
 
-	uint inner_bounding_box_height_delimiters_base_address = align_up(inner_bounding_box_base_address + inner_bounding_box_capacity * uvec4_data_array_stride);
+	uint inner_bounding_box_height_delimiters_base_address = align_up(inner_bounding_box_old_height_base_address + inner_bounding_box_capacity * uint_data_array_stride);
 	uint inner_bounding_box_migration_list_base_address = align_up(inner_bounding_box_height_delimiters_base_address + inner_bounding_box_height_delimiters_capacity * uint_data_array_stride);
 	uint inner_bounding_box_migration_count = 0u;
 
@@ -535,6 +527,7 @@ void main()
 				uvec4_data.data[inner_bounding_box_parent_children_height_base + bounding_volume_hierarchy_root].x = inner_bounding_box_index;
 				uvec4 bounding_box = uvec4(0u);
 				uvec4_data.data[inner_bounding_box_base + inner_bounding_box_index] = bounding_box;
+				uint_data.data[inner_bounding_box_old_height_base + inner_bounding_box_index] = inner_bounding_box_height;
 				bounding_volume_hierarchy_root = inner_bounding_box_index;
 
 				++inner_bounding_box_index;

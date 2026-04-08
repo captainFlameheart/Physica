@@ -146,6 +146,7 @@ FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 	uint inner_bounding_box_parent_children_height_base;
 	uint leaf_bounding_box_bases[leaf_bounding_box_type_count];
 	uint inner_bounding_box_base;
+	uint inner_bounding_box_old_height_base;
 
 	uint inner_bounding_box_height_delimiters_base;
 	uint inner_bounding_box_migration_list_base;	// (source, source_height, destination_height, pad)
