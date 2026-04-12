@@ -1,3 +1,5 @@
+float gl_CullDistance[1u];
+
 const vec2 UVs[6u] = vec2[6u]
 (
 	vec2(1.0, 1.0),
@@ -48,6 +50,8 @@ void main()
 
 	uvec4 parent_children_height = uvec4_data.data[parent_children_height_index];
 	uvec4 bounding_box = uvec4_data.data[bounding_box_index];
+
+	gl_CullDistance[0u] = -float(parent_children_height.w != 0u);
 
 	color = height_colors[parent_children_height.w % height_colors.length()];
 
