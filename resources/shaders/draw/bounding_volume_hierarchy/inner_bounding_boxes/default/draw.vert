@@ -51,7 +51,7 @@ void main()
 	uvec4 parent_children_height = uvec4_data.data[parent_children_height_index];
 	uvec4 bounding_box = uvec4_data.data[bounding_box_index];
 
-	gl_CullDistance[0u] = -float(parent_children_height.w != 0u);
+	gl_CullDistance[0u] = 1.0;//-float(parent_children_height.w != 0u);
 
 	color = height_colors[parent_children_height.w % height_colors.length()];
 

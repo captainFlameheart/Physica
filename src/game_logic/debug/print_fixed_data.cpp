@@ -413,6 +413,16 @@ namespace game_logic::debug
 			inner_bounding_boxes
 		);
 
+		GLuint inner_bounding_box_height_delimiters_size{ inner_bounding_box_capacity * sizeof(GLuint) };
+		GLubyte* inner_bounding_box_height_delimiters = new GLubyte[inner_bounding_box_height_delimiters_size];
+		glGetNamedBufferSubData
+		(
+			environment.state.buffers.GPU_only.buffers[environment.state.buffers.GPU_only.current],
+			environment.state.layouts.uint_data.state.offset + inner_bounding_box_height_delimiters_base * environment.state.layouts.uint_data.state.array_stride,
+			inner_bounding_box_height_delimiters_size,
+			inner_bounding_box_height_delimiters
+		);
+
 		GLuint inner_bounding_box_read_count;
 		std::memcpy
 		(
@@ -462,8 +472,24 @@ namespace game_logic::debug
 				<< bounding_box[3u] << ")\n";
 		}
 
+		std::cout << '\n';
+
+		std::cout << "Inner bounding box height delimiters:\n";
+		for (GLuint height_level{ 0u }; height_level < inner_bounding_box_write_count; ++height_level)
+		{
+			GLuint delimiter{ inner_bounding_box_height_delimiters[height_level] };
+			std::memcpy
+			(
+				&delimiter,
+				inner_bounding_box_height_delimiters + height_level * environment.state.layouts.uint_data.state.array_stride,
+				sizeof(GLuint)
+			);
+			std::cout << height_level << ": " << delimiter << '\n';
+		}
+
 		delete[] inner_bounding_box_parent_children_heights;
 		delete[] inner_bounding_boxes;
+		delete[] inner_bounding_box_height_delimiters;
 
 		std::cout << std::endl;
 
