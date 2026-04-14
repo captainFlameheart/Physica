@@ -66,7 +66,7 @@ void main()
 	fixed_data.point_mass_write_flags_base = point_mass_write_flags_base;
 	fixed_data.point_mass_write_position_velocity_base = point_mass_write_position_velocity_base;
 	
-	capacities[rigid_body_type_index] = 5u;
+	capacities[rigid_body_type_index] = 7u;
 
 	uint rigid_body_inverse_mass_inertia_base_address = align_up(point_mass_write_position_velocity_base_address + capacities[point_mass_type_index] * uvec4_data_array_stride);
 	uint rigid_body_constraint_start_base_address = align_up(rigid_body_inverse_mass_inertia_base_address + capacities[rigid_body_type_index] * vec2_data_array_stride);
@@ -141,6 +141,10 @@ void main()
 	uint inner_bounding_box_old_height_base = address_to_uint_index(inner_bounding_box_old_height_base_address);
 	fixed_data.inner_bounding_box_old_height_base = inner_bounding_box_old_height_base;
 
+	uint inner_bounding_box_migration_entry_base_address = align_up(inner_bounding_box_old_height_base_address + inner_bounding_box_capacity * uint_data_array_stride);
+	uint inner_bounding_box_migration_entry_base = address_to_uint_index(inner_bounding_box_migration_entry_base_address);
+	fixed_data.inner_bounding_box_migration_entry_base = inner_bounding_box_migration_entry_base;
+
 	uint leaf_bounding_box_parent_pad_pad_type_bases[leaf_bounding_box_type_count];
 	uint leaf_bounding_box_bases[leaf_bounding_box_type_count];
 	//uint write_leaf_bounding_box_bases[leaf_bounding_box_type_count];
@@ -159,7 +163,7 @@ void main()
 
 	uint inner_bounding_box_height_delimiters_capacity = inner_bounding_box_capacity;
 
-	uint inner_bounding_box_height_delimiters_base_address = align_up(inner_bounding_box_old_height_base_address + inner_bounding_box_capacity * uint_data_array_stride);
+	uint inner_bounding_box_height_delimiters_base_address = align_up(inner_bounding_box_migration_entry_base_address + inner_bounding_box_capacity * uint_data_array_stride);
 	uint inner_bounding_box_migration_list_base_address = align_up(inner_bounding_box_height_delimiters_base_address + inner_bounding_box_height_delimiters_capacity * uint_data_array_stride);
 	uint inner_bounding_box_migration_count = 0u;
 
@@ -528,6 +532,7 @@ void main()
 				uvec4 bounding_box = uvec4(0u);
 				uvec4_data.data[inner_bounding_box_base + inner_bounding_box_index] = bounding_box;
 				uint_data.data[inner_bounding_box_old_height_base + inner_bounding_box_index] = inner_bounding_box_height;
+				uint_data.data[inner_bounding_box_migration_entry_base + inner_bounding_box_index] = null_uint;
 				bounding_volume_hierarchy_root = inner_bounding_box_index;
 
 				++inner_bounding_box_index;

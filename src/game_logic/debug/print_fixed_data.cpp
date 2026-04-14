@@ -515,10 +515,20 @@ namespace game_logic::debug
 			}
 			std::cout << "| ";
 		}
+		std::cout << "\n\n";
 
 		delete[] inner_bounding_box_parent_children_heights;
 		delete[] inner_bounding_boxes;
 		delete[] inner_bounding_box_height_delimiters;
+
+		GLuint temp;
+		std::memcpy
+		(
+			&temp,
+			fixed_data + environment.state.layouts.fixed_data.temp_state.offset,
+			sizeof(GLuint)
+		);
+		std::cout << "Temp: " << temp << std::endl;
 
 		std::cout << std::endl;
 

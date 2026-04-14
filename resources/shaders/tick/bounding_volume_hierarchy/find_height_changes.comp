@@ -22,6 +22,11 @@ void main()
 		uint migration_list_base = fixed_data.inner_bounding_box_migration_list_base;
 		uint migration_index = atomicAdd(fixed_data.inner_bounding_box_migration_count, 1u);
 		uvec4_data.data[migration_list_base + migration_index] = uvec4(index, old_height, parent_children_height.w, 0u);
+		
 		uint_data.data[old_height_index] = parent_children_height.w;
+		
+		uint migration_entry_base = fixed_data.inner_bounding_box_migration_entry_base;
+		uint migration_entry_index = migration_entry_base + index;
+		uint_data.data[migration_entry_index] = migration_index;
 	}
 }

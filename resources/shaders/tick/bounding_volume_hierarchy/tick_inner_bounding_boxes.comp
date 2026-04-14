@@ -146,6 +146,8 @@ void main()
 
 	if (best_cost_reduction > minimum_cost_reduction)
 	{
+		atomicAdd(fixed_data.temp, best_swap + 1u);	// MUST TODO: REMOVE!!!
+
 		if (best_swap < 4u)	// Child-Grandchild
 		{
 			// IMPORTANT TODO: Only store node data in arrays, do not use separate variables.
