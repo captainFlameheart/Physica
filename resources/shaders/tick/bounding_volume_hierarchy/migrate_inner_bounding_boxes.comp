@@ -12,6 +12,7 @@ void main()
 
 	uint parent_children_height_base = fixed_data.inner_bounding_box_parent_children_height_base;
 	uint box_base = fixed_data.inner_bounding_box_base;
+	uint migration_entry_base = fixed_data.inner_bounding_box_migration_entry_base;
 	uint height_delimiters_base = fixed_data.inner_bounding_box_height_delimiters_base;
 	uint migration_list_base = fixed_data.inner_bounding_box_migration_list_base;
 
@@ -39,9 +40,20 @@ void main()
 			uint moved_spot = height_delimiter - direction_bias;
 			uvec4 moved_parent_children_height = uvec4_data.data[parent_children_height_base + moved_spot];
 			uvec4 moved_box = uvec4_data.data[box_base + moved_spot];
+			uint moved_migration_entry = uint_data.data[migration_entry_base + moved_spot];
 
 			uvec4_data.data[parent_children_height_base + empty_spot] = moved_parent_children_height;
 			uvec4_data.data[box_base + empty_spot] = moved_box;
+			uint_data.data[migration_entry_base + empty_spot] = moved_migration_entry;
+
+			// Update migration entry pointer to moved node.
+			if (moved_migration_entry != null_uint)
+			{
+				uint moved_migration_entry_index = migration_list_base + moved_migration_entry;
+				uvec4 moved_migration_entry = uvec4_data.data[moved_migration_entry_index];
+				moved_migration_entry.x = empty_spot;
+				uvec4_data.data[moved_migration_entry_index] = moved_migration_entry;
+			}
 
 			// Update parent references to moved node.
 			uvec4_data.data[parent_children_height_base + moved_parent_children_height.y].x = empty_spot;
@@ -61,6 +73,7 @@ void main()
 
 		uvec4_data.data[parent_children_height_base + empty_spot] = migrated_parent_children_height;
 		uvec4_data.data[box_base + empty_spot] = migrated_box;
+		uint_data.data[migration_entry_base + empty_spot] = null_uint;
 
 		// Update parent references to migrated node.
 		uvec4_data.data[parent_children_height_base + migrated_parent_children_height.y].x = empty_spot;
