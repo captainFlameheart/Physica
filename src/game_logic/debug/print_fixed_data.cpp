@@ -487,6 +487,35 @@ namespace game_logic::debug
 			std::cout << height_level << ": " << delimiter << '\n';
 		}
 
+		std::cout << '\n';
+
+		std::cout << "Inner bounding box grouping:\n";
+		GLuint inner_bounding_box_index{ 0u };
+		for (GLuint height_level{ 0u }; height_level < inner_bounding_box_write_count; ++height_level)
+		{
+			GLuint delimiter{ inner_bounding_box_height_delimiters[height_level] };
+			std::memcpy
+			(
+				&delimiter,
+				inner_bounding_box_height_delimiters + height_level * environment.state.layouts.uint_data.state.array_stride,
+				sizeof(GLuint)
+			);
+			while (inner_bounding_box_index < delimiter)
+			{
+				GLuint inner_bounding_box_parent_children_height[4u];
+				std::memcpy
+				(
+					&inner_bounding_box_parent_children_height,
+					inner_bounding_box_parent_children_heights + inner_bounding_box_index * environment.state.layouts.uvec4_data.state.array_stride,
+					sizeof(GLuint[4u])
+				);
+				std::cout << inner_bounding_box_parent_children_height[3u] << ' ';
+
+				++inner_bounding_box_index;
+			}
+			std::cout << "| ";
+		}
+
 		delete[] inner_bounding_box_parent_children_heights;
 		delete[] inner_bounding_boxes;
 		delete[] inner_bounding_box_height_delimiters;
