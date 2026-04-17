@@ -114,6 +114,7 @@ void main()
 			best_swap = 3u;
 		}
 	}
+
 	// TODO: Maybe put inside previous if-statement.
 	if (child_0_is_inner && child_1_is_inner)
 	{
