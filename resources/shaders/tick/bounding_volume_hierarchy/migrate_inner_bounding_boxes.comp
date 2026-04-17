@@ -38,6 +38,21 @@ void main()
 			uint_data.data[height_delimiters_base + height_delimiter_index] = height_delimiter;
 
 			uint moved_spot = height_delimiter - direction_bias;
+
+			// Update parent references to migrated node.
+			uvec4_data.data[parent_children_height_base + migrated_parent_children_height.y].x = moved_spot;
+			uvec4_data.data[parent_children_height_base + migrated_parent_children_height.z].x = moved_spot;
+
+			// Update child reference to migrated node.
+			if (migrated_parent_children_height.x != null_uint)
+			{
+				uint migrated_parent_parent_children_height_index = parent_children_height_base + migrated_parent_children_height.x;
+				uvec4 migrated_parent_parent_children_height = uvec4_data.data[migrated_parent_parent_children_height_index];
+				uint migrated_side = uint(migrated_parent_parent_children_height.z == empty_spot);
+				migrated_parent_parent_children_height[1u + migrated_side] = moved_spot;
+				uvec4_data.data[migrated_parent_parent_children_height_index] = migrated_parent_parent_children_height;
+			}
+
 			uvec4 moved_parent_children_height = uvec4_data.data[parent_children_height_base + moved_spot];
 			uvec4 moved_box = uvec4_data.data[box_base + moved_spot];
 			uint moved_migration_entry = uint_data.data[migration_entry_base + moved_spot];
@@ -56,7 +71,7 @@ void main()
 			}
 
 			// Update parent references to moved node.
-			if (moved_parent_children_height.y == empty_spot)
+			if (moved_parent_children_height.y == /*empty_spot*/moved_spot)
 			{
 				migrated_parent_children_height.x = empty_spot;
 			}
@@ -64,7 +79,7 @@ void main()
 			{
 				uvec4_data.data[parent_children_height_base + moved_parent_children_height.y].x = empty_spot;
 			}
-			if (moved_parent_children_height.z == empty_spot)
+			if (moved_parent_children_height.z == /*empty_spot*/moved_spot)
 			{
 				migrated_parent_children_height.x = empty_spot;
 			}
@@ -76,7 +91,7 @@ void main()
 			// Update child reference to moved node.
 			if (moved_parent_children_height.x != null_uint)	// TODO: Is this necessary?
 			{
-				if (moved_parent_children_height.x == empty_spot)
+				if (moved_parent_children_height.x == /*empty_spot*/moved_spot)
 				{
 					uint moved_side = uint(migrated_parent_children_height.z == moved_spot);
 					migrated_parent_children_height[1u + moved_side] = empty_spot;
@@ -100,7 +115,7 @@ void main()
 		uvec4_data.data[box_base + empty_spot] = migrated_box;
 		uint_data.data[migration_entry_base + empty_spot] = null_uint;
 
-		// Update parent references to migrated node.
+		/*// Update parent references to migrated node.
 		uvec4_data.data[parent_children_height_base + migrated_parent_children_height.y].x = empty_spot;
 		uvec4_data.data[parent_children_height_base + migrated_parent_children_height.z].x = empty_spot;
 
@@ -112,6 +127,6 @@ void main()
 			uint migrated_side = uint(migrated_parent_parent_children_height.z == migration.x);
 			migrated_parent_parent_children_height[1u + migrated_side] = empty_spot;
 			uvec4_data.data[migrated_parent_parent_children_height_index] = migrated_parent_parent_children_height;
-		}
+		}*/
 	}
 }
