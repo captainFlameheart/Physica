@@ -3,6 +3,7 @@
 #include "OpenGL_capabilities/include.h"
 #include "layouts/include.h"
 #include "buffers/include.h"
+#include "holographic_radiance_cascades/include.h"
 #include "shader_indices/include.h"
 #include "glfw/include.h"
 
@@ -11,7 +12,6 @@ namespace game_state
 	struct Game
 	{
 		bool is_debugging;
-
 		bool tick_paused;
 
 		GLuint vertex_array;	// Required for drawing anything at all
@@ -25,5 +25,7 @@ namespace game_state
 		GLuint shaders[shader_indices::count];
 		layouts::State layouts;
 		buffers::State buffers;
+
+		holographic_radiance_cascades::State holographic_radiance_cascades;
 	};
 }

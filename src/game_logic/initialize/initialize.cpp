@@ -8,8 +8,9 @@ namespace game_logic::initialize
 {
 	void initialize(game_environment::Environment& environment)
 	{
-		environment.state.is_debugging = false;
+		glfw::initialize(environment);
 
+		environment.state.is_debugging = false;
 		environment.state.tick_paused = false;
 
 		glCreateVertexArrays(1u, &environment.state.vertex_array);
@@ -47,5 +48,7 @@ namespace game_logic::initialize
 
 			glMemoryBarrier(GL_ALL_BARRIER_BITS);
 		}
+
+		holographic_radiance_cascades::initialize(environment);
 	}
 }
