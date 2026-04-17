@@ -467,6 +467,11 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uint vec2_data_array_stride = " + std::to_string(environment.state.layouts.vec2_data.state.array_stride) + ";\n"
 			"const uint float_data_offset = " + std::to_string(environment.state.layouts.float_data.state.offset) + ";\n"
 			"const uint float_data_array_stride = " + std::to_string(environment.state.layouts.float_data.state.array_stride) + ";\n"
+
+			"const uint albedo_layer = " + std::to_string(::game_state::holographic_radiance_cascades::source_layers::albedo) + ";\n"
+			"const uint emission_layer = " + std::to_string(::game_state::holographic_radiance_cascades::source_layers::emission) + ";\n"
+			"const uint attenuation_layer = " + std::to_string(::game_state::holographic_radiance_cascades::source_layers::attenuation) + ";\n"
+			"const uint scattering_layer = " + std::to_string(::game_state::holographic_radiance_cascades::source_layers::scattering) + ";\n"
 		;
 
 		compile_environment.fixed_data_source = ::util::shader::file_to_string("blocks/Fixed_Data");

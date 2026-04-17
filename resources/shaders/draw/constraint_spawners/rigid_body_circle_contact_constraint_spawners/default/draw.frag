@@ -1,9 +1,9 @@
 in vec4 color;
 
-layout(location = 0) out vec4 albedo;
-layout(location = 1) out vec4 emission;
-layout(location = 2) out vec4 absorption;
-layout(location = 3) out vec4 scattering;
+layout(location = albedo_layer) out vec4 albedo;
+layout(location = emission_layer) out vec4 emission;
+layout(location = attenuation_layer) out vec4 absorption;
+layout(location = scattering_layer) out vec4 scattering;
 
 void main()
 {
