@@ -1,3 +1,14 @@
+#define CHILD_GRANDCHILD_SWAP_ALLOWED 1
+#define GRANDCHILD_GRANDCHILD_SWAP_ALLOWED 1
+
+#define SWAP_0_ALLOWED CHILD_GRANDCHILD_SWAP_ALLOWED
+#define SWAP_1_ALLOWED CHILD_GRANDCHILD_SWAP_ALLOWED
+#define SWAP_2_ALLOWED CHILD_GRANDCHILD_SWAP_ALLOWED
+#define SWAP_3_ALLOWED CHILD_GRANDCHILD_SWAP_ALLOWED
+
+#define SWAP_4_ALLOWED GRANDCHILD_GRANDCHILD_SWAP_ALLOWED
+#define SWAP_5_ALLOWED GRANDCHILD_GRANDCHILD_SWAP_ALLOWED
+
 layout(local_size_x = tick_inner_bounding_boxes_local_size) in;
 void main()
 {
@@ -55,15 +66,6 @@ void main()
 	int best_cost_reduction = minimum_cost_reduction;
 	uint best_swap;
 
-	// IMPORTANT TODO: REMOVE!
-	bool child_grandchild_rotation_allowed = true;
-	bool grandchild_grandchild_rotation_allowed = false;
-	bool allowed_rotations[] = bool[]
-	(
-		child_grandchild_rotation_allowed, child_grandchild_rotation_allowed, child_grandchild_rotation_allowed, child_grandchild_rotation_allowed,
-		grandchild_grandchild_rotation_allowed, grandchild_grandchild_rotation_allowed
-	);
-
 	if (child_0_is_inner)
 	{
 		child_0_cost = (child_0_bounding_box.z - child_0_bounding_box.x) + (child_0_bounding_box.w - child_0_bounding_box.y);
@@ -75,23 +77,27 @@ void main()
 		grandchild_0_bounding_box = ivec4(uvec4_data.data[bounding_box_base + child_0_parent_children_height.y]);
 		grandchild_1_bounding_box = ivec4(uvec4_data.data[bounding_box_base + child_0_parent_children_height.z]);
 
-		ivec4 swap_0_child_0_bounding_box = ivec4(min(grandchild_1_bounding_box.xy, child_1_bounding_box.xy), max(grandchild_1_bounding_box.zw, child_1_bounding_box.zw));
-		int swap_0_child_0_cost = (swap_0_child_0_bounding_box.z - swap_0_child_0_bounding_box.x) + (swap_0_child_0_bounding_box.w - swap_0_child_0_bounding_box.y);
-		int cost_reduction_0 = child_0_cost - swap_0_child_0_cost;
-		if (cost_reduction_0 > best_cost_reduction && allowed_rotations[0u])
-		{
-			best_cost_reduction = cost_reduction_0;
-			best_swap = 0u;
-		}
+		#if SWAP_0_ALLOWED
+			ivec4 swap_0_child_0_bounding_box = ivec4(min(grandchild_1_bounding_box.xy, child_1_bounding_box.xy), max(grandchild_1_bounding_box.zw, child_1_bounding_box.zw));
+			int swap_0_child_0_cost = (swap_0_child_0_bounding_box.z - swap_0_child_0_bounding_box.x) + (swap_0_child_0_bounding_box.w - swap_0_child_0_bounding_box.y);
+			int cost_reduction_0 = child_0_cost - swap_0_child_0_cost;
+			if (cost_reduction_0 > best_cost_reduction)
+			{
+				best_cost_reduction = cost_reduction_0;
+				best_swap = 0u;
+			}
+		#endif
 
-		ivec4 swap_1_child_0_bounding_box = ivec4(min(grandchild_0_bounding_box.xy, child_1_bounding_box.xy), max(grandchild_0_bounding_box.zw, child_1_bounding_box.zw));
-		int swap_1_child_0_cost = (swap_1_child_0_bounding_box.z - swap_1_child_0_bounding_box.x) + (swap_1_child_0_bounding_box.w - swap_1_child_0_bounding_box.y);
-		int cost_reduction_1 = child_0_cost - swap_1_child_0_cost;
-		if (cost_reduction_1 > best_cost_reduction && allowed_rotations[1u])
-		{
-			best_cost_reduction = cost_reduction_1;
-			best_swap = 1u;
-		}
+		#if SWAP_1_ALLOWED
+			ivec4 swap_1_child_0_bounding_box = ivec4(min(grandchild_0_bounding_box.xy, child_1_bounding_box.xy), max(grandchild_0_bounding_box.zw, child_1_bounding_box.zw));
+			int swap_1_child_0_cost = (swap_1_child_0_bounding_box.z - swap_1_child_0_bounding_box.x) + (swap_1_child_0_bounding_box.w - swap_1_child_0_bounding_box.y);
+			int cost_reduction_1 = child_0_cost - swap_1_child_0_cost;
+			if (cost_reduction_1 > best_cost_reduction)
+			{
+				best_cost_reduction = cost_reduction_1;
+				best_swap = 1u;
+			}
+		#endif
 	}
 	if (child_1_is_inner)
 	{
@@ -105,59 +111,65 @@ void main()
 		grandchild_2_bounding_box = ivec4(uvec4_data.data[bounding_box_base + child_1_parent_children_height.y]);
 		grandchild_3_bounding_box = ivec4(uvec4_data.data[bounding_box_base + child_1_parent_children_height.z]);
 
-		ivec4 swap_2_child_1_bounding_box = ivec4(min(grandchild_3_bounding_box.xy, child_0_bounding_box.xy), max(grandchild_3_bounding_box.zw, child_0_bounding_box.zw));
-		int swap_2_child_1_cost = (swap_2_child_1_bounding_box.z - swap_2_child_1_bounding_box.x) + (swap_2_child_1_bounding_box.w - swap_2_child_1_bounding_box.y);
-		int cost_reduction_2 = child_1_cost - swap_2_child_1_cost;
-		if (cost_reduction_2 > best_cost_reduction && allowed_rotations[2u])
-		{
-			best_cost_reduction = cost_reduction_2;
-			best_swap = 2u;
-		}
+		#if SWAP_2_ALLOWED
+			ivec4 swap_2_child_1_bounding_box = ivec4(min(grandchild_3_bounding_box.xy, child_0_bounding_box.xy), max(grandchild_3_bounding_box.zw, child_0_bounding_box.zw));
+			int swap_2_child_1_cost = (swap_2_child_1_bounding_box.z - swap_2_child_1_bounding_box.x) + (swap_2_child_1_bounding_box.w - swap_2_child_1_bounding_box.y);
+			int cost_reduction_2 = child_1_cost - swap_2_child_1_cost;
+			if (cost_reduction_2 > best_cost_reduction)
+			{
+				best_cost_reduction = cost_reduction_2;
+				best_swap = 2u;
+			}
+		#endif
 
-		ivec4 swap_3_child_1_bounding_box = ivec4(min(grandchild_2_bounding_box.xy, child_0_bounding_box.xy), max(grandchild_2_bounding_box.zw, child_0_bounding_box.zw));
-		int swap_3_child_1_cost = (swap_3_child_1_bounding_box.z - swap_3_child_1_bounding_box.x) + (swap_3_child_1_bounding_box.w - swap_3_child_1_bounding_box.y);
-		int cost_reduction_3 = child_1_cost - swap_3_child_1_cost;
-		if (cost_reduction_3 > best_cost_reduction && allowed_rotations[3u])
-		{
-			best_cost_reduction = cost_reduction_3;
-			best_swap = 3u;
-		}
+		#if SWAP_3_ALLOWED
+			ivec4 swap_3_child_1_bounding_box = ivec4(min(grandchild_2_bounding_box.xy, child_0_bounding_box.xy), max(grandchild_2_bounding_box.zw, child_0_bounding_box.zw));
+			int swap_3_child_1_cost = (swap_3_child_1_bounding_box.z - swap_3_child_1_bounding_box.x) + (swap_3_child_1_bounding_box.w - swap_3_child_1_bounding_box.y);
+			int cost_reduction_3 = child_1_cost - swap_3_child_1_cost;
+			if (cost_reduction_3 > best_cost_reduction)
+			{
+				best_cost_reduction = cost_reduction_3;
+				best_swap = 3u;
+			}
+		#endif
 	}
 
 	// TODO: Maybe put inside previous if-statement.
 	if (child_0_is_inner && child_1_is_inner)
 	{
-		ivec4 swap_4_child_0_bounding_box = ivec4(min(grandchild_2_bounding_box.xy, grandchild_1_bounding_box.xy), max(grandchild_2_bounding_box.zw, grandchild_1_bounding_box.zw));
-		int swap_4_child_0_cost = (swap_4_child_0_bounding_box.z - swap_4_child_0_bounding_box.x) + (swap_4_child_0_bounding_box.w - swap_4_child_0_bounding_box.y);
+		#if SWAP_4_ALLOWED
+			ivec4 swap_4_child_0_bounding_box = ivec4(min(grandchild_2_bounding_box.xy, grandchild_1_bounding_box.xy), max(grandchild_2_bounding_box.zw, grandchild_1_bounding_box.zw));
+			int swap_4_child_0_cost = (swap_4_child_0_bounding_box.z - swap_4_child_0_bounding_box.x) + (swap_4_child_0_bounding_box.w - swap_4_child_0_bounding_box.y);
 
-		ivec4 swap_4_child_1_bounding_box = ivec4(min(grandchild_0_bounding_box.xy, grandchild_3_bounding_box.xy), max(grandchild_0_bounding_box.zw, grandchild_3_bounding_box.zw));
-		int swap_4_child_1_cost = (swap_4_child_1_bounding_box.z - swap_4_child_1_bounding_box.x) + (swap_4_child_1_bounding_box.w - swap_4_child_1_bounding_box.y);
+			ivec4 swap_4_child_1_bounding_box = ivec4(min(grandchild_0_bounding_box.xy, grandchild_3_bounding_box.xy), max(grandchild_0_bounding_box.zw, grandchild_3_bounding_box.zw));
+			int swap_4_child_1_cost = (swap_4_child_1_bounding_box.z - swap_4_child_1_bounding_box.x) + (swap_4_child_1_bounding_box.w - swap_4_child_1_bounding_box.y);
 
-		int cost_reduction_4 = (child_0_cost - swap_4_child_0_cost) + (child_1_cost - swap_4_child_1_cost);
-		if (cost_reduction_4 > best_cost_reduction && allowed_rotations[4u])
-		{
-			best_cost_reduction = cost_reduction_4;
-			best_swap = 4u;
-		}
+			int cost_reduction_4 = (child_0_cost - swap_4_child_0_cost) + (child_1_cost - swap_4_child_1_cost);
+			if (cost_reduction_4 > best_cost_reduction)
+			{
+				best_cost_reduction = cost_reduction_4;
+				best_swap = 4u;
+			}
+		#endif
 
-		ivec4 swap_5_child_0_bounding_box = ivec4(min(grandchild_3_bounding_box.xy, grandchild_1_bounding_box.xy), max(grandchild_3_bounding_box.zw, grandchild_1_bounding_box.zw));
-		int swap_5_child_0_cost = (swap_5_child_0_bounding_box.z - swap_5_child_0_bounding_box.x) + (swap_5_child_0_bounding_box.w - swap_5_child_0_bounding_box.y);
+		#if SWAP_5_ALLOWED
+			ivec4 swap_5_child_0_bounding_box = ivec4(min(grandchild_3_bounding_box.xy, grandchild_1_bounding_box.xy), max(grandchild_3_bounding_box.zw, grandchild_1_bounding_box.zw));
+			int swap_5_child_0_cost = (swap_5_child_0_bounding_box.z - swap_5_child_0_bounding_box.x) + (swap_5_child_0_bounding_box.w - swap_5_child_0_bounding_box.y);
 
-		ivec4 swap_5_child_1_bounding_box = ivec4(min(grandchild_2_bounding_box.xy, grandchild_0_bounding_box.xy), max(grandchild_2_bounding_box.zw, grandchild_0_bounding_box.zw));
-		int swap_5_child_1_cost = (swap_5_child_1_bounding_box.z - swap_5_child_1_bounding_box.x) + (swap_5_child_1_bounding_box.w - swap_5_child_1_bounding_box.y);
+			ivec4 swap_5_child_1_bounding_box = ivec4(min(grandchild_2_bounding_box.xy, grandchild_0_bounding_box.xy), max(grandchild_2_bounding_box.zw, grandchild_0_bounding_box.zw));
+			int swap_5_child_1_cost = (swap_5_child_1_bounding_box.z - swap_5_child_1_bounding_box.x) + (swap_5_child_1_bounding_box.w - swap_5_child_1_bounding_box.y);
 
-		int cost_reduction_5 = (child_0_cost - swap_5_child_0_cost) + (child_1_cost - swap_5_child_1_cost);
-		if (cost_reduction_5 > best_cost_reduction && allowed_rotations[5u])
-		{
-			best_cost_reduction = cost_reduction_5;
-			best_swap = 5u;
-		}
+			int cost_reduction_5 = (child_0_cost - swap_5_child_0_cost) + (child_1_cost - swap_5_child_1_cost);
+			if (cost_reduction_5 > best_cost_reduction)
+			{
+				best_cost_reduction = cost_reduction_5;
+				best_swap = 5u;
+			}
+		#endif
 	}
 
 	if (best_cost_reduction > minimum_cost_reduction)
 	{
-		atomicAdd(fixed_data.temp, best_swap + 1u);	// MUST TODO: REMOVE!!!
-
 		if (best_swap < 4u)	// Child-Grandchild
 		{
 			// IMPORTANT TODO: Only store node data in arrays, do not use separate variables.
