@@ -8,7 +8,6 @@ namespace game_logic::free::holographic_radiance_cascades
 	{
 		std::cout << "Free holographic radiance cascades." << std::endl;
 
-		glDeleteFramebuffers(1u, &environment.state.holographic_radiance_cascades.source_framebuffer);
-		glDeleteTextures(1u, &environment.state.holographic_radiance_cascades.source_texture);
+		deallocate(environment);
 	}
 }
