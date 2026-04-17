@@ -26,7 +26,11 @@ const vec4 height_colors[] = vec4[]
 (
 	vec4(1.0, 0.0, 0.0, 0.2),
 	vec4(0.0, 1.0, 0.0, 0.2),
-	vec4(0.0, 0.0, 1.0, 0.2)
+	vec4(0.0, 0.0, 1.0, 0.2),
+	vec4(1.0, 1.0, 0.0, 0.2),
+	vec4(1.0, 0.0, 1.0, 0.2),
+	vec4(0.0, 1.0, 1.0, 0.2),
+	vec4(1.0, 1.0, 1.0, 0.2)
 );
 
 out vec4 color;
@@ -51,7 +55,7 @@ void main()
 	uvec4 parent_children_height = uvec4_data.data[parent_children_height_index];
 	uvec4 bounding_box = uvec4_data.data[bounding_box_index];
 
-	gl_CullDistance[0u] = 1.0;//-float(parent_children_height.w != 0u);
+	gl_CullDistance[0u] = 0.0;//-float(parent_children_height.w != 1u);
 
 	color = height_colors[parent_children_height.w % height_colors.length()];
 
