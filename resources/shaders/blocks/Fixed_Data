@@ -113,6 +113,8 @@ FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 
 	uint tick;
 
+	uint visible_source_image_layer;
+
 	uvec4 camera_position;	// (x, y, z, 0u)
 	uint camera_angle;
 	mat4 camera_offset_to_local;

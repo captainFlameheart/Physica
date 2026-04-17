@@ -71,6 +71,8 @@ namespace game_logic::initialize::compile_shaders
 		compile_draw_rigid_body_circle_bounding_boxes(environment, compile_environment);
 		compile_draw_inner_bounding_boxes(environment, compile_environment);
 
+		compile_draw_source_image_layer(environment, compile_environment);
+
 		environment::free(environment, compile_environment);
 	}
 }

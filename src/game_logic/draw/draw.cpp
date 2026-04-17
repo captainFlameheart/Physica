@@ -5,7 +5,7 @@
 
 namespace game_logic::draw
 {
-	void draw(game_environment::Environment& environment)
+	void draw_source_image(game_environment::Environment& environment)
 	{
 		glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::draw::update_counts::Indices::update_counts)]);
 		constexpr GLuint draw_entities_shader_count{ ::game_state::shader_indices::draw::entities::count };
@@ -36,6 +36,31 @@ namespace game_logic::draw
 				::game_state::draw_primitive_types::entities_primitive_types[index_in_draw_entities_shader_array],
 				reinterpret_cast<const void*>(static_cast<intptr_t>(command_offset))
 			);
+		}
+	}
+
+	void draw(game_environment::Environment& environment)
+	{
+		GLuint draw_framebuffer{ 0u };
+		if (environment.state.holographic_radiance_cascades.enabled)
+		{
+			draw_framebuffer = environment.state.holographic_radiance_cascades.source_framebuffer;
+		}
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, draw_framebuffer);
+
+		draw_source_image(environment);
+
+		if (environment.state.holographic_radiance_cascades.enabled)
+		{
+			if (environment.state.holographic_radiance_cascades.visible_source_layer == 0u)
+			{
+			}
+			else
+			{
+				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0u);
+				glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::draw::holographic_radiance_cascades::Indices::source_layer)]);
+				glDrawArrays(GL_TRIANGLES, 0, 3u);
+			}
 		}
 
 		++environment.state.draw_count;

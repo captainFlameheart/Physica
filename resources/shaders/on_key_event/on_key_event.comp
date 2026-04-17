@@ -9,4 +9,26 @@ void main()
 	uint is_pressed = uint(key_scancode_action_mods.z != 0);
 	fixed_data.key_state[key_state_index] =
 		(fixed_data.key_state[key_state_index] & ~(1 << key_state_bit_index)) | (is_pressed << key_state_bit_index);
+
+	if (key_scancode_action_mods.z == press)
+	{
+		switch (key_scancode_action_mods.x)
+		{
+			case key_0:
+				fixed_data.visible_source_image_layer = 0u;
+				break;
+			case key_1:
+				fixed_data.visible_source_image_layer = 1u;
+				break;
+			case key_2:
+				fixed_data.visible_source_image_layer = 2u;
+				break;
+			case key_3:
+				fixed_data.visible_source_image_layer = 3u;
+				break;
+			case key_4:
+				fixed_data.visible_source_image_layer = 4u;
+				break;
+		}
+	}
 }

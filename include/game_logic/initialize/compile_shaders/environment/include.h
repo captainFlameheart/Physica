@@ -3,3 +3,4 @@
 #include "initialize.h"
 #include "free.h"
 #include "game_state/holographic_radiance_cascades/include.h"
+#include "game_state/texture_units/include.h"

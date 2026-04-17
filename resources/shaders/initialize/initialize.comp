@@ -10,6 +10,9 @@ void main()
 	const uint tick = uint(-1);
 	fixed_data.tick = tick;
 
+	const uint visible_source_image_layer = 0u;
+	fixed_data.visible_source_image_layer = visible_source_image_layer;
+
 	fixed_data.camera_position = uvec4(0.0 * meter_in_length_units, 0.0 * meter_in_length_units, 5.0 * meter_in_length_units, 0u);
 	uint camera_angle = 0u;
 	mat4 camera_offset_to_local = mat4(1.0);

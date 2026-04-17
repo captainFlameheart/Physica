@@ -20,8 +20,23 @@ namespace game_logic::initialize::compile_shaders::environment
 	)
 	{
 		return (
+			"const uint press = " STRINGIFY(GLFW_PRESS) ";\n"
+			"const uint release = " STRINGIFY(GLFW_RELEASE) ";\n"
+			"const uint repeat = " STRINGIFY(GLFW_REPEAT) ";\n"
+
 			"const uint key_space = " STRINGIFY(GLFW_KEY_SPACE) ";\n"
 			
+			"const uint key_0 = " STRINGIFY(GLFW_KEY_0) ";\n"
+			"const uint key_1 = " STRINGIFY(GLFW_KEY_1) ";\n"
+			"const uint key_2 = " STRINGIFY(GLFW_KEY_2) ";\n"
+			"const uint key_3 = " STRINGIFY(GLFW_KEY_3) ";\n"
+			"const uint key_4 = " STRINGIFY(GLFW_KEY_4) ";\n"
+			"const uint key_5 = " STRINGIFY(GLFW_KEY_5) ";\n"
+			"const uint key_6 = " STRINGIFY(GLFW_KEY_6) ";\n"
+			"const uint key_7 = " STRINGIFY(GLFW_KEY_7) ";\n"
+			"const uint key_8 = " STRINGIFY(GLFW_KEY_8) ";\n"
+			"const uint key_9 = " STRINGIFY(GLFW_KEY_9) ";\n"
+
 			"const uint key_a = " STRINGIFY(GLFW_KEY_A) ";\n"
 			"const uint key_b = " STRINGIFY(GLFW_KEY_B) ";\n"
 			"const uint key_c = " STRINGIFY(GLFW_KEY_C) ";\n"

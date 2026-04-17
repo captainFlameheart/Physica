@@ -447,7 +447,22 @@ namespace game_state::shader_indices
 			constexpr GLuint count{ end - base };
 		}
 
-		constexpr GLuint end{ entities::end };
+		namespace holographic_radiance_cascades
+		{
+			constexpr GLuint base{ ::game_state::shader_indices::draw::entities::end };
+
+			enum struct Indices : GLuint
+			{
+				source_layer = base,
+
+				end
+			};
+
+			constexpr GLuint end{ static_cast<GLuint>(Indices::end) };
+			constexpr GLuint count{ end - base };
+		}
+
+		constexpr GLuint end{ holographic_radiance_cascades::end };
 		constexpr GLuint count{ end - base };
 	}
 

@@ -72,6 +72,25 @@ namespace game_logic::on_key_event
 					std::cout << "Debug ended." << std::endl;
 				}
 				break;
+			case GLFW_KEY_H:
+				environment.state.holographic_radiance_cascades.enabled = !environment.state.holographic_radiance_cascades.enabled;
+				break;
+			case GLFW_KEY_0:
+				environment.state.holographic_radiance_cascades.visible_source_layer = 0u;
+				environment.state.holographic_radiance_cascades.enabled = true;
+				break;
+			case GLFW_KEY_1:
+				environment.state.holographic_radiance_cascades.visible_source_layer = 1u;
+				environment.state.holographic_radiance_cascades.enabled = true;
+				break;
+			case GLFW_KEY_2:
+				environment.state.holographic_radiance_cascades.visible_source_layer = 2u;
+				environment.state.holographic_radiance_cascades.enabled = true;
+				break;
+			case GLFW_KEY_3:
+				environment.state.holographic_radiance_cascades.visible_source_layer = 3u;
+				environment.state.holographic_radiance_cascades.enabled = true;
+				break;
 			case GLFW_KEY_O:
 				::game_logic::debug::print_fixed_data(environment);
 				break;

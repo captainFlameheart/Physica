@@ -10,16 +10,16 @@ namespace game_logic::initialize
 	{
 		glfw::initialize(environment);
 
-		environment.state.is_debugging = false;
-		environment.state.tick_paused = false;
-
 		glCreateVertexArrays(1u, &environment.state.vertex_array);
 		glBindVertexArray(environment.state.vertex_array);
 
+		holographic_radiance_cascades::initialize(environment);
+
+		environment.state.is_debugging = false;
+		environment.state.tick_paused = false;
+
 		environment.state.tick_count = 0u;
 		environment.state.draw_count = 0u;
-
-		// TODO: Initialize viewport and glfw data
 
 		::game_logic::OpenGL_capabilities::query(environment.state.OpenGL_capabilities);
 		::game_logic::OpenGL_capabilities::print(environment.state.OpenGL_capabilities);
@@ -48,7 +48,5 @@ namespace game_logic::initialize
 
 			glMemoryBarrier(GL_ALL_BARRIER_BITS);
 		}
-
-		holographic_radiance_cascades::initialize(environment);
 	}
 }
