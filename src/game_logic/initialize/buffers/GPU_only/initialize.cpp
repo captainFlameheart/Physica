@@ -5,7 +5,9 @@ namespace game_logic::initialize::buffers::GPU_only
 {
 	void initialize(game_environment::Environment& environment)
 	{
-		environment.state.buffers.GPU_only.size = 128u * 1024u * 1024u;
+		constexpr GLuint size_factor{ 10u };
+
+		environment.state.buffers.GPU_only.size = size_factor * 128u * 1024u * 1024u;
 		environment.state.buffers.GPU_only.count = 1u;
 		environment.state.buffers.GPU_only.buffers = new GLuint[environment.state.buffers.GPU_only.count];
 
