@@ -452,7 +452,7 @@ namespace game_logic::debug
 				inner_bounding_box_parent_children_heights + inner_bounding_box * environment.state.layouts.uvec4_data.state.array_stride,
 				sizeof(GLuint[4u])
 			);
-			std::cout << "parent_children_height: ("
+			std::cout << inner_bounding_box << ": parent_children_height: ("
 				<< inner_bounding_box_parent_children_height[0u] << ", "
 				<< inner_bounding_box_parent_children_height[1u] << ", "
 				<< inner_bounding_box_parent_children_height[2u] << ", "
@@ -465,11 +465,11 @@ namespace game_logic::debug
 				inner_bounding_boxes + inner_bounding_box * environment.state.layouts.uvec4_data.state.array_stride,
 				sizeof(GLuint[4u])
 			);
-			std::cout << "bounding_box: ("
+			/*std::cout << "bounding_box: ("
 				<< bounding_box[0u] << ", "
 				<< bounding_box[1u] << ", "
 				<< bounding_box[2u] << ", "
-				<< bounding_box[3u] << ")\n";
+				<< bounding_box[3u] << ")\n";*/
 		}
 
 		std::cout << '\n';

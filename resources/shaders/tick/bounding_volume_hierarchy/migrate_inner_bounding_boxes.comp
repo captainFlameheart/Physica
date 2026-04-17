@@ -1,3 +1,4 @@
+#if 0 == 1
 // TODO: Parallelize.
 layout(local_size_x = 1u) in;
 void main()
@@ -38,6 +39,9 @@ void main()
 			uint_data.data[height_delimiters_base + height_delimiter_index] = height_delimiter;
 
 			uint moved_spot = height_delimiter - direction_bias;
+
+			if (moved_spot != empty_spot)
+			{
 
 			// Update parent references to migrated node.
 			uvec4_data.data[parent_children_height_base + migrated_parent_children_height.y].x = moved_spot;
@@ -107,6 +111,7 @@ void main()
 			}
 			
 			empty_spot = moved_spot;
+			}
 
 			height_delimiter_index += direction;
 		} while (height_delimiter_index + direction_bias != migration.z);
@@ -130,3 +135,112 @@ void main()
 		}*/
 	}
 }
+#else
+
+void move
+(
+	in uint parent_children_height_base, in uint box_base, in uint migration_entry_base, in uint migration_list_base,
+	in uint from, in uint to
+)
+{
+	if (from == to)
+	{
+		return;
+	}
+
+	uvec4 parent_children_height = uvec4_data.data[parent_children_height_base + from];
+	uvec4 box = uvec4_data.data[box_base + from];
+	uint migration_entry = uint_data.data[migration_entry_base + from];
+
+	uvec4_data.data[parent_children_height_base + to] = parent_children_height;
+	uvec4_data.data[box_base + to] = box;
+	uint_data.data[migration_entry_base + to] = migration_entry;
+
+	// Update migration entry pointer to moved node.
+	if (migration_entry != null_uint)
+	{
+		uint migration_entry_index = migration_list_base + migration_entry;
+		uvec4 migration_entry = uvec4_data.data[migration_entry_index];
+		migration_entry.x = to;
+		uvec4_data.data[migration_entry_index] = migration_entry;
+	}
+
+	// Update parent pointers to moved node.
+	uvec4_data.data[parent_children_height_base + parent_children_height.y].x = to;
+	uvec4_data.data[parent_children_height_base + parent_children_height.z].x = to;
+
+	// Update child reference to moved node.
+	if (parent_children_height.x != null_uint)
+	{
+		uint parent_parent_children_height_index = parent_children_height_base + parent_children_height.x;
+		uvec4 parent_parent_children_height = uvec4_data.data[parent_parent_children_height_index];
+		uint side = uint(parent_parent_children_height.z == from);
+		parent_parent_children_height[1u + side] = to;
+		uvec4_data.data[parent_parent_children_height_index] = parent_parent_children_height;
+	}
+}
+
+// TODO: Parallelize.
+layout(local_size_x = 1u) in;
+void main()
+{
+	uint migration_index = gl_GlobalInvocationID.x;
+	if (migration_index != 0u)
+	{
+		return;
+	}
+
+	uint migration_count = fixed_data.inner_bounding_box_migration_count;
+
+	uint parent_children_height_base = fixed_data.inner_bounding_box_parent_children_height_base;
+	uint box_base = fixed_data.inner_bounding_box_base;
+	uint migration_entry_base = fixed_data.inner_bounding_box_migration_entry_base;
+	uint height_delimiters_base = fixed_data.inner_bounding_box_height_delimiters_base;
+	uint migration_list_base = fixed_data.inner_bounding_box_migration_list_base;
+
+	uint leaf_bounding_box_capacity = fixed_data.leaf_bounding_box_capacity;	// TODO: Remove.
+
+	for (migration_index = 0u; migration_index < migration_count; ++migration_index)
+	{
+		uvec4 migration = uvec4_data.data[migration_list_base + migration_index];
+
+		move
+		(
+			parent_children_height_base, box_base, migration_entry_base, migration_list_base,
+			migration.x, leaf_bounding_box_capacity - 1u
+		);
+		uint empty_spot = migration.x;
+
+		int delta_height = int(migration.z - migration.y);
+		int direction_bias = delta_height >> 31;	// -1 or 0
+		int direction = direction_bias | 1;	// -1 or 1
+		direction_bias &= 1;	// 1 or 0
+		uint height_delimiter_index = migration.y - uint(direction_bias);
+
+		do
+		{
+			uint height_delimiter = uint_data.data[height_delimiters_base + height_delimiter_index];
+			height_delimiter -= uint(direction);
+			uint_data.data[height_delimiters_base + height_delimiter_index] = height_delimiter;
+
+			uint moved_spot = height_delimiter - uint(direction_bias);
+
+			move
+			(
+				parent_children_height_base, box_base, migration_entry_base, migration_list_base,
+				moved_spot, empty_spot
+			);
+			empty_spot = moved_spot;
+
+			height_delimiter_index += direction;
+		} while (height_delimiter_index + uint(direction_bias) != migration.z);
+
+		move
+		(
+			parent_children_height_base, box_base, migration_entry_base, migration_list_base,
+			leaf_bounding_box_capacity - 1u, empty_spot
+		);
+	}
+}
+
+#endif
