@@ -201,7 +201,8 @@ namespace game_state::shader_indices
 
 					enum struct Indices : GLuint
 					{
-						clear_rigid_body_circle_contact_constraint_spawner_deaths = base,
+						clear_bounding_box_contact_detector_deaths = base,
+						clear_rigid_body_circle_contact_constraint_spawner_deaths,
 
 						end
 					};
@@ -216,7 +217,8 @@ namespace game_state::shader_indices
 
 					enum struct Indices : GLuint
 					{
-						perform_rigid_body_circle_contact_constraint_spawner_compaction = base,
+						perform_bounding_box_contact_detector_compaction = base,
+						perform_rigid_body_circle_contact_constraint_spawner_compaction,
 
 						end
 					};

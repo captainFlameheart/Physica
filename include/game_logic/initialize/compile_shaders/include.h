@@ -1,4 +1,5 @@
 #pragma once
+#include "compile_clear_bounding_box_contact_detector_deaths.h"
 #include "compile_clear_rigid_body_circle_contact_constraint_deaths.h"
 #include "compile_clear_rigid_body_circle_contact_constraint_spawner_deaths.h"
 #include "compile_commit_constraint_counts.h"
@@ -23,6 +24,7 @@
 #include "compile_on_key_event.h"
 #include "compile_on_tick_constraints.h"
 #include "compile_on_update_tick_counts.h"
+#include "compile_perform_bounding_box_contact_detector_compaction.h"
 #include "compile_perform_rigid_body_circle_contact_constraint_compaction.h"
 #include "compile_perform_rigid_body_circle_contact_constraint_spawner_compaction.h"
 #include "compile_plan_rigid_body_circle_contact_constraint_compaction.h"
