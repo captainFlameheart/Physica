@@ -60,6 +60,7 @@ namespace game_logic::initialize::compile_shaders
 		compile_draw_point_mass_velocities(environment, compile_environment);
 		compile_draw_point_mass_forces(environment, compile_environment);
 
+		compile_draw_bounding_box_contact_detectors(environment, compile_environment);
 		compile_draw_rigid_body_circle_contact_constraint_spawners(environment, compile_environment);
 
 		compile_draw_rigid_body_circles(environment, compile_environment);

@@ -403,7 +403,8 @@ namespace game_state::shader_indices
 
 				enum struct Indices : GLuint
 				{
-					rigid_body_circle_contact_constraint_spawners = base,
+					bounding_box_contact_detectors = base,
+					rigid_body_circle_contact_constraint_spawners,
 
 					end
 				};

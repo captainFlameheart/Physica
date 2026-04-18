@@ -17,6 +17,7 @@ namespace game_state::vertex_factors
 		vertex_factors[static_cast<GLuint>(::game_state::shader_indices::draw::entities::bodies::Indices::rigid_body_circles) - base] = 6u;
 		vertex_factors[static_cast<GLuint>(::game_state::shader_indices::draw::entities::bodies::Indices::rigid_bodies) - base] = 12u;
 
+		vertex_factors[static_cast<GLuint>(::game_state::shader_indices::draw::entities::constraint_spawners::Indices::bounding_box_contact_detectors) - base] = 6u;
 		vertex_factors[static_cast<GLuint>(::game_state::shader_indices::draw::entities::constraint_spawners::Indices::rigid_body_circle_contact_constraint_spawners) - base] = 6u;
 
 		vertex_factors[static_cast<GLuint>(::game_state::shader_indices::draw::entities::constraints::Indices::point_mass_distance_constraints) - base] = 6u;

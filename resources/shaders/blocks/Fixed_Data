@@ -64,6 +64,18 @@ const uint dispatch_command_enabled_mask = 1u << dispatch_command_enabled_shift;
 const uint draw_arrays_command_enabled_shift = 0u;
 const uint draw_arrays_command_enabled_mask = 1u << draw_arrays_command_enabled_shift;
 
+const vec4 leaf_bounding_box_color = vec4(1.0, 1.0, 1.0, 0.2);
+const vec4 inner_bounding_box_height_colors[] = vec4[]
+(
+	vec4(1.0, 0.0, 0.0, 0.2),
+	vec4(0.0, 1.0, 0.0, 0.2),
+	vec4(0.0, 0.0, 1.0, 0.2),
+	vec4(1.0, 1.0, 0.0, 0.2),
+	vec4(1.0, 0.0, 1.0, 0.2),
+	vec4(0.0, 1.0, 1.0, 0.2),
+	vec4(1.0, 1.0, 1.0, 0.2)
+);
+
 uint align_up(uint address)
 {
 	return (address + align_up_addition) & align_up_mask;

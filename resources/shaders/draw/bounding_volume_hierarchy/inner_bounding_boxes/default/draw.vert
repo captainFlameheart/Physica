@@ -22,17 +22,6 @@ const uvec2 bounding_box_vertex_indices[6u] = uvec2[6u]
 	uvec2(2u, 3u)
 );
 
-const vec4 height_colors[] = vec4[]
-(
-	vec4(1.0, 0.0, 0.0, 0.2),
-	vec4(0.0, 1.0, 0.0, 0.2),
-	vec4(0.0, 0.0, 1.0, 0.2),
-	vec4(1.0, 1.0, 0.0, 0.2),
-	vec4(1.0, 0.0, 1.0, 0.2),
-	vec4(0.0, 1.0, 1.0, 0.2),
-	vec4(1.0, 1.0, 1.0, 0.2)
-);
-
 out vec4 color;
 out vec2 UV;
 flat out vec2 size;
@@ -57,7 +46,7 @@ void main()
 
 	gl_CullDistance[0u] = 0.0;//-float(parent_children_height.w != 1u);
 
-	color = height_colors[parent_children_height.w % height_colors.length()];
+	color = inner_bounding_box_height_colors[parent_children_height.w % inner_bounding_box_height_colors.length()];
 
 	size = vec2(ivec2(bounding_box.zw - bounding_box.xy));
 
