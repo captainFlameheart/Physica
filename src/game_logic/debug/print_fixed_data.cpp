@@ -301,6 +301,27 @@ namespace game_logic::debug
 		
 		std::cout << '\n';
 
+		std::cout << "Entity types:\n";
+		for (GLuint entity_type{ 0u }; entity_type < ::game_state::entity_type_indices::count; ++entity_type)
+		{
+			std::cout << ::game_state::entity_type_indices::names[entity_type] << ":\n";
+
+			GLuint write_count;
+			std::memcpy
+			(
+				&write_count,
+				fixed_data +
+				environment.state.layouts.fixed_data.write_counts_state.offset +
+				entity_type * environment.state.layouts.fixed_data.write_counts_state.array_stride,
+				sizeof(GLuint)
+			);
+			std::cout << "write_count: " << write_count << std::endl;
+
+			std::cout << '\n';
+		}
+
+		std::cout << '\n';
+
 		std::cout << "Work group counts: " << '\n';
 		for (GLuint i{ 0u }; i < ::game_state::shader_indices::tick::process_entities::count; ++i)
 		{

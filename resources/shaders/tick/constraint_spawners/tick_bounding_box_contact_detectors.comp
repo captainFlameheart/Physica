@@ -48,6 +48,11 @@ void main()
 
 	if (bounding_boxes_overlap(bounding_boxes))
 	{
+		if (all(lessThan(ivec2(indices_source_pad.xy), ivec2(0))))
+		{
+			return;
+		}
+
 		uint detector_index = index;
 		uint detector_capacity = fixed_data.capacities[bounding_box_contact_detector_type];
 

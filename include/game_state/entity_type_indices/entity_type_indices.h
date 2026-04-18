@@ -1,5 +1,8 @@
 #pragma once
 #include "glad_glfw.h"
+#include <array>
+#include <string_view>
+using namespace std::string_view_literals;
 
 namespace game_state::entity_type_indices
 {
@@ -86,4 +89,13 @@ namespace game_state::entity_type_indices
 
 	constexpr GLuint end{ static_cast<GLuint>(constraints::end) };
 	constexpr GLuint count{ end - base };
+
+	constexpr std::array<std::string_view, count> initialize_names()
+	{
+		std::array<std::string_view, count> names{};
+		names[static_cast<GLuint>(constraint_spawners::Indices::bounding_box_contact_detector)] = "bounding_box_contact_detector"sv;
+		return names;
+	}
+
+	constexpr std::array<std::string_view, count> names{ initialize_names() };
 }
