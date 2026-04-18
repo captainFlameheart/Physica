@@ -27,5 +27,8 @@ namespace game_logic::free::holographic_radiance_cascades
 
 		glDeleteFramebuffers(1u, &environment.state.holographic_radiance_cascades.angular_fluence_framebuffer);
 		glDeleteTextures(1u, &environment.state.holographic_radiance_cascades.angular_fluence_texture);
+
+		glDeleteFramebuffers(1u, &environment.state.holographic_radiance_cascades.fluence_framebuffer);
+		glDeleteTextures(1u, &environment.state.holographic_radiance_cascades.fluence_texture);
 	}
 }
