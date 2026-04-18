@@ -17,6 +17,24 @@ namespace game_logic::initialize::holographic_radiance_cascades
 			environment.state.glfw.framebuffer_width, environment.state.glfw.framebuffer_height,
 			::game_state::holographic_radiance_cascades::source_layers::count
 		);
+		
+		GLfloat border_color[4u]{ 0.0f, 0.0f, 0.0f, 0.0f };
+		glTextureParameterfv
+		(
+			environment.state.holographic_radiance_cascades.source_texture,
+			GL_TEXTURE_BORDER_COLOR, border_color
+		);
+
+		glTextureParameteri
+		(
+			environment.state.holographic_radiance_cascades.source_texture,
+			GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER
+		);
+		glTextureParameteri
+		(
+			environment.state.holographic_radiance_cascades.source_texture,
+			GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER
+		);
 
 		glCreateFramebuffers(1u, &environment.state.holographic_radiance_cascades.source_framebuffer);
 		GLenum source_draw_buffers[::game_state::holographic_radiance_cascades::source_layers::count];
