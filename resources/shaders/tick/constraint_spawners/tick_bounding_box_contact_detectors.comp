@@ -1,15 +1,15 @@
+bool bounding_boxes_overlap(in ivec4 bounding_boxes[2u])
+{
+	return
+	(
+		all(lessThanEqual(bounding_boxes[0u].xy, bounding_boxes[1u].zw)) &&
+		all(lessThanEqual(bounding_boxes[1u].xy, bounding_boxes[0u].zw))
+	);
+}
+
 layout(local_size_x = tick_bounding_box_contact_detectors_local_size) in;
 void main()
 {
-	// REALLY FRICKIN COOL TODO: Make constraints "pull" the memory addresses of their bodies towards each other!
-
-	uint index = gl_GlobalInvocationID.x;
-	uint count = fixed_data.read_counts[bounding_box_contact_detector_type];
-	if (index >= count)
-	{
-		return;
-	}
-
 	//	1. If boxes overlap:
 	//		2. Split biggest box.
 	//		3. Create new contact detectors and repeat step 1 for each of these contact detectors.
@@ -20,93 +20,99 @@ void main()
 	//					8. Repoint the pointer from the left child to the parent.
 	//				9. Else:
 	//					10. Kill me.
-	
-	uint indices_flags_base = fixed_data.rigid_body_circle_contact_constraint_spawner_indices_flags_base;
 
-	uint indices_flags_index = indices_flags_base + index;
-
-	uvec4 indices_flags = uvec4_data.data[indices_flags_index];
-
-	// TODO: Will become unnecessary.
-	/*if ((indices_flags.z & rigid_body_circle_contact_constraint_spawner_is_dead_mask) != 0u)
+	uint index = gl_GlobalInvocationID.x;
+	uint count = fixed_data.read_counts[bounding_box_contact_detector_type];
+	if (index >= count)
 	{
 		return;
-	}*/
+	}
+	
+	uint indices_source_pad_base = fixed_data.bounding_box_indices_source_pad_base;
 
-	uint circle_body_position_radius_base = fixed_data.rigid_body_circle_body_position_radius_base;
+	uint indices_source_pad_index = indices_source_pad_base + index;
 
-	uint circle_body_position_radius_index_0 = circle_body_position_radius_base + indices_flags.x;
-	uint circle_body_position_radius_index_1 = circle_body_position_radius_base + indices_flags.y;
+	uvec4 indices_source_pad = uvec4_data.data[indices_source_pad_index];
 
-	uvec4 circle_body_position_radius_0 = uvec4_data.data[circle_body_position_radius_index_0];
-	uvec4 circle_body_position_radius_1 = uvec4_data.data[circle_body_position_radius_index_1];
+	uint bounding_box_base = fixed_data.inner_bounding_box_base;
+	uint bounding_box_parent_children_height_base = fixed_data.inner_bounding_box_parent_children_height_base;
 
-	vec3 circle_position_radius_0 = uintBitsToFloat(circle_body_position_radius_0.yzw);
-	vec3 circle_position_radius_1 = uintBitsToFloat(circle_body_position_radius_1.yzw);
+	uint bounding_box_index_0 = bounding_box_base + indices_source_pad.x;
+	uint bounding_box_index_1 = bounding_box_base + indices_source_pad.y;
 
-	uint body_read_position_flags_base = fixed_data.rigid_body_read_position_flags_base;
+	ivec4 bounding_boxes[2u] = ivec4[2u]
+	(
+		ivec4(uvec4_data.data[bounding_box_index_0]),
+		ivec4(uvec4_data.data[bounding_box_index_1])
+	);
 
-	uint body_read_position_flags_index_0 = body_read_position_flags_base + circle_body_position_radius_0.x;
-	uint body_read_position_flags_index_1 = body_read_position_flags_base + circle_body_position_radius_1.x;
-
-	uvec4 body_position_flags_0 = uvec4_data.data[body_read_position_flags_index_0];
-	uvec4 body_position_flags_1 = uvec4_data.data[body_read_position_flags_index_1];
-
-	// TODO: Consider circle position.
-	vec2 displacement = vec2(ivec2(body_position_flags_0.xy - body_position_flags_1.xy));
-	float distance_squared = dot(displacement, displacement) * (length_unit_in_meters * length_unit_in_meters);
-	float hit_distance = circle_position_radius_0.z + circle_position_radius_1.z;
-	if (distance_squared < hit_distance * hit_distance)
+	if (bounding_boxes_overlap(bounding_boxes))
 	{
-		// TODO: Spawn constraint and despawn this spawner.
-		uint constraint_index = atomicAdd(fixed_data.write_counts[rigid_body_circle_contact_constraint_type_index], 1u);
-		if (constraint_index >= fixed_data.capacities[rigid_body_circle_contact_constraint_type_index])
-		{
-			// TODO: Replace this atomic add with extra logic at commit count shader.
-			atomicAdd(fixed_data.write_counts[rigid_body_circle_contact_constraint_type_index], decrement_uint);
-			return;
-		}
+		uint detector_index = index;
 
-		uint tick = fixed_data.tick;
+		while (true)
+		{	// Split logic.
 
-		uint body_constraint_start_base = fixed_data.rigid_body_constraint_start_base;
-
-		uint body_constraint_start_index_0 = body_constraint_start_base + circle_body_position_radius_0.x;
-		uint body_constraint_start_index_1 = body_constraint_start_base + circle_body_position_radius_1.x;
-
-		uint turn_0 = tick + atomicAdd(uint_data.data[body_constraint_start_index_0], decrement_uint);
-		uint turn_1 = tick + atomicAdd(uint_data.data[body_constraint_start_index_1], decrement_uint);
-
-		uint constraint_flags_base = fixed_data.rigid_body_circle_contact_constraint_flags_base;
-		uint constraint_indices_turns_base = fixed_data.rigid_body_circle_contact_constraint_indices_turns_base;
-		uint constraint_impulse_base = fixed_data.rigid_body_circle_contact_constraint_impulse_base;
-		uint constraint_death_index_base = fixed_data.death_index_bases[rigid_body_circle_contact_constraint_type_index];
-
-		uint constraint_flags_index = constraint_flags_base + constraint_index;
-		uint constraint_indices_turns_index = constraint_indices_turns_base + constraint_index;
-		uint constraint_impulse_index = constraint_impulse_base + constraint_index;
-		uint constraint_death_index_index = constraint_death_index_base + constraint_index;
-
-		uint_data.data[constraint_flags_index] = 0u;
-		uvec4_data.data[constraint_indices_turns_index] = uvec4(indices_flags.xy, turn_0, turn_1);
-		vec4_data.data[constraint_impulse_index] = vec4(0.0);
-		uint_data.data[constraint_death_index_index] = null_uint;
-
-		//indices_flags.z |= rigid_body_circle_contact_constraint_spawner_is_dead_mask;
-		//uvec4_data.data[indices_flags_index] = indices_flags;
+			// Determine which box to split.
+			uint cost_0 = (bounding_boxes[0u].z - bounding_boxes[0u].x) + (bounding_boxes[0u].w - bounding_boxes[0u].y);
+			uint cost_1 = (bounding_boxes[1u].z - bounding_boxes[1u].x) + (bounding_boxes[1u].w - bounding_boxes[1u].y);
 		
-		// TODO: Make into reusable function/macro.
-		uint death_index = atomicAdd(fixed_data.kill_counts[rigid_body_circle_contact_constraint_spawner_type_index], 1u);
-		uint death_index_base = fixed_data.death_index_bases[rigid_body_circle_contact_constraint_spawner_type_index];
-		uint_data.data[death_index_base + index] = death_index;
-		uint killed_base = fixed_data.killed_bases[rigid_body_circle_contact_constraint_spawner_type_index];	// TODO: Merge with kill_index.
-		uint_data.data[killed_base + death_index] = index;
+			uint split_side = uint(cost_1 > cost_0);
+			uint unsplit_side = split_side ^ 1u;
+			
+			uint split_index = indices_source_pad[split_side];
+			uint unsplit_index = indices_source_pad[unsplit_side];
+			
+			uint split_parent_children_height = uvec4_data.data[bounding_box_parent_children_height_base + split_index];
+		
+			// Update current detector -> one child.
+			indices_source_pad[split_side] = split_parent_children_height.y;
+			uvec4_data.data[indices_source_pad_base + index] = indices_source_pad;
 
-		/*uint kill_end = atomicAdd(fixed_data.kill_ends[rigid_body_circle_contact_constraint_spawner_type_index], 1u);
-		uint capacity = fixed_data.capacities[rigid_body_circle_contact_constraint_spawner_type_index];
-		kill_end -= uint(kill_end >= capacity) * capacity;
-		// TODO: Merge killed_ring_base into kill ends.
-		uint killed_ring_base = fixed_data.rigid_body_circle_contact_constraint_spawner_killed_ring_base;
-		uint_data.data[killed_ring_base + kill_end] = index;*/
+			// Create new detector -> other child.
+			uint new_detector_index = atomicAdd(fixed_data.write_counts[bounding_box_contact_detector_type], 1u);
+			if (new_detector_index >= capacities[bounding_box_contact_detector_type])
+			{
+				atomicAdd(fixed_data.write_counts[bounding_box_contact_detector_type], minus_1_uint);
+				return;
+			}
+
+			indices_source_pad = uvec4(split_parent_children_height.z, unsplit_index, detector_index, 0u);
+			uvec4_data.data[indices_source_pad_base + new_detector_index] = indices_source_pad;
+
+			bounding_boxes[0u] = ivec4(uvec4_data.data[bounding_box_base + indices_source_pad.x]);
+			bounding_boxes[1u] = ivec4(uvec4_data.data[bounding_box_base + indices_source_pad.y]);
+
+			detector_index = new_detector_index;
+
+			if (bounding_boxes_overlap(bounding_boxes))
+			{
+				continue;	// Split the new detector as well.
+			}
+			
+			// IMPORTANT TODO: Avoid the need for backtracking by using next pointers instead of source pointers (ask ChatGPT).
+			while (true)
+			{	// Backtrack.
+				
+				detector_index = indices_source_pad.z;	// Follow source pointer.
+				
+				indices_source_pad = uvec4_data.data[indices_source_pad_base + detector_index];
+				bounding_boxes[0u] = ivec4(uvec4_data.data[bounding_box_base + indices_source_pad.x]);
+				bounding_boxes[1u] = ivec4(uvec4_data.data[bounding_box_base + indices_source_pad.y]);
+				
+				if (bounding_boxes_overlap(bounding_boxes))
+				{
+					break;	// Resume splitting from this detector.
+				}
+				if (detector_index == index)
+				{
+					return;
+				}
+			}
+		}
+	}
+	else
+	{
+		// TODO
 	}
 }
