@@ -39,5 +39,6 @@
 #include "compile_shaders.h"
 #include "compile_tick_inner_bounding_boxes.h"
 #include "compile_swap_leaf_bounding_box_buffers.h"
+#include "compile_tick_bounding_box_contact_detectors.h"
 #include "compile_tick_point_mass_distance_constraints.h"
 #include "game_state/shader_indices/include.h"

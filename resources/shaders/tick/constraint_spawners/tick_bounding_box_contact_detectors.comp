@@ -28,7 +28,7 @@ void main()
 		return;
 	}
 	
-	uint indices_source_pad_base = fixed_data.bounding_box_indices_source_pad_base;
+	uint indices_source_pad_base = fixed_data.bounding_box_contact_detector_indices_source_pad_base;
 
 	uint indices_source_pad_index = indices_source_pad_base + index;
 
@@ -49,6 +49,7 @@ void main()
 	if (bounding_boxes_overlap(bounding_boxes))
 	{
 		uint detector_index = index;
+		uint detector_capacity = fixed_data.capacities[bounding_box_contact_detector_type];
 
 		while (true)
 		{	// Split logic.
@@ -63,7 +64,7 @@ void main()
 			uint split_index = indices_source_pad[split_side];
 			uint unsplit_index = indices_source_pad[unsplit_side];
 			
-			uint split_parent_children_height = uvec4_data.data[bounding_box_parent_children_height_base + split_index];
+			uvec4 split_parent_children_height = uvec4_data.data[bounding_box_parent_children_height_base + split_index];
 		
 			// Update current detector -> one child.
 			indices_source_pad[split_side] = split_parent_children_height.y;
@@ -71,7 +72,7 @@ void main()
 
 			// Create new detector -> other child.
 			uint new_detector_index = atomicAdd(fixed_data.write_counts[bounding_box_contact_detector_type], 1u);
-			if (new_detector_index >= capacities[bounding_box_contact_detector_type])
+			if (new_detector_index >= detector_capacity)
 			{
 				atomicAdd(fixed_data.write_counts[bounding_box_contact_detector_type], minus_1_uint);
 				return;

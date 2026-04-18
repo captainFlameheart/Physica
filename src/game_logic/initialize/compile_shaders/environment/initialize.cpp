@@ -339,6 +339,9 @@ namespace game_logic::initialize::compile_shaders::environment
 			static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::perform_compaction::Indices::perform_rigid_body_circle_contact_constraint_spawner_compaction) - tick_entities_local_size_base
 		] };
 
+		constexpr GLuint tick_bounding_box_contact_detectors_local_size{ ::game_state::local_sizes::process_entities_local_sizes[
+			static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraint_spawners::Indices::bounding_box_contact_detectors) - tick_entities_local_size_base
+		] };
 		constexpr GLuint tick_rigid_body_circle_contact_constraint_spawners_local_size{ ::game_state::local_sizes::process_entities_local_sizes[
 			static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraint_spawners::Indices::rigid_body_circle_contact_constraint_spawners) - tick_entities_local_size_base
 		] };
@@ -446,6 +449,7 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uint plan_rigid_body_circle_contact_constraint_spawner_compaction_local_size = " + ::std::to_string(plan_rigid_body_circle_contact_constraint_spawner_compaction_local_size) + ";\n"
 			"const uint clear_rigid_body_circle_contact_constraint_spawner_deaths_local_size = " + ::std::to_string(clear_rigid_body_circle_contact_constraint_spawner_deaths_local_size) + ";\n"
 			"const uint perform_rigid_body_circle_contact_constraint_spawner_compaction_local_size = " + ::std::to_string(perform_rigid_body_circle_contact_constraint_spawner_compaction_local_size) + ";\n"
+			"const uint tick_bounding_box_contact_detectors_local_size = " + ::std::to_string(tick_bounding_box_contact_detectors_local_size) + ";\n"
 			"const uint tick_rigid_body_circle_contact_constraint_spawners_local_size = " + ::std::to_string(tick_rigid_body_circle_contact_constraint_spawners_local_size) + ";\n"
 			"const uint commit_constraint_counts_local_size = " + ::std::to_string(commit_constraint_counts_local_size) + ";\n"
 			"const uint plan_rigid_body_circle_contact_constraint_compaction_local_size = " + ::std::to_string(plan_rigid_body_circle_contact_constraint_compaction_local_size) + ";\n"
