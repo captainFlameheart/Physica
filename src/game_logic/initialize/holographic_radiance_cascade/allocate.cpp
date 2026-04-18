@@ -8,6 +8,8 @@ namespace game_logic::initialize::holographic_radiance_cascades
 	void allocate_source_image(game_environment::Environment& environment)
 	{
 		glCreateTextures(GL_TEXTURE_2D_ARRAY, 1u, &environment.state.holographic_radiance_cascades.source_texture);
+		glCreateFramebuffers(1u, &environment.state.holographic_radiance_cascades.source_framebuffer);
+
 		// TODO: Allow for different internal formats.
 		glTextureStorage3D
 		(
@@ -45,7 +47,6 @@ namespace game_logic::initialize::holographic_radiance_cascades
 			GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER
 		);
 
-		glCreateFramebuffers(1u, &environment.state.holographic_radiance_cascades.source_framebuffer);
 		GLenum source_draw_buffers[::game_state::holographic_radiance_cascades::source_layers::count];
 		for (GLuint layer{ 0u }; layer < ::game_state::holographic_radiance_cascades::source_layers::count; ++layer)
 		{
@@ -139,11 +140,61 @@ namespace game_logic::initialize::holographic_radiance_cascades
 		}
 	}
 
+	void allocate_angular_fluence(game_environment::Environment& environment)
+	{
+		glCreateTextures(GL_TEXTURE_2D_ARRAY, 1u, &environment.state.holographic_radiance_cascades.angular_fluence_texture);
+		glCreateFramebuffers(1u, &environment.state.holographic_radiance_cascades.angular_fluence_framebuffer);
+
+		GLuint angular_fluence_texture_width
+		{
+			::game_logic::holographic_radiance_cascades::compute_angular_fluence_texture_length
+			(
+				environment.state.holographic_radiance_cascades.horizontal_cascade_count,
+				environment.state.holographic_radiance_cascades.probe_grid_width
+			)
+		};
+		GLuint angular_fluence_texture_height
+		{
+			::game_logic::holographic_radiance_cascades::compute_angular_fluence_texture_length
+			(
+				environment.state.holographic_radiance_cascades.vertical_cascade_count,
+				environment.state.holographic_radiance_cascades.probe_grid_height
+			)
+		};
+
+		glTextureStorage3D
+		(
+			environment.state.holographic_radiance_cascades.angular_fluence_texture, 1u, GL_RGBA32F,
+			angular_fluence_texture_width, angular_fluence_texture_height,
+			2u
+		);
+
+		for (GLuint layer{ 0u }; layer < 2u; ++layer)
+		{
+			GLenum color_attachment{ GL_COLOR_ATTACHMENT0 + layer };
+			glNamedFramebufferTextureLayer
+			(
+				environment.state.holographic_radiance_cascades.angular_fluence_framebuffer,
+				color_attachment,
+				environment.state.holographic_radiance_cascades.angular_fluence_texture, 0, layer
+			);
+		}
+
+		GLenum angular_fluence_framebuffer_status{ glCheckNamedFramebufferStatus(environment.state.holographic_radiance_cascades.angular_fluence_framebuffer, GL_DRAW_FRAMEBUFFER) };
+		if (angular_fluence_framebuffer_status != GL_FRAMEBUFFER_COMPLETE)
+		{
+			std::cerr << "Holographic Radiance Cascades angular fluence framebuffer invalid, status: " << angular_fluence_framebuffer_status << std::endl;
+		}
+
+		glBindTextures(::game_state::texture_units::upper_cascade_fluence, 1u, &environment.state.holographic_radiance_cascades.angular_fluence_texture);
+	}
+
 	void allocate(game_environment::Environment& environment)
 	{
 		std::cout << "Allocate Holographic Radiance Cascades." << std::endl;
 
 		allocate_source_image(environment);
 		allocate_rays(environment);
+		allocate_angular_fluence(environment);
 	}
 }

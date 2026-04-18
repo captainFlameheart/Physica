@@ -17,4 +17,12 @@ namespace game_logic::holographic_radiance_cascades
 		texture_length = std::max(texture_length, probe_grid_length * static_cast<GLuint>(cascade < orthogonal_cascade_count));
 		return texture_length;
 	}
+
+	constexpr GLuint compute_angular_fluence_texture_length
+	(
+		GLuint directional_cascade_count, GLuint probe_grid_length
+	)
+	{
+		return std::max(1u << directional_cascade_count, probe_grid_length);
+	}
 }

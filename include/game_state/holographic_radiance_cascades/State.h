@@ -32,5 +32,8 @@ namespace game_state::holographic_radiance_cascades
 
 		GLuint* ray_textures;
 		GLuint* ray_framebuffers;
+
+		GLuint angular_fluence_texture;
+		GLuint angular_fluence_framebuffer;
 	};
 }
