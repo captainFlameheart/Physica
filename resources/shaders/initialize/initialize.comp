@@ -183,8 +183,16 @@ void main()
 	capacities[bounding_box_contact_detector_type] = bounding_box_contact_detector_capacity_factor * minimum_bounding_box_contact_detector_capacity;
 
 	uint bounding_box_contact_detector_indices_source_pad_base_address = align_up(inner_bounding_box_migration_list_base_address + inner_bounding_box_capacity * uvec4_data_array_stride);
+	old_death_index_base_addresses[bounding_box_contact_detector_type] = align_up(bounding_box_contact_detector_indices_source_pad_base_address + capacities[bounding_box_contact_detector_type] * uvec4_data_array_stride);
+	old_killed_base_addresses[bounding_box_contact_detector_type] = align_up(old_death_index_base_addresses[bounding_box_contact_detector_type] + capacities[bounding_box_contact_detector_type] * uint_data_array_stride);
+	death_index_base_addresses[bounding_box_contact_detector_type] = align_up(old_killed_base_addresses[bounding_box_contact_detector_type] + capacities[bounding_box_contact_detector_type] * uint_data_array_stride);
+	killed_base_addresses[bounding_box_contact_detector_type] = align_up(death_index_base_addresses[bounding_box_contact_detector_type] + capacities[bounding_box_contact_detector_type] * uint_data_array_stride);
 
 	uint bounding_box_contact_detector_indices_source_pad_base = address_to_uvec2_index(bounding_box_contact_detector_indices_source_pad_base_address);
+	old_death_index_bases[bounding_box_contact_detector_type] = address_to_uint_index(old_death_index_base_addresses[bounding_box_contact_detector_type]);
+	old_killed_bases[bounding_box_contact_detector_type] = address_to_uint_index(old_killed_base_addresses[bounding_box_contact_detector_type]);
+	death_index_bases[bounding_box_contact_detector_type] = address_to_uint_index(death_index_base_addresses[bounding_box_contact_detector_type]);
+	killed_bases[bounding_box_contact_detector_type] = address_to_uint_index(killed_base_addresses[bounding_box_contact_detector_type]);
 
 	fixed_data.bounding_box_contact_detector_indices_source_pad_base = bounding_box_contact_detector_indices_source_pad_base;
 
@@ -195,7 +203,7 @@ void main()
 		rigid_body_circle_contact_constraint_spawner_capacity_factor *
 		rigid_body_circle_contact_constraint_spawner_count;
 
-	uint rigid_body_circle_contact_constraint_spawner_indices_flags_base_address = align_up(bounding_box_contact_detector_indices_source_pad_base_address + capacities[bounding_box_contact_detector_type] * uvec2_data_array_stride);
+	uint rigid_body_circle_contact_constraint_spawner_indices_flags_base_address = align_up(killed_base_addresses[bounding_box_contact_detector_type] + capacities[bounding_box_contact_detector_type] * uint_data_array_stride);
 	old_death_index_base_addresses[rigid_body_circle_contact_constraint_spawner_type_index] = align_up(rigid_body_circle_contact_constraint_spawner_indices_flags_base_address + capacities[rigid_body_circle_contact_constraint_spawner_type_index] * uvec4_data_array_stride);
 	old_killed_base_addresses[rigid_body_circle_contact_constraint_spawner_type_index] = align_up(old_death_index_base_addresses[rigid_body_circle_contact_constraint_spawner_type_index] + capacities[rigid_body_circle_contact_constraint_spawner_type_index] * uint_data_array_stride);
 	death_index_base_addresses[rigid_body_circle_contact_constraint_spawner_type_index] = align_up(old_killed_base_addresses[rigid_body_circle_contact_constraint_spawner_type_index] + capacities[rigid_body_circle_contact_constraint_spawner_type_index] * uint_data_array_stride);
@@ -258,8 +266,6 @@ void main()
 		fixed_data.death_index_bases[entity_type] = death_index_bases[entity_type];
 		fixed_data.killed_bases[entity_type] = killed_bases[entity_type];
 		fixed_data.kill_counts[entity_type] = 0u;
-		//fixed_data.kill_bases[entity_type] = 0u;
-		//fixed_data.kill_ends[entity_type] = 0u;
 	}
 
 	uint end_base_address = killed_base_addresses[rigid_body_circle_contact_constraint_type_index] + capacities[rigid_body_circle_contact_constraint_type_index] * uint_data_array_stride;
