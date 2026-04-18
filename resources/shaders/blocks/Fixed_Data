@@ -173,7 +173,7 @@ FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 
 	uint leaf_bounding_box_capacity;
 
-	uint bounding_box_contact_detector_indices_base;
+	uint bounding_box_contact_detector_indices_source_pad_base;
 
 	uint rigid_body_circle_contact_constraint_spawner_indices_flags_base;
 

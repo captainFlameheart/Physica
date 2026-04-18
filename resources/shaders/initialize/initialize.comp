@@ -182,11 +182,11 @@ void main()
 	const uint bounding_box_contact_detector_capacity_factor = 10u;
 	capacities[bounding_box_contact_detector_type] = bounding_box_contact_detector_capacity_factor * minimum_bounding_box_contact_detector_capacity;
 
-	uint bounding_box_contact_detector_indices_base_address = align_up(inner_bounding_box_migration_list_base_address + inner_bounding_box_capacity * uvec4_data_array_stride);
+	uint bounding_box_contact_detector_indices_source_pad_base_address = align_up(inner_bounding_box_migration_list_base_address + inner_bounding_box_capacity * uvec4_data_array_stride);
 
-	uint bounding_box_contact_detector_indices_base = address_to_uvec2_index(bounding_box_contact_detector_indices_base_address);
+	uint bounding_box_contact_detector_indices_source_pad_base = address_to_uvec2_index(bounding_box_contact_detector_indices_source_pad_base_address);
 
-	fixed_data.bounding_box_contact_detector_indices_base = bounding_box_contact_detector_indices_base;
+	fixed_data.bounding_box_contact_detector_indices_source_pad_base = bounding_box_contact_detector_indices_source_pad_base;
 
 	uint rigid_body_circle_contact_constraint_spawner_count = capacities[rigid_body_circle_type_index] * (capacities[rigid_body_circle_type_index] - 1u) / 2u;
 	
@@ -195,7 +195,7 @@ void main()
 		rigid_body_circle_contact_constraint_spawner_capacity_factor *
 		rigid_body_circle_contact_constraint_spawner_count;
 
-	uint rigid_body_circle_contact_constraint_spawner_indices_flags_base_address = align_up(bounding_box_contact_detector_indices_base_address + capacities[bounding_box_contact_detector_type] * uvec2_data_array_stride);
+	uint rigid_body_circle_contact_constraint_spawner_indices_flags_base_address = align_up(bounding_box_contact_detector_indices_source_pad_base_address + capacities[bounding_box_contact_detector_type] * uvec2_data_array_stride);
 	old_death_index_base_addresses[rigid_body_circle_contact_constraint_spawner_type_index] = align_up(rigid_body_circle_contact_constraint_spawner_indices_flags_base_address + capacities[rigid_body_circle_contact_constraint_spawner_type_index] * uvec4_data_array_stride);
 	old_killed_base_addresses[rigid_body_circle_contact_constraint_spawner_type_index] = align_up(old_death_index_base_addresses[rigid_body_circle_contact_constraint_spawner_type_index] + capacities[rigid_body_circle_contact_constraint_spawner_type_index] * uint_data_array_stride);
 	death_index_base_addresses[rigid_body_circle_contact_constraint_spawner_type_index] = align_up(old_killed_base_addresses[rigid_body_circle_contact_constraint_spawner_type_index] + capacities[rigid_body_circle_contact_constraint_spawner_type_index] * uint_data_array_stride);
@@ -544,7 +544,7 @@ void main()
 				uint inner_bounding_box_height = inner_bounding_box_index;
 				uvec4_data.data[inner_bounding_box_parent_children_height_base + inner_bounding_box_index] =
 					uvec4(null_uint, leaf_index, bounding_volume_hierarchy_root, inner_bounding_box_height);
-				uvec2_data.data[bounding_box_contact_detector_indices_base + inner_bounding_box_index] = uvec2(leaf_index, bounding_volume_hierarchy_root);
+				uvec4_data.data[bounding_box_contact_detector_indices_source_pad_base + inner_bounding_box_index] = uvec4(leaf_index, bounding_volume_hierarchy_root, null_uint, 0u);
 				uvec4_data.data[inner_bounding_box_parent_children_height_base + leaf_index].x = inner_bounding_box_index;
 				uvec4_data.data[inner_bounding_box_parent_children_height_base + bounding_volume_hierarchy_root].x = inner_bounding_box_index;
 				uvec4 bounding_box = uvec4(0u);
