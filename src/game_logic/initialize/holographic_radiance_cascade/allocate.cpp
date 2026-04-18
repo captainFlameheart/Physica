@@ -18,6 +18,17 @@ namespace game_logic::initialize::holographic_radiance_cascades
 			::game_state::holographic_radiance_cascades::source_layers::count
 		);
 		
+		glTextureParameteri
+		(
+			environment.state.holographic_radiance_cascades.source_texture,
+			GL_TEXTURE_MIN_FILTER, GL_LINEAR
+		);
+		glTextureParameteri
+		(
+			environment.state.holographic_radiance_cascades.source_texture,
+			GL_TEXTURE_MAG_FILTER, GL_LINEAR
+		);
+
 		GLfloat border_color[4u]{ 0.0f, 0.0f, 0.0f, 0.0f };
 		glTextureParameterfv
 		(
