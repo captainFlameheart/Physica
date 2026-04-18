@@ -12,6 +12,18 @@ namespace game_logic::initialize::holographic_radiance_cascades
 		environment.state.holographic_radiance_cascades.enabled = true;
 		environment.state.holographic_radiance_cascades.visible_source_layer = 0u;
 
+		environment.state.holographic_radiance_cascades.probe_grid_width = 1024u;
+		environment.state.holographic_radiance_cascades.probe_grid_height = 512u;
+
+		environment.state.holographic_radiance_cascades.horizontal_cascade_count = ceil_log2_n_minus_1(environment.state.holographic_radiance_cascades.probe_grid_width);
+		environment.state.holographic_radiance_cascades.vertical_cascade_count = ceil_log2_n_minus_1(environment.state.holographic_radiance_cascades.probe_grid_height);
+
+		environment.state.holographic_radiance_cascades.cascade_count = std::max
+		(
+			environment.state.holographic_radiance_cascades.horizontal_cascade_count,
+			environment.state.holographic_radiance_cascades.vertical_cascade_count
+		);
+
 		allocate(environment);
 	}
 }
