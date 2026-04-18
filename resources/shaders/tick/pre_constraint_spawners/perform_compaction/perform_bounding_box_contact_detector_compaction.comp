@@ -1,0 +1,13 @@
+layout(local_size_x = perform_bounding_box_contact_detector_compaction_local_size) in;
+void main()
+{
+	uint killed;
+	uint source;
+
+	PRE_TICK_ENTITIES_PERFORM_COMPACTION_DETERMINE_FLOW(bounding_box_contact_detector_type, killed, source);
+
+	// Copy source -> killed.
+	uint indices_source_pad_base = fixed_data.bounding_box_contact_detector_indices_source_pad_base;
+	
+	uvec4_data.data[indices_source_pad_base + killed] = uvec4_data.data[indices_source_pad_base + source];
+}
