@@ -5,10 +5,8 @@
 
 namespace game_logic::initialize::holographic_radiance_cascades
 {
-	void allocate(game_environment::Environment& environment)
+	void allocate_source_image(game_environment::Environment& environment)
 	{
-		std::cout << "Allocate Holographic Radiance Cascades." << std::endl;
-
 		glCreateTextures(GL_TEXTURE_2D_ARRAY, 1u, &environment.state.holographic_radiance_cascades.source_texture);
 		// TODO: Allow for different internal formats.
 		glTextureStorage3D
@@ -17,7 +15,7 @@ namespace game_logic::initialize::holographic_radiance_cascades
 			environment.state.glfw.framebuffer_width, environment.state.glfw.framebuffer_height,
 			::game_state::holographic_radiance_cascades::source_layers::count
 		);
-		
+
 		glTextureParameteri
 		(
 			environment.state.holographic_radiance_cascades.source_texture,
@@ -62,14 +60,17 @@ namespace game_logic::initialize::holographic_radiance_cascades
 		}
 		glNamedFramebufferDrawBuffers(environment.state.holographic_radiance_cascades.source_framebuffer, std::size(source_draw_buffers), source_draw_buffers);
 
-		GLenum source_framebuffer_status{ glCheckFramebufferStatus(GL_FRAMEBUFFER) };
+		GLenum source_framebuffer_status{ glCheckNamedFramebufferStatus(environment.state.holographic_radiance_cascades.source_framebuffer, GL_DRAW_FRAMEBUFFER) };
 		if (source_framebuffer_status != GL_FRAMEBUFFER_COMPLETE)
 		{
 			std::cerr << "Holographic Radiance Cascades source framebuffer invalid, status: " << source_framebuffer_status << std::endl;
 		}
 
 		glBindTextures(::game_state::texture_units::source_image, 1u, &environment.state.holographic_radiance_cascades.source_texture);
+	}
 
+	void allocate_rays(game_environment::Environment& environment)
+	{
 		environment.state.holographic_radiance_cascades.ray_textures = new GLuint[environment.state.holographic_radiance_cascades.cascade_count];
 		environment.state.holographic_radiance_cascades.ray_framebuffers = new GLuint[environment.state.holographic_radiance_cascades.cascade_count];
 
@@ -115,6 +116,34 @@ namespace game_logic::initialize::holographic_radiance_cascades
 				ray_texture_width, ray_texture_height,
 				::game_state::holographic_radiance_cascades::ray_layers::count
 			);
+
+			GLuint ray_draw_buffers[::game_state::holographic_radiance_cascades::ray_layers::count];
+			for (GLuint layer{ 0u }; layer < ::game_state::holographic_radiance_cascades::ray_layers::count; ++layer)
+			{
+				GLenum color_attachment{ GL_COLOR_ATTACHMENT0 + layer };
+				glNamedFramebufferTextureLayer
+				(
+					environment.state.holographic_radiance_cascades.ray_framebuffers[cascade],
+					color_attachment,
+					environment.state.holographic_radiance_cascades.ray_textures[cascade], 0, layer
+				);
+				ray_draw_buffers[layer] = color_attachment;
+			}
+			glNamedFramebufferDrawBuffers(environment.state.holographic_radiance_cascades.ray_framebuffers[cascade], std::size(ray_draw_buffers), ray_draw_buffers);
+
+			GLenum ray_framebuffer_status{ glCheckNamedFramebufferStatus(environment.state.holographic_radiance_cascades.ray_framebuffers[cascade], GL_DRAW_FRAMEBUFFER) };
+			if (ray_framebuffer_status != GL_FRAMEBUFFER_COMPLETE)
+			{
+				std::cerr << "Holographic Radiance Cascades ray framebuffer " << cascade << " invalid, status: " << ray_framebuffer_status << std::endl;
+			}
 		}
+	}
+
+	void allocate(game_environment::Environment& environment)
+	{
+		std::cout << "Allocate Holographic Radiance Cascades." << std::endl;
+
+		allocate_source_image(environment);
+		allocate_rays(environment);
 	}
 }
