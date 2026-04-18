@@ -52,13 +52,14 @@ namespace game_state::entity_type_indices
 		constexpr GLuint count{ end - base };
 	}
 
-	namespace constraint_spawners
+	namespace constraint_spawners	// TODO: Rename to contact detectors.
 	{
 		constexpr GLuint base{ ::game_state::entity_type_indices::bounding_volume_hierarchy::end };
 
 		enum struct Indices : GLuint
 		{
-			rigid_body_circle_contact_constraint_spawner = base,
+			bounding_box_contact_detector = base,
+			rigid_body_circle_contact_constraint_spawner,
 
 			end
 		};
