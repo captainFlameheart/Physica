@@ -12,6 +12,9 @@ namespace game_logic::initialize::holographic_radiance_cascades
 		environment.state.holographic_radiance_cascades.enabled = true;
 		environment.state.holographic_radiance_cascades.visible_source_layer = 0u;
 
+		environment.state.holographic_radiance_cascades.source_width = environment.state.glfw.framebuffer_width;
+		environment.state.holographic_radiance_cascades.source_height = environment.state.glfw.framebuffer_height;
+
 		environment.state.holographic_radiance_cascades.probe_grid_width = 1024u;
 		environment.state.holographic_radiance_cascades.probe_grid_height = 512u;
 
@@ -28,6 +31,12 @@ namespace game_logic::initialize::holographic_radiance_cascades
 
 		environment.state.holographic_radiance_cascades.horizontal_skycircle_sample_count = 1u;
 		environment.state.holographic_radiance_cascades.vertical_skycircle_sample_count = 1u;
+
+		environment.state.holographic_radiance_cascades.horizontal_ray_trace_cascade_count = 2u;
+		environment.state.holographic_radiance_cascades.vertical_ray_trace_cascade_count = 2u;
+		
+		environment.state.holographic_radiance_cascades.horizontal_ray_trace_base_sample_count = 1u;
+		environment.state.holographic_radiance_cascades.vertical_ray_trace_base_sample_count = 1u;
 
 		allocate(environment);
 	}

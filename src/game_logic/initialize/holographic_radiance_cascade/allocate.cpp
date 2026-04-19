@@ -299,6 +299,110 @@ namespace game_logic::initialize::holographic_radiance_cascades
 		glBindTextures(::game_state::texture_units::fluence, 1u, &environment.state.holographic_radiance_cascades.fluence_texture);
 	}
 
+	void compile_trace_rays_shaders
+	(
+		game_environment::Environment& environment,
+		::game_state::initialize::compile_shaders::environment::Environment& compile_environment
+	)
+	{
+		GLfloat probe_grid_full_step_to_sample_step_factor[2u]
+		{
+			::game_logic::holographic_radiance_cascades::compute_probe_grid_full_step_to_sample_step_factor(environment.state.holographic_radiance_cascades.source_width, environment.state.holographic_radiance_cascades.probe_grid_width),
+			::game_logic::holographic_radiance_cascades::compute_probe_grid_full_step_to_sample_step_factor(environment.state.holographic_radiance_cascades.source_height, environment.state.holographic_radiance_cascades.probe_grid_height)
+		};
+		GLuint probe_grid_point_to_sample_point_bias[2u]
+		{
+			::game_logic::holographic_radiance_cascades::compute_probe_grid_point_to_sample_point_bias(environment.state.holographic_radiance_cascades.source_width),
+			::game_logic::holographic_radiance_cascades::compute_probe_grid_point_to_sample_point_bias(environment.state.holographic_radiance_cascades.source_height)
+		};
+
+		// IMPORTANT TODO: Read these frustum dimensions dynamically in shader.
+		GLfloat frustum_unit_z_width{ 2.0f };
+		GLfloat frustum_unit_z_height{ 1.0f };
+		GLuint probe_grid_full_step_to_sample_step_projection[2u]
+		{
+			::game_logic::holographic_radiance_cascades::compute_probe_grid_full_step_to_sample_step_projection(frustum_unit_z_width, probe_grid_full_step_to_sample_step_factor[0u]),
+			::game_logic::holographic_radiance_cascades::compute_probe_grid_full_step_to_sample_step_projection(frustum_unit_z_height, probe_grid_full_step_to_sample_step_factor[1u])
+		};
+
+		for (GLuint bidirection{ 0u }; bidirection < 2u; ++bidirection)
+		{
+			GLuint trace_rays_shader_count{ environment.state.holographic_radiance_cascades.ray_trace_cascade_counts[bidirection] };
+			GLuint base_step_count{ environment.state.holographic_radiance_cascades.ray_trace_base_sample_counts[bidirection] };
+
+			for (GLuint direction{ 0u }; direction < 2u; ++direction)
+			{
+				GLuint flattened_direction{ ::game_state::holographic_radiance_cascades::directions::flatten[bidirection][direction] };
+				environment.state.holographic_radiance_cascades.trace_rays_shaders[bidirection][direction] = new GLuint[trace_rays_shader_count];
+
+				for (GLuint cascade{ 0u }; cascade < trace_rays_shader_count; ++cascade)
+				{
+					GLuint cascade_power_of_two{ ::game_logic::holographic_radiance_cascades::compute_cascade_power_of_two(cascade) };
+					GLuint rays_per_probe{ ::game_logic::holographic_radiance_cascades::compute_rays_per_probe(cascade_power_of_two) };
+					GLuint step_count{ base_step_count * cascade_power_of_two };
+
+					GLfloat probe_grid_point_to_sample_point_factor[2u]
+					{
+						probe_grid_full_step_to_sample_step_factor[0u],
+						probe_grid_full_step_to_sample_step_factor[1u],
+					};
+					probe_grid_point_to_sample_point_factor[bidirection] *= cascade_power_of_two;
+
+					std::string parameter_definitions
+					{
+						"#define DIRECTION " + std::to_string(flattened_direction) + "\n"
+
+						"const int rays_per_probe = " + std::to_string(static_cast<GLint>(rays_per_probe)) + ";\n"
+						"const int cascade_power_of_two = " + std::to_string(static_cast<GLint>(cascade_power_of_two)) + ";\n"
+						
+						"const vec2 probe_grid_full_step_to_sample_step_factor = vec2(" + std::to_string(probe_grid_full_step_to_sample_step_factor[0u]) + ", " + std::to_string(probe_grid_full_step_to_sample_step_factor[1u]) + ");\n"
+						"const vec2 probe_grid_point_to_sample_point_bias = vec2(" + std::to_string(probe_grid_point_to_sample_point_bias[0u]) + ", " + std::to_string(probe_grid_point_to_sample_point_bias[1u]) + ");\n"
+						"const vec2 probe_grid_point_to_sample_point_factor = vec2(" + std::to_string(probe_grid_point_to_sample_point_factor[0u]) + ", " + std::to_string(probe_grid_point_to_sample_point_factor[1u]) + ");\n"
+						"const vec2 probe_grid_full_step_to_sample_step_projection = vec2(" + std::to_string(probe_grid_full_step_to_sample_step_projection[0u]) + ", " + std::to_string(probe_grid_full_step_to_sample_step_projection[1u]) + ");\n"
+
+						"const int step_count = " + std::to_string(static_cast<GLint>(step_count)) + ";\n"
+					};
+
+					::util::shader::set_shader_statically
+					(
+						compile_environment.shader_group.vertex_shader,
+						compile_environment.readonly_prefix_source,
+						parameter_definitions,
+						::util::shader::file_to_string("draw/holographic_radiance_cascades/trace_rays/trace_rays.vert")
+					);
+
+					::util::shader::set_shader_statically
+					(
+						compile_environment.shader_group.fragment_shader,
+						compile_environment.readonly_prefix_source,
+						parameter_definitions,
+						::util::shader::file_to_string("draw/holographic_radiance_cascades/trace_rays/trace_rays.frag")
+					);
+
+					environment.state.holographic_radiance_cascades.trace_rays_shaders[bidirection][direction][cascade] = ::util::shader::create_program
+					(
+						compile_environment.shader_group.vertex_shader, compile_environment.shader_group.fragment_shader
+					);
+				}
+			}
+		}
+
+		/*environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::draw::entities::constraints::Indices::point_mass_distance_constraints)] = ::util::shader::create_program
+		(
+			compile_environment.shader_group.vertex_shader, compile_environment.shader_group.fragment_shader
+		);*/
+	}
+
+	void compile_shaders(game_environment::Environment& environment)
+	{
+		::game_state::initialize::compile_shaders::environment::Environment compile_environment;
+		::game_logic::initialize::compile_shaders::environment::initialize(environment, compile_environment);
+
+		compile_trace_rays_shaders(environment, compile_environment);
+
+		::game_logic::initialize::compile_shaders::environment::free(environment, compile_environment);
+	}
+
 	void allocate(game_environment::Environment& environment)
 	{
 		std::cout << "Allocate Holographic Radiance Cascades." << std::endl;
@@ -308,5 +412,7 @@ namespace game_logic::initialize::holographic_radiance_cascades
 		allocate_rays(environment);
 		allocate_angular_fluence(environment);
 		allocate_fluence(environment);
+
+		compile_shaders(environment);
 	}
 }

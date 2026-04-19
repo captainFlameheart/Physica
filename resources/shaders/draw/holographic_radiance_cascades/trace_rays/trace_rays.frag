@@ -1,17 +1,16 @@
 /* Expected to be concatenated from CPU:
 
 #define EAST_DIRECTION ?
-#define NORTH_DIRECTION ?
 #define WEST_DIRECTION ?
+#define NORTH_DIRECTION ?
 #define SOUTH_DIRECTION ?
 
 #define DIRECTION ?
 
-const int skipped_rays_below_column = ?;
 const int rays_per_probe = ?;
 const int cascade_power_of_two = ?;
 
-const vec2 probe_grid_full_step_to_sample_step_factor = ?;	// TODO: Only store y component, see below
+const vec2 probe_grid_full_step_to_sample_step_factor = ?;	// TODO: Only store y component, see below.
 const vec2 probe_grid_point_to_sample_point_bias = ?;
 const vec2 probe_grid_point_to_sample_point_factor = ?;
 const vec2 probe_grid_full_step_to_sample_step_projection = ?;

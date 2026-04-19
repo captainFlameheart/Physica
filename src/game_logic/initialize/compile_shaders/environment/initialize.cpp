@@ -490,6 +490,14 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uint rays_texture_unit = " + std::to_string(::game_state::texture_units::rays) + ";\n"
 			"const uint upper_cascade_fluence_texture_unit = " + std::to_string(::game_state::texture_units::upper_cascade_fluence) + ";\n"
 			"const uint fluence_texture_unit = " + std::to_string(::game_state::texture_units::fluence) + ";\n"
+
+			"#define EAST_DIRECTION " + std::to_string(::game_state::holographic_radiance_cascades::directions::east) + "\n"
+			"#define WEST_DIRECTION " + std::to_string(::game_state::holographic_radiance_cascades::directions::west) + "\n"
+			"#define NORTH_DIRECTION " + std::to_string(::game_state::holographic_radiance_cascades::directions::north) + "\n"
+			"#define SOUTH_DIRECTION " + std::to_string(::game_state::holographic_radiance_cascades::directions::south) + "\n"
+
+			"const uint rays_radiance_layer = " + std::to_string(::game_state::holographic_radiance_cascades::ray_layers::radiance) + ";\n"
+			"const uint rays_transmittance_layer = " + std::to_string(::game_state::holographic_radiance_cascades::ray_layers::transmittance) + ";\n"
 		;
 
 		compile_environment.fixed_data_source = ::util::shader::file_to_string("blocks/Fixed_Data");

@@ -5,4 +5,7 @@
 #include "game_state/texture_units/include.h"
 #include "game_state/game.h"
 #include "game_logic/holographic_radiance_cascades/include.h"
+#include "game_logic/initialize/compile_shaders/environment/include.h"
+#include "util/shader/shader.h"
+#include "game_state/glfw/include.h"
 #include <iostream>
