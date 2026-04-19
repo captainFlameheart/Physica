@@ -11,6 +11,9 @@ namespace game_logic::free::holographic_radiance_cascades
 		glDeleteFramebuffers(1u, &environment.state.holographic_radiance_cascades.source_framebuffer);
 		glDeleteTextures(1u, &environment.state.holographic_radiance_cascades.source_texture);
 
+		glDeleteFramebuffers(1u, &environment.state.holographic_radiance_cascades.skycircle_framebuffer);
+		glDeleteTextures(1u, &environment.state.holographic_radiance_cascades.skycircle_texture);
+
 		glDeleteFramebuffers
 		(
 			environment.state.holographic_radiance_cascades.cascade_count,

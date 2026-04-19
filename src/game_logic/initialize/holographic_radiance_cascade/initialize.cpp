@@ -24,6 +24,11 @@ namespace game_logic::initialize::holographic_radiance_cascades
 			environment.state.holographic_radiance_cascades.vertical_cascade_count
 		);
 
+		environment.state.holographic_radiance_cascades.skycircle_length = 1024u;
+
+		environment.state.holographic_radiance_cascades.horizontal_skycircle_sample_count = 1u;
+		environment.state.holographic_radiance_cascades.vertical_skycircle_sample_count = 1u;
+
 		allocate(environment);
 	}
 }

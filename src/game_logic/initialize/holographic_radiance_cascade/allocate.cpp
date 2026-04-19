@@ -70,6 +70,52 @@ namespace game_logic::initialize::holographic_radiance_cascades
 		glBindTextures(::game_state::texture_units::source_image, 1u, &environment.state.holographic_radiance_cascades.source_texture);
 	}
 
+	void allocate_skycircle(game_environment::Environment& environment)
+	{
+		glCreateTextures(GL_TEXTURE_1D, 1u, &environment.state.holographic_radiance_cascades.skycircle_texture);
+		glCreateFramebuffers(1u, &environment.state.holographic_radiance_cascades.skycircle_framebuffer);
+
+		// TODO: Allow for different internal formats.
+		glTextureStorage1D
+		(
+			environment.state.holographic_radiance_cascades.skycircle_texture, 1u, GL_RGBA32F,
+			environment.state.holographic_radiance_cascades.skycircle_length
+		);
+
+		glTextureParameteri
+		(
+			environment.state.holographic_radiance_cascades.skycircle_texture,
+			GL_TEXTURE_MIN_FILTER, GL_LINEAR
+		);
+		glTextureParameteri
+		(
+			environment.state.holographic_radiance_cascades.skycircle_texture,
+			GL_TEXTURE_MAG_FILTER, GL_LINEAR
+		);
+
+		glTextureParameteri
+		(
+			environment.state.holographic_radiance_cascades.skycircle_texture,
+			GL_TEXTURE_WRAP_S, GL_REPEAT
+		);
+
+		glNamedFramebufferTexture
+		(
+			environment.state.holographic_radiance_cascades.skycircle_framebuffer,
+			GL_COLOR_ATTACHMENT0,
+			environment.state.holographic_radiance_cascades.skycircle_texture, 0
+		);
+		glNamedFramebufferDrawBuffer(environment.state.holographic_radiance_cascades.skycircle_framebuffer, GL_COLOR_ATTACHMENT0);
+
+		GLenum skycircle_framebuffer_status{ glCheckNamedFramebufferStatus(environment.state.holographic_radiance_cascades.skycircle_framebuffer, GL_DRAW_FRAMEBUFFER) };
+		if (skycircle_framebuffer_status != GL_FRAMEBUFFER_COMPLETE)
+		{
+			std::cerr << "Holographic Radiance Cascades skycircle framebuffer invalid, status: " << skycircle_framebuffer_status << std::endl;
+		}
+
+		glBindTextures(::game_state::texture_units::source_image, 1u, &environment.state.holographic_radiance_cascades.source_texture);
+	}
+
 	void allocate_rays(game_environment::Environment& environment)
 	{
 		environment.state.holographic_radiance_cascades.ray_textures = new GLuint[environment.state.holographic_radiance_cascades.cascade_count];
@@ -258,6 +304,7 @@ namespace game_logic::initialize::holographic_radiance_cascades
 		std::cout << "Allocate Holographic Radiance Cascades." << std::endl;
 
 		allocate_source_image(environment);
+		allocate_skycircle(environment);
 		allocate_rays(environment);
 		allocate_angular_fluence(environment);
 		allocate_fluence(environment);
