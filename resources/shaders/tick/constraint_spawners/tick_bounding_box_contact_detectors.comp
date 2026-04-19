@@ -7,6 +7,24 @@ bool bounding_boxes_overlap(in ivec4 bounding_boxes[2u])
 	);
 }
 
+bool bounding_boxes_overlap(in ivec4 bounding_box_0, in ivec4 bounding_box_1)
+{
+	return
+	(
+		all(lessThanEqual(bounding_box_0.xy, bounding_box_1.zw)) &&
+		all(lessThanEqual(bounding_box_1.xy, bounding_box_0.zw))
+	);
+}
+
+bool bounding_boxes_are_separated(in ivec4 bounding_box_0, in ivec4 bounding_box_1)
+{
+	return
+	(
+		any(greaterThan(bounding_box_0.xy, bounding_box_1.zw)) ||
+		any(greaterThan(bounding_box_1.xy, bounding_box_0.zw))
+	);
+}
+
 layout(local_size_x = tick_bounding_box_contact_detectors_local_size) in;
 void main()
 {
@@ -15,7 +33,7 @@ void main()
 	//		3. Create new contact detectors and repeat step 1 for each of these contact detectors.
 	//	4. Else:
 	//		5. If the parent to either of the two nodes do not overlap the other node:
-	//			6. Pick the biggest such parent.
+	//			6. Pick the smallest such parent.
 	//				7. If holds left child of parent.
 	//					8. Repoint the pointer from the left child to the parent.
 	//				9. Else:
@@ -121,7 +139,74 @@ void main()
 		}
 	}
 	else
-	{
-		// TODO
+	{	// Collapse logic.
+		uvec4 parent_children_heights[2u] = uvec4[2u]
+		(
+			uvec4_data.data[bounding_box_parent_children_height_base + indices_source_pad.x],
+			uvec4_data.data[bounding_box_parent_children_height_base + indices_source_pad.y]
+		);
+
+		ivec4 parent_bounding_boxes[2u] = ivec4[2u]
+		(
+			ivec4(uvec4_data.data[bounding_box_base + parent_children_heights[0u].x]),
+			ivec4(uvec4_data.data[bounding_box_base + parent_children_heights[1u].x])
+		);
+
+		uint collapse_cost = max_uint;
+		uint collapse_side;
+		if (bounding_boxes_are_separated(parent_bounding_boxes[0u], bounding_boxes[1u]))
+		{
+			collapse_cost = compute_bounding_box_cost(parent_bounding_boxes[0u]);
+			collapse_side = 0u;
+		}
+		uint collapse_cost_1 = compute_bounding_box_cost(parent_bounding_boxes[1u]);
+		if (bounding_boxes_are_separated(parent_bounding_boxes[1u], bounding_boxes[0u]) && collapse_cost_1 < collapse_cost)
+		{
+			collapse_cost = collapse_cost_1;
+			collapse_side = 1u;
+		}
+		if (collapse_cost == max_uint)
+		{
+			return;
+		}
+
+		do
+		{
+			uvec4 collapse_parent_children_height = parent_children_heights[collapse_side];
+			uvec4 collapse_parent_parent_children_height = uvec4_data.data[bounding_box_parent_children_height_base + collapse_parent_children_height.x];
+			
+			if (indices_source_pad[collapse_side] == collapse_parent_parent_children_height.z)	// Is the detector holding the right child of the collapsed node?
+			{	// Die.
+				// TODO: Make into reusable function/macro.
+				uint death_index = atomicAdd(fixed_data.kill_counts[bounding_box_contact_detector_type], 1u);
+				uint death_index_base = fixed_data.death_index_bases[bounding_box_contact_detector_type];
+				uint_data.data[death_index_base + index] = death_index;
+				uint killed_base = fixed_data.killed_bases[bounding_box_contact_detector_type];	// TODO: Merge with death_index.
+				uint_data.data[killed_base + death_index] = index;
+				return;
+			}
+			
+			// Perform collapse.
+			indices_source_pad[collapse_side] = collapse_parent_children_height.x;
+			bounding_boxes[collapse_side] = parent_bounding_boxes[collapse_side];
+			parent_children_heights[collapse_side] = uvec4_data.data[bounding_box_parent_children_height_base + collapse_parent_children_height.x];
+			parent_bounding_boxes[collapse_side] = ivec4(uvec4_data.data[bounding_box_base + parent_children_heights[collapse_side].x]);
+
+			// Consider another collapse.
+			collapse_cost = max_uint;
+			if (bounding_boxes_are_separated(parent_bounding_boxes[0u], bounding_boxes[1u]))
+			{
+				collapse_cost = compute_bounding_box_cost(parent_bounding_boxes[0u]);
+				collapse_side = 0u;
+			}
+			collapse_cost_1 = compute_bounding_box_cost(parent_bounding_boxes[1u]);
+			if (bounding_boxes_are_separated(parent_bounding_boxes[1u], bounding_boxes[0u]) && collapse_cost_1 < collapse_cost)
+			{
+				collapse_cost = collapse_cost_1;
+				collapse_side = 1u;
+			}
+		} while (collapse_cost != max_uint);
+
+		uvec4_data.data[indices_source_pad_index] = indices_source_pad;
 	}
 }
