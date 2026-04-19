@@ -60,8 +60,8 @@ void main()
 		{	// Split logic.
 
 			// Determine which box to split.
-			uint cost_0 = (bounding_boxes[0u].z - bounding_boxes[0u].x) + (bounding_boxes[0u].w - bounding_boxes[0u].y);
-			uint cost_1 = (bounding_boxes[1u].z - bounding_boxes[1u].x) + (bounding_boxes[1u].w - bounding_boxes[1u].y);
+			uint cost_0 = compute_bounding_box_cost(bounding_boxes[0u]);
+			uint cost_1 = compute_bounding_box_cost(bounding_boxes[1u]);
 		
 			uint split_side = uint(cost_1 > cost_0);
 			uint unsplit_side = split_side ^ 1u;
