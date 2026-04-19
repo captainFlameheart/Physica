@@ -48,71 +48,74 @@ void main()
 
 	if (bounding_boxes_overlap(bounding_boxes))
 	{
-		if (all(lessThan(ivec2(indices_source_pad.xy), ivec2(0))))
+		bvec2 is_inner = bvec2
+		(
+			int(indices_source_pad.x) >= 0,
+			int(indices_source_pad.y) >= 0
+		);
+		if (any(is_inner))
 		{
-			return;
-		}
+			uint detector_index = index;
+			uint detector_capacity = fixed_data.capacities[bounding_box_contact_detector_type];
 
-		uint detector_index = index;
-		uint detector_capacity = fixed_data.capacities[bounding_box_contact_detector_type];
-
-		while (true)
-		{	// Split logic.
-
-			// Determine which box to split.
-			uint cost_0 = compute_bounding_box_cost(bounding_boxes[0u]);
-			uint cost_1 = compute_bounding_box_cost(bounding_boxes[1u]);
-		
-			uint split_side = uint(cost_1 > cost_0);
-			uint unsplit_side = split_side ^ 1u;
-			
-			uint split_index = indices_source_pad[split_side];
-			uint unsplit_index = indices_source_pad[unsplit_side];
-			
-			uvec4 split_parent_children_height = uvec4_data.data[bounding_box_parent_children_height_base + split_index];
-		
-			// Update current detector -> one child.
-			indices_source_pad[split_side] = split_parent_children_height.y;
-			uvec4_data.data[indices_source_pad_base + index] = indices_source_pad;
-
-			// Create new detector -> other child.
-			uint new_detector_index = atomicAdd(fixed_data.write_counts[bounding_box_contact_detector_type], 1u);
-			if (new_detector_index >= detector_capacity)
-			{
-				atomicAdd(fixed_data.write_counts[bounding_box_contact_detector_type], minus_1_uint);
-				return;
-			}
-
-			indices_source_pad = uvec4(split_parent_children_height.z, unsplit_index, detector_index, 0u);
-			uvec4_data.data[indices_source_pad_base + new_detector_index] = indices_source_pad;
-
-			bounding_boxes[0u] = ivec4(uvec4_data.data[bounding_box_base + indices_source_pad.x]);
-			bounding_boxes[1u] = ivec4(uvec4_data.data[bounding_box_base + indices_source_pad.y]);
-
-			detector_index = new_detector_index;
-
-			if (bounding_boxes_overlap(bounding_boxes))
-			{
-				continue;	// Split the new detector as well.
-			}
-			
-			// IMPORTANT TODO: Avoid the need for backtracking by using next pointers instead of source pointers (ask ChatGPT).
 			while (true)
-			{	// Backtrack.
-				
-				detector_index = indices_source_pad.z;	// Follow source pointer.
-				
-				indices_source_pad = uvec4_data.data[indices_source_pad_base + detector_index];
+			{	// Split logic.
+
+				// Determine which box to split.
+				uint cost_0 = compute_bounding_box_cost(bounding_boxes[0u]);
+				uint cost_1 = compute_bounding_box_cost(bounding_boxes[1u]);
+		
+				uint split_side = uint(cost_1 > cost_0 && is_inner.y);
+				uint unsplit_side = split_side ^ 1u;
+			
+				uint split_index = indices_source_pad[split_side];
+				uint unsplit_index = indices_source_pad[unsplit_side];
+			
+				uvec4 split_parent_children_height = uvec4_data.data[bounding_box_parent_children_height_base + split_index];
+		
+				// Update current detector -> one child.
+				indices_source_pad[split_side] = split_parent_children_height.y;
+				uvec4_data.data[indices_source_pad_base + index] = indices_source_pad;
+
+				// Create new detector -> other child.
+				uint new_detector_index = atomicAdd(fixed_data.write_counts[bounding_box_contact_detector_type], 1u);
+				if (new_detector_index >= detector_capacity)
+				{
+					atomicAdd(fixed_data.write_counts[bounding_box_contact_detector_type], minus_1_uint);
+					return;
+				}
+
+				indices_source_pad = uvec4(split_parent_children_height.z, unsplit_index, detector_index, 0u);
+				uvec4_data.data[indices_source_pad_base + new_detector_index] = indices_source_pad;
+
 				bounding_boxes[0u] = ivec4(uvec4_data.data[bounding_box_base + indices_source_pad.x]);
 				bounding_boxes[1u] = ivec4(uvec4_data.data[bounding_box_base + indices_source_pad.y]);
-				
+
+				detector_index = new_detector_index;
+
 				if (bounding_boxes_overlap(bounding_boxes))
 				{
-					break;	// Resume splitting from this detector.
+					continue;	// Split the new detector as well.
 				}
-				if (detector_index == index)
-				{
-					return;
+			
+				// IMPORTANT TODO: Avoid the need for backtracking by using next pointers instead of source pointers (ask ChatGPT).
+				while (true)
+				{	// Backtrack.
+				
+					detector_index = indices_source_pad.z;	// Follow source pointer.
+				
+					indices_source_pad = uvec4_data.data[indices_source_pad_base + detector_index];
+					bounding_boxes[0u] = ivec4(uvec4_data.data[bounding_box_base + indices_source_pad.x]);
+					bounding_boxes[1u] = ivec4(uvec4_data.data[bounding_box_base + indices_source_pad.y]);
+				
+					if (bounding_boxes_overlap(bounding_boxes))
+					{
+						break;	// Resume splitting from this detector.
+					}
+					if (detector_index == index)
+					{
+						return;
+					}
 				}
 			}
 		}
