@@ -1,6 +1,8 @@
 layout(local_size_x = perform_bounding_box_contact_detector_compaction_local_size) in;
 void main()
 {
+	atomicAdd(fixed_data.temp, fixed_data.old_kill_counts[bounding_box_contact_detector_type]);	// MUST TODO: REMOVE!!!
+
 	uint killed;
 	uint source;
 
@@ -9,5 +11,5 @@ void main()
 	// Copy source -> killed.
 	uint indices_source_pad_base = fixed_data.bounding_box_contact_detector_indices_source_pad_base;
 	
-	uvec4_data.data[indices_source_pad_base + killed] = uvec4_data.data[indices_source_pad_base + source];
+	uvec4_data.data[indices_source_pad_base + killed] = uvec4_data.data[indices_source_pad_base + source];	
 }
