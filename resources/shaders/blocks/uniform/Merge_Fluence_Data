@@ -2,5 +2,18 @@
 // IMPORTANT TODO: Collect fields into a ivec data type for faster memory transactions.
 layout(shared, binding = private_input_binding) uniform Merge_Fluence_Data
 {
-	int REMOVE_ME;
+	int direction_mask;
+	int cascade;
+	int max_ray_probe_column;
+	int max_fluence_probe_column_texel_x;
+	int max_fluence_probe_y;
+	int rays_per_probe;
+	int cascade_power_of_two;
+	int upper_cascade_probe_column_texel_x_mask;
+	int upper_cascade;
+	int upper_cascade_fluence_layer;
+	
+	// IMPORTANT TODO: These values should only exist in memory for west and south directions.
+	int output_factor;
+	int output_shift;
 } merge_fluence_data;
