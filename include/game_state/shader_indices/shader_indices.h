@@ -458,10 +458,18 @@ namespace game_state::shader_indices
 			enum struct Indices : GLuint
 			{
 				source_layer = base,
+				
 				east_merge_rays,
+				east_merge_fluence,
+				
 				west_merge_rays,
+				west_merge_fluence,
+				
 				north_merge_rays,
+				north_merge_fluence,
+				
 				south_merge_rays,
+				south_merge_fluence,
 
 				end
 			};
@@ -470,6 +478,11 @@ namespace game_state::shader_indices
 			{
 				{ static_cast<GLuint>(Indices::east_merge_rays), static_cast<GLuint>(Indices::west_merge_rays) },
 				{ static_cast<GLuint>(Indices::north_merge_rays), static_cast<GLuint>(Indices::south_merge_rays) }
+			};
+			constexpr GLuint flatten_merge_fluence[2u][2u]
+			{
+				{ static_cast<GLuint>(Indices::east_merge_fluence), static_cast<GLuint>(Indices::west_merge_fluence) },
+				{ static_cast<GLuint>(Indices::north_merge_fluence), static_cast<GLuint>(Indices::south_merge_fluence) }
 			};
 
 			constexpr GLuint end{ static_cast<GLuint>(Indices::end) };

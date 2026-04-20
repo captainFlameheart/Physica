@@ -27,7 +27,7 @@
 #endif
 
 layout(location = rays_texture_unit) uniform sampler2DArray rays;
-layout(location = upper_cascade_texture_unit) uniform sampler2DArray upper_cascade_fluence;
+layout(location = upper_cascade_fluence_texture_unit) uniform sampler2DArray upper_cascade_fluence;
 
 layout(location = 0) out vec4 fluence;
 
