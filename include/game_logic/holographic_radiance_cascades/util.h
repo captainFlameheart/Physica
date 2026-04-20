@@ -1,6 +1,7 @@
 #pragma once
 #include "glad_glfw.h"
 #include <algorithm>
+#include "global/include.h"
 
 namespace game_logic::holographic_radiance_cascades
 {
@@ -156,6 +157,38 @@ namespace game_logic::holographic_radiance_cascades
 			return 1u;
 		}
 		return compute_output_shift_for_last_cascade(direction, probe_grid_length);
+	}
+
+	constexpr GLfloat compute_source_sample_point_to_probe_grid_point_factor
+	(
+		GLuint source_length
+	)
+	{
+		return 1.0 - 1.0 / static_cast<GLfloat>(source_length);
+	}
+
+	constexpr GLfloat compute_source_sample_point_to_probe_grid_point_bias
+	(
+		GLuint source_length
+	)
+	{
+		return 0.5 / static_cast<GLfloat>(source_length);
+	}
+
+	constexpr GLfloat compute_probe_grid_point_to_fluence_sample_point_factor
+	(
+		GLuint probe_grid_length
+	)
+	{
+		return 1.0 - 1.0 / static_cast<GLfloat>(probe_grid_length);
+	}
+
+	constexpr GLfloat compute_probe_grid_point_to_fluence_sample_point_bias
+	(
+		GLuint probe_grid_length
+	)
+	{
+		return 0.5 / static_cast<GLfloat>(probe_grid_length);
 	}
 
 	constexpr GLuint compute_ray_texture_length
