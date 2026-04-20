@@ -1,10 +1,5 @@
 /* Expected to be concatenated from CPU:
 
-#define EAST_DIRECTION ?
-#define NORTH_DIRECTION ?
-#define WEST_DIRECTION ?
-#define SOUTH_DIRECTION ?
-
 #define DIRECTION ?
 
 */
@@ -38,12 +33,12 @@ void main()
 {
 	ivec2 output_texel_position = ivec2(gl_FragCoord.xy);
 
-	int probe_column = X(output_texel_position) / ray_casting_data.rays_per_probe;
-	int probe_column_texel_x = probe_column * ray_casting_data.rays_per_probe;
+	int probe_column = X(output_texel_position) / merge_rays_data.rays_per_probe;
+	int probe_column_texel_x = probe_column * merge_rays_data.rays_per_probe;
 	int direction_id = X(output_texel_position) - probe_column_texel_x;
 
 	int lower_cascade_near_probe_column_texel_x = 
-		((probe_column << 1) | 1) * ray_casting_data.lower_cascade_rays_per_probe;
+		((probe_column << 1) | 1) * merge_rays_data.lower_cascade_rays_per_probe;
 	
 	int lower_direction_id = direction_id >> 1;
 
@@ -60,19 +55,19 @@ void main()
 	vec4 upper_transmittance = texelFetch(shorter_rays, IVEC3(upper_near_texel_x, Y(output_texel_position), 1), 0);
 
 	int lower_cascade_far_probe_column_texel_x = 
-		lower_cascade_near_probe_column_texel_x + ray_casting_data.lower_cascade_rays_per_probe;
+		lower_cascade_near_probe_column_texel_x + merge_rays_data.lower_cascade_rays_per_probe;
 	int clamped_lower_cascade_far_probe_column_texel_x = 
-		min(lower_cascade_far_probe_column_texel_x, ray_casting_data.lower_cascade_max_probe_column_texel_x);
+		min(lower_cascade_far_probe_column_texel_x, merge_rays_data.lower_cascade_max_probe_column_texel_x);
 	float lower_cascade_far_probe_column_is_inside_bounds = float
 	(
-		lower_cascade_far_probe_column_texel_x <= ray_casting_data.lower_cascade_max_probe_column_texel_x
+		lower_cascade_far_probe_column_texel_x <= merge_rays_data.lower_cascade_max_probe_column_texel_x
 	);
-	int far_base_y = Y(output_texel_position) - ray_casting_data.lower_cascade_power_of_two;
+	int far_base_y = Y(output_texel_position) - merge_rays_data.lower_cascade_power_of_two;
 
 	// Lower far
 	int clamped_lower_far_texel_x = clamped_lower_cascade_far_probe_column_texel_x + upper_direction_id;
 	int lower_far_texel_y = far_base_y + (lower_direction_id << 1);
-	int clamped_lower_far_texel_y = clamp(lower_far_texel_y, 0, ray_casting_data.lower_cascade_max_probe_row);
+	int clamped_lower_far_texel_y = clamp(lower_far_texel_y, 0, merge_rays_data.lower_cascade_max_probe_row);
 	radiance += transmittance * 
 		(lower_cascade_far_probe_column_is_inside_bounds * texelFetch(shorter_rays, IVEC3(clamped_lower_far_texel_x, clamped_lower_far_texel_y, 0), 0));
 	transmittance *= mix
@@ -85,7 +80,7 @@ void main()
 	// Upper far
 	int clamped_upper_far_texel_x = clamped_lower_cascade_far_probe_column_texel_x + lower_direction_id;
 	int upper_far_texel_y = far_base_y + (upper_direction_id << 1);
-	int clamped_upper_far_texel_y = clamp(upper_far_texel_y, 0, ray_casting_data.lower_cascade_max_probe_row);
+	int clamped_upper_far_texel_y = clamp(upper_far_texel_y, 0, merge_rays_data.lower_cascade_max_probe_row);
 	radiance += upper_transmittance * 
 		(lower_cascade_far_probe_column_is_inside_bounds * texelFetch(shorter_rays, IVEC3(clamped_upper_far_texel_x, clamped_upper_far_texel_y, 0), 0));
 	upper_transmittance *= mix

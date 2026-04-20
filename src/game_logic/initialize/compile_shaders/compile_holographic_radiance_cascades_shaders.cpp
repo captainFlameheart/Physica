@@ -1,0 +1,49 @@
+#include "glad_glfw.h"
+#include "game_environment/environment.h"
+#include "game_state/initialize/compile_shaders/environment/include.h"
+#include "util/shader/shader.h"
+#include "game_logic/shader_util/include.h"
+
+namespace game_logic::initialize::compile_shaders
+{
+	void compile_holographic_radiance_cascades_shaders
+	(
+		game_environment::Environment& environment, ::game_state::initialize::compile_shaders::environment::Environment compile_environment
+	)
+	{
+		for (GLuint bidirection{ 0u }; bidirection < 2u; ++bidirection)
+		{
+			for (GLuint direction{ 0u }; direction < 2u; ++direction)
+			{
+				GLuint flattened_direction{ ::game_state::holographic_radiance_cascades::directions::flatten[bidirection][direction] };
+				std::string merge_rays_parameter_definitions
+				{
+					"#define DIRECTION " + std::to_string(flattened_direction) + "\n"
+				};
+
+				::util::shader::set_shader_statically
+				(
+					compile_environment.shader_group.vertex_shader,
+					compile_environment.readonly_prefix_source,
+					merge_rays_parameter_definitions,
+					::util::shader::file_to_string("blocks/uniform/Merge_Rays_Data"),
+					::util::shader::file_to_string("draw/holographic_radiance_cascades/merge_rays/merge_rays.vert")
+				);
+
+				::util::shader::set_shader_statically
+				(
+					compile_environment.shader_group.fragment_shader,
+					compile_environment.readonly_prefix_source,
+					merge_rays_parameter_definitions,
+					::util::shader::file_to_string("blocks/uniform/Merge_Rays_Data"),
+					::util::shader::file_to_string("draw/holographic_radiance_cascades/merge_rays/merge_rays.frag")
+				);
+
+				environment.state.shaders[::game_state::shader_indices::draw::holographic_radiance_cascades::flatten_merge_rays[bidirection][direction]] = ::util::shader::create_program
+				(
+					compile_environment.shader_group.vertex_shader, compile_environment.shader_group.fragment_shader
+				);
+			}
+		}
+	}
+}

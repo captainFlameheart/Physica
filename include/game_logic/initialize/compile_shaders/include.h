@@ -17,6 +17,7 @@
 #include "compile_draw_rigid_body_triangles.h"
 #include "compile_draw_source_image_layer.h"
 #include "compile_find_inner_bounding_box_height_changes.h"
+#include "compile_holographic_radiance_cascades_shaders.h"
 #include "compile_increment_inner_bounding_box_height_level.h"
 #include "compile_initialize.h"
 #include "compile_initialize_inner_bounding_box_traversal.h"
