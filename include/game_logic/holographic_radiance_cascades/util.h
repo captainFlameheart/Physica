@@ -2,6 +2,7 @@
 #include "glad_glfw.h"
 #include <algorithm>
 #include "global/include.h"
+#include "game_environment/environment.h"
 
 namespace game_logic::holographic_radiance_cascades
 {
@@ -110,12 +111,28 @@ namespace game_logic::holographic_radiance_cascades
 		return minus_1_uint << upper_cascade;
 	}
 
+	constexpr GLuint compute_fluence_layer
+	(
+		GLuint reversed_cascade
+	)
+	{
+		return reversed_cascade & 1u;
+	}
+
+	constexpr GLuint compute_fluence_layer
+	(
+		GLuint directional_cascade_count, GLuint cascade
+	)
+	{
+		return compute_fluence_layer(directional_cascade_count - cascade);
+	}
+
 	constexpr GLuint compute_upper_cascade_fluence_layer
 	(
 		GLuint directional_cascade_count, GLuint upper_cascade
 	)
 	{
-		return (directional_cascade_count - upper_cascade) & 1u;
+		return compute_fluence_layer(directional_cascade_count, upper_cascade);
 	}
 
 	constexpr GLint compute_output_factor_for_last_cascade
@@ -237,4 +254,45 @@ namespace game_logic::holographic_radiance_cascades
 	{
 		return frustum_unit_z_length * probe_grid_full_step_to_sample_step_factor;
 	}
+
+	void create_vector
+	(
+		GLuint(&vector)[2u], GLuint x, GLuint y, GLuint bidirection, GLuint orthogonal_bidirection
+	);
+
+	GLuint compute_rays_viewport_size
+	(
+		GLuint(&size)[2u], GLuint probe_grid_length, GLuint cascade_power_of_two, GLuint cascade, GLuint orthogonal_probe_grid_length,
+		GLuint bidirection, GLuint orthogonal_bidirection
+	);
+
+	GLuint compute_gather_fluence_from_skycircle_viewport_size
+	(
+		GLuint(&size)[2u], GLuint probe_grid_length, GLuint cascade_power_of_two, GLuint cascade,
+		GLuint bidirection, GLuint orthogonal_bidirection
+	);
+
+	GLuint compute_merge_fluence_inner_viewport_size
+	(
+		GLuint(&size)[2u], GLuint probe_grid_length, GLuint cascade_power_of_two, GLuint cascade, GLuint orthogonal_probe_grid_length,
+		GLuint bidirection, GLuint orthogonal_bidirection
+	);
+
+	GLuint compute_merge_fluence_outer_viewport_start
+	(
+		GLuint(&start)[2u], GLuint probe_grid_length, GLuint cascade_power_of_two, GLuint cascade,
+		GLuint bidirection, GLuint orthogonal_bidirection
+	);
+
+	GLuint compute_merge_fluence_outer_viewport_size
+	(
+		GLuint(&size)[2u], GLuint cascade_power_of_two,
+		GLuint bidirection, GLuint orthogonal_bidirection
+	);
+
+	void enable(::game_environment::Environment& environment);
+
+	void disable(::game_environment::Environment& environment);
+
+	void toggle(::game_environment::Environment& environment);
 }

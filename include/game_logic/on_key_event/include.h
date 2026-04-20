@@ -5,4 +5,5 @@
 #include "game_logic/binding_util/include.h"
 #include "game_logic/debug/include.h"
 #include "game_logic/tick/include.h"
+#include "game_logic/holographic_radiance_cascades/include.h"
 #include <iostream>

@@ -73,23 +73,23 @@ namespace game_logic::on_key_event
 				}
 				break;
 			case GLFW_KEY_H:
-				environment.state.holographic_radiance_cascades.enabled = !environment.state.holographic_radiance_cascades.enabled;
+				::game_logic::holographic_radiance_cascades::toggle(environment);
 				break;
 			case GLFW_KEY_0:
 				environment.state.holographic_radiance_cascades.visible_source_layer = 0u;
-				environment.state.holographic_radiance_cascades.enabled = true;
+				::game_logic::holographic_radiance_cascades::enable(environment);
 				break;
 			case GLFW_KEY_1:
 				environment.state.holographic_radiance_cascades.visible_source_layer = 1u;
-				environment.state.holographic_radiance_cascades.enabled = true;
+				::game_logic::holographic_radiance_cascades::enable(environment);
 				break;
 			case GLFW_KEY_2:
 				environment.state.holographic_radiance_cascades.visible_source_layer = 2u;
-				environment.state.holographic_radiance_cascades.enabled = true;
+				::game_logic::holographic_radiance_cascades::enable(environment);
 				break;
 			case GLFW_KEY_3:
 				environment.state.holographic_radiance_cascades.visible_source_layer = 3u;
-				environment.state.holographic_radiance_cascades.enabled = true;
+				::game_logic::holographic_radiance_cascades::enable(environment);
 				break;
 			case GLFW_KEY_O:
 				::game_logic::debug::print_fixed_data(environment);

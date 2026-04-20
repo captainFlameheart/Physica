@@ -9,7 +9,7 @@ namespace game_logic::initialize::holographic_radiance_cascades
 	{
 		std::cout << "Initialize Holographic Radiance Cascades." << std::endl;
 
-		environment.state.holographic_radiance_cascades.enabled = true;
+		::game_logic::holographic_radiance_cascades::enable(environment);
 		environment.state.holographic_radiance_cascades.visible_source_layer = 0u;
 
 		environment.state.holographic_radiance_cascades.source_width = environment.state.glfw.framebuffer_width;
