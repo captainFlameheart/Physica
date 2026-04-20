@@ -487,6 +487,7 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uint scattering_layer = " + std::to_string(::game_state::holographic_radiance_cascades::source_layers::scattering) + ";\n"
 
 			"const uint source_image_texture_unit = " + std::to_string(::game_state::texture_units::source_image) + ";\n"
+			"const uint skycircle_texture_unit = " + std::to_string(::game_state::texture_units::skycircle) + ";\n"
 			"const uint rays_texture_unit = " + std::to_string(::game_state::texture_units::rays) + ";\n"
 			"const uint upper_cascade_fluence_texture_unit = " + std::to_string(::game_state::texture_units::upper_cascade_fluence) + ";\n"
 			"const uint fluence_texture_unit = " + std::to_string(::game_state::texture_units::fluence) + ";\n"

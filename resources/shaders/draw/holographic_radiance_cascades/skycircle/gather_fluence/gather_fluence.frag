@@ -34,9 +34,6 @@ const float double_cascade_power_of_two_inverse = cascade_power_of_two_inverse *
 
 const float angular_step_fraction = 1.0 / float(angular_step_count);
 
-const float pi = 3.14159265358979323846;
-const float half_pi = pi * 0.5;
-const float one_and_a_half_pi = pi * 1.5;
 const float angle_to_skycircle_coordinate_factor = 0.5 / pi;
 
 layout(location = skycircle_texture_unit) uniform sampler1D skycircle;

@@ -59,8 +59,7 @@ namespace game_logic::initialize::compile_shaders
 						compile_environment.shader_group.vertex_shader,
 						compile_environment.readonly_prefix_source,
 						gather_fluence_from_skycircle_parameter_definitions,
-						::util::shader::file_to_string("blocks/uniform/Merge_Fluence_Data"),
-						::util::shader::file_to_string("draw/holographic_radiance_cascades/merge_fluence/merge_fluence.vert")
+						::util::shader::file_to_string("draw/holographic_radiance_cascades/skycircle/gather_fluence/gather_fluence.vert")
 					);
 
 					::util::shader::set_shader_statically
@@ -68,11 +67,10 @@ namespace game_logic::initialize::compile_shaders
 						compile_environment.shader_group.fragment_shader,
 						compile_environment.readonly_prefix_source,
 						gather_fluence_from_skycircle_parameter_definitions,
-						::util::shader::file_to_string("blocks/uniform/Merge_Fluence_Data"),
-						::util::shader::file_to_string("draw/holographic_radiance_cascades/merge_fluence/merge_fluence.frag")
+						::util::shader::file_to_string("draw/holographic_radiance_cascades/skycircle/gather_fluence/gather_fluence.frag")
 					);
 
-					environment.state.shaders[::game_state::shader_indices::draw::holographic_radiance_cascades::flatten_merge_fluence[bidirection][direction]] = ::util::shader::create_program
+					environment.state.shaders[::game_state::shader_indices::draw::holographic_radiance_cascades::flatten_gather_fluence_from_sky_circle[bidirection][direction]] = ::util::shader::create_program
 					(
 						compile_environment.shader_group.vertex_shader, compile_environment.shader_group.fragment_shader
 					);

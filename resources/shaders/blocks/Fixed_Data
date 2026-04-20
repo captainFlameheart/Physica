@@ -1,5 +1,7 @@
 // IMPORTANT TODO: Switch to std430 layout if shared layout does not match needs!
 const float pi = 3.141592653589793;
+const float half_pi = pi * 0.5;
+const float one_and_a_half_pi = pi * 1.5;
 
 const uint minus_1_uint = uint(-1);
 const uint null_uint = minus_1_uint;
