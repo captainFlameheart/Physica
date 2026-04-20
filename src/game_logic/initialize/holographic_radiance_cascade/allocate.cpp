@@ -358,7 +358,31 @@ namespace game_logic::initialize::holographic_radiance_cascades
 				environment.state.holographic_radiance_cascades.configuration.offset_pairs[bidirection][direction].merge_fluence = write_position - data;
 				for (GLuint cascade{ static_cast<GLuint>(max_cascade) }; cascade != minus_1_uint; --cascade)
 				{
-					//std::memcpy(write_position + , , sizeof());
+					GLint cascade_power_of_two{ static_cast<GLint>(::game_logic::holographic_radiance_cascades::compute_cascade_power_of_two(cascade)) };
+					GLint upper_cascade{ static_cast<GLint>(::game_logic::holographic_radiance_cascades::compute_upper_cascade(cascade)) };
+					GLint upper_cascade_power_of_two{ static_cast<GLint>(::game_logic::holographic_radiance_cascades::compute_cascade_power_of_two(upper_cascade)) };
+					GLint direction_mask{ static_cast<GLint>(::game_logic::holographic_radiance_cascades::compute_direction_mask(cascade_power_of_two)) };
+					GLint max_ray_probe_column{ static_cast<GLint>(::game_logic::holographic_radiance_cascades::compute_max_ray_probe_column(probe_grid_length, cascade_power_of_two)) };
+					GLint max_fluence_probe_column_texel_x{ static_cast<GLint>(::game_logic::holographic_radiance_cascades::compute_max_fluence_probe_column_texel_x(probe_grid_length, upper_cascade_power_of_two, upper_cascade)) };
+					GLint max_fluence_probe_y{ static_cast<GLint>(::game_logic::holographic_radiance_cascades::compute_max_fluence_probe_y(orthogonal_probe_grid_length)) };
+					GLint rays_per_probe{ static_cast<GLint>(::game_logic::holographic_radiance_cascades::compute_rays_per_probe(cascade_power_of_two)) };
+					GLint upper_cascade_probe_column_texel_x_mask{ static_cast<GLint>(::game_logic::holographic_radiance_cascades::compute_upper_cascade_probe_column_texel_x_mask(upper_cascade)) };
+					GLint upper_cascade_fluence_layer{ static_cast<GLint>(::game_logic::holographic_radiance_cascades::compute_upper_cascade_fluence_layer(cascade_count, upper_cascade)) };
+					GLint output_factor{ static_cast<GLint>(::game_logic::holographic_radiance_cascades::compute_output_factor(cascade, direction)) };
+					GLint output_shift{ static_cast<GLint>(::game_logic::holographic_radiance_cascades::compute_output_shift(cascade, direction, probe_grid_length)) };
+
+					std::memcpy(write_position + environment.state.layouts.merge_fluence_data.direction_mask_state.offset, &direction_mask, sizeof(GLint));
+					std::memcpy(write_position + environment.state.layouts.merge_fluence_data.cascade_state.offset, &cascade, sizeof(GLint));
+					std::memcpy(write_position + environment.state.layouts.merge_fluence_data.max_ray_probe_column_state.offset, &max_ray_probe_column, sizeof(GLint));
+					std::memcpy(write_position + environment.state.layouts.merge_fluence_data.max_fluence_probe_column_texel_x_state.offset, &max_fluence_probe_column_texel_x, sizeof(GLint));
+					std::memcpy(write_position + environment.state.layouts.merge_fluence_data.max_fluence_probe_y_state.offset, &max_fluence_probe_y, sizeof(GLint));
+					std::memcpy(write_position + environment.state.layouts.merge_fluence_data.rays_per_probe_state.offset, &rays_per_probe, sizeof(GLint));
+					std::memcpy(write_position + environment.state.layouts.merge_fluence_data.cascade_power_of_two_state.offset, &cascade_power_of_two, sizeof(GLint));
+					std::memcpy(write_position + environment.state.layouts.merge_fluence_data.upper_cascade_probe_column_texel_x_mask_state.offset, &upper_cascade_probe_column_texel_x_mask, sizeof(GLint));
+					std::memcpy(write_position + environment.state.layouts.merge_fluence_data.upper_cascade_state.offset, &upper_cascade, sizeof(GLint));
+					std::memcpy(write_position + environment.state.layouts.merge_fluence_data.upper_cascade_fluence_layer_state.offset, &upper_cascade_fluence_layer, sizeof(GLint));
+					std::memcpy(write_position + environment.state.layouts.merge_fluence_data.output_factor_state.offset, &output_factor, sizeof(GLint));
+					std::memcpy(write_position + environment.state.layouts.merge_fluence_data.output_shift_state.offset, &output_shift, sizeof(GLint));
 
 					write_position += merge_fluence_stride;
 				}

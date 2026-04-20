@@ -36,6 +36,14 @@ namespace game_logic::holographic_radiance_cascades
 		return cascade - 1u;
 	}
 
+	constexpr GLuint compute_upper_cascade
+	(
+		GLuint cascade
+	)
+	{
+		return cascade + 1u;
+	}
+
 	constexpr GLuint compute_max_probe_column
 	(
 		GLuint probe_grid_length, GLuint cascade_power_of_two
@@ -58,6 +66,96 @@ namespace game_logic::holographic_radiance_cascades
 	)
 	{
 		return orhogonal_probe_grid_length - 1u;
+	}
+
+	constexpr GLuint compute_direction_mask
+	(
+		GLuint cascade_power_of_two
+	)
+	{
+		return cascade_power_of_two - 1u;
+	}
+
+	constexpr GLuint compute_max_ray_probe_column
+	(
+		GLuint probe_grid_length, GLuint cascade_power_of_two
+	)
+	{
+		return compute_max_probe_column(probe_grid_length, cascade_power_of_two);
+	}
+
+	constexpr GLuint compute_max_fluence_probe_column_texel_x
+	(
+		GLuint probe_grid_length, GLuint upper_cascade_power_of_two, GLuint upper_cascade
+	)
+	{
+		// TODO: Is this correct?
+		return ((probe_grid_length - 2u) >> upper_cascade) * upper_cascade_power_of_two;
+	}
+
+	constexpr GLuint compute_max_fluence_probe_y
+	(
+		GLuint orthogonal_probe_grid_length
+	)
+	{
+		return orthogonal_probe_grid_length - 1u;
+	}
+
+	constexpr GLuint compute_upper_cascade_probe_column_texel_x_mask
+	(
+		GLuint upper_cascade
+	)
+	{
+		return minus_1_uint << upper_cascade;
+	}
+
+	constexpr GLuint compute_upper_cascade_fluence_layer
+	(
+		GLuint directional_cascade_count, GLuint upper_cascade
+	)
+	{
+		return (directional_cascade_count - upper_cascade) & 1u;
+	}
+
+	constexpr GLint compute_output_factor_for_last_cascade
+	(
+		GLuint direction
+	)
+	{
+		return 1 - 2 * static_cast<GLint>(direction);
+	}
+
+	constexpr GLint compute_output_shift_for_last_cascade
+	(
+		GLuint direction, GLuint probe_grid_length
+	)
+	{
+		// TODO: Is this correct?
+		return direction * (probe_grid_length - 1u);
+	}
+
+	constexpr GLint compute_output_factor
+	(
+		GLuint cascade, GLuint direction
+	)
+	{
+		if (cascade != 0u)
+		{
+			return 1u;
+		}
+		return compute_output_factor_for_last_cascade(direction);
+	}
+
+	constexpr GLint compute_output_shift
+	(
+		GLuint cascade, GLuint direction, GLuint probe_grid_length
+	)
+	{
+		if (cascade != 0u)
+		{
+			return 1u;
+		}
+		return compute_output_shift_for_last_cascade(direction, probe_grid_length);
 	}
 
 	constexpr GLuint compute_ray_texture_length
