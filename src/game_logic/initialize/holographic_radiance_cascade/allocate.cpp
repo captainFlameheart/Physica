@@ -113,7 +113,7 @@ namespace game_logic::initialize::holographic_radiance_cascades
 			std::cerr << "Holographic Radiance Cascades skycircle framebuffer invalid, status: " << skycircle_framebuffer_status << std::endl;
 		}
 
-		glBindTextures(::game_state::texture_units::source_image, 1u, &environment.state.holographic_radiance_cascades.source_texture);
+		glBindTextures(::game_state::texture_units::skycircle, 1u, &environment.state.holographic_radiance_cascades.skycircle_texture);
 	}
 
 	void allocate_rays(game_environment::Environment& environment)

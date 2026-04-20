@@ -37,11 +37,11 @@ const float angular_step_fraction = 1.0 / float(angular_step_count);
 const float pi = 3.14159265358979323846;
 const float half_pi = pi * 0.5;
 const float one_and_a_half_pi = pi * 1.5;
-const float angle_to_sky_circle_coordinate_factor = 0.5 / pi;
+const float angle_to_skycircle_coordinate_factor = 0.5 / pi;
 
-uniform sampler1D sky_circle;
+layout(location = skycircle_texture_unit) uniform sampler1D skycircle;
 
-layout (location = 0) out vec4 fluence;
+layout(location = 0) out vec4 fluence;
 
 void main()
 {
@@ -68,9 +68,9 @@ void main()
 	fluence = vec4(0.0);
 	for (int i = 0; i < angular_step_count; ++i)
 	{
-		// TODO: angle_to_sky_circle_coordinate_factor can be merged into angle and step_angular_size
-		float sky_circle_coordinate = angle * angle_to_sky_circle_coordinate_factor;
-		fluence += texture(sky_circle, sky_circle_coordinate) * step_angular_size;
+		// TODO: angle_to_skycircle_coordinate_factor can be merged into angle and step_angular_size
+		float skycircle_coordinate = angle * angle_to_skycircle_coordinate_factor;
+		fluence += texture(skycircle, skycircle_coordinate) * step_angular_size;
 
 		angle += step_angular_size;
 	}

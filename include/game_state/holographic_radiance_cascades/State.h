@@ -77,6 +77,16 @@ namespace game_state::holographic_radiance_cascades
 			GLuint merge_rays_cascade_counts[2u];
 		};
 
+		union
+		{
+			struct
+			{
+				GLuint horizontal_skycircle_sample_count;
+				GLuint vertical_skycircle_sample_count;
+			};
+			GLuint skycircle_sample_counts[2u];
+		};
+
 		GLuint source_texture;
 		GLuint source_framebuffer;
 

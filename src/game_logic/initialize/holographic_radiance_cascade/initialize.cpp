@@ -46,6 +46,9 @@ namespace game_logic::initialize::holographic_radiance_cascades
 			environment.state.holographic_radiance_cascades.vertical_cascade_count -
 			environment.state.holographic_radiance_cascades.vertical_trace_rays_cascade_count;
 
+		environment.state.holographic_radiance_cascades.horizontal_skycircle_sample_count = 1u;
+		environment.state.holographic_radiance_cascades.vertical_skycircle_sample_count = 1u;
+
 		environment.state.holographic_radiance_cascades.configuration.merge_rays_stride =
 			::game_logic::binding_util::align_uniform_block_size(environment, environment.state.layouts.merge_rays_data.block_state.buffer_data_size);
 		environment.state.holographic_radiance_cascades.configuration.merge_fluence_stride =

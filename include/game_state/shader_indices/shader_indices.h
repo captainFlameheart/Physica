@@ -460,15 +460,19 @@ namespace game_state::shader_indices
 				source_layer = base,
 				
 				east_merge_rays,
+				east_gather_fluence_from_sky_circle,
 				east_merge_fluence,
 				
 				west_merge_rays,
+				west_gather_fluence_from_sky_circle,
 				west_merge_fluence,
 				
 				north_merge_rays,
+				north_gather_fluence_from_sky_circle,
 				north_merge_fluence,
 				
 				south_merge_rays,
+				south_gather_fluence_from_sky_circle,
 				south_merge_fluence,
 
 				end
@@ -478,6 +482,11 @@ namespace game_state::shader_indices
 			{
 				{ static_cast<GLuint>(Indices::east_merge_rays), static_cast<GLuint>(Indices::west_merge_rays) },
 				{ static_cast<GLuint>(Indices::north_merge_rays), static_cast<GLuint>(Indices::south_merge_rays) }
+			};
+			constexpr GLuint flatten_gather_fluence_from_sky_circle[2u][2u]
+			{
+				{ static_cast<GLuint>(Indices::east_gather_fluence_from_sky_circle), static_cast<GLuint>(Indices::west_gather_fluence_from_sky_circle) },
+				{ static_cast<GLuint>(Indices::north_gather_fluence_from_sky_circle), static_cast<GLuint>(Indices::south_gather_fluence_from_sky_circle) }
 			};
 			constexpr GLuint flatten_merge_fluence[2u][2u]
 			{
