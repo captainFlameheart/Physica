@@ -109,13 +109,15 @@ namespace game_logic::draw
 				
 				glNamedFramebufferDrawBuffer(environment.state.holographic_radiance_cascades.angular_fluence_framebuffer, GL_COLOR_ATTACHMENT0);
 				
-				GLuint viewport_size[2u];
-				GLuint cascade_power_of_two{ ::game_logic::holographic_radiance_cascades::compute_cascade_power_of_two(cascade) };
-				::game_logic::holographic_radiance_cascades::compute_gather_fluence_from_skycircle_viewport_size
-				(
-					viewport_size, probe_grid_length, cascade_power_of_two, cascade, bidirection, orthogonal_bidirection
-				);
-				glViewport(0, 0, viewport_size[0u], viewport_size[1u]);
+				{
+					GLuint viewport_size[2u];
+					GLuint cascade_power_of_two{ ::game_logic::holographic_radiance_cascades::compute_cascade_power_of_two(cascade) };
+					::game_logic::holographic_radiance_cascades::compute_gather_fluence_from_skycircle_viewport_size
+					(
+						viewport_size, probe_grid_length, cascade_power_of_two, cascade, bidirection, orthogonal_bidirection
+					);
+					glViewport(0, 0, viewport_size[0u], viewport_size[1u]);
+				}
 				
 				glDrawArrays(GL_TRIANGLES, 0, 3u);
 
@@ -143,26 +145,30 @@ namespace game_logic::draw
 
 					GLuint cascade_power_of_two{ ::game_logic::holographic_radiance_cascades::compute_cascade_power_of_two(cascade) };
 
-					GLuint inner_viewport_size[2u];
-					::game_logic::holographic_radiance_cascades::compute_merge_fluence_inner_viewport_size
-					(
-						inner_viewport_size, probe_grid_length, cascade_power_of_two, cascade, orthogonal_probe_grid_length, bidirection, orthogonal_bidirection
-					);
-					glViewport(0, 0, inner_viewport_size[0u], inner_viewport_size[1u]);
-					glDrawArrays(GL_TRIANGLES, 0, 3u);
+					{
+						GLuint inner_viewport_size[2u];
+						::game_logic::holographic_radiance_cascades::compute_merge_fluence_inner_viewport_size
+						(
+							inner_viewport_size, probe_grid_length, cascade_power_of_two, cascade, orthogonal_probe_grid_length, bidirection, orthogonal_bidirection
+						);
+						glViewport(0, 0, inner_viewport_size[0u], inner_viewport_size[1u]);
+						glDrawArrays(GL_TRIANGLES, 0, 3u);
+					}
 
-					GLuint outer_viewport_start[2u];
-					::game_logic::holographic_radiance_cascades::compute_merge_fluence_outer_viewport_start
-					(
-						outer_viewport_start, probe_grid_length, cascade_power_of_two, cascade, bidirection, orthogonal_bidirection
-					);
-					GLuint outer_viewport_size[2u];
-					::game_logic::holographic_radiance_cascades::compute_merge_fluence_outer_viewport_size
-					(
-						outer_viewport_size, cascade_power_of_two, bidirection, orthogonal_bidirection
-					);
-					glViewport(outer_viewport_start[0u], outer_viewport_start[1u], outer_viewport_size[0u], outer_viewport_size[1u]);
-					glDrawArrays(GL_TRIANGLES, 0, 3u);
+					{
+						GLuint outer_viewport_start[2u];
+						::game_logic::holographic_radiance_cascades::compute_merge_fluence_outer_viewport_start
+						(
+							outer_viewport_start, probe_grid_length, cascade_power_of_two, cascade, bidirection, orthogonal_bidirection
+						);
+						GLuint outer_viewport_size[2u];
+						::game_logic::holographic_radiance_cascades::compute_merge_fluence_outer_viewport_size
+						(
+							outer_viewport_size, cascade_power_of_two, bidirection, orthogonal_bidirection
+						);
+						glViewport(outer_viewport_start[0u], outer_viewport_start[1u], outer_viewport_size[0u], outer_viewport_size[1u]);
+						glDrawArrays(GL_TRIANGLES, 0, 3u);
+					}
 
 					--cascade;
 				}
@@ -186,13 +192,15 @@ namespace game_logic::draw
 				
 				GLuint cascade_power_of_two{ ::game_logic::holographic_radiance_cascades::compute_cascade_power_of_two(cascade) };
 
-				GLuint inner_viewport_size[2u];	// IMPORTANT TODO: I think we should add one column.
-				::game_logic::holographic_radiance_cascades::compute_merge_fluence_inner_viewport_size
-				(
-					inner_viewport_size, probe_grid_length, cascade_power_of_two, cascade, orthogonal_probe_grid_length, bidirection, orthogonal_bidirection
-				);
-				glViewport(0, 0, inner_viewport_size[0u], inner_viewport_size[1u]);
-				
+				{
+					GLuint inner_viewport_size[2u];	// IMPORTANT TODO: I think we should add one column.
+					::game_logic::holographic_radiance_cascades::compute_merge_fluence_inner_viewport_size
+					(
+						inner_viewport_size, probe_grid_length, cascade_power_of_two, cascade, orthogonal_probe_grid_length, bidirection, orthogonal_bidirection
+					);
+					glViewport(0, 0, inner_viewport_size[0u], inner_viewport_size[1u]);
+				}
+
 				bool keep_previous_fluence{ bidirection + direction != 0u };
 				if (keep_previous_fluence)
 				{

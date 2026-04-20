@@ -260,31 +260,31 @@ namespace game_logic::holographic_radiance_cascades
 		GLuint(&vector)[2u], GLuint x, GLuint y, GLuint bidirection, GLuint orthogonal_bidirection
 	);
 
-	GLuint compute_rays_viewport_size
+	void compute_rays_viewport_size
 	(
 		GLuint(&size)[2u], GLuint probe_grid_length, GLuint cascade_power_of_two, GLuint cascade, GLuint orthogonal_probe_grid_length,
 		GLuint bidirection, GLuint orthogonal_bidirection
 	);
 
-	GLuint compute_gather_fluence_from_skycircle_viewport_size
+	void compute_gather_fluence_from_skycircle_viewport_size
 	(
 		GLuint(&size)[2u], GLuint probe_grid_length, GLuint cascade_power_of_two, GLuint cascade,
 		GLuint bidirection, GLuint orthogonal_bidirection
 	);
 
-	GLuint compute_merge_fluence_inner_viewport_size
+	void compute_merge_fluence_inner_viewport_size
 	(
 		GLuint(&size)[2u], GLuint probe_grid_length, GLuint cascade_power_of_two, GLuint cascade, GLuint orthogonal_probe_grid_length,
 		GLuint bidirection, GLuint orthogonal_bidirection
 	);
 
-	GLuint compute_merge_fluence_outer_viewport_start
+	void compute_merge_fluence_outer_viewport_start
 	(
 		GLuint(&start)[2u], GLuint probe_grid_length, GLuint cascade_power_of_two, GLuint cascade,
 		GLuint bidirection, GLuint orthogonal_bidirection
 	);
 
-	GLuint compute_merge_fluence_outer_viewport_size
+	void compute_merge_fluence_outer_viewport_size
 	(
 		GLuint(&size)[2u], GLuint cascade_power_of_two,
 		GLuint bidirection, GLuint orthogonal_bidirection

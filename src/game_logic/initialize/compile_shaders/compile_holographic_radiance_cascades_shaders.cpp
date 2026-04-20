@@ -69,7 +69,7 @@ namespace game_logic::initialize::compile_shaders
 						::util::shader::file_to_string("draw/holographic_radiance_cascades/skycircle/gather_fluence/gather_fluence.frag")
 					);
 
-					environment.state.shaders[::game_state::shader_indices::draw::holographic_radiance_cascades::flatten_gather_fluence_from_sky_circle[bidirection][direction]] = ::util::shader::create_program
+					environment.state.shaders[::game_state::shader_indices::draw::holographic_radiance_cascades::flatten_gather_fluence_from_skycircle[bidirection][direction]] = ::util::shader::create_program
 					(
 						compile_environment.shader_group.vertex_shader, compile_environment.shader_group.fragment_shader
 					);
