@@ -1,0 +1,6 @@
+// IMPORTANT TODO: Do not store data that can be cheaply computed from other data to minimize memory transactions.
+// IMPORTANT TODO: Collect fields into a ivec data type for faster memory transactions.
+layout(shared, binding = private_input_binding) uniform Merge_Fluence_Data
+{
+	int REMOVE_ME;
+} merge_fluence_data;

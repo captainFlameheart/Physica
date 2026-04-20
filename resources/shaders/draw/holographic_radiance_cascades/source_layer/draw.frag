@@ -1,6 +1,6 @@
 layout(binding = source_image_texture_unit) uniform sampler2DArray source;
 
-layout (location = 0) out vec4 color;
+layout(location = 0) out vec4 color;
 
 void main()
 {

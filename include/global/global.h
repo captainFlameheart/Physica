@@ -2,7 +2,8 @@
 #include "glad_glfw.h"
 #include <bit>
 
-constexpr GLuint null_uint{ static_cast<GLuint>(-1) };
+constexpr GLuint minus_1_uint{ static_cast<GLuint>(-1) };
+constexpr GLuint null_uint{ minus_1_uint };
 
 /*
 * Assumption: n >= 2

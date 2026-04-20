@@ -2,6 +2,8 @@
 #include "bounding_volume_hierarchy/include.h"
 #include "fixed_data/include.h"
 #include "float_data/include.h"
+#include "key_event/include.h"
+#include "merge_rays_data/include.h"
 #include "uint_data/include.h"
 #include "uvec4_data/include.h"
 #include "vec2_data/include.h"

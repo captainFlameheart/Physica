@@ -87,6 +87,32 @@ namespace game_logic::initialize::query_layouts
 			(
 				compute_shader,
 				prefix,
+				::util::shader::file_to_string("blocks/uniform/Merge_Rays_Data")
+			);
+			GLuint program{ ::util::shader::create_program(compute_shader) };
+
+			query_merge_rays_data_layout(environment, program);
+
+			::util::shader::delete_program(program);
+		}
+		{
+			::util::shader::set_shader_statically
+			(
+				compute_shader,
+				prefix,
+				::util::shader::file_to_string("blocks/uniform/Merge_Fluence_Data")
+			);
+			GLuint program{ ::util::shader::create_program(compute_shader) };
+
+			query_merge_fluence_data_layout(environment, program);
+
+			::util::shader::delete_program(program);
+		}
+		{
+			::util::shader::set_shader_statically
+			(
+				compute_shader,
+				prefix,
 				::util::shader::file_to_string("blocks/shader_storage/Bounding_Volume_Hierarchy")
 			);
 			GLuint program{ ::util::shader::create_program(compute_shader) };

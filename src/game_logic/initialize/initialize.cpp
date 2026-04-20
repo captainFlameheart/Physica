@@ -13,8 +13,6 @@ namespace game_logic::initialize
 		glCreateVertexArrays(1u, &environment.state.vertex_array);
 		glBindVertexArray(environment.state.vertex_array);
 
-		holographic_radiance_cascades::initialize(environment);
-
 		environment.state.is_debugging = false;
 		environment.state.tick_paused = false;
 
@@ -27,6 +25,8 @@ namespace game_logic::initialize
 		query_layouts::query_layouts(environment);
 		compile_shaders::compile_shaders(environment);
 		buffers::initialize(environment);
+
+		holographic_radiance_cascades::initialize(environment);
 
 		::game_logic::binding_util::bind_GPU_only_buffer(environment, 0u);
 

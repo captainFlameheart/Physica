@@ -10,7 +10,7 @@ namespace game_logic::free::holographic_radiance_cascades
 
 		for (GLuint bidirection{ 0u }; bidirection < 2u; ++bidirection)
 		{
-			GLuint trace_rays_shader_count{ environment.state.holographic_radiance_cascades.ray_trace_cascade_counts[bidirection] };
+			GLuint trace_rays_shader_count{ environment.state.holographic_radiance_cascades.trace_rays_cascade_counts[bidirection] };
 			for (GLuint direction{ 0u }; direction < 2u; ++direction)
 			{
 				for (GLuint cascade{ 0u }; cascade < trace_rays_shader_count; ++cascade)
@@ -21,6 +21,8 @@ namespace game_logic::free::holographic_radiance_cascades
 				delete[] environment.state.holographic_radiance_cascades.trace_rays_shaders[bidirection][direction];
 			}
 		}
+
+		glDeleteBuffers(1u, &environment.state.holographic_radiance_cascades.configuration.buffer);
 
 		glDeleteFramebuffers(1u, &environment.state.holographic_radiance_cascades.source_framebuffer);
 		glDeleteTextures(1u, &environment.state.holographic_radiance_cascades.source_texture);

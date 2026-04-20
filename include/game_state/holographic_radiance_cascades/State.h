@@ -52,19 +52,29 @@ namespace game_state::holographic_radiance_cascades
 		{
 			struct
 			{
-				GLuint horizontal_ray_trace_cascade_count;
-				GLuint vertical_ray_trace_cascade_count;
+				GLuint horizontal_trace_rays_cascade_count;
+				GLuint vertical_trace_rays_cascade_count;
 			};
-			GLuint ray_trace_cascade_counts[2u];
+			GLuint trace_rays_cascade_counts[2u];
 		};
 		union
 		{
 			struct
 			{
-				GLuint horizontal_ray_trace_base_sample_count;
-				GLuint vertical_ray_trace_base_sample_count;
+				GLuint horizontal_trace_rays_base_sample_count;
+				GLuint vertical_trace_rays_base_sample_count;
 			};
-			GLuint ray_trace_base_sample_counts[2u];
+			GLuint trace_rays_base_sample_counts[2u];
+		};
+
+		union
+		{
+			struct
+			{
+				GLuint horizontal_merge_rays_cascade_count;
+				GLuint vertical_merge_rays_cascade_count;
+			};
+			GLuint merge_rays_cascade_counts[2u];
 		};
 
 		GLuint source_texture;
@@ -107,5 +117,7 @@ namespace game_state::holographic_radiance_cascades
 			};
 			GLuint* trace_rays_shaders[2u][2u];
 		};
+
+		configuration::State configuration;
 	};
 }

@@ -1,0 +1,10 @@
+// IMPORTANT TODO: Do not store data that can be cheaply computed from other data to minimize memory transactions.
+// IMPORTANT TODO: Collect fields into a ivec data type for faster memory transactions.
+layout(shared, binding = private_input_binding) uniform Merge_Rays_Data
+{
+	int rays_per_probe;
+	int lower_cascade_rays_per_probe;
+	int lower_cascade_power_of_two;
+	int lower_cascade_max_probe_column_texel_x;
+	int lower_cascade_max_probe_row;
+} merge_rays_data;

@@ -3,6 +3,9 @@
 #include "commands/include.h"
 #include "fixed_data/include.h"
 #include "float_data/include.h"
+#include "key_event/include.h"
+#include "merge_fluence_data/include.h"
+#include "merge_rays_data/include.h"
 #include "uint_data/include.h"
 #include "uvec4_data/include.h"
 #include "uvec2_data/include.h"
@@ -24,6 +27,9 @@ namespace game_state::layouts
 		commands::State commands;
 
 		key_event::State key_event;
+		
+		merge_rays_data::State merge_rays_data;
+		merge_fluence_data::State merge_fluence_data;
 
 		bounding_volume_hierarchy::State bounding_volume_hierarchy;
 	};

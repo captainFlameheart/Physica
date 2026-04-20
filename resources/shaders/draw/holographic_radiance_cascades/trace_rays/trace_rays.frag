@@ -41,10 +41,10 @@ const uint step_count = ?u;
 
 #endif
 
-uniform sampler2DArray source;
+layout(location = source_image_texture_unit) uniform sampler2DArray source;
 
-layout (location = rays_radiance_layer) out vec4 radiance;
-layout (location = rays_transmittance_layer) out vec4 transmittance;
+layout(location = rays_radiance_layer) out vec4 radiance;
+layout(location = rays_transmittance_layer) out vec4 transmittance;
 
 void main()
 {

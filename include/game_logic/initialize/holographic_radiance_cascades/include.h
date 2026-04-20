@@ -8,4 +8,5 @@
 #include "game_logic/initialize/compile_shaders/environment/include.h"
 #include "util/shader/shader.h"
 #include "game_state/glfw/include.h"
+#include "game_logic/binding_util/include.h"
 #include <iostream>

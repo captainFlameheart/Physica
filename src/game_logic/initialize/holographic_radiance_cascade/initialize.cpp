@@ -32,11 +32,24 @@ namespace game_logic::initialize::holographic_radiance_cascades
 		environment.state.holographic_radiance_cascades.horizontal_skycircle_sample_count = 1u;
 		environment.state.holographic_radiance_cascades.vertical_skycircle_sample_count = 1u;
 
-		environment.state.holographic_radiance_cascades.horizontal_ray_trace_cascade_count = 2u;
-		environment.state.holographic_radiance_cascades.vertical_ray_trace_cascade_count = 2u;
+		environment.state.holographic_radiance_cascades.horizontal_trace_rays_cascade_count = 2u;
+		environment.state.holographic_radiance_cascades.vertical_trace_rays_cascade_count = 2u;
 		
-		environment.state.holographic_radiance_cascades.horizontal_ray_trace_base_sample_count = 1u;
-		environment.state.holographic_radiance_cascades.vertical_ray_trace_base_sample_count = 1u;
+		environment.state.holographic_radiance_cascades.horizontal_trace_rays_base_sample_count = 1u;
+		environment.state.holographic_radiance_cascades.vertical_trace_rays_base_sample_count = 1u;
+
+		// TODO: Handle ray trace cascade counts being larger than cascade counts.
+		environment.state.holographic_radiance_cascades.horizontal_merge_rays_cascade_count =
+			environment.state.holographic_radiance_cascades.horizontal_cascade_count -
+			environment.state.holographic_radiance_cascades.horizontal_trace_rays_cascade_count;
+		environment.state.holographic_radiance_cascades.vertical_merge_rays_cascade_count =
+			environment.state.holographic_radiance_cascades.vertical_cascade_count -
+			environment.state.holographic_radiance_cascades.vertical_trace_rays_cascade_count;
+
+		environment.state.holographic_radiance_cascades.configuration.merge_rays_stride =
+			::game_logic::binding_util::align_uniform_block_size(environment, environment.state.layouts.merge_rays_data.block_state.buffer_data_size);
+		environment.state.holographic_radiance_cascades.configuration.merge_fluence_stride =
+			::game_logic::binding_util::align_uniform_block_size(environment, environment.state.layouts.merge_fluence_data.block_state.buffer_data_size);
 
 		allocate(environment);
 	}

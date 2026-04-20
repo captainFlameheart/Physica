@@ -299,6 +299,77 @@ namespace game_logic::initialize::holographic_radiance_cascades
 		glBindTextures(::game_state::texture_units::fluence, 1u, &environment.state.holographic_radiance_cascades.fluence_texture);
 	}
 
+	void allocate_configuration(game_environment::Environment& environment)
+	{
+		glCreateBuffers(1u, &environment.state.holographic_radiance_cascades.configuration.buffer);
+
+		GLuint merge_rays_stride{ environment.state.holographic_radiance_cascades.configuration.merge_rays_stride };
+		GLuint merge_fluence_stride{ environment.state.holographic_radiance_cascades.configuration.merge_fluence_stride };
+
+		GLuint horizontal_merge_rays_cascade_count{ environment.state.holographic_radiance_cascades.horizontal_merge_rays_cascade_count };
+		GLuint horizontal_merge_fluence_cascade_count{ environment.state.holographic_radiance_cascades.horizontal_cascade_count };
+
+		GLuint vertical_merge_rays_cascade_count{ environment.state.holographic_radiance_cascades.vertical_merge_rays_cascade_count };
+		GLuint vertical_merge_fluence_cascade_count{ environment.state.holographic_radiance_cascades.vertical_cascade_count };
+		
+		GLuint buffer_size
+		{
+			((merge_rays_stride * horizontal_merge_rays_cascade_count) + (merge_fluence_stride * horizontal_merge_fluence_cascade_count)) * 2u +
+			((merge_rays_stride * vertical_merge_rays_cascade_count) + (merge_fluence_stride * vertical_merge_fluence_cascade_count)) * 2u
+		};
+
+		GLubyte* data{ new GLubyte[buffer_size] };
+		
+		GLubyte* write_position = data;
+		for (GLuint bidirection{ 0u }; bidirection < 2u; ++bidirection)
+		{
+			GLint min_merge_rays_cascade{ static_cast<GLint>(environment.state.holographic_radiance_cascades.trace_rays_cascade_counts[bidirection]) };
+			GLint cascade_count{ static_cast<GLint>(environment.state.holographic_radiance_cascades.cascade_counts[bidirection]) };
+			GLint max_cascade{ static_cast<GLint>(cascade_count - 1u) };
+			GLint probe_grid_length{ static_cast<GLint>(environment.state.holographic_radiance_cascades.probe_grid_size[bidirection]) };
+			GLint orthogonal_bidirection{ static_cast<GLint>(::game_logic::holographic_radiance_cascades::compute_orthogonal_bidirection(bidirection)) };
+			GLint orthogonal_probe_grid_length{ static_cast<GLint>(environment.state.holographic_radiance_cascades.probe_grid_size[orthogonal_bidirection]) };
+			GLint lower_cascade_max_probe_row{ static_cast<GLint>(::game_logic::holographic_radiance_cascades::compute_max_probe_row(orthogonal_probe_grid_length)) };
+
+			for (GLuint direction{ 0u }; direction < 2u; ++direction)
+			{
+				environment.state.holographic_radiance_cascades.configuration.offset_pairs[bidirection][direction].merge_rays = write_position - data;
+
+				for (GLuint cascade{ static_cast<GLuint>(min_merge_rays_cascade) }; cascade < static_cast<GLuint>(cascade_count); ++cascade)
+				{
+					// TODO: Use uints in shaders.
+					GLint cascade_power_of_two{ static_cast<GLint>(::game_logic::holographic_radiance_cascades::compute_cascade_power_of_two(cascade)) };
+					GLint rays_per_probe{ static_cast<GLint>(::game_logic::holographic_radiance_cascades::compute_rays_per_probe(cascade_power_of_two)) };
+					GLint lower_cascade{ static_cast<GLint>(::game_logic::holographic_radiance_cascades::compute_lower_cascade(cascade)) };
+					GLint lower_cascade_power_of_two{ static_cast<GLint>(::game_logic::holographic_radiance_cascades::compute_cascade_power_of_two(lower_cascade)) };
+					GLint lower_cascade_rays_per_probe{ static_cast<GLint>(::game_logic::holographic_radiance_cascades::compute_rays_per_probe(lower_cascade_power_of_two)) };
+					GLint lower_cascade_max_probe_column{ static_cast<GLint>(::game_logic::holographic_radiance_cascades::compute_max_probe_column(probe_grid_length, lower_cascade_power_of_two)) };
+					GLint lower_cascade_max_probe_column_texel_x{ static_cast<GLint>(::game_logic::holographic_radiance_cascades::compute_max_probe_column_texel_x(lower_cascade_max_probe_column, lower_cascade_rays_per_probe)) };
+
+					std::memcpy(write_position + environment.state.layouts.merge_rays_data.rays_per_probe_state.offset, &rays_per_probe, sizeof(GLint));
+					std::memcpy(write_position + environment.state.layouts.merge_rays_data.lower_cascade_rays_per_probe_state.offset, &lower_cascade_rays_per_probe, sizeof(GLint));
+					std::memcpy(write_position + environment.state.layouts.merge_rays_data.lower_cascade_power_of_two_state.offset, &lower_cascade_power_of_two, sizeof(GLint));
+					std::memcpy(write_position + environment.state.layouts.merge_rays_data.lower_cascade_max_probe_column_texel_x_state.offset, &lower_cascade_max_probe_column_texel_x, sizeof(GLint));
+					std::memcpy(write_position + environment.state.layouts.merge_rays_data.lower_cascade_max_probe_row_state.offset, &lower_cascade_max_probe_row, sizeof(GLint));
+
+					write_position += merge_rays_stride;
+				}
+				
+				environment.state.holographic_radiance_cascades.configuration.offset_pairs[bidirection][direction].merge_fluence = write_position - data;
+				for (GLuint cascade{ static_cast<GLuint>(max_cascade) }; cascade != minus_1_uint; --cascade)
+				{
+					//std::memcpy(write_position + , , sizeof());
+
+					write_position += merge_fluence_stride;
+				}
+			}
+		}
+
+		glNamedBufferStorage(environment.state.holographic_radiance_cascades.configuration.buffer, buffer_size, data, 0u);
+
+		delete[] data;
+	}
+
 	void compile_trace_rays_shaders
 	(
 		game_environment::Environment& environment,
@@ -327,8 +398,8 @@ namespace game_logic::initialize::holographic_radiance_cascades
 
 		for (GLuint bidirection{ 0u }; bidirection < 2u; ++bidirection)
 		{
-			GLuint trace_rays_shader_count{ environment.state.holographic_radiance_cascades.ray_trace_cascade_counts[bidirection] };
-			GLuint base_step_count{ environment.state.holographic_radiance_cascades.ray_trace_base_sample_counts[bidirection] };
+			GLuint trace_rays_shader_count{ environment.state.holographic_radiance_cascades.trace_rays_cascade_counts[bidirection] };
+			GLuint base_step_count{ environment.state.holographic_radiance_cascades.trace_rays_base_sample_counts[bidirection] };
 
 			for (GLuint direction{ 0u }; direction < 2u; ++direction)
 			{
@@ -386,11 +457,6 @@ namespace game_logic::initialize::holographic_radiance_cascades
 				}
 			}
 		}
-
-		/*environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::draw::entities::constraints::Indices::point_mass_distance_constraints)] = ::util::shader::create_program
-		(
-			compile_environment.shader_group.vertex_shader, compile_environment.shader_group.fragment_shader
-		);*/
 	}
 
 	void compile_shaders(game_environment::Environment& environment)
@@ -412,6 +478,8 @@ namespace game_logic::initialize::holographic_radiance_cascades
 		allocate_rays(environment);
 		allocate_angular_fluence(environment);
 		allocate_fluence(environment);
+
+		allocate_configuration(environment);
 
 		compile_shaders(environment);
 	}
