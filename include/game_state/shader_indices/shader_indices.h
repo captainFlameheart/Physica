@@ -475,6 +475,8 @@ namespace game_state::shader_indices
 				south_gather_fluence_from_sky_circle,
 				south_merge_fluence,
 
+				apply_fluence,
+
 				end
 			};
 
