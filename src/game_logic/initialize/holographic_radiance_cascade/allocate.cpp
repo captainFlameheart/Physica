@@ -400,26 +400,6 @@ namespace game_logic::initialize::holographic_radiance_cascades
 		::game_state::initialize::compile_shaders::environment::Environment& compile_environment
 	)
 	{
-		GLfloat probe_grid_full_step_to_sample_step_factor[2u]
-		{
-			::game_logic::holographic_radiance_cascades::compute_probe_grid_full_step_to_sample_step_factor(environment.state.holographic_radiance_cascades.source_width, environment.state.holographic_radiance_cascades.probe_grid_width),
-			::game_logic::holographic_radiance_cascades::compute_probe_grid_full_step_to_sample_step_factor(environment.state.holographic_radiance_cascades.source_height, environment.state.holographic_radiance_cascades.probe_grid_height)
-		};
-		GLuint probe_grid_point_to_sample_point_bias[2u]
-		{
-			::game_logic::holographic_radiance_cascades::compute_probe_grid_point_to_sample_point_bias(environment.state.holographic_radiance_cascades.source_width),
-			::game_logic::holographic_radiance_cascades::compute_probe_grid_point_to_sample_point_bias(environment.state.holographic_radiance_cascades.source_height)
-		};
-
-		// IMPORTANT TODO: Read these frustum dimensions dynamically in shader.
-		GLfloat frustum_unit_z_width{ 2.0f };
-		GLfloat frustum_unit_z_height{ 1.0f };
-		GLuint probe_grid_full_step_to_sample_step_projection[2u]
-		{
-			::game_logic::holographic_radiance_cascades::compute_probe_grid_full_step_to_sample_step_projection(frustum_unit_z_width, probe_grid_full_step_to_sample_step_factor[0u]),
-			::game_logic::holographic_radiance_cascades::compute_probe_grid_full_step_to_sample_step_projection(frustum_unit_z_height, probe_grid_full_step_to_sample_step_factor[1u])
-		};
-
 		for (GLuint bidirection{ 0u }; bidirection < 2u; ++bidirection)
 		{
 			GLuint trace_rays_shader_count{ environment.state.holographic_radiance_cascades.trace_rays_cascade_counts[bidirection] };
@@ -436,12 +416,32 @@ namespace game_logic::initialize::holographic_radiance_cascades
 					GLuint rays_per_probe{ ::game_logic::holographic_radiance_cascades::compute_rays_per_probe(cascade_power_of_two) };
 					GLuint step_count{ base_step_count * cascade_power_of_two };
 
+					GLfloat probe_grid_full_step_to_sample_step_factor[2u]
+					{
+						::game_logic::holographic_radiance_cascades::compute_probe_grid_full_step_to_sample_step_factor(environment.state.holographic_radiance_cascades.source_width, environment.state.holographic_radiance_cascades.probe_grid_width, step_count),
+						::game_logic::holographic_radiance_cascades::compute_probe_grid_full_step_to_sample_step_factor(environment.state.holographic_radiance_cascades.source_height, environment.state.holographic_radiance_cascades.probe_grid_height, step_count)
+					};
+					GLfloat probe_grid_point_to_sample_point_bias[2u]
+					{
+						::game_logic::holographic_radiance_cascades::compute_probe_grid_point_to_sample_point_bias(environment.state.holographic_radiance_cascades.source_width),
+						::game_logic::holographic_radiance_cascades::compute_probe_grid_point_to_sample_point_bias(environment.state.holographic_radiance_cascades.source_height)
+					};
+
+					// IMPORTANT TODO: Read these frustum dimensions dynamically in shader.
+					GLfloat frustum_unit_z_width{ 2.0f };
+					GLfloat frustum_unit_z_height{ 1.0f };
+					GLfloat probe_grid_full_step_to_sample_step_projection[2u]
+					{
+						::game_logic::holographic_radiance_cascades::compute_probe_grid_full_step_to_sample_step_projection(frustum_unit_z_width, probe_grid_full_step_to_sample_step_factor[0u]),
+						::game_logic::holographic_radiance_cascades::compute_probe_grid_full_step_to_sample_step_projection(frustum_unit_z_height, probe_grid_full_step_to_sample_step_factor[1u])
+					};
+
 					GLfloat probe_grid_point_to_sample_point_factor[2u]
 					{
 						probe_grid_full_step_to_sample_step_factor[0u],
 						probe_grid_full_step_to_sample_step_factor[1u],
 					};
-					probe_grid_point_to_sample_point_factor[bidirection] *= cascade_power_of_two;
+					probe_grid_point_to_sample_point_factor[bidirection] *= static_cast<GLfloat>(cascade_power_of_two);
 
 					std::string parameter_definitions
 					{

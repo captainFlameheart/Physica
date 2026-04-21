@@ -232,10 +232,11 @@ namespace game_logic::holographic_radiance_cascades
 
 	constexpr GLfloat compute_probe_grid_full_step_to_sample_step_factor
 	(
-		GLuint source_length, GLuint probe_grid_length
+		GLuint source_length, GLuint probe_grid_length, GLuint sample_count
 	)
 	{
-		return (1.0 + 1.0 / static_cast<GLfloat>(source_length)) / static_cast<GLfloat>(probe_grid_length);
+		return (1.0f + 1.0f / static_cast<GLfloat>(source_length)) / static_cast<GLfloat>((probe_grid_length - 1u) * sample_count);
+		//return (1.0 + 1.0 / static_cast<GLfloat>(source_length)) / static_cast<GLfloat>(probe_grid_length);
 	}
 
 	constexpr GLfloat compute_probe_grid_point_to_sample_point_bias
@@ -252,7 +253,7 @@ namespace game_logic::holographic_radiance_cascades
 		GLfloat frustum_unit_z_length, GLfloat probe_grid_full_step_to_sample_step_factor
 	)
 	{
-		return frustum_unit_z_length * probe_grid_full_step_to_sample_step_factor;
+		return frustum_unit_z_length * (probe_grid_full_step_to_sample_step_factor * 2.0f);
 	}
 
 	void create_vector

@@ -56,6 +56,9 @@ namespace game_logic::draw
 
 			glDrawArrays(GL_TRIANGLES, 0, 3u);
 		}
+		//GLfloat clear_color[4u]{ 0.0f, 0.0f, 1.0f, 0.2f };
+		//glClearTexImage(environment.state.holographic_radiance_cascades.source_texture, 0, GL_RGBA, GL_FLOAT, clear_color);
+		//glClearTexImage(environment.state.holographic_radiance_cascades.ray_textures[0u], 0, GL_RGBA, GL_FLOAT, clear_color);
 	}
 
 	void merge_rays
@@ -260,9 +263,6 @@ namespace game_logic::draw
 	{
 		glUseProgram(environment.state.shaders[::game_state::shader_indices::draw::holographic_radiance_cascades::flatten_merge_fluence[bidirection][direction]]);
 		merge_intermediate_fluence(environment, bidirection, orthogonal_bidirection, direction, cascade_count, probe_grid_length, orthogonal_probe_grid_length, cascade);
-		GLfloat clear_color[4u]{ 0.0f, 0.0f, 1.0f, 0.0f };
-		//glClearTexImage(environment.state.holographic_radiance_cascades.angular_fluence_texture, 0, GL_RGBA, GL_FLOAT, clear_color);
-		//glClearTexImage(environment.state.holographic_radiance_cascades.ray_textures[0u], 0, GL_RGBA, GL_FLOAT, clear_color);
 		merge_final_fluence(environment, bidirection, orthogonal_bidirection, direction, cascade_count, probe_grid_length, orthogonal_probe_grid_length, cascade);
 		
 	}

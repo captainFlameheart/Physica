@@ -31,6 +31,10 @@ layout(location = rays_transmittance_layer) out vec4 transmittance;
 
 void main()
 {
+	/*radiance = vec4(1.0, 0.0, 0.0, 0.0);
+	transmittance = vec4(1.0);
+	return;*/
+
 	ivec2 output_texel_position = ivec2(gl_FragCoord.xy);
 
 	int probe_column = X(output_texel_position) / merge_rays_data.rays_per_probe;

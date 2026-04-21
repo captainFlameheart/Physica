@@ -48,6 +48,10 @@ layout(location = rays_transmittance_layer) out vec4 transmittance;
 
 void main()
 {
+	/*radiance = vec4(1.0, 0.0, 0.0, 0.0);
+	transmittance = vec4(1.0);
+	return;*/
+
 	radiance = vec4(0.0);
 	transmittance = vec4(1.0);
 	
