@@ -260,7 +260,11 @@ namespace game_logic::draw
 	{
 		glUseProgram(environment.state.shaders[::game_state::shader_indices::draw::holographic_radiance_cascades::flatten_merge_fluence[bidirection][direction]]);
 		merge_intermediate_fluence(environment, bidirection, orthogonal_bidirection, direction, cascade_count, probe_grid_length, orthogonal_probe_grid_length, cascade);
+		GLfloat clear_color[4u]{ 0.0f, 0.0f, 1.0f, 0.0f };
+		//glClearTexImage(environment.state.holographic_radiance_cascades.angular_fluence_texture, 0, GL_RGBA, GL_FLOAT, clear_color);
+		//glClearTexImage(environment.state.holographic_radiance_cascades.ray_textures[0u], 0, GL_RGBA, GL_FLOAT, clear_color);
 		merge_final_fluence(environment, bidirection, orthogonal_bidirection, direction, cascade_count, probe_grid_length, orthogonal_probe_grid_length, cascade);
+		
 	}
 
 	void gather_fluence
@@ -308,6 +312,7 @@ namespace game_logic::draw
 			for (GLuint direction{ 0u }; direction < 2u; ++direction)
 			{
 				generate_fluence_from_direction(environment, bidirection, orthogonal_bidirection, direction, cascade_count, trace_rays_cascade_count, probe_grid_length, orthogonal_probe_grid_length);
+				return;	// TODO: REMOVE.
 			}
 		}
 	}
@@ -353,7 +358,7 @@ namespace game_logic::draw
 			glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 			glClear(GL_COLOR_BUFFER_BIT);
 		}
-		//draw_source_image(environment);
+		draw_source_image(environment);
 
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, environment.state.holographic_radiance_cascades.skycircle_framebuffer);
 		GLfloat clear_color[4u]{ 0.0f, 0.0f, 0.0f, 0.0f };
