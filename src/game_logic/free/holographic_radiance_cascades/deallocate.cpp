@@ -15,7 +15,7 @@ namespace game_logic::free::holographic_radiance_cascades
 			{
 				for (GLuint cascade{ 0u }; cascade < trace_rays_shader_count; ++cascade)
 				{
-					glDeleteShader(environment.state.holographic_radiance_cascades.trace_rays_shaders[bidirection][direction][cascade]);
+					glDeleteProgram(environment.state.holographic_radiance_cascades.trace_rays_shaders[bidirection][direction][cascade]);
 				}
 
 				delete[] environment.state.holographic_radiance_cascades.trace_rays_shaders[bidirection][direction];
