@@ -427,6 +427,13 @@ namespace game_logic::initialize::holographic_radiance_cascades
 						::game_logic::holographic_radiance_cascades::compute_probe_grid_point_to_sample_point_bias(environment.state.holographic_radiance_cascades.source_height)
 					};
 
+					// TODO: Use this to compute probe_grid_full_step_to_sample_step_projection.
+					GLfloat probe_grid_to_sample_factor[2u]
+					{
+						1.0f / static_cast<GLfloat>(environment.state.holographic_radiance_cascades.probe_grid_width - 1u),
+						1.0f / static_cast<GLfloat>(environment.state.holographic_radiance_cascades.probe_grid_height - 1u)
+					};
+
 					// IMPORTANT TODO: Read these frustum dimensions dynamically in shader.
 					GLfloat frustum_unit_z_width{ 2.0f };
 					GLfloat frustum_unit_z_height{ 1.0f };
@@ -438,8 +445,8 @@ namespace game_logic::initialize::holographic_radiance_cascades
 
 					GLfloat probe_grid_point_to_sample_point_factor[2u]
 					{
-						probe_grid_full_step_to_sample_step_factor[0u],
-						probe_grid_full_step_to_sample_step_factor[1u],
+						probe_grid_to_sample_factor[0u],
+						probe_grid_to_sample_factor[1u]
 					};
 					probe_grid_point_to_sample_point_factor[bidirection] *= static_cast<GLfloat>(cascade_power_of_two);
 
