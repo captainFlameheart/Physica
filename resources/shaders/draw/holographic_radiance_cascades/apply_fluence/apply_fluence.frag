@@ -13,8 +13,8 @@ const vec2 probe_grid_point_to_fluence_sample_point_bias = vec2(?, ?);
 
 */
 
-layout(location = source_image_texture_unit) uniform sampler2DArray source;
-layout(location = fluence_texture_unit) uniform sampler2D fluence;
+layout(binding = source_image_texture_unit) uniform sampler2DArray source;
+layout(binding = fluence_texture_unit) uniform sampler2D fluence;
 
 #if ZOOM_MODE == ZOOMED_OUT_ZOOM_MODE
 	noperspective in vec2 source_sample_point;
@@ -36,5 +36,11 @@ void main()
 	const vec4 ambience = vec4(0.001);
 	fluence_value += ambience;
 	
+	//color = textureLod(fluence, vec2(0.5), 0.0);
+
 	color = mix(color * (fluence_value + fluence_value.a), fluence_value, color.a);
+	//color = vec4(fluence_value.g * 1000.0, 0.0, 0.0, 0.0);
+	//color = texture(fluence, fluence_sample_point) * 10000.0;
+	//color.a = 1.0;
+
 }

@@ -31,9 +31,10 @@ namespace game_logic::draw
 	{
 	}
 
-	void perform_holographic_radiance_cascades(game_environment::Environment& environment)
+	void generate_fluence(game_environment::Environment& environment)
 	{
 		// IMPORTANT TODO: Implement state cache to avoid redundant state changes.
+		glDisable(GL_BLEND);
 		glBlendEquation(GL_FUNC_ADD);
 		glBlendFunc(GL_ONE, GL_ONE);
 
@@ -54,17 +55,17 @@ namespace game_logic::draw
 				{
 
 					glUseProgram(environment.state.holographic_radiance_cascades.trace_rays_shaders[bidirection][direction][cascade]);
-					
+
 					glBindFramebuffer(GL_DRAW_FRAMEBUFFER, environment.state.holographic_radiance_cascades.ray_framebuffers[cascade]);
-					
+
 					GLuint viewport_size[2u];
-					GLuint cascade_power_of_two{::game_logic::holographic_radiance_cascades::compute_cascade_power_of_two(cascade) };
+					GLuint cascade_power_of_two{ ::game_logic::holographic_radiance_cascades::compute_cascade_power_of_two(cascade) };
 					::game_logic::holographic_radiance_cascades::compute_rays_viewport_size
 					(
 						viewport_size, probe_grid_length, cascade_power_of_two, cascade, orthogonal_probe_grid_length, bidirection, orthogonal_bidirection
 					);
 					glViewport(0, 0, viewport_size[0u], viewport_size[1u]);
-					
+
 					glDrawArrays(GL_TRIANGLES, 0, 3u);
 				}
 
@@ -106,9 +107,9 @@ namespace game_logic::draw
 
 				// Gather fluence from skycircle.
 				glUseProgram(environment.state.shaders[::game_state::shader_indices::draw::holographic_radiance_cascades::flatten_gather_fluence_from_skycircle[bidirection][direction]]);
-				
+
 				glNamedFramebufferDrawBuffer(environment.state.holographic_radiance_cascades.angular_fluence_framebuffer, GL_COLOR_ATTACHMENT0);
-				
+
 				{
 					GLuint viewport_size[2u];
 					GLuint cascade_power_of_two{ ::game_logic::holographic_radiance_cascades::compute_cascade_power_of_two(cascade) };
@@ -118,7 +119,7 @@ namespace game_logic::draw
 					);
 					glViewport(0, 0, viewport_size[0u], viewport_size[1u]);
 				}
-				
+
 				glDrawArrays(GL_TRIANGLES, 0, 3u);
 
 				// Merge fluence.
@@ -189,7 +190,7 @@ namespace game_logic::draw
 				glBindTextureUnit(::game_state::texture_units::rays, environment.state.holographic_radiance_cascades.ray_textures[0u]);
 
 				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, environment.state.holographic_radiance_cascades.fluence_framebuffer);
-				
+
 				GLuint cascade_power_of_two{ ::game_logic::holographic_radiance_cascades::compute_cascade_power_of_two(cascade) };
 
 				{
@@ -216,10 +217,21 @@ namespace game_logic::draw
 				}
 			}
 		}
+	}
+
+	void perform_holographic_radiance_cascades(game_environment::Environment& environment)
+	{
+		generate_fluence(environment);
 
 		// Apply fluence to final image.
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0u);
 		glViewport(0, 0, environment.state.glfw.framebuffer_width, environment.state.glfw.framebuffer_height);
+
+		// TODO: REMOVE.
+		//GLfloat clear_color[4u]{ 0.0f, 0.0f, 1.0f, 0.0f };
+		//glClearTexImage(environment.state.holographic_radiance_cascades.fluence_texture, 0, GL_RGBA, GL_FLOAT, &clear_color);
+		//GLint location = glGetUniformLocation(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::draw::holographic_radiance_cascades::Indices::apply_fluence)], "fluence");
+		//glProgramUniform1i(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::draw::holographic_radiance_cascades::Indices::apply_fluence)], location, 4u);
 
 		glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::draw::holographic_radiance_cascades::Indices::apply_fluence)]);
 		glDrawArrays(GL_TRIANGLES, 0, 3u);	// TODO: 6u when zoomed out.

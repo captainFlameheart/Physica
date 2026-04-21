@@ -171,7 +171,7 @@ namespace game_logic::holographic_radiance_cascades
 	{
 		if (cascade != 0u)
 		{
-			return 1u;
+			return 0u;
 		}
 		return compute_output_shift_for_last_cascade(direction, probe_grid_length);
 	}

@@ -26,8 +26,8 @@
 
 #endif
 
-layout(location = rays_texture_unit) uniform sampler2DArray rays;
-layout(location = upper_cascade_fluence_texture_unit) uniform sampler2DArray upper_cascade_fluence;
+layout(binding = rays_texture_unit) uniform sampler2DArray rays;
+layout(binding = upper_cascade_fluence_texture_unit) uniform sampler2DArray upper_cascade_fluence;
 
 layout(location = 0) out vec4 fluence;
 
@@ -172,4 +172,6 @@ void main()
 	fluence += upper_far_transmit_factor * upper_far_fluence;
 
 	fluence *= 0.5;
+
+	fluence = vec4(0.0, 1000.0, 0.0, 0.0);
 }

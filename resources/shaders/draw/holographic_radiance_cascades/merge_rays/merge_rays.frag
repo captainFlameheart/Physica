@@ -24,7 +24,7 @@
 
 #endif
 
-layout(location = rays_texture_unit) uniform sampler2DArray shorter_rays;
+layout(binding = rays_texture_unit) uniform sampler2DArray shorter_rays;
 
 layout(location = rays_radiance_layer) out vec4 radiance;
 layout(location = rays_transmittance_layer) out vec4 transmittance;

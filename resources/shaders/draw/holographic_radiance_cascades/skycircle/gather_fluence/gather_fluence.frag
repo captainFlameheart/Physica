@@ -36,7 +36,7 @@ const float angular_step_fraction = 1.0 / float(angular_step_count);
 
 const float angle_to_skycircle_coordinate_factor = 0.5 / pi;
 
-layout(location = skycircle_texture_unit) uniform sampler1D skycircle;
+layout(binding = skycircle_texture_unit) uniform sampler1D skycircle;
 
 layout(location = 0) out vec4 fluence;
 

@@ -157,6 +157,8 @@ namespace game_logic::initialize::compile_shaders
 			::util::shader::file_to_string("draw/holographic_radiance_cascades/apply_fluence/apply_fluence.frag")
 		);
 
+		//::game_logic::shader_util::print_source(compile_environment.shader_group.fragment_shader);
+
 		environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::draw::holographic_radiance_cascades::Indices::apply_fluence)] = ::util::shader::create_program
 		(
 			compile_environment.shader_group.vertex_shader, compile_environment.shader_group.fragment_shader
