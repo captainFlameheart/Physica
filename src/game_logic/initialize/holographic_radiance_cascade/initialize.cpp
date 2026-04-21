@@ -15,8 +15,8 @@ namespace game_logic::initialize::holographic_radiance_cascades
 		environment.state.holographic_radiance_cascades.source_width = environment.state.glfw.framebuffer_width;
 		environment.state.holographic_radiance_cascades.source_height = environment.state.glfw.framebuffer_height;
 
-		environment.state.holographic_radiance_cascades.probe_grid_width = 4u;//1024u;
-		environment.state.holographic_radiance_cascades.probe_grid_height = 4u;//512u;
+		environment.state.holographic_radiance_cascades.probe_grid_width = 1024u;
+		environment.state.holographic_radiance_cascades.probe_grid_height = 512u;
 
 		environment.state.holographic_radiance_cascades.horizontal_cascade_count = ceil_log2_n_minus_1(environment.state.holographic_radiance_cascades.probe_grid_width);
 		environment.state.holographic_radiance_cascades.vertical_cascade_count = ceil_log2_n_minus_1(environment.state.holographic_radiance_cascades.probe_grid_height);

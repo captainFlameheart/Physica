@@ -229,14 +229,7 @@ namespace game_logic::draw
 
 		GLuint cascade_power_of_two{ ::game_logic::holographic_radiance_cascades::compute_cascade_power_of_two(cascade) };
 
-		{
-			GLuint inner_viewport_size[2u];	// IMPORTANT TODO: I think we should add one column.
-			::game_logic::holographic_radiance_cascades::compute_merge_fluence_inner_viewport_size
-			(
-				inner_viewport_size, probe_grid_length, cascade_power_of_two, cascade, orthogonal_probe_grid_length, bidirection, orthogonal_bidirection
-			);
-			glViewport(0, 0, inner_viewport_size[0u], inner_viewport_size[1u]);
-		}
+		glViewport(0, 0, environment.state.holographic_radiance_cascades.probe_grid_width, environment.state.holographic_radiance_cascades.probe_grid_height);
 
 		bool keep_previous_fluence{ bidirection + direction != 0u };
 		if (keep_previous_fluence)
@@ -312,7 +305,7 @@ namespace game_logic::draw
 			for (GLuint direction{ 0u }; direction < 2u; ++direction)
 			{
 				generate_fluence_from_direction(environment, bidirection, orthogonal_bidirection, direction, cascade_count, trace_rays_cascade_count, probe_grid_length, orthogonal_probe_grid_length);
-				return;	// TODO: REMOVE.
+				//return;	// TODO: REMOVE.
 			}
 		}
 	}
