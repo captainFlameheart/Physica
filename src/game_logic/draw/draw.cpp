@@ -211,7 +211,7 @@ namespace game_logic::draw
 		GLuint bidirection, GLuint orthogonal_bidirection, GLuint direction,
 		GLuint cascade_count,
 		GLuint probe_grid_length, GLuint orthogonal_probe_grid_length,
-		GLuint& cascade
+		bool& keep_fluence, GLuint& cascade
 	)
 	{
 		GLuint configuration_offset
@@ -234,18 +234,18 @@ namespace game_logic::draw
 
 		glViewport(0, 0, environment.state.holographic_radiance_cascades.probe_grid_width, environment.state.holographic_radiance_cascades.probe_grid_height);
 
-		bool keep_previous_fluence{ bidirection + direction != 0u };
-		if (keep_previous_fluence)
+		if (keep_fluence)
 		{
 			glEnable(GL_BLEND);
 		}
 
 		glDrawArrays(GL_TRIANGLES, 0, 3u);
 
-		if (keep_previous_fluence)
+		if (keep_fluence)
 		{
 			glDisable(GL_BLEND);
 		}
+		keep_fluence = true;
 	}
 
 	void merge_fluence
@@ -254,13 +254,12 @@ namespace game_logic::draw
 		GLuint bidirection, GLuint orthogonal_bidirection, GLuint direction,
 		GLuint cascade_count,
 		GLuint probe_grid_length, GLuint orthogonal_probe_grid_length,
-		GLuint& cascade
+		bool& keep_fluence, GLuint& cascade
 	)
 	{
 		glUseProgram(environment.state.shaders[::game_state::shader_indices::draw::holographic_radiance_cascades::flatten_merge_fluence[bidirection][direction]]);
 		merge_intermediate_fluence(environment, bidirection, orthogonal_bidirection, direction, cascade_count, probe_grid_length, orthogonal_probe_grid_length, cascade);
-		merge_final_fluence(environment, bidirection, orthogonal_bidirection, direction, cascade_count, probe_grid_length, orthogonal_probe_grid_length, cascade);
-		
+		merge_final_fluence(environment, bidirection, orthogonal_bidirection, direction, cascade_count, probe_grid_length, orthogonal_probe_grid_length, keep_fluence, cascade);
 	}
 
 	void gather_fluence
@@ -269,12 +268,12 @@ namespace game_logic::draw
 		GLuint bidirection, GLuint orthogonal_bidirection, GLuint direction,
 		GLuint cascade_count,
 		GLuint probe_grid_length, GLuint orthogonal_probe_grid_length,
-		GLuint& cascade
+		bool& keep_fluence, GLuint& cascade
 	)
 	{
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, environment.state.holographic_radiance_cascades.angular_fluence_framebuffer);
 		gather_fluence_from_skycircle(environment, bidirection, orthogonal_bidirection, direction, probe_grid_length, cascade);
-		merge_fluence(environment, bidirection, orthogonal_bidirection, direction, cascade_count, probe_grid_length, orthogonal_probe_grid_length, cascade);
+		merge_fluence(environment, bidirection, orthogonal_bidirection, direction, cascade_count, probe_grid_length, orthogonal_probe_grid_length, keep_fluence, cascade);
 	}
 
 	void generate_fluence_from_direction
@@ -282,12 +281,13 @@ namespace game_logic::draw
 		game_environment::Environment& environment,
 		GLuint bidirection, GLuint orthogonal_bidirection, GLuint direction,
 		GLuint cascade_count, GLuint trace_rays_cascade_count,
-		GLuint probe_grid_length, GLuint orthogonal_probe_grid_length
+		GLuint probe_grid_length, GLuint orthogonal_probe_grid_length,
+		bool& keep_fluence
 	)
 	{
 		GLuint cascade;
 		compute_rays(environment, bidirection, orthogonal_bidirection, direction, cascade_count, trace_rays_cascade_count, probe_grid_length, orthogonal_probe_grid_length, cascade);
-		gather_fluence(environment, bidirection, orthogonal_bidirection, direction, cascade_count, probe_grid_length, orthogonal_probe_grid_length, cascade);
+		gather_fluence(environment, bidirection, orthogonal_bidirection, direction, cascade_count, probe_grid_length, orthogonal_probe_grid_length, keep_fluence, cascade);
 	}
 
 	void generate_fluence(game_environment::Environment& environment)
@@ -297,6 +297,7 @@ namespace game_logic::draw
 		glBlendEquation(GL_FUNC_ADD);
 		glBlendFunc(GL_ONE, GL_ONE);
 
+		bool keep_fluence{ false };
 		for (GLuint bidirection{ 0u }; bidirection < 2u; ++bidirection)
 		{
 			GLuint orthogonal_bidirection{ ::game_logic::holographic_radiance_cascades::compute_orthogonal_bidirection(bidirection) };
@@ -307,9 +308,17 @@ namespace game_logic::draw
 
 			for (GLuint direction{ 0u }; direction < 2u; ++direction)
 			{
-				generate_fluence_from_direction(environment, bidirection, orthogonal_bidirection, direction, cascade_count, trace_rays_cascade_count, probe_grid_length, orthogonal_probe_grid_length);
-				//return;	// TODO: REMOVE.
+				if (environment.state.holographic_radiance_cascades.enabled_directions[bidirection][direction])
+				{
+					generate_fluence_from_direction(environment, bidirection, orthogonal_bidirection, direction, cascade_count, trace_rays_cascade_count, probe_grid_length, orthogonal_probe_grid_length, keep_fluence);
+				}
 			}
+		}
+
+		if (!keep_fluence)
+		{
+			GLfloat clear_color[4u]{ 0.0f, 0.0f, 0.0f, 0.0f };
+			glClearTexImage(environment.state.holographic_radiance_cascades.fluence_texture, 0, GL_RGBA, GL_FLOAT, clear_color);
 		}
 	}
 

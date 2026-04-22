@@ -12,6 +12,14 @@ namespace game_logic::initialize::holographic_radiance_cascades
 		::game_logic::holographic_radiance_cascades::enable(environment);
 		environment.state.holographic_radiance_cascades.visible_source_layer = 0u;
 
+		for (GLuint bidirection{ 0u }; bidirection < 2u; ++bidirection)
+		{
+			for (GLuint direction{ 0u }; direction < 2u; ++direction)
+			{
+				environment.state.holographic_radiance_cascades.enabled_directions[bidirection][direction] = true;
+			}
+		}
+
 		environment.state.holographic_radiance_cascades.source_width = environment.state.glfw.framebuffer_width;
 		environment.state.holographic_radiance_cascades.source_height = environment.state.glfw.framebuffer_height;
 
