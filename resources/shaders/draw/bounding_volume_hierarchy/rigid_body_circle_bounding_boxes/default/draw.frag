@@ -34,7 +34,7 @@ void main()
         albedo = vec4(leaf_bounding_box_color.rgb, alpha);
     #endif
 
-    emission = vec4(albedo.rgb, 0.0);
+    emission = vec4(albedo.rgb * 0.2, 0.0);
     absorption = vec4(1.0);
     scattering = vec4(0.0);
 }

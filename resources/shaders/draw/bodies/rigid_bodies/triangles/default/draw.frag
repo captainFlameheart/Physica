@@ -5,7 +5,7 @@ layout(location = 3) out vec4 scattering;
 
 void main()
 {
-    albedo = vec4(0.0, 0.5, 1.0, 0.2);
+    albedo = vec4(0.0, 0.5, 1.0, default_reflectivity);
     emission = vec4(0.0, 0.5, 1.0, 0.0);
     absorption = vec4(1.0);
     scattering = vec4(0.0);

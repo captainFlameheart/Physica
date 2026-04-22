@@ -66,16 +66,18 @@ const uint dispatch_command_enabled_mask = 1u << dispatch_command_enabled_shift;
 const uint draw_arrays_command_enabled_shift = 0u;
 const uint draw_arrays_command_enabled_mask = 1u << draw_arrays_command_enabled_shift;
 
-const vec4 leaf_bounding_box_color = vec4(1.0, 1.0, 1.0, 0.2);
+const float default_reflectivity = 0.5;
+
+const vec4 leaf_bounding_box_color = vec4(1.0, 1.0, 1.0, default_reflectivity);
 const vec4 inner_bounding_box_height_colors[] = vec4[]
 (
-	vec4(1.0, 0.0, 0.0, 0.2),
-	vec4(0.0, 1.0, 0.0, 0.2),
-	vec4(0.0, 0.0, 1.0, 0.2),
-	vec4(1.0, 1.0, 0.0, 0.2),
-	vec4(1.0, 0.0, 1.0, 0.2),
-	vec4(0.0, 1.0, 1.0, 0.2),
-	vec4(1.0, 1.0, 1.0, 0.2)
+	vec4(1.0, 0.0, 0.0, default_reflectivity),
+	vec4(0.0, 1.0, 0.0, default_reflectivity),
+	vec4(0.0, 0.0, 1.0, default_reflectivity),
+	vec4(1.0, 1.0, 0.0, default_reflectivity),
+	vec4(1.0, 0.0, 1.0, default_reflectivity),
+	vec4(0.0, 1.0, 1.0, default_reflectivity),
+	vec4(1.0, 1.0, 1.0, default_reflectivity)
 );
 
 uint align_up(uint address)

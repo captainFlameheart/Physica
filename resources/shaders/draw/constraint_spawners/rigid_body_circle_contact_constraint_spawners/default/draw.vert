@@ -105,8 +105,8 @@ void main()
 
 	color = mix
 	(
-		vec4(1.0, 1.0, 0.0, 0.2),
-		vec4(1.0, 0.0, 0.0, 0.2),
+		vec4(1.0, 1.0, 0.0, default_reflectivity),
+		vec4(1.0, 0.0, 0.0, default_reflectivity),
 		float((indices_flags.z >> rigid_body_circle_contact_constraint_spawner_is_dead_shift) & 1u)
 	);
 
