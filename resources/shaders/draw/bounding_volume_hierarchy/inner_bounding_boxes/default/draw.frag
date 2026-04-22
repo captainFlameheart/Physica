@@ -4,9 +4,6 @@ in vec4 color;
 in vec2 UV;
 flat in vec2 size;
 
-layout(location = 1) out vec4 emission;
-layout(location = 2) out vec4 absorption;
-layout(location = 3) out vec4 scattering;
 layout(location = unlit_color_layer) out vec4 unlit_color;
 
 void main()
@@ -34,8 +31,4 @@ void main()
     
         unlit_color = vec4(color.rgb, alpha);
     #endif
-
-    emission = vec4(unlit_color.rgb * default_emission_scalar, 0.0);
-    absorption = default_attenuation;
-    scattering = default_scattering;
 }
