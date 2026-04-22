@@ -68,10 +68,11 @@ const uint draw_arrays_command_enabled_mask = 1u << draw_arrays_command_enabled_
 
 const float default_reflectivity = 0.8;
 
+const float default_emission_scalar = 0.5;
+const float default_alpha_emission = default_emission_scalar * 0.3;
+
 const float default_attenuation_scalar = 1.0;
 const vec4 default_attenuation = vec4(default_attenuation_scalar);
-
-const float default_emission_scalar = 0.5;
 
 const float default_scattering_scalar = 0.0;
 const vec4 default_scattering = vec4(default_scattering_scalar);
