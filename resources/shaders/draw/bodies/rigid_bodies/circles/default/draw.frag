@@ -15,7 +15,7 @@ void main()
     }
 
     albedo = vec4(0.0, 0.5, 1.0, default_reflectivity);
-    emission = vec4(albedo.rgb * 0.2, 0.0);
+    emission = vec4(albedo.rgb * default_emission_scalar, 0.0);
     absorption = default_attenuation;
     scattering = vec4(0.0);
 }

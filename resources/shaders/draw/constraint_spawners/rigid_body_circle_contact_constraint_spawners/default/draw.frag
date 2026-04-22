@@ -8,7 +8,7 @@ layout(location = scattering_layer) out vec4 scattering;
 void main()
 {
     albedo = color;
-    emission = vec4(color.rgb, 0.0);
+    emission = vec4(albedo.rgb * default_emission_scalar, 0.0);
     absorption = default_attenuation;
     scattering = vec4(0.0);
 }
