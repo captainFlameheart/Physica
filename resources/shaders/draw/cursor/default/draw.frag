@@ -3,6 +3,8 @@
 in vec2 UV;
 flat in uint icon_base;
 
+layout(location = emission_layer) out vec4 emission;
+layout(location = attenuation_layer) out vec4 attenuation;
 layout(location = unlit_color_layer) out vec4 unlit_color;
 
 void main()
@@ -18,5 +20,7 @@ void main()
         discard;
     }
 
+    emission = vec4(0.0);
+    attenuation = vec4(10000.0);
     unlit_color = vec4(1.0);
 }
