@@ -31,6 +31,9 @@ layout(local_size_x = 1u) in;
 void main()
 {
 	initialize_cursor_icons();
+	fixed_data.cursor_normalized_device_coordinates = vec2(0.0);
+	fixed_data.cursor_icon_index = arrow_cursor_index;
+	fixed_data.cursor_normalized_device_coordinate_half_size = vec2(0.05, 0.1);	// TODO: Update dynamically based on framebuffer size.
 
 	fixed_data.temp_dispatch_command = uvec4(1u, 1u, 1u, 0u);
 
