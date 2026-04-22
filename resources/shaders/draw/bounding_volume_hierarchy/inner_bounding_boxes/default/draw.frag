@@ -36,6 +36,6 @@ void main()
     #endif
 
     emission = vec4(albedo.rgb * 0.2, 0.0);
-    absorption = vec4(1.0);
+    absorption = default_attenuation;
     scattering = vec4(0.0);
 }
