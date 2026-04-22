@@ -1,6 +1,37 @@
+const uint cursor_icons[cursor_array_length] = uint[cursor_array_length]
+(
+	// Arrow
+    0x0001u,
+    0x0003u,
+    0x0007u,
+    0x000Fu,
+    0x001Fu,
+    0x003Fu,
+    0x007Fu,
+    0x00FFu,
+    0x01FFu,
+    0x00FFu,
+    0x0067u,
+    0x0043u,
+    0x0001u,
+    0x0000u,
+    0x0000u,
+    0x0000u
+);
+
+void initialize_cursor_icons()
+{
+	for (uint cursor_icon_row = 0u; cursor_icon_row < cursor_array_length; ++cursor_icon_row)
+	{
+		fixed_data.cursor_icons[cursor_icon_row] = cursor_icons[cursor_icon_row];
+	}
+}
+
 layout(local_size_x = 1u) in;
 void main()
 {
+	initialize_cursor_icons();
+
 	fixed_data.temp_dispatch_command = uvec4(1u, 1u, 1u, 0u);
 
 	const uint distance = uint(int(0.5 * meter_in_length_units));
