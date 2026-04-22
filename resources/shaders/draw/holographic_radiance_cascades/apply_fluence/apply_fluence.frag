@@ -36,8 +36,10 @@ void main()
 	const float ambience = 0.01;
 	fluence_value.a += ambience;
 	
-	vec4 reflected_color = color * (fluence_value + fluence_value.a);
-	fluence_value += color * fluence_value.a;
+	vec4 reflected_color = color * fluence_value;
 
-	color = mix(fluence_value, reflected_color, color.a);
+	vec4 radiatively_transferred_color_contribution = color * fluence_value.a;
+	vec4 color_contribution = radiatively_transferred_color_contribution;
+
+	color = mix(fluence_value, reflected_color, color.a) + color_contribution;
 }
