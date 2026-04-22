@@ -10,6 +10,9 @@ namespace game_logic::draw
 {
 	void draw_source_image(game_environment::Environment& environment)
 	{
+		// VERY IMPORTANT TODO: Adapt drawBuffers based on which layers are actually used for each shader!
+		// The unlit layer is often not used!!!
+
 		for (GLuint draw_entities_shader_index{ ::game_state::shader_indices::draw::entities::base }; draw_entities_shader_index < ::game_state::shader_indices::draw::entities::end; ++draw_entities_shader_index)
 		{
 			glUseProgram(environment.state.shaders[draw_entities_shader_index]);

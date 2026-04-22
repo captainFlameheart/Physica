@@ -4,10 +4,10 @@ in vec4 color;
 in vec2 UV;
 flat in vec2 size;
 
-layout(location = 0) out vec4 albedo;
 layout(location = 1) out vec4 emission;
 layout(location = 2) out vec4 absorption;
 layout(location = 3) out vec4 scattering;
+layout(location = unlit_color_layer) out vec4 unlit_color;
 
 void main()
 {
@@ -23,7 +23,7 @@ void main()
         {
             discard;
         }
-        albedo = color;
+        unlit_color = color;
     #else
         float is_inside_stroke_region = float(distance_from_edge < stroke_width);
 
@@ -32,10 +32,10 @@ void main()
         const float alpha_difference = stroke_alpha - fill_alpha;
         float alpha = fill_alpha + is_inside_stroke_region * alpha_difference;
     
-        albedo = vec4(color.rgb, alpha);
+        unlit_color = vec4(color.rgb, alpha);
     #endif
 
-    emission = vec4(albedo.rgb * default_emission_scalar, 0.0);
+    emission = vec4(unlit_color.rgb * default_emission_scalar, 0.0);
     absorption = default_attenuation;
     scattering = default_scattering;
 }

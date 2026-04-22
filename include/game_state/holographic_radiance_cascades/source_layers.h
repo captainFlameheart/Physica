@@ -8,6 +8,7 @@ namespace game_state::holographic_radiance_cascades::source_layers
 		emission,
 		attenuation,
 		scattering,
+		unlit_color,
 
 		count
 	};
