@@ -67,9 +67,14 @@ const uint draw_arrays_command_enabled_shift = 0u;
 const uint draw_arrays_command_enabled_mask = 1u << draw_arrays_command_enabled_shift;
 
 const float default_reflectivity = 0.5;
+
 const float default_attenuation_scalar = 1.0;
 const vec4 default_attenuation = vec4(default_attenuation_scalar);
+
 const float default_emission_scalar = 0.5;
+
+const float default_scattering_scalar = 0.0;
+const vec4 default_scattering = vec4(default_scattering_scalar);
 
 const vec4 leaf_bounding_box_color = vec4(1.0, 1.0, 1.0, default_reflectivity);
 const vec4 inner_bounding_box_height_colors[] = vec4[]
