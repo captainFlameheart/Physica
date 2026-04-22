@@ -28,6 +28,9 @@ namespace game_logic::draw
 				reinterpret_cast<const void*>(static_cast<intptr_t>(command_offset))
 			);
 		}
+
+		glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::draw::cursor::Indices::cursor)]);
+		glDrawArrays(GL_TRIANGLES, 0, 6u);
 	}
 
 	void draw_skycircle(game_environment::Environment& environment)

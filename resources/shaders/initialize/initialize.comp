@@ -1,22 +1,22 @@
 const uint cursor_icons[cursor_array_length] = uint[cursor_array_length]
 (
 	// Arrow
-    0x0001u,
-    0x0003u,
-    0x0007u,
-    0x000Fu,
-    0x001Fu,
-    0x003Fu,
+	0x01E1u,
+    0x00F3u,
+    0x00F7u,
     0x007Fu,
-    0x00FFu,
+    0x0FFFu,
+    0x07FFu,
+    0x03FFu,
     0x01FFu,
     0x00FFu,
-    0x0067u,
-    0x0043u,
-    0x0001u,
-    0x0000u,
-    0x0000u,
-    0x0000u
+    0x007Fu,
+    0x003Fu,
+    0x001Fu,
+    0x000Fu,
+    0x0007u,
+    0x0003u,
+    0x0001u
 );
 
 void initialize_cursor_icons()
@@ -30,10 +30,13 @@ void initialize_cursor_icons()
 layout(local_size_x = 1u) in;
 void main()
 {
+	vec2 projection = vec2(0.5, 1.0);
+
 	initialize_cursor_icons();
 	fixed_data.cursor_normalized_device_coordinates = vec2(0.0);
 	fixed_data.cursor_icon_index = arrow_cursor_index;
-	fixed_data.cursor_normalized_device_coordinate_half_size = vec2(0.05, 0.1);	// TODO: Update dynamically based on framebuffer size.
+	const float cursor_normalized_device_coordinate_half_radius = 0.015;
+	fixed_data.cursor_normalized_device_coordinate_half_size = cursor_normalized_device_coordinate_half_radius * projection;	// TODO: Update dynamically based on framebuffer size.
 
 	fixed_data.temp_dispatch_command = uvec4(1u, 1u, 1u, 0u);
 
@@ -54,7 +57,6 @@ void main()
 	fixed_data.camera_angle = camera_angle;
 	fixed_data.camera_offset_to_local = camera_offset_to_local;
 
-	vec2 projection = vec2(0.5, 1.0);
 	mat4 camera_projection = mat4
 	(
 		projection.x, 0.0, 0.0, 0.0,
