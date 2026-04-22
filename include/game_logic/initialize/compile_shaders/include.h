@@ -5,6 +5,7 @@
 #include "compile_commit_constraint_counts.h"
 #include "compile_commit_constraint_spawner_counts.h"
 #include "compile_draw_bounding_box_contact_detectors.h"
+#include "compile_draw_cursor.h"
 #include "compile_draw_inner_bounding_boxes.h"
 #include "compile_draw_point_masses.h"
 #include "compile_draw_point_mass_distance_constraints.h"
