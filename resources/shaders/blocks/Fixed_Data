@@ -204,6 +204,8 @@ FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 	uint current_inner_bounding_box_height_start;
 	uint current_inner_bounding_box_height_count;
 
+	uint bounding_box_stack_base;
+
 	uint leaf_bounding_box_capacity;
 
 	uint bounding_box_contact_detector_indices_source_pad_base;

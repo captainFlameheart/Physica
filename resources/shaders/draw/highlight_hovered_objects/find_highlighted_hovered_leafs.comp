@@ -1,0 +1,51 @@
+bool bounding_box_contains_point(ivec4 bounding_box, ivec2 point)
+{
+	return all(lessThanEqual(bounding_box.xy, point)) && all(lessThanEqual(point, bounding_box.zw));
+}
+
+layout(local_size_x = 1u) in;
+void main()
+{
+	vec2 cursor_normalized_device_coordinates = fixed_data.cursor_normalized_device_coordinates;
+	
+	vec2 unit_z_frustum_half_size = vec2(2.0, 1.0);	// TODO: Update dynamically.
+	ivec4 camera_position = ivec4(fixed_data.camera_position);
+	vec2 cursor_camera_local_position = camera_position.z * (unit_z_frustum_half_size * cursor_normalized_device_coordinates);
+	mat4 camera_offset_to_local = fixed_data.camera_offset_to_local;
+	mat4 camera_local_to_offset = transpose(camera_offset_to_local);
+	vec2 cursor_camera_offset = vec2(camera_local_to_offset * vec4(cursor_camera_local_position, 0.0, 1.0));	// TODO: Optimize.
+	ivec2 cursor_world_position = camera_position.xy + cursor_camera_offset;
+
+	uint bounding_box_parent_children_height_base = fixed_data.inner_bounding_box_parent_children_height_base;
+	uint bounding_box_base = fixed_data.inner_bounding_box_base;
+	uint bounding_box_stack_base = fixed_data.bounding_box_stack_base;
+
+	uint inner_bounding_box_read_count = fixed_data.read_counts[inner_bounding_box_type];
+
+	uint stack_end = 0u;
+	uint_data.data[bounding_box_stack_base] = inner_bounding_box_read_count - 1u;
+
+	do
+	{
+		uint bounding_box_index = uint_data.data[bounding_box_stack_base + stack_end];
+		--stack_end;
+
+		ivec4 bounding_box = ivec4(uvec4_data.data[bounding_box_base + bounding_box_index]);
+
+		if (bounding_box_contains_point(bounding_box, cursor_world_position))
+		{
+			uvec4 parent_children_type = uvec4_data.data[bounding_box_parent_children_height_base + bounding_box_index];
+			if (int(bounding_box_index) < 0)
+			{
+				// TODO: Spawn hover highlighter of type parent_children_type.w.
+			}
+			else
+			{
+				++stack_end;
+				uint_data.data[bounding_box_stack_base + stack_end] = parent_children_type.y;
+				++stack_end;
+				uint_data.data[bounding_box_stack_base + stack_end] = parent_children_type.z;
+			}
+		}
+	} while (stack_end != minus_1_uint);
+}

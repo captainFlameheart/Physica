@@ -1,12 +1,6 @@
 layout(local_size_x = 1u) in;
 void main()
 {
-	uint index = gl_GlobalInvocationID.x;
-	if (index != 0u)
-	{
-		return;
-	}
-
 	uint inner_bounding_box_parent_children_height_base = fixed_data.inner_bounding_box_parent_children_height_base;
 	uint inner_bounding_box_read_count = fixed_data.read_counts[inner_bounding_box_type];
 	uvec4 root_parent_children_height = uvec4_data.data[inner_bounding_box_parent_children_height_base + inner_bounding_box_read_count - 1u];

@@ -224,11 +224,16 @@ void main()
 	fixed_data.inner_bounding_box_migration_list_base = inner_bounding_box_migration_list_base;
 	fixed_data.inner_bounding_box_migration_count = inner_bounding_box_migration_count;
 
+	uint bounding_box_stack_base_address = align_up(inner_bounding_box_migration_list_base_address + inner_bounding_box_capacity * uvec4_data_array_stride);
+	uint bounding_box_stack_base = address_to_uint_index(bounding_box_stack_base_address);
+	fixed_data.bounding_box_stack_base = bounding_box_stack_base;
+	uint bounding_box_stack_capacity = leaf_bounding_box_capacity;
+
 	uint minimum_bounding_box_contact_detector_capacity = inner_bounding_box_capacity;
 	const uint bounding_box_contact_detector_capacity_factor = 10u;
 	capacities[bounding_box_contact_detector_type] = bounding_box_contact_detector_capacity_factor * minimum_bounding_box_contact_detector_capacity;
 
-	uint bounding_box_contact_detector_indices_source_pad_base_address = align_up(inner_bounding_box_migration_list_base_address + inner_bounding_box_capacity * uvec4_data_array_stride);
+	uint bounding_box_contact_detector_indices_source_pad_base_address = align_up(bounding_box_stack_base_address + bounding_box_stack_capacity * uint_data_array_stride);
 	old_death_index_base_addresses[bounding_box_contact_detector_type] = align_up(bounding_box_contact_detector_indices_source_pad_base_address + capacities[bounding_box_contact_detector_type] * uvec4_data_array_stride);
 	old_killed_base_addresses[bounding_box_contact_detector_type] = align_up(old_death_index_base_addresses[bounding_box_contact_detector_type] + capacities[bounding_box_contact_detector_type] * uint_data_array_stride);
 	death_index_base_addresses[bounding_box_contact_detector_type] = align_up(old_killed_base_addresses[bounding_box_contact_detector_type] + capacities[bounding_box_contact_detector_type] * uint_data_array_stride);
