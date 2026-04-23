@@ -7,6 +7,7 @@
 #include "game_logic/initialize/include.h"
 #include "game_logic/on_framebuffer_size_changed/include.h"
 #include "game_logic/on_key_event/include.h"
+#include "game_logic/on_events_polled/include.h"
 #include "game_logic/tick/include.h"
 #include "game_logic/draw/draw.h"
 #include "game_logic/free/include.h"
@@ -119,6 +120,14 @@ namespace game_logic
 		);
 #else
 #endif
+	}
+
+	void _on_events_polled
+	(
+		game_environment::Environment& environment
+	)
+	{
+		on_events_polled::on_events_polled(environment);
 	}
 
 	void _tick(game_environment::Environment& environment)

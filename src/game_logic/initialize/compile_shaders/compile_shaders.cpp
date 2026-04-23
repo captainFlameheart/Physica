@@ -15,6 +15,7 @@ namespace game_logic::initialize::compile_shaders
 		compile_initialize(environment, compile_environment);
 		
 		compile_on_key_event(environment, compile_environment);
+		compile_on_events_polled(environment, compile_environment);
 
 		compile_update_tick_counts(environment, compile_environment);
 		compile_on_update_tick_counts(environment, compile_environment);

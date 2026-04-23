@@ -38,6 +38,11 @@ namespace game_logic
 		double const y_offset
 	);
 
+	void _on_events_polled
+	(
+		game_environment::Environment& environment
+	);
+
 	void _tick(game_environment::Environment& environment);
 
 	void _draw(game_environment::Environment& environment);

@@ -146,6 +146,7 @@ FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 {
 	uint cursor_icons[cursor_array_length];
 
+	vec4 cursor_position_framebuffer_size;
 	vec2 cursor_normalized_device_coordinates;
 	uint cursor_icon_index;
 	vec2 cursor_normalized_device_coordinate_half_size;

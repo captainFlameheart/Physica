@@ -35,9 +35,24 @@ namespace game_state::shader_indices
 		constexpr GLuint count{ end - base };
 	}
 
-	namespace tick
+	namespace on_events_polled
 	{
 		constexpr GLuint base{ ::game_state::shader_indices::on_key_event::end };
+
+		enum struct Indices : GLuint
+		{
+			on_events_polled = base,
+
+			end
+		};
+
+		constexpr GLuint end{ static_cast<GLuint>(Indices::end) };
+		constexpr GLuint count{ end - base };
+	}
+
+	namespace tick
+	{
+		constexpr GLuint base{ ::game_state::shader_indices::on_events_polled::end };
 
 		namespace update_counts
 		{

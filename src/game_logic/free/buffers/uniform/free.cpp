@@ -12,5 +12,9 @@ namespace game_logic::free::buffers::uniform
 		{
 			glDeleteSync(environment.state.buffers.uniform.key_event_fences[i]);
 		}
+		for (GLuint i{ 0u }; i < ::game_state::buffers::uniform::on_events_polled_capacity; ++i)
+		{
+			glDeleteSync(environment.state.buffers.uniform.on_events_polled_fences[i]);
+		}
 	}
 }

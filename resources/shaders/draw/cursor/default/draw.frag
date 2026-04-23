@@ -14,13 +14,13 @@ void main()
 
     uint icon_row = fixed_data.cursor_icons[icon_base + icon_row_index];
     uint icon_bit = (icon_row >> icon_column_index) & 1u;
-
+    
     if (icon_bit == 0u)
     {
         discard;
     }
 
     emission = vec4(0.0);
-    attenuation = vec4(10000.0);
+    attenuation = vec4(1000000.0);
     unlit_color = vec4(1.0);
 }

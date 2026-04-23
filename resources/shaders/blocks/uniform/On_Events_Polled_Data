@@ -1,0 +1,5 @@
+layout(shared, binding = private_input_binding)
+uniform On_Events_Polled_Data
+{
+	vec4 cursor_position_framebuffer_size;
+} on_events_polled_data;

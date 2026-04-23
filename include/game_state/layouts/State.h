@@ -10,6 +10,7 @@
 #include "uvec4_data/include.h"
 #include "uvec2_data/include.h"
 #include "key_event/include.h"
+#include "on_events_polled_data/include.h"
 #include "vec2_data/include.h"
 
 namespace game_state::layouts
@@ -27,7 +28,8 @@ namespace game_state::layouts
 		commands::State commands;
 
 		key_event::State key_event;
-		
+		on_events_polled_data::State on_events_polled_data;
+
 		merge_rays_data::State merge_rays_data;
 		merge_fluence_data::State merge_fluence_data;
 

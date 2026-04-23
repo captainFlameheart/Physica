@@ -73,10 +73,11 @@ namespace game_runner
 
 		glfwSetTime(0.0);
 	
+		glfwPollEvents();
+		game_logic::_on_events_polled(game_environment);
+
 		game_logic::_draw(game_environment);
 		glfwSwapBuffers(window);
-
-		glfwPollEvents();
 
 #if RUN_LEGACY == 1 
 		while (!glfwWindowShouldClose(window))
@@ -132,6 +133,7 @@ namespace game_runner
 			glfwSwapBuffers(window);
 
 			glfwPollEvents();
+			game_logic::_on_events_polled(game_environment);
 		}
 #endif
 

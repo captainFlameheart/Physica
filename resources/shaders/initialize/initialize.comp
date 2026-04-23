@@ -33,6 +33,7 @@ void main()
 	vec2 projection = vec2(0.5, 1.0);
 
 	initialize_cursor_icons();
+	fixed_data.cursor_position_framebuffer_size = vec4(0.0);
 	fixed_data.cursor_normalized_device_coordinates = vec2(0.0);
 	fixed_data.cursor_icon_index = arrow_cursor_index;
 	const float cursor_normalized_device_coordinate_half_radius = 0.015;

@@ -1,0 +1,14 @@
+layout(local_size_x = 1u) in;
+void main()
+{
+	vec4 cursor_position_framebuffer_size = on_events_polled_data.cursor_position_framebuffer_size;
+
+	vec2 half_framebuffer_size = 0.5 * cursor_position_framebuffer_size.zw;
+
+	vec2 cursor_normalized_device_coordinates =
+		2.0 * (cursor_position_framebuffer_size.xy / cursor_position_framebuffer_size.zw) - 1.0;
+	cursor_normalized_device_coordinates.y *= -1.0;
+
+	fixed_data.cursor_position_framebuffer_size = cursor_position_framebuffer_size;
+	fixed_data.cursor_normalized_device_coordinates = cursor_normalized_device_coordinates;
+}
