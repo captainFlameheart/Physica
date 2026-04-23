@@ -35,7 +35,11 @@ void main()
 
 	vec2 normalized_device_coordinates = fixed_data.cursor_normalized_device_coordinates;
 	vec2 normalized_device_coordinate_half_size = fixed_data.cursor_normalized_device_coordinate_half_size;
-	icon_base = fixed_data.cursor_icon_index * cursor_icon_length;
+	uint cursor_icon_index = fixed_data.cursor_icon_index;
+	icon_base = cursor_icon_index * cursor_icon_length;
+	
+	vec2 icon_offset = fixed_data.cursor_icon_offsets[cursor_icon_index];
+	offset += icon_offset;
 
 	gl_Position = vec4(normalized_device_coordinates + offset * normalized_device_coordinate_half_size, 0.0, 1.0);
 }

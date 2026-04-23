@@ -145,6 +145,7 @@ layout(shared, binding = fixed_data_binding) FIXED_DATA_RESTRICT_PLACEHOLDER
 FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 {
 	uint cursor_icons[cursor_array_length];
+	vec2 cursor_icon_offsets[cursor_icon_count];
 
 	vec4 cursor_position_framebuffer_size;
 	vec2 cursor_normalized_device_coordinates;

@@ -19,11 +19,20 @@ const uint cursor_icons[cursor_array_length] = uint[cursor_array_length]
     0x0001u
 );
 
+const vec2 cursor_icon_offsets[cursor_icon_count] = vec2[cursor_icon_count]
+(
+	vec2(1.0, -1.0)	// Arrow
+);
+
 void initialize_cursor_icons()
 {
 	for (uint cursor_icon_row = 0u; cursor_icon_row < cursor_array_length; ++cursor_icon_row)
 	{
 		fixed_data.cursor_icons[cursor_icon_row] = cursor_icons[cursor_icon_row];
+	}
+	for (uint cursor_icon_index = 0u; cursor_icon_index < cursor_icon_count; ++cursor_icon_index)
+	{
+		fixed_data.cursor_icon_offsets[cursor_icon_index] = cursor_icon_offsets[cursor_icon_index];
 	}
 }
 
