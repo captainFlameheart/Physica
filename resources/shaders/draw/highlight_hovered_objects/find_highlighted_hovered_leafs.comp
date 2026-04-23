@@ -14,7 +14,7 @@ void main()
 	mat4 camera_offset_to_local = fixed_data.camera_offset_to_local;
 	mat4 camera_local_to_offset = transpose(camera_offset_to_local);
 	vec2 cursor_camera_offset = vec2(camera_local_to_offset * vec4(cursor_camera_local_position, 0.0, 1.0));	// TODO: Optimize.
-	ivec2 cursor_world_position = camera_position.xy + cursor_camera_offset;
+	ivec2 cursor_world_position = camera_position.xy + ivec2(cursor_camera_offset);
 
 	uint bounding_box_parent_children_height_base = fixed_data.inner_bounding_box_parent_children_height_base;
 	uint bounding_box_base = fixed_data.inner_bounding_box_base;

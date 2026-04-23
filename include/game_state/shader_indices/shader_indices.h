@@ -376,9 +376,24 @@ namespace game_state::shader_indices
 	{
 		constexpr GLuint base{ ::game_state::shader_indices::tick::end };
 		
-		namespace update_counts
+		namespace highlight_hovered_objects
 		{
 			constexpr GLuint base{ ::game_state::shader_indices::draw::base };
+
+			enum struct Indices : GLuint
+			{
+				find_highlighted_hovered_leafs = base,
+
+				end
+			};
+
+			constexpr GLuint end{ static_cast<GLuint>(Indices::end) };
+			constexpr GLuint count{ end - base };
+		}
+
+		namespace update_counts
+		{
+			constexpr GLuint base{ ::game_state::shader_indices::draw::highlight_hovered_objects::end };
 
 			enum struct Indices : GLuint
 			{
