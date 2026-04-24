@@ -1,27 +1,46 @@
 const uint cursor_icons[cursor_array_length] = uint[cursor_array_length]
 (
 	// Arrow
-	0x01E1u,
-    0x00F3u,
-    0x00F7u,
-    0x007Fu,
-    0x0FFFu,
-    0x07FFu,
-    0x03FFu,
-    0x01FFu,
-    0x00FFu,
-    0x007Fu,
-    0x003Fu,
-    0x001Fu,
-    0x000Fu,
-    0x0007u,
-    0x0003u,
-    0x0001u
+	0x03000000u,
+    0x84800300u,
+    0xC8800700u,
+    0xA9004600u,
+    0x91E06E00u,
+    0x80207FC0u,
+    0x80407F80u,
+    0x80807F00u,
+    0x81007E00u,
+    0x82007C00u,
+    0x84007800u,
+    0x88007000u,
+    0x90006000u,
+    0xA0004000u,
+    0xC0000000u,
+    0x80000000u,
+
+	// Grabbing hand
+    0x07F80000u,
+    0x080407F8u,
+    0x10040FF8u,
+    0x10020FFCu,
+    0x20021FFCu,
+    0x20021FFCu,
+    0x40013FFEu,
+    0x50012FFEu,
+    0x90016FFEu,
+    0x90016FFEu,
+    0x50092FF6u,
+    0x32490DB6u,
+    0x124A0DB4u,
+    0x124C0DB0u,
+    0x0E700180u,
+    0x01800000u
 );
 
 const vec2 cursor_icon_offsets[cursor_icon_count] = vec2[cursor_icon_count]
 (
-	vec2(1.0, -1.0)	// Arrow
+	vec2(1.0, -1.0),	// Arrow
+	vec2(0.0, 0.0)	// Grabbing hand
 );
 
 void initialize_cursor_icons()
@@ -45,7 +64,7 @@ void main()
 	fixed_data.cursor_position_framebuffer_size = vec4(0.0);
 	fixed_data.cursor_normalized_device_coordinates = vec2(0.0);
 	fixed_data.cursor_icon_index = arrow_cursor_index;
-	const float cursor_normalized_device_coordinate_half_radius = 0.015;
+	const float cursor_normalized_device_coordinate_half_radius = 0.024;
 	fixed_data.cursor_normalized_device_coordinate_half_size = cursor_normalized_device_coordinate_half_radius * projection;	// TODO: Update dynamically based on framebuffer size.
 
 	fixed_data.temp_dispatch_command = uvec4(1u, 1u, 1u, 0u);

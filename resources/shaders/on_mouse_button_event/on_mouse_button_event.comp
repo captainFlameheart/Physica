@@ -19,6 +19,20 @@ void main()
 			case mouse_button_right:
 				break;
 			case mouse_button_middle:
+				fixed_data.cursor_icon_index = grabbing_cursor_index;
+				break;
+		}
+	}
+	else if (button_action_mods.y == release)
+	{
+		switch (button_action_mods.x)
+		{
+			case mouse_button_left:
+				break;
+			case mouse_button_right:
+				break;
+			case mouse_button_middle:
+				fixed_data.cursor_icon_index = arrow_cursor_index;
 				break;
 		}
 	}

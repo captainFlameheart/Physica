@@ -90,11 +90,12 @@ const vec4 inner_bounding_box_height_colors[] = vec4[]
 	vec4(1.0, 1.0, 1.0, default_reflectivity)
 );
 
-const uint cursor_icon_count = 1u;
+const uint cursor_icon_count = 2u;
 const uint cursor_icon_length = 16u;
 const uint cursor_array_length = cursor_icon_count * cursor_icon_length;
 
 const uint arrow_cursor_index = 0u;
+const uint grabbing_cursor_index = 1u;
 
 uint align_up(uint address)
 {
