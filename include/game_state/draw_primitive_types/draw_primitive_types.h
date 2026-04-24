@@ -27,6 +27,8 @@ namespace game_state::draw_primitive_types
 		primitive_types[static_cast<GLuint>(::game_state::shader_indices::draw::entities::bounding_volume_hierarchy::Indices::rigid_body_circle_bounding_boxes) - base] = default_primitive_type;
 		primitive_types[static_cast<GLuint>(::game_state::shader_indices::draw::entities::bounding_volume_hierarchy::Indices::inner_bounding_boxes) - base] = default_primitive_type;
 
+		primitive_types[static_cast<GLuint>(::game_state::shader_indices::draw::entities::skycircle_elements::Indices::default_elements) - base] = GL_LINES;
+
 		return primitive_types;
 	}
 

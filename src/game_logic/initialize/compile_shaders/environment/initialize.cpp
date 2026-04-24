@@ -291,6 +291,7 @@ namespace game_logic::initialize::compile_shaders::environment
 			draw_arrays_command_blueprints += "	uvec2(" + std::to_string(entity_type_index) + ", " + std::to_string(vertex_factor) + "),\n";
 		}
 		draw_arrays_command_blueprints += "};\n";
+		std::cout << draw_arrays_command_blueprints << std::endl;
 
 		constexpr GLuint update_tick_counts_local_size{ ::game_state::local_sizes::update_tick_counts_local_size };
 		constexpr GLuint update_draw_counts_local_size{ ::game_state::local_sizes::update_draw_counts_local_size };

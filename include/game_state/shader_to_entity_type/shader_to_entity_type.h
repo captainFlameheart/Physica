@@ -122,6 +122,9 @@ namespace game_state::shader_to_entity_type
 		shader_to_entity_type[static_cast<GLuint>(::game_state::shader_indices::draw::entities::bounding_volume_hierarchy::Indices::inner_bounding_boxes) - base] =
 			static_cast<GLuint>(::game_state::entity_type_indices::bounding_volume_hierarchy::Indices::inner_bounding_box);
 
+		shader_to_entity_type[static_cast<GLuint>(::game_state::shader_indices::draw::entities::skycircle_elements::Indices::default_elements) - base] =
+			static_cast<GLuint>(::game_state::entity_type_indices::skycircle_elements::Indices::default_skycircle_element);
+
 		return shader_to_entity_type;
 	}
 

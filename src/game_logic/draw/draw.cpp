@@ -35,8 +35,23 @@ namespace game_logic::draw
 
 	void draw_skycircle(game_environment::Environment& environment)
 	{
-		glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::draw::entities::skycircle_elements::Indices::default_elements)]);
-		glDrawArrays(GL_LINES, 0, 4u);
+		for (GLuint draw_skycircle_elements_shader_index{ ::game_state::shader_indices::draw::entities::skycircle_elements::base }; draw_skycircle_elements_shader_index < ::game_state::shader_indices::draw::entities::skycircle_elements::end; ++draw_skycircle_elements_shader_index)
+		{
+			glUseProgram(environment.state.shaders[draw_skycircle_elements_shader_index]);
+			GLuint index_in_draw_entities_shader_array{ draw_skycircle_elements_shader_index - ::game_state::shader_indices::draw::entities::base };
+			GLintptr command_offset
+			{
+				environment.state.layouts.commands.draw_arrays_commands_count_state.offset +
+				index_in_draw_entities_shader_array * environment.state.layouts.commands.draw_arrays_commands_count_state.top_level_array_stride
+			};
+			glDrawArraysIndirect
+			(
+				::game_state::draw_primitive_types::entities_primitive_types[index_in_draw_entities_shader_array],
+				reinterpret_cast<const void*>(static_cast<intptr_t>(command_offset))
+			);
+		}
+		//glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::draw::entities::skycircle_elements::Indices::default_elements)]);
+		//glDrawArrays(GL_LINES, 0, 4u);
 	}
 
 	void trace_rays
