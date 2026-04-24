@@ -240,6 +240,9 @@ FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 	uint rigid_body_circle_contact_constraint_indices_turns_base;
 	uint rigid_body_circle_contact_constraint_impulse_base;
 
+	uint default_skycircle_element_end_points_velocity_flags_base;
+	uint default_skycircle_element_radiance_base;
+
 	uint capacities[entity_type_count];
 
 	// TODO: Split these kinds of arrays into one array group per entity subtype (e.g. "bodies") for greater flexibility.

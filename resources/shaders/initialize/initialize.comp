@@ -43,6 +43,18 @@ const vec4 cursor_icon_offset_scales[cursor_icon_count] = vec4[cursor_icon_count
 	vec4(0.0, 0.0, 0.75, 0.0)	// Grabbing hand
 );
 
+const uint default_skycircle_element_capacity = 1u;
+
+const ivec4 default_skycircle_element_end_points_velocity_flags[default_skycircle_element_capacity] = ivec4[default_skycircle_element_capacity]
+(
+	ivec4(0.0 * radian_in_angle_units, 1.0 * radian_in_angle_units, 0.0, 0)
+);
+
+const vec4 default_skycircle_element_radiance[default_skycircle_element_capacity] = vec4[default_skycircle_element_capacity]
+(
+	vec4(1.0, 1.0, 0.9, 0.0)
+);
+
 void initialize_cursor_icons()
 {
 	for (uint cursor_icon_row = 0u; cursor_icon_row < cursor_array_length; ++cursor_icon_row)
@@ -330,6 +342,17 @@ void main()
 	fixed_data.rigid_body_circle_contact_constraint_indices_turns_base = rigid_body_circle_contact_constraint_indices_turns_base;
 	fixed_data.rigid_body_circle_contact_constraint_impulse_base = rigid_body_circle_contact_constraint_impulse_base;
 
+	capacities[default_skycircle_element_type] = default_skycircle_element_capacity;
+
+	uint default_skycircle_element_end_points_velocity_flags_base_address = align_up(killed_base_addresses[rigid_body_circle_contact_constraint_type_index] + capacities[rigid_body_circle_contact_constraint_type_index] * uint_data_array_stride);
+	uint default_skycircle_element_radiance_base_address = align_up(default_skycircle_element_end_points_velocity_flags_base_address + capacities[default_skycircle_element_type] * uvec4_data_array_stride);
+
+	uint default_skycircle_element_end_points_velocity_flags_base = address_to_uvec4_index(default_skycircle_element_end_points_velocity_flags_base_address);
+	uint default_skycircle_element_radiance_base = address_to_uvec4_index(default_skycircle_element_radiance_base_address);
+
+	fixed_data.default_skycircle_element_end_points_velocity_flags_base = default_skycircle_element_end_points_velocity_flags_base;
+	fixed_data.default_skycircle_element_radiance_base = default_skycircle_element_radiance_base;
+
 	for (uint entity_type = 0u; entity_type < entity_type_count; ++entity_type)
 	{
 		fixed_data.capacities[entity_type] = capacities[entity_type];
@@ -345,7 +368,7 @@ void main()
 		fixed_data.kill_counts[entity_type] = 0u;
 	}
 
-	uint end_base_address = killed_base_addresses[rigid_body_circle_contact_constraint_type_index] + capacities[rigid_body_circle_contact_constraint_type_index] * uint_data_array_stride;
+	uint end_base_address = default_skycircle_element_radiance_base_address + capacities[default_skycircle_element_type] * uvec4_data_array_stride;
 	uint end_base = address_to_uint_index(end_base_address);
 	uint has_enough_memory = uint(end_base <= uint_data.data.length());
 	
@@ -356,6 +379,7 @@ void main()
 	//uint rigid_body_circle_contact_constraint_spawner_count = capacities[rigid_body_circle_contact_constraint_spawner_type_index];//rigid_body_circle_contact_constraint_spawner_capacity;
 	uint point_mass_distance_constraint_count = capacities[point_mass_distance_constraint_type_index];//capacities[point_mass_distance_constraint_type_index];
 	uint rigid_body_circle_contact_constraint_count = 0u;
+	uint default_skycircle_element_count = capacities[default_skycircle_element_type];
 
 	point_mass_count *= has_enough_memory;
 	rigid_body_count *= has_enough_memory;
@@ -364,6 +388,7 @@ void main()
 	rigid_body_circle_contact_constraint_spawner_count *= has_enough_memory;
 	point_mass_distance_constraint_count *= has_enough_memory;
 	rigid_body_circle_contact_constraint_count *= has_enough_memory;
+	default_skycircle_element_count *= has_enough_memory;
 	rows *= has_enough_memory;
 	columns *= has_enough_memory;
 
@@ -391,6 +416,9 @@ void main()
 
 	fixed_data.read_counts[rigid_body_circle_contact_constraint_type_index] = rigid_body_circle_contact_constraint_count;
 	fixed_data.write_counts[rigid_body_circle_contact_constraint_type_index] = rigid_body_circle_contact_constraint_count;
+
+	fixed_data.read_counts[default_skycircle_element_type] = default_skycircle_element_count;
+	fixed_data.write_counts[default_skycircle_element_type] = default_skycircle_element_count;
 
 	uint inner_bounding_box_count = leaf_bounding_box_count - 1u;
 
@@ -522,6 +550,18 @@ void main()
 
 			++rigid_body_circle_contact_constraint_spawner_index;
 		}
+	}
+
+	for (uint default_skycircle_element_index = 0u; default_skycircle_element_index < default_skycircle_element_count; ++default_skycircle_element_index)
+	{
+		uvec4_data.data[default_skycircle_element_end_points_velocity_flags_base + default_skycircle_element_index] = uvec4
+		(
+			default_skycircle_element_end_points_velocity_flags[default_skycircle_element_index]
+		);
+		uvec4_data.data[default_skycircle_element_radiance_base + default_skycircle_element_index] = uvec4
+		(
+			default_skycircle_element_radiance[default_skycircle_element_index]
+		);
 	}
 
 	uint point_mass_distance_constraint_base_index = 0u;

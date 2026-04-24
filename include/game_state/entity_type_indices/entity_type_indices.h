@@ -86,10 +86,25 @@ namespace game_state::entity_type_indices
 		constexpr GLuint end{ static_cast<GLuint>(Indices::end) };
 		constexpr GLuint count{ end - base };
 	}
+	
+	namespace skycircle_elements
+	{
+		constexpr GLuint base{ ::game_state::entity_type_indices::constraints::end };
+
+		enum struct Indices : GLuint
+		{
+			default_skycircle_element = base,
+
+			end
+		};
+
+		constexpr GLuint end{ static_cast<GLuint>(Indices::end) };
+		constexpr GLuint count{ end - base };
+	}
 
 	namespace hover_highlighters
 	{
-		constexpr GLuint base{ ::game_state::entity_type_indices::constraints::end };
+		constexpr GLuint base{ ::game_state::entity_type_indices::skycircle_elements::end };
 
 		enum struct Indices : GLuint
 		{
