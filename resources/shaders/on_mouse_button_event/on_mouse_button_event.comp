@@ -20,6 +20,12 @@ void main()
 				break;
 			case mouse_button_middle:
 				fixed_data.cursor_icon_index = grabbing_cursor_index;
+				fixed_data.camera_velocity = ivec4(0);
+				const vec2 unit_z_frustum_half_size = vec2(2.0, 1.0);	// TODO: Make dynamic.
+				vec2 cursor_normalized_device_coordinates = fixed_data.cursor_normalized_device_coordinates;
+				vec2 unit_z_cursor_position = cursor_normalized_device_coordinates * unit_z_frustum_half_size;
+				ivec4 camera_position = ivec4(fixed_data.camera_position);
+				fixed_data.grabbed_point = unit_z_cursor_position * float(camera_position.z);
 				break;
 		}
 	}
@@ -33,6 +39,9 @@ void main()
 				break;
 			case mouse_button_middle:
 				fixed_data.cursor_icon_index = arrow_cursor_index;
+				ivec4 camera_velocity = fixed_data.camera_velocity;
+				camera_velocity.xy += camera_velocity.zw;
+				fixed_data.camera_velocity = camera_velocity;
 				break;
 		}
 	}

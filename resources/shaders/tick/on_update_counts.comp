@@ -6,8 +6,13 @@ void main()
 	fixed_data.tick = tick;
 
 	uvec4 camera_position = fixed_data.camera_position;
+	ivec4 camera_velocity = fixed_data.camera_velocity;
 	uint camera_angle = fixed_data.camera_angle;
 	
+	camera_velocity.xy = ivec2(lerp(vec2(camera_velocity.xy), vec2(0.0), 0.1, delta_time));
+	camera_position.xy += uvec2(camera_velocity.xy);
+	fixed_data.camera_velocity = camera_velocity;
+
 	const uint key_a_index = key_a >> uint_bits_shift;
 	const uint key_a_bit_index = key_a & uint_bits_mask;
 	uint key_a_state = (fixed_data.key_state[key_a_index] >> key_a_bit_index) & 1u;

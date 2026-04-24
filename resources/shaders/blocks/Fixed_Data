@@ -97,6 +97,8 @@ const uint cursor_array_length = cursor_icon_count * cursor_icon_length;
 const uint arrow_cursor_index = 0u;
 const uint grabbing_cursor_index = 1u;
 
+const uint drag_mouse_button = mouse_button_middle;
+
 uint align_up(uint address)
 {
 	return (address + align_up_addition) & align_up_mask;
@@ -147,6 +149,11 @@ float lerp(float start, float end, float remaining_error_fraction_per_second, fl
 	return mix(start, end, 1.0 - pow(remaining_error_fraction_per_second, delta_time));
 }
 
+vec2 lerp(vec2 start, vec2 end, float remaining_error_fraction_per_second, float delta_time)
+{
+	return mix(start, end, 1.0 - pow(remaining_error_fraction_per_second, delta_time));
+}
+
 layout(shared, binding = fixed_data_binding) FIXED_DATA_RESTRICT_PLACEHOLDER
 FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 {
@@ -178,7 +185,7 @@ FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 	mat4 camera_offset_to_clip_coordinates;
 
 	uint camera_flags;
-	ivec2 camera_velocity;
+	ivec4 camera_velocity;	// xy: grid velocity, zw: delta drag velocity
 	vec2 grabbed_point;
 
 	uint point_mass_inverse_mass_base;
@@ -257,3 +264,10 @@ FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 	uint key_state[(key_count + uint_bits - 1u) >> uint_bits_shift];
 	uint mouse_button_state[(mouse_button_count + uint_bits - 1u) >> uint_bits_shift];
 } fixed_data;
+
+bool mouse_button_is_pressed(uint button)
+{
+	uint button_index = button >> uint_bits_shift;
+	uint button_bit_index = button & uint_bits_mask;
+	return ((fixed_data.mouse_button_state[button_index] >> button_bit_index) & 1u) != 0u;	// TODO: Optimize.
+}
