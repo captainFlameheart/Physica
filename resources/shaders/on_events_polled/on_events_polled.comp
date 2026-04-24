@@ -11,4 +11,17 @@ void main()
 
 	fixed_data.cursor_position_framebuffer_size = cursor_position_framebuffer_size;
 	fixed_data.cursor_normalized_device_coordinates = cursor_normalized_device_coordinates;
+
+	const vec2 unit_z_frustum_half_size = vec2(2.0, 1.0);	// TODO: Make dynamic.
+	vec2 unit_z_cursor_position = cursor_normalized_device_coordinates * unit_z_frustum_half_size;
+
+	ivec4 camera_position = ivec4(fixed_data.camera_position);
+
+	vec2 old_grabbed_point = fixed_data.grabbed_point;
+	vec2 new_grabbed_point = unit_z_cursor_position * float(camera_position.z);
+	vec2 grabbed_point_delta = new_grabbed_point - old_grabbed_point;
+	camera_position.xy -= ivec2(grabbed_point_delta);
+
+	fixed_data.camera_position = uvec4(camera_position);
+	fixed_data.grabbed_point = new_grabbed_point;
 }

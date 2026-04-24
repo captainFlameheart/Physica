@@ -99,6 +99,10 @@ void main()
 	
 	fixed_data.camera_offset_to_clip_coordinates = camera_projection * camera_offset_to_local;
 
+	fixed_data.camera_flags = 0u;
+	fixed_data.camera_velocity = ivec2(0);
+	fixed_data.grabbed_point = vec2(0.0);
+
 	uint capacities[entity_type_count];
 
 	uint old_death_index_base_addresses[entity_type_count];

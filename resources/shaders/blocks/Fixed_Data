@@ -177,6 +177,10 @@ FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 	mat4 camera_projection;
 	mat4 camera_offset_to_clip_coordinates;
 
+	uint camera_flags;
+	ivec2 camera_velocity;
+	vec2 grabbed_point;
+
 	uint point_mass_inverse_mass_base;
 	uint point_mass_constraint_start_base;
 	uint point_mass_constraint_end_base;
