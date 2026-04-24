@@ -2,8 +2,58 @@ layout(local_size_x = 1u) in;
 void main()
 {
 	vec2 offsets = scroll_event.offsets;
-	
+
 	float scroll_zoom_speed_factor = fixed_data.scroll_zoom_speed_factor;
 
-	fixed_data.camera_position.z -= uint(int(offsets.y * scroll_zoom_speed_factor));
+	ivec4 camera_position = ivec4(fixed_data.camera_position);
+
+	vec2 cursor_normalized_device_coordinates = fixed_data.cursor_normalized_device_coordinates;
+	const vec2 unit_z_frustum_half_size = vec2(2.0, 1.0);	// TODO: Make dynamic.
+	float camera_z = float(camera_position.z);
+	vec2 cursor_camera_local_xy = cursor_normalized_device_coordinates * unit_z_frustum_half_size * camera_z;
+	vec3 cursor_camera_local_point = vec3(cursor_camera_local_xy, -camera_z);
+	mat4 camera_offset_to_local = fixed_data.camera_offset_to_local;
+	mat4 camera_local_to_offset = transpose(camera_offset_to_local);
+	vec3 cursor_camera_offset = mat3(camera_local_to_offset) * cursor_camera_local_point;
+	ivec3 cursor_world_point = camera_position.xyz + ivec3(cursor_camera_offset);
+
+	uint camera_angle = fixed_data.camera_angle;
+	float delta_camera_angle = offsets.x * (0.02 * radian_in_angle_units);
+	
+	camera_angle += int(delta_camera_angle);
+	// TODO: Handle large angle precision
+	float angle_in_radians = float(int(camera_angle)) * angle_unit_in_radians;
+	float angle_cos = cos(angle_in_radians);
+	float angle_sin = sin(angle_in_radians);
+	vec2 right = vec2(angle_cos, angle_sin);
+	vec2 up = vec2(-angle_sin, angle_cos);
+	camera_offset_to_local = mat4
+	(
+		angle_cos, -angle_sin, 0.0, 0.0,
+		angle_sin, angle_cos, 0.0, 0.0,
+		0.0, 0.0, 1.0, 0.0,
+		0.0, 0.0, 0.0, 1.0
+	);
+	camera_local_to_offset = transpose(camera_offset_to_local);
+	fixed_data.camera_angle = camera_angle;
+	fixed_data.camera_offset_to_local = camera_offset_to_local;
+	vec2 projection = vec2(0.5, 1.0);	// TODO: Make dynamic.
+	mat4 camera_projection = mat4
+	(
+		projection.x, 0.0, 0.0, 0.0,
+		0.0, projection.y, 0.0, 0.0,
+		0.0, 0.0, 0.0, -1.0,
+		0.0, 0.0, 0.0, 0.0
+	);
+	fixed_data.camera_projection = camera_projection;
+	fixed_data.camera_offset_to_clip_coordinates = camera_projection * camera_offset_to_local;
+
+	cursor_camera_offset = mat3(camera_local_to_offset) * cursor_camera_local_point;
+
+	vec3 cursor_direction = normalize(cursor_camera_offset);
+	camera_position.xyz = cursor_world_point + ivec3(cursor_direction * (offsets.y * scroll_zoom_speed_factor) - cursor_camera_offset);
+
+	fixed_data.camera_position = camera_position;
+
+	//fixed_data.camera_position.z -= uint(int(offsets.y * scroll_zoom_speed_factor));
 }
