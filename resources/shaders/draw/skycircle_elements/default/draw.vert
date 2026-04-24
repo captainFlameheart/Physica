@@ -6,7 +6,7 @@ noperspective out float offset;
 
 void main()
 {
-	const ivec2 end_points = ivec2(int(1.0 * radian_in_angle_units), int(4.0 * radian_in_angle_units));
+	const ivec2 end_points = ivec2(int(1.0 * radian_in_angle_units), int(2.0 * radian_in_angle_units));
 
 	// TODO: Handle large angles in fixed point
 

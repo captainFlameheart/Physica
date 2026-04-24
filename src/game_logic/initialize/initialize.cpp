@@ -23,10 +23,9 @@ namespace game_logic::initialize
 		::game_logic::OpenGL_capabilities::print(environment.state.OpenGL_capabilities);
 
 		query_layouts::query_layouts(environment);
+		holographic_radiance_cascades::initialize(environment);
 		compile_shaders::compile_shaders(environment);
 		buffers::initialize(environment);
-
-		holographic_radiance_cascades::initialize(environment);
 
 		::game_logic::binding_util::bind_GPU_only_buffer(environment, 0u);
 
