@@ -47,14 +47,14 @@ const uint default_skycircle_element_capacity = 2u;
 
 const ivec4 default_skycircle_element_end_points_velocity_flags[default_skycircle_element_capacity] = ivec4[default_skycircle_element_capacity]
 (
-	ivec4(3.0 * radian_in_angle_units, 3.5 * radian_in_angle_units, 0.0, 0),
-	ivec4(0.0 * radian_in_angle_units, 1.0 * radian_in_angle_units, 0.0, 0)
+	ivec4(0.0 * radian_in_angle_units, 1.0 * radian_in_angle_units, -0.1 * radians_per_second_in_angle_units_per_time_unit, 0),
+	ivec4(3.0 * radian_in_angle_units, 3.5 * radian_in_angle_units, 1.0 * radians_per_second_in_angle_units_per_time_unit, 0)
 );
 
 const vec4 default_skycircle_element_radiance[default_skycircle_element_capacity] = vec4[default_skycircle_element_capacity]
 (
-	vec4(0.0, 1.0, 0.0, 0.0) * 1.0,
-	vec4(1.0, 1.0, 0.9, 0.0) * 2.0
+	vec4(1.0, 1.0, 0.9, 0.0) * 2.0,
+	vec4(0.0, 1.0, 0.0, 0.0) * 1.0
 );
 
 void initialize_cursor_icons()

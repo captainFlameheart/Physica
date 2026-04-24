@@ -119,9 +119,24 @@ namespace game_state::shader_indices
 				constexpr GLuint count{ end - base };
 			}
 
-			namespace bounding_volume_hierarchy
+			namespace skycircle_elements
 			{
 				constexpr GLuint base{ ::game_state::shader_indices::tick::process_entities::bodies::end };
+
+				enum struct Indices : GLuint
+				{
+					default_elements = base,
+
+					end
+				};
+
+				constexpr GLuint end{ static_cast<GLuint>(Indices::end) };
+				constexpr GLuint count{ end - base };
+			}
+
+			namespace bounding_volume_hierarchy
+			{
+				constexpr GLuint base{ ::game_state::shader_indices::tick::process_entities::skycircle_elements::end };
 
 				namespace send_to_CPU
 				{

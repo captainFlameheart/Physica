@@ -1,0 +1,20 @@
+layout(local_size_x = tick_default_skycircle_elements_local_size) in;
+void main()
+{
+	uint index = gl_GlobalInvocationID.x;
+	uint count = fixed_data.read_counts[default_skycircle_element_type];
+	if (index >= count)
+	{
+		return;
+	}
+
+	uint end_points_velocity_flags_base = fixed_data.default_skycircle_element_end_points_velocity_flags_base;
+
+	uint end_points_velocity_flags_index = end_points_velocity_flags_base + index;
+
+	ivec4 end_points_velocity_flags = ivec4(uvec4_data.data[end_points_velocity_flags_index]);
+	end_points_velocity_flags.x += end_points_velocity_flags.z;
+	end_points_velocity_flags.y += end_points_velocity_flags.z;
+
+	uvec4_data.data[end_points_velocity_flags_index] = uvec4(end_points_velocity_flags);
+}

@@ -25,6 +25,18 @@ namespace game_logic::tick
 				glDispatchComputeIndirect(static_cast<GLintptr>(command_offset));
 			}
 
+			for (GLuint tick_skycircle_elements_shader_index{ ::game_state::shader_indices::tick::process_entities::skycircle_elements::base }; tick_skycircle_elements_shader_index < ::game_state::shader_indices::tick::process_entities::skycircle_elements::end; ++tick_skycircle_elements_shader_index)
+			{
+				glUseProgram(environment.state.shaders[tick_skycircle_elements_shader_index]);
+				GLuint index_in_tick_entities_shader_array{ tick_skycircle_elements_shader_index - ::game_state::shader_indices::tick::process_entities::base };
+				GLintptr command_offset
+				{
+					environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.offset +
+					index_in_tick_entities_shader_array * environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.top_level_array_stride
+				};
+				glDispatchComputeIndirect(static_cast<GLintptr>(command_offset));
+			}
+
 			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
 			glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::send_to_CPU::Indices::send_to_CPU)]);
