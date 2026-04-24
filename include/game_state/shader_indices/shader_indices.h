@@ -538,6 +538,7 @@ namespace game_state::shader_indices
 			enum struct Indices : GLuint
 			{
 				source_layer = base,
+				skycircle_ring,
 				
 				east_merge_rays,
 				east_gather_fluence_from_skycircle,
