@@ -20,7 +20,8 @@ void main()
 		ivec4 camera_position = ivec4(fixed_data.camera_position);
 
 		vec2 old_grabbed_point = fixed_data.grabbed_point;
-		vec2 new_grabbed_point = unit_z_cursor_position * float(camera_position.z);
+		mat2 camera_local_to_offset = transpose(mat2(fixed_data.camera_offset_to_local));
+		vec2 new_grabbed_point = camera_local_to_offset * (unit_z_cursor_position * float(camera_position.z));
 		vec2 grabbed_point_delta = new_grabbed_point - old_grabbed_point;
 		camera_position.xy -= ivec2(grabbed_point_delta);
 

@@ -25,7 +25,7 @@ void main()
 				vec2 cursor_normalized_device_coordinates = fixed_data.cursor_normalized_device_coordinates;
 				vec2 unit_z_cursor_position = cursor_normalized_device_coordinates * unit_z_frustum_half_size;
 				ivec4 camera_position = ivec4(fixed_data.camera_position);
-				fixed_data.grabbed_point = unit_z_cursor_position * float(camera_position.z);
+				fixed_data.grabbed_point = transpose(mat2(fixed_data.camera_offset_to_local)) * (unit_z_cursor_position * float(camera_position.z));
 				break;
 		}
 	}
