@@ -67,6 +67,8 @@ void main()
 	const float cursor_normalized_device_coordinate_half_radius = 0.024;
 	fixed_data.cursor_normalized_device_coordinate_half_size = cursor_normalized_device_coordinate_half_radius * projection;	// TODO: Update dynamically based on framebuffer size.
 
+	fixed_data.scroll_zoom_speed_factor = 0.5 * meter_in_length_units;
+
 	fixed_data.temp_dispatch_command = uvec4(1u, 1u, 1u, 0u);
 
 	const uint distance = uint(int(0.5 * meter_in_length_units));

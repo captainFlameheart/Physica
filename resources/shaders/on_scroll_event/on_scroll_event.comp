@@ -2,4 +2,8 @@ layout(local_size_x = 1u) in;
 void main()
 {
 	vec2 offsets = scroll_event.offsets;
+	
+	float scroll_zoom_speed_factor = fixed_data.scroll_zoom_speed_factor;
+
+	fixed_data.camera_position.z -= uint(int(offsets.y * scroll_zoom_speed_factor));
 }

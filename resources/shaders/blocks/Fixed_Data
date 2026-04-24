@@ -153,6 +153,8 @@ FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 	uint cursor_icon_index;
 	vec2 cursor_normalized_device_coordinate_half_size;
 
+	float scroll_zoom_speed_factor;
+
 	uvec4 temp_dispatch_command;
 
 	uint temp;

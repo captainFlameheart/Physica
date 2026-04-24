@@ -34,7 +34,7 @@ namespace game_logic::on_scroll_event
 		}
 		glDeleteSync(fence);
 
-		GLuint offsets[2u]{ x_offset, y_offset };
+		GLfloat offsets[2u]{ static_cast<GLfloat>(x_offset), static_cast<GLfloat>(y_offset) };
 		std::memcpy(mapping + environment.state.layouts.scroll_event.offsets_state.offset, offsets, sizeof(offsets));
 
 		glFlushMappedNamedBufferRange
