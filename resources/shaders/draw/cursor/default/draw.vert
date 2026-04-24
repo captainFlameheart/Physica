@@ -38,8 +38,9 @@ void main()
 	uint cursor_icon_index = fixed_data.cursor_icon_index;
 	icon_base = cursor_icon_index * cursor_icon_length;
 	
-	vec2 icon_offset = fixed_data.cursor_icon_offsets[cursor_icon_index];
-	offset += icon_offset;
+	vec4 icon_offset_scale = fixed_data.cursor_icon_offset_scales[cursor_icon_index];
+	offset += icon_offset_scale.xy;
+	offset *= fixed_data.cursor_scale;
 
 	gl_Position = vec4(normalized_device_coordinates + offset * normalized_device_coordinate_half_size, 0.0, 1.0);
 }

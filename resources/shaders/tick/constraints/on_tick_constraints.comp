@@ -1,7 +1,9 @@
 layout(local_size_x = 1u) in;
 void main()
 {
-	/*uint previous_read_inner_bounding_box_base = fixed_data.read_inner_bounding_box_base;
-	fixed_data.read_inner_bounding_box_base = fixed_data.write_inner_bounding_box_base;
-	fixed_data.write_inner_bounding_box_base = previous_read_inner_bounding_box_base;*/
+	float cursor_scale = fixed_data.cursor_scale;
+	uint cursor_icon_index = fixed_data.cursor_icon_index;
+	vec4 cursor_icon_offset_scale = fixed_data.cursor_icon_offset_scales[cursor_icon_index];
+	cursor_scale = lerp(cursor_scale, cursor_icon_offset_scale.z, 0.00001, delta_time);
+	fixed_data.cursor_scale = cursor_scale;
 }
