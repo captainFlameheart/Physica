@@ -37,7 +37,11 @@ namespace game_logic::draw
 	{
 		glEnable(GL_BLEND);
 		glBlendEquation(GL_FUNC_ADD);
-		glBlendFunc(GL_SRC1_COLOR, GL_ONE_MINUS_SRC1_COLOR);
+		//glBlendFunc(GL_SRC1_COLOR, GL_ONE_MINUS_SRC1_COLOR);
+		glBlendFuncSeparate(
+			GL_SRC1_ALPHA, GL_ONE_MINUS_SRC1_ALPHA,  // RGB
+			GL_SRC1_ALPHA, GL_ONE_MINUS_SRC1_ALPHA   // Alpha
+		);
 
 		for (GLuint draw_skycircle_elements_shader_index{ ::game_state::shader_indices::draw::entities::skycircle_elements::base }; draw_skycircle_elements_shader_index < ::game_state::shader_indices::draw::entities::skycircle_elements::end; ++draw_skycircle_elements_shader_index)
 		{

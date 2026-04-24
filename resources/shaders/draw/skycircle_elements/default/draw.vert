@@ -3,6 +3,7 @@ const float angle_to_sky_circle_coordinate_factor = (0.5 / pi) * (angle_unit_in_
 //uniform ivec2 end_points;
 
 flat out vec4 color;
+flat out float point_distance;
 noperspective out float offset;
 
 void main()
@@ -17,7 +18,7 @@ void main()
 	float start_point = float(end_points_velocity_flags[0u] - base_angle) * angle_to_sky_circle_coordinate_factor;
 	float end_point = float(end_points_velocity_flags[1u] - base_angle) * angle_to_sky_circle_coordinate_factor;
 
-	float point_distance = end_point - start_point;
+	point_distance = end_point - start_point;
 	
 	float start_cycle = float(floor(start_point));
 	start_point -= start_cycle;
