@@ -7,6 +7,8 @@ namespace game_state::holographic_radiance_cascades
 		bool enabled;
 		GLuint visible_source_layer;
 
+		bool draw_skycircle_ring;
+
 		bool enabled_directions[2u][2u];
 
 		union

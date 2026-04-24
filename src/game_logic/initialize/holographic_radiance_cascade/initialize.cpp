@@ -12,6 +12,8 @@ namespace game_logic::initialize::holographic_radiance_cascades
 		::game_logic::holographic_radiance_cascades::enable(environment);
 		environment.state.holographic_radiance_cascades.visible_source_layer = 0u;
 
+		environment.state.holographic_radiance_cascades.draw_skycircle_ring = false;
+
 		for (GLuint bidirection{ 0u }; bidirection < 2u; ++bidirection)
 		{
 			for (GLuint direction{ 0u }; direction < 2u; ++direction)

@@ -43,19 +43,17 @@ const vec4 cursor_icon_offset_scales[cursor_icon_count] = vec4[cursor_icon_count
 	vec4(0.0, 0.0, 0.75, 0.0)	// Grabbing hand
 );
 
-const uint default_skycircle_element_capacity = 3u;
+const uint default_skycircle_element_capacity = 2u;
 
 const ivec4 default_skycircle_element_end_points_velocity_flags[default_skycircle_element_capacity] =
 {
 	ivec4(0.0 * radian_in_angle_units, 1.0 * radian_in_angle_units, -0.1 * radians_per_second_in_angle_units_per_time_unit, 0),
 	ivec4(3.14 * radian_in_angle_units, 6.28 * radian_in_angle_units, 0.0 * radians_per_second_in_angle_units_per_time_unit, 0),
-	ivec4(0.0 * radian_in_angle_units, 0.5 * radian_in_angle_units, 0.05 * radians_per_second_in_angle_units_per_time_unit, 0),
 };
 
 const vec4 default_skycircle_element_radiance[default_skycircle_element_capacity] =
 {
-	vec4(1.0, 1.0, 0.9, 0.0) * 1.3,
-	vec4(0.0, 0.0, 0.0, 0.0),
+	vec4(0.85, 1.0, 1.0, 0.0) * 1.1,
 	vec4(0.0, 0.0, 0.0, 0.0),
 };
 

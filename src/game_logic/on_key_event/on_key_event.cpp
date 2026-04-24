@@ -91,6 +91,9 @@ namespace game_logic::on_key_event
 				environment.state.holographic_radiance_cascades.visible_source_layer = 3u;
 				::game_logic::holographic_radiance_cascades::enable(environment);
 				break;
+			case GLFW_KEY_9:
+				environment.state.holographic_radiance_cascades.draw_skycircle_ring = !environment.state.holographic_radiance_cascades.draw_skycircle_ring;
+				break;
 			case GLFW_KEY_L:
 				environment.state.holographic_radiance_cascades.enabled_directions[0u][0u] = !environment.state.holographic_radiance_cascades.enabled_directions[0u][0u];
 				break;

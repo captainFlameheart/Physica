@@ -414,8 +414,11 @@ namespace game_logic::draw
 				glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::draw::holographic_radiance_cascades::Indices::source_layer)]);
 				glDrawArrays(GL_TRIANGLES, 0, 3u);
 			}
-			glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::draw::holographic_radiance_cascades::Indices::skycircle_ring)]);
-			glDrawArrays(GL_TRIANGLES, 0, 6u);
+			if (environment.state.holographic_radiance_cascades.draw_skycircle_ring)
+			{
+				glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::draw::holographic_radiance_cascades::Indices::skycircle_ring)]);
+				glDrawArrays(GL_TRIANGLES, 0, 6u);
+			}
 		}
 
 		++environment.state.draw_count;
