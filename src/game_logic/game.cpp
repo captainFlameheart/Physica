@@ -8,6 +8,7 @@
 #include "game_logic/on_framebuffer_size_changed/include.h"
 #include "game_logic/on_key_event/include.h"
 #include "game_logic/on_mouse_button_event/include.h"
+#include "game_logic/on_scroll_event/include.h"
 #include "game_logic/on_events_polled/include.h"
 #include "game_logic/tick/include.h"
 #include "game_logic/draw/draw.h"
@@ -121,6 +122,7 @@ namespace game_logic
 			y_offset
 		);
 #else
+		on_scroll_event::on_scroll_event(environment, x_offset, y_offset);
 #endif
 	}
 

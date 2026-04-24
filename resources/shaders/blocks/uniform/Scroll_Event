@@ -1,0 +1,5 @@
+layout(shared, binding = private_input_binding)
+uniform Scroll_Event
+{
+	vec2 offsets;
+} scroll_event;

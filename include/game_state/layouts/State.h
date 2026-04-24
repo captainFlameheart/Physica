@@ -11,6 +11,7 @@
 #include "uvec2_data/include.h"
 #include "key_event/include.h"
 #include "on_events_polled_data/include.h"
+#include "scroll_event/include.h"
 #include "vec2_data/include.h"
 
 namespace game_state::layouts
@@ -29,6 +30,7 @@ namespace game_state::layouts
 
 		key_event::State key_event;
 		mouse_button_event::State mouse_button_event;
+		scroll_event::State scroll_event;
 		on_events_polled_data::State on_events_polled_data;
 
 		merge_rays_data::State merge_rays_data;

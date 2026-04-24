@@ -50,9 +50,24 @@ namespace game_state::shader_indices
 		constexpr GLuint count{ end - base };
 	}
 
-	namespace on_events_polled
+	namespace on_scroll_event
 	{
 		constexpr GLuint base{ ::game_state::shader_indices::on_mouse_button_event::end };
+
+		enum struct Indices : GLuint
+		{
+			on_scroll_event = base,
+
+			end
+		};
+
+		constexpr GLuint end{ static_cast<GLuint>(Indices::end) };
+		constexpr GLuint count{ end - base };
+	}
+
+	namespace on_events_polled
+	{
+		constexpr GLuint base{ ::game_state::shader_indices::on_scroll_event::end };
 
 		enum struct Indices : GLuint
 		{
