@@ -35,6 +35,10 @@ namespace game_logic::draw
 
 	void draw_skycircle(game_environment::Environment& environment)
 	{
+		glEnable(GL_BLEND);
+		glBlendEquation(GL_FUNC_ADD);
+		glBlendFunc(GL_SRC1_COLOR, GL_ONE_MINUS_SRC1_COLOR);
+
 		for (GLuint draw_skycircle_elements_shader_index{ ::game_state::shader_indices::draw::entities::skycircle_elements::base }; draw_skycircle_elements_shader_index < ::game_state::shader_indices::draw::entities::skycircle_elements::end; ++draw_skycircle_elements_shader_index)
 		{
 			glUseProgram(environment.state.shaders[draw_skycircle_elements_shader_index]);
@@ -50,6 +54,8 @@ namespace game_logic::draw
 				reinterpret_cast<const void*>(static_cast<intptr_t>(command_offset))
 			);
 		}
+
+		glDisable(GL_BLEND);
 	}
 
 	void trace_rays
