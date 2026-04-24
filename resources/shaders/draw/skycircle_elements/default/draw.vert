@@ -8,6 +8,7 @@ noperspective out float offset;
 void main()
 {
 	uint element_index = gl_VertexID >> 2u;
+	uint local_id = gl_VertexID & 3u;
 	ivec4 end_points_velocity_flags = ivec4(uvec4_data.data[fixed_data.default_skycircle_element_end_points_velocity_flags_base + element_index]);
 
 	// TODO: Handle large angles in fixed point
@@ -30,13 +31,13 @@ void main()
 
 	float points[4u] = float[4u](start_point, first_line_end, second_line_start, end_point);
 
-	float point = points[gl_VertexID];
+	float point = points[local_id];
 	float normalized_point = point * 2.0 - 1.0;
 	gl_Position = vec4(normalized_point, 0.0, 0.0, 1.0);
 
 	float first_line_fraction = (first_line_end - start_point) / point_distance;
 	float offsets[4u] = float[4u](0.0, first_line_fraction, first_line_fraction, 1.0);
-	offset = offsets[gl_VertexID];
+	offset = offsets[local_id];
 
 	color = vec4_data.data[fixed_data.default_skycircle_element_radiance_base + element_index];
 }

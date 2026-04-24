@@ -50,8 +50,6 @@ namespace game_logic::draw
 				reinterpret_cast<const void*>(static_cast<intptr_t>(command_offset))
 			);
 		}
-		//glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::draw::entities::skycircle_elements::Indices::default_elements)]);
-		//glDrawArrays(GL_LINES, 0, 4u);
 	}
 
 	void trace_rays
