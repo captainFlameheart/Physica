@@ -35,9 +35,24 @@ namespace game_state::shader_indices
 		constexpr GLuint count{ end - base };
 	}
 
-	namespace on_events_polled
+	namespace on_mouse_button_event
 	{
 		constexpr GLuint base{ ::game_state::shader_indices::on_key_event::end };
+
+		enum struct Indices : GLuint
+		{
+			on_mouse_button_event = base,
+
+			end
+		};
+
+		constexpr GLuint end{ static_cast<GLuint>(Indices::end) };
+		constexpr GLuint count{ end - base };
+	}
+
+	namespace on_events_polled
+	{
+		constexpr GLuint base{ ::game_state::shader_indices::on_mouse_button_event::end };
 
 		enum struct Indices : GLuint
 		{
@@ -382,7 +397,12 @@ namespace game_state::shader_indices
 
 			enum struct Indices : GLuint
 			{
-				find_highlighted_hovered_leafs = base,
+				clear_hover_highlight_detector_counts = base,
+				find_highlighted_hovered_leafs,
+				commit_hover_highlight_detector_counts,
+
+				detect_rigid_body_circle_hover_highlights,
+				detect_rigid_body_triangle_hover_highlights,
 
 				end
 			};

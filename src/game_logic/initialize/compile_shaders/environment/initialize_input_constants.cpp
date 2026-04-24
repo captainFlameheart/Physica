@@ -76,6 +76,21 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uint key_last = " STRINGIFY(GLFW_KEY_LAST) ";\n"
 			
 			"const uint key_count = " STRINGIFY(GLFW_KEY_LAST + 1) ";\n"
+
+			"const uint mouse_button_1 = " STRINGIFY(GLFW_MOUSE_BUTTON_1) ";\n"
+			"const uint mouse_button_2 = " STRINGIFY(GLFW_MOUSE_BUTTON_2) ";\n"
+			"const uint mouse_button_3 = " STRINGIFY(GLFW_MOUSE_BUTTON_3) ";\n"
+			"const uint mouse_button_4 = " STRINGIFY(GLFW_MOUSE_BUTTON_4) ";\n"
+			"const uint mouse_button_5 = " STRINGIFY(GLFW_MOUSE_BUTTON_5) ";\n"
+			"const uint mouse_button_6 = " STRINGIFY(GLFW_MOUSE_BUTTON_6) ";\n"
+			"const uint mouse_button_7 = " STRINGIFY(GLFW_MOUSE_BUTTON_7) ";\n"
+			"const uint mouse_button_8 = " STRINGIFY(GLFW_MOUSE_BUTTON_8) ";\n"
+			"const uint mouse_button_last = " STRINGIFY(GLFW_MOUSE_BUTTON_LAST) ";\n"
+			"const uint mouse_button_left = " STRINGIFY(GLFW_MOUSE_BUTTON_LEFT) ";\n"
+			"const uint mouse_button_right = " STRINGIFY(GLFW_MOUSE_BUTTON_RIGHT) ";\n"
+			"const uint mouse_button_middle = " STRINGIFY(GLFW_MOUSE_BUTTON_MIDDLE) ";\n"
+
+			"const uint mouse_button_count = " STRINGIFY(GLFW_MOUSE_BUTTON_LAST + 1) ";\n"
 		);
 	}
 }

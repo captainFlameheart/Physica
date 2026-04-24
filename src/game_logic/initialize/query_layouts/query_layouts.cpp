@@ -87,6 +87,19 @@ namespace game_logic::initialize::query_layouts
 			(
 				compute_shader,
 				prefix,
+				::util::shader::file_to_string("blocks/uniform/Mouse_Button_Event")
+			);
+			GLuint program{ ::util::shader::create_program(compute_shader) };
+
+			query_mouse_button_event_layout(environment, program);
+
+			::util::shader::delete_program(program);
+		}
+		{
+			::util::shader::set_shader_statically
+			(
+				compute_shader,
+				prefix,
 				::util::shader::file_to_string("blocks/uniform/On_Events_Polled_Data")
 			);
 			GLuint program{ ::util::shader::create_program(compute_shader) };

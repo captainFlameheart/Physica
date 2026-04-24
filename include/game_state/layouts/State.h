@@ -28,6 +28,7 @@ namespace game_state::layouts
 		commands::State commands;
 
 		key_event::State key_event;
+		mouse_button_event::State mouse_button_event;
 		on_events_polled_data::State on_events_polled_data;
 
 		merge_rays_data::State merge_rays_data;

@@ -1,0 +1,21 @@
+layout(local_size_x = clear_hover_highlight_detector_counts_local_size) in;
+void main()
+{
+	uint type = gl_GlobalInvocationID.x;
+	if (type >= hover_highlighter_type_count)
+	{
+		return;
+	}
+
+	uint count = fixed_data.write_counts[hover_highlighter_type_base + type];
+
+	commands.draw_arrays_commands[detect_highlights_program_base + ].count = 
+	
+	uvec2 command_blueprint = draw_arrays_command_blueprints[command_index];
+	uint count = fixed_data.write_counts[command_blueprint.x];
+
+	uint flag = fixed_data.draw_arrays_command_flags[command_index];
+	count *= (flag >> draw_arrays_command_enabled_shift) & 1u;
+
+	commands.draw_arrays_commands[command_index].count = count * command_blueprint.y;
+}

@@ -26,6 +26,7 @@
 #include "compile_migrate_inner_bounding_boxes.h"
 #include "compile_on_events_polled.h"
 #include "compile_on_key_event.h"
+#include "compile_on_mouse_button_event.h"
 #include "compile_on_tick_constraints.h"
 #include "compile_on_update_tick_counts.h"
 #include "compile_perform_bounding_box_contact_detector_compaction.h"

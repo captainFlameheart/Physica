@@ -242,4 +242,5 @@ FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 	uint draw_arrays_command_flags[draw_arrays_program_count];	// TODO: Remove?
 
 	uint key_state[(key_count + uint_bits - 1u) >> uint_bits_shift];
+	uint mouse_button_state[(mouse_button_count + uint_bits - 1u) >> uint_bits_shift];
 } fixed_data;

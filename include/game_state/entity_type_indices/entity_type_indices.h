@@ -87,7 +87,23 @@ namespace game_state::entity_type_indices
 		constexpr GLuint count{ end - base };
 	}
 
-	constexpr GLuint end{ static_cast<GLuint>(constraints::end) };
+	namespace hover_highlighters
+	{
+		constexpr GLuint base{ ::game_state::entity_type_indices::constraints::end };
+
+		enum struct Indices : GLuint
+		{
+			rigid_body_triangle_hover_constraint = base,
+			rigid_body_circle_hover_highlighter,
+
+			end
+		};
+
+		constexpr GLuint end{ static_cast<GLuint>(Indices::end) };
+		constexpr GLuint count{ end - base };
+	}
+
+	constexpr GLuint end{ static_cast<GLuint>(hover_highlighters::end) };
 	constexpr GLuint count{ end - base };
 
 	constexpr std::array<std::string_view, count> initialize_names()

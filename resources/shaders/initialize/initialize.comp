@@ -619,5 +619,11 @@ void main()
 
 	uint bounding_volume_hierarchy_height = inner_bounding_box_index - 1u;
 
+	for (uint hover_highlighter_type = hover_highlighter_type_base; hover_highlighter_type < hover_highlighter_type_base + hover_highlighter_type_count; ++hover_highlighter_type)
+	{
+		fixed_data.read_counts[hover_highlighter_type] = 0u;
+		fixed_data.write_counts[hover_highlighter_type] = 0u;
+	}
+
 	fixed_data.temp = 0u;
 }

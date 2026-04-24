@@ -1,0 +1,5 @@
+layout(shared, binding = private_input_binding)
+uniform Mouse_Button_Event
+{
+	ivec4 button_action_mods;
+} mouse_button_event;

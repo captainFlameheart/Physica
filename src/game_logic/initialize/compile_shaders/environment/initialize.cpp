@@ -406,6 +406,8 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uint constraint_spawner_type_count = " + std::to_string(game_state::entity_type_indices::constraint_spawners::count) + ";\n"
 			"const uint constraint_type_base = " + std::to_string(game_state::entity_type_indices::constraints::base) + ";\n"
 			"const uint constraint_type_count = " + std::to_string(game_state::entity_type_indices::constraints::count) + ";\n"
+			"const uint hover_highlighter_type_base = " + std::to_string(game_state::entity_type_indices::hover_highlighters::base) + ";\n"
+			"const uint hover_highlighter_type_count = " + std::to_string(game_state::entity_type_indices::hover_highlighters::count) + ";\n"
 
 			"const uint leaf_bounding_box_type_count = " + std::to_string(game_state::leaf_bounding_box_types::count) + ";\n"
 

@@ -7,6 +7,7 @@
 #include "game_logic/initialize/include.h"
 #include "game_logic/on_framebuffer_size_changed/include.h"
 #include "game_logic/on_key_event/include.h"
+#include "game_logic/on_mouse_button_event/include.h"
 #include "game_logic/on_events_polled/include.h"
 #include "game_logic/tick/include.h"
 #include "game_logic/draw/draw.h"
@@ -102,6 +103,7 @@ namespace game_logic
 			mods
 		);
 #else
+		on_mouse_button_event::on_mouse_button_event(environment, button, action, mods);
 #endif
 	}
 
