@@ -52,7 +52,7 @@ const ivec4 default_skycircle_element_end_points_velocity_flags[default_skycircl
 
 const vec4 default_skycircle_element_radiance[default_skycircle_element_capacity] = vec4[default_skycircle_element_capacity]
 (
-	vec4(1.0, 1.0, 0.9, 0.0)
+	vec4(1.0, 1.0, 0.9, 0.0) * 2.0
 );
 
 void initialize_cursor_icons()
@@ -558,10 +558,8 @@ void main()
 		(
 			default_skycircle_element_end_points_velocity_flags[default_skycircle_element_index]
 		);
-		uvec4_data.data[default_skycircle_element_radiance_base + default_skycircle_element_index] = uvec4
-		(
-			default_skycircle_element_radiance[default_skycircle_element_index]
-		);
+		vec4_data.data[default_skycircle_element_radiance_base + default_skycircle_element_index] =
+			default_skycircle_element_radiance[default_skycircle_element_index];
 	}
 
 	uint point_mass_distance_constraint_base_index = 0u;
