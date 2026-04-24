@@ -512,7 +512,22 @@ namespace game_state::shader_indices
 				constexpr GLuint count{ end - base };
 			}
 
-			constexpr GLuint end{ bounding_volume_hierarchy::end };
+			namespace skycircle_elements
+			{
+				constexpr GLuint base{ ::game_state::shader_indices::draw::entities::bounding_volume_hierarchy::end };
+
+				enum struct Indices : GLuint
+				{
+					default_elements = base,
+
+					end
+				};
+
+				constexpr GLuint end{ static_cast<GLuint>(Indices::end) };
+				constexpr GLuint count{ end - base };
+			}
+
+			constexpr GLuint end{ skycircle_elements::end };
 			constexpr GLuint count{ end - base };
 		}
 

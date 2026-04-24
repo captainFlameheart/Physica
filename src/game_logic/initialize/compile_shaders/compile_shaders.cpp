@@ -82,6 +82,8 @@ namespace game_logic::initialize::compile_shaders
 
 		compile_draw_cursor(environment, compile_environment);
 
+		compile_draw_default_skycircle_elements(environment, compile_environment);
+
 		compile_draw_source_image_layer(environment, compile_environment);
 		compile_draw_skycircle_ring(environment, compile_environment);
 		compile_holographic_radiance_cascades_shaders(environment, compile_environment);

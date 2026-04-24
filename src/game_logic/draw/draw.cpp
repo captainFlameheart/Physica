@@ -13,7 +13,7 @@ namespace game_logic::draw
 		// VERY IMPORTANT TODO: Adapt drawBuffers based on which layers are actually used for each shader!
 		// The unlit layer is often not used!!!
 
-		for (GLuint draw_entities_shader_index{ ::game_state::shader_indices::draw::entities::base }; draw_entities_shader_index < ::game_state::shader_indices::draw::entities::end; ++draw_entities_shader_index)
+		for (GLuint draw_entities_shader_index{ ::game_state::shader_indices::draw::entities::base }; draw_entities_shader_index < ::game_state::shader_indices::draw::entities::skycircle_elements::base; ++draw_entities_shader_index)
 		{
 			glUseProgram(environment.state.shaders[draw_entities_shader_index]);
 			GLuint index_in_draw_entities_shader_array{ draw_entities_shader_index - ::game_state::shader_indices::draw::entities::base };
@@ -35,6 +35,8 @@ namespace game_logic::draw
 
 	void draw_skycircle(game_environment::Environment& environment)
 	{
+		glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::draw::entities::skycircle_elements::Indices::default_elements)]);
+		glDrawArrays(GL_LINES, 0, 4u);
 	}
 
 	void trace_rays
@@ -374,6 +376,7 @@ namespace game_logic::draw
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, environment.state.holographic_radiance_cascades.skycircle_framebuffer);
 		GLfloat clear_color[4u]{ 0.0f, 0.0f, 0.0f, 0.0f };
 		glClearTexImage(environment.state.holographic_radiance_cascades.skycircle_texture, 0, GL_RGBA, GL_FLOAT, clear_color);
+		glViewport(0, 0, environment.state.holographic_radiance_cascades.skycircle_length, 1u);
 		draw_skycircle(environment);
 
 		if (environment.state.holographic_radiance_cascades.enabled)
