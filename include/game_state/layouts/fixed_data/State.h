@@ -123,6 +123,11 @@ namespace game_state::layouts::fixed_data
 		GLint offset;
 	};
 
+	struct bounding_box_contact_detector_indices_source_pad_base
+	{
+		GLint offset;
+	};
+
 	struct rigid_body_circle_contact_constraint_spawner_indices_flags_base
 	{
 		GLint offset;
@@ -489,6 +494,11 @@ namespace game_state::layouts::fixed_data
 			GLint current_inner_bounding_box_height_count_properties[sizeof(current_inner_bounding_box_height_count) / sizeof(GLint)];
 		};
 
+		union
+		{
+			bounding_box_contact_detector_indices_source_pad_base bounding_box_contact_detector_indices_source_pad_base_state;
+			GLint bounding_box_contact_detector_indices_source_pad_base_properties[sizeof(bounding_box_contact_detector_indices_source_pad_base) / sizeof(GLint)];
+		};
 		union
 		{
 			rigid_body_circle_contact_constraint_spawner_indices_flags_base rigid_body_circle_contact_constraint_spawner_indices_flags_base_state;

@@ -94,6 +94,11 @@ namespace game_logic::initialize::query_layouts
 			program, "Fixed_Data.current_inner_bounding_box_height_count",
 			environment.state.layouts.fixed_data.current_inner_bounding_box_height_count_properties
 		);
+		::game_logic::shader_util::query::query_shader_storage_variable_offset
+		(
+			program, "Fixed_Data.bounding_box_contact_detector_indices_source_pad_base",
+			environment.state.layouts.fixed_data.bounding_box_contact_detector_indices_source_pad_base_properties
+		);
 
 		::game_logic::shader_util::query::query_shader_storage_variable_offset
 		(

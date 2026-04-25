@@ -40,12 +40,24 @@ namespace game_logic::debug
 		{
 			static_cast<GLuint>(::game_state::entity_type_indices::bounding_volume_hierarchy::Indices::inner_bounding_box)
 		};
+		constexpr GLuint bounding_box_contact_detector_type
+		{
+			static_cast<GLuint>(::game_state::entity_type_indices::constraint_spawners::Indices::bounding_box_contact_detector)
+		};
 
 		GLuint point_mass_inverse_mass_base;
 		std::memcpy
 		(
 			&point_mass_inverse_mass_base,
 			fixed_data + environment.state.layouts.fixed_data.point_mass_inverse_mass_base_state.offset,
+			sizeof(GLuint)
+		);
+
+		GLuint bounding_box_contact_detector_indices_source_pad_base;
+		std::memcpy
+		(
+			&bounding_box_contact_detector_indices_source_pad_base,
+			fixed_data + environment.state.layouts.fixed_data.bounding_box_contact_detector_indices_source_pad_base_state.offset,
 			sizeof(GLuint)
 		);
 
@@ -64,6 +76,16 @@ namespace game_logic::debug
 			fixed_data +
 			environment.state.layouts.fixed_data.capacities_state.offset +
 			rigid_body_circle_type * environment.state.layouts.fixed_data.capacities_state.array_stride,
+			sizeof(GLuint)
+		);
+
+		GLuint bounding_box_contact_detector_capacity;
+		std::memcpy
+		(
+			&bounding_box_contact_detector_capacity,
+			fixed_data +
+			environment.state.layouts.fixed_data.capacities_state.offset +
+			bounding_box_contact_detector_type * environment.state.layouts.fixed_data.capacities_state.array_stride,
 			sizeof(GLuint)
 		);
 
@@ -541,6 +563,55 @@ namespace game_logic::debug
 		delete[] inner_bounding_box_parent_children_heights;
 		delete[] inner_bounding_boxes;
 		delete[] inner_bounding_box_height_delimiters;
+
+		GLuint bounding_box_contact_detector_indices_source_pads_size{ bounding_box_contact_detector_capacity * sizeof(GLuint[4u]) };
+		GLubyte* bounding_box_contact_detector_indices_source_pads = new GLubyte[bounding_box_contact_detector_indices_source_pads_size];
+		glGetNamedBufferSubData
+		(
+			environment.state.buffers.GPU_only.buffers[environment.state.buffers.GPU_only.current],
+			environment.state.layouts.uvec4_data.state.offset + bounding_box_contact_detector_indices_source_pad_base * environment.state.layouts.uvec4_data.state.array_stride,
+			bounding_box_contact_detector_indices_source_pads_size,
+			bounding_box_contact_detector_indices_source_pads
+		);
+
+		GLuint bounding_box_contact_detector_read_count;
+		std::memcpy
+		(
+			&bounding_box_contact_detector_read_count,
+			fixed_data +
+			environment.state.layouts.fixed_data.read_counts_state.offset +
+			bounding_box_contact_detector_type * environment.state.layouts.fixed_data.read_counts_state.array_stride,
+			sizeof(GLuint)
+		);
+		GLuint bounding_box_contact_detector_write_count;
+		std::memcpy
+		(
+			&bounding_box_contact_detector_write_count,
+			fixed_data +
+			environment.state.layouts.fixed_data.write_counts_state.offset +
+			bounding_box_contact_detector_type * environment.state.layouts.fixed_data.write_counts_state.array_stride,
+			sizeof(GLuint)
+		);
+
+		std::cout << "Contact detectors:\n";
+		for (GLuint bounding_box_contact_detector{ 0u }; bounding_box_contact_detector < bounding_box_contact_detector_write_count; ++bounding_box_contact_detector)
+		{
+			GLuint bounding_box_contact_detector_indices_source_pad[4u];
+			std::memcpy
+			(
+				&bounding_box_contact_detector_indices_source_pad,
+				bounding_box_contact_detector_indices_source_pads + bounding_box_contact_detector * environment.state.layouts.uvec4_data.state.array_stride,
+				sizeof(GLuint[4u])
+			);
+			std::cout << bounding_box_contact_detector << ": indices_source_pad: ("
+				<< bounding_box_contact_detector_indices_source_pad[0u] << ", "
+				<< bounding_box_contact_detector_indices_source_pad[1u] << ", "
+				<< bounding_box_contact_detector_indices_source_pad[2u] << ", "
+				<< bounding_box_contact_detector_indices_source_pad[3u] << ")\n";
+		}
+		std::cout << '\n';
+
+		delete[] bounding_box_contact_detector_indices_source_pads;
 
 		GLuint temp;
 		std::memcpy
