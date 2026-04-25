@@ -220,14 +220,51 @@ void main()
 
 	uint bounding_box_base = fixed_data.inner_bounding_box_base;
 	uint bounding_box_parent_children_height_base = fixed_data.inner_bounding_box_parent_children_height_base;
+	uint bounding_box_split_indices_base = fixed_data.inner_bounding_box_split_indices_base;
 
-	tick_detector
-	(
-		index,
-		indices_source_pad_base,
-		bounding_box_base,
-		bounding_box_parent_children_height_base,
-		indices_source_pad_index,
-		indices_source_pad
-	);
+	//	If left is split:
+	//		
+
+	// Initially assume that neither box was split, which is the typical case.
+	uint detector_count = 1u;
+
+	uint index_array[4u];
+	index_array[0u] = index;
+	
+	uint indices_source_pad_index_array[4u];
+	indices_source_pad_index_array[0u] = indices_source_pad_index;
+	
+	uvec4 indices_source_pad_array[4u];
+	indices_source_pad_array[0u] = indices_source_pad;
+
+	uint split_indices_index_0 = bounding_box_split_indices_base + indices_source_pad.x;
+	uint split_indices_index_1 = bounding_box_split_indices_base + indices_source_pad.y;
+
+	uvec2 split_indices_0 = uvec2_data.data[split_indices_index_0];
+	uvec2 split_indices_1 = uvec2_data.data[split_indices_index_1];
+
+	bvec2 is_split = bvec2(split_indices_0.x != null_uint, split_indices_1.x != null_uint);
+
+	if (all(is_split))
+	{	// Case whose probability approaches zero as the time step size approaches zero.
+	}
+	else if (is_split[0u])
+	{	// Atypical case.
+	}
+	else if (is_split[1u])
+	{	// Atypical case.
+	}
+
+	for (uint detector = 0u; detector < detector_count; ++detector)
+	{
+		tick_detector
+		(
+			index_array[detector],
+			indices_source_pad_base,
+			bounding_box_base,
+			bounding_box_parent_children_height_base,
+			indices_source_pad_index_array[detector],
+			indices_source_pad_array[detector]
+		);
+	}
 }
