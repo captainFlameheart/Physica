@@ -25,36 +25,16 @@ bool bounding_boxes_are_separated(in ivec4 bounding_box_0, in ivec4 bounding_box
 	);
 }
 
-layout(local_size_x = tick_bounding_box_contact_detectors_local_size) in;
-void main()
+void tick_detector
+(
+	in uint index,
+	in uint indices_source_pad_base,
+	in uint bounding_box_base,
+	in uint bounding_box_parent_children_height_base,
+	in uint indices_source_pad_index,
+	in uvec4 indices_source_pad
+)
 {
-	//	1. If boxes overlap:
-	//		2. Split biggest box.
-	//		3. Create new contact detectors and repeat step 1 for each of these contact detectors.
-	//	4. Else:
-	//		5. If the parent to either of the two nodes do not overlap the other node:
-	//			6. Pick the smallest such parent.
-	//				7. If holds left child of parent.
-	//					8. Repoint the pointer from the left child to the parent.
-	//				9. Else:
-	//					10. Kill me.
-
-	uint index = gl_GlobalInvocationID.x;
-	uint count = fixed_data.read_counts[bounding_box_contact_detector_type];
-	if (index >= count)
-	{
-		return;
-	}
-	
-	uint indices_source_pad_base = fixed_data.bounding_box_contact_detector_indices_source_pad_base;
-
-	uint indices_source_pad_index = indices_source_pad_base + index;
-
-	uvec4 indices_source_pad = uvec4_data.data[indices_source_pad_index];
-
-	uint bounding_box_base = fixed_data.inner_bounding_box_base;
-	uint bounding_box_parent_children_height_base = fixed_data.inner_bounding_box_parent_children_height_base;
-
 	uint bounding_box_index_0 = bounding_box_base + indices_source_pad.x;
 	uint bounding_box_index_1 = bounding_box_base + indices_source_pad.y;
 
@@ -209,4 +189,45 @@ void main()
 
 		uvec4_data.data[indices_source_pad_index] = indices_source_pad;
 	}
+}
+
+layout(local_size_x = tick_bounding_box_contact_detectors_local_size) in;
+void main()
+{
+	//	1. If boxes overlap:
+	//		2. Split biggest box.
+	//		3. Create new contact detectors and repeat step 1 for each of these contact detectors.
+	//	4. Else:
+	//		5. If the parent to either of the two nodes do not overlap the other node:
+	//			6. Pick the smallest such parent.
+	//				7. If holds left child of parent.
+	//					8. Repoint the pointer from the left child to the parent.
+	//				9. Else:
+	//					10. Kill me.
+
+	uint index = gl_GlobalInvocationID.x;
+	uint count = fixed_data.read_counts[bounding_box_contact_detector_type];
+	if (index >= count)
+	{
+		return;
+	}
+	
+	uint indices_source_pad_base = fixed_data.bounding_box_contact_detector_indices_source_pad_base;
+
+	uint indices_source_pad_index = indices_source_pad_base + index;
+
+	uvec4 indices_source_pad = uvec4_data.data[indices_source_pad_index];
+
+	uint bounding_box_base = fixed_data.inner_bounding_box_base;
+	uint bounding_box_parent_children_height_base = fixed_data.inner_bounding_box_parent_children_height_base;
+
+	tick_detector
+	(
+		index,
+		indices_source_pad_base,
+		bounding_box_base,
+		bounding_box_parent_children_height_base,
+		indices_source_pad_index,
+		indices_source_pad
+	);
 }
