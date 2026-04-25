@@ -222,9 +222,6 @@ void main()
 	uint bounding_box_parent_children_height_base = fixed_data.inner_bounding_box_parent_children_height_base;
 	uint bounding_box_split_indices_base = fixed_data.inner_bounding_box_split_indices_base;
 
-	//	If left is split:
-	//		
-
 	// Initially assume that neither box was split, which is the typical case.
 	uint detector_count = 1u;
 
@@ -293,14 +290,14 @@ void main()
 	}
 	else if (any(is_split))
 	{	// Atypical case.
-		uint second_index = atomicAdd(fixed_data.write_counts[bounding_box_contact_detector_type], 1u);
+		/*uint second_index = atomicAdd(fixed_data.write_counts[bounding_box_contact_detector_type], 1u);
 		if (second_index >= fixed_data.capacities[bounding_box_contact_detector_type])
 		{
 			// MUST TODO: Increase capacity and retry shader.
 			atomicAdd(fixed_data.write_counts[bounding_box_contact_detector_type], minus_1_uint);
 			return;
 		}
-
+		 
 		uint split_side = uint(is_split[1u]);
 		uint unsplit_side = split_side ^ 1u;
 		uvec2 split_indices = split_indices_array[split_side];
@@ -315,7 +312,7 @@ void main()
 		indices_source_pad_index_array[1u] = second_indices_source_pad_index;
 		uvec4 second_indices_source_pad = uvec4(split_indices.y, indices_source_pad[unsplit_side], 0u, 0u);
 		indices_source_pad_array[1u] = second_indices_source_pad;
-		uvec4_data.data[second_indices_source_pad_index] = second_indices_source_pad;
+		uvec4_data.data[second_indices_source_pad_index] = second_indices_source_pad;*/
 	}
 
 	for (uint detector = 0u; detector < detector_count; ++detector)

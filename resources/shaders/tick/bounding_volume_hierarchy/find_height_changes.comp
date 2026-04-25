@@ -19,7 +19,7 @@ void main()
 	uint old_height_index = old_height_base + index;
 
 	uvec4 parent_children_height = uvec4_data.data[parent_children_height_index];
-	uvec2_data.data[split_indices_index] = uvec2(null_uint);
+	uvec2_data.data[split_indices_index] = uvec2(null_uint, null_uint);
 	uint old_height = uint_data.data[old_height_index];
 
 	if (parent_children_height.w != old_height)
