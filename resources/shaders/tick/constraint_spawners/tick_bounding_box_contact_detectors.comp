@@ -231,26 +231,66 @@ void main()
 	uint index_array[4u];
 	index_array[0u] = index;
 	
-	uint indices_source_pad_index_array[4u];
+	uint indices_source_pad_index_array[4u];	// IMPORTANT TODO: Consider not storing this, and instead computing such indices on demand.
 	indices_source_pad_index_array[0u] = indices_source_pad_index;
 	
 	uvec4 indices_source_pad_array[4u];
 	indices_source_pad_array[0u] = indices_source_pad;
 
-	uint split_indices_index_0 = bounding_box_split_indices_base + indices_source_pad.x;
-	uint split_indices_index_1 = bounding_box_split_indices_base + indices_source_pad.y;
+	bvec2 is_split = bvec2(false, false);
+	uvec2 split_indices_array[2u];
 
-	uvec2 split_indices_array[2u] = uvec2[2u]
-	(
-		uvec2_data.data[split_indices_index_0],
-		uvec2_data.data[split_indices_index_1]
-	);
-
-	bvec2 is_split = bvec2(split_indices_array[0u].x != null_uint, split_indices_array[1u].x != null_uint);
+	if (int(indices_source_pad.x) >= 0)
+	{
+		split_indices_array[0u] = uvec2_data.data[bounding_box_split_indices_base + indices_source_pad.x];
+		is_split[0u] = (split_indices_array[0u].x != null_uint);
+	}
+	if (int(indices_source_pad.y) >= 0)
+	{
+		split_indices_array[1u] = uvec2_data.data[bounding_box_split_indices_base + indices_source_pad.y];
+		is_split[1u] = (split_indices_array[1u].x != null_uint);
+	}
 
 	if (all(is_split))
 	{	// Case whose probability approaches zero as the time step size approaches zero.
-	}	
+		uint second_index = atomicAdd(fixed_data.write_counts[bounding_box_contact_detector_type], 3u);
+		uint third_index = second_index + 1u;
+		uint fourth_index = second_index + 2u;
+		if (fourth_index >= fixed_data.capacities[bounding_box_contact_detector_type])
+		{
+			// MUST TODO: Increase capacity and retry shader.
+			atomicAdd(fixed_data.write_counts[bounding_box_contact_detector_type], minus_3_uint);
+			return;
+		}
+
+		detector_count = 4u;
+
+		indices_source_pad.x = split_indices_array[0u].x;
+		indices_source_pad.y = split_indices_array[1u].x;
+		indices_source_pad_array[0u] = indices_source_pad;
+		uvec4_data.data[indices_source_pad_index] = indices_source_pad;
+
+		index_array[1u] = second_index;
+		uint second_indices_source_pad_index = indices_source_pad_base + second_index;
+		indices_source_pad_index_array[1u] = second_indices_source_pad_index;
+		uvec4 second_indices_source_pad = uvec4(split_indices_array[0u].x, split_indices_array[1u].y, 0u, 0u);
+		indices_source_pad_array[1u] = second_indices_source_pad;
+		uvec4_data.data[second_indices_source_pad_index] = second_indices_source_pad;
+
+		index_array[2u] = third_index;
+		uint third_indices_source_pad_index = indices_source_pad_base + third_index;
+		indices_source_pad_index_array[2u] = third_indices_source_pad_index;
+		uvec4 third_indices_source_pad = uvec4(split_indices_array[0u].y, split_indices_array[1u].x, 0u, 0u);
+		indices_source_pad_array[2u] = third_indices_source_pad;
+		uvec4_data.data[third_indices_source_pad_index] = third_indices_source_pad;
+
+		index_array[3u] = fourth_index;
+		uint fourth_indices_source_pad_index = indices_source_pad_base + fourth_index;
+		indices_source_pad_index_array[3u] = fourth_indices_source_pad_index;
+		uvec4 fourth_indices_source_pad = uvec4(split_indices_array[0u].y, split_indices_array[1u].y, 0u, 0u);
+		indices_source_pad_array[3u] = fourth_indices_source_pad;
+		uvec4_data.data[fourth_indices_source_pad_index] = fourth_indices_source_pad;
+	}
 	else if (any(is_split))
 	{	// Atypical case.
 		uint second_index = atomicAdd(fixed_data.write_counts[bounding_box_contact_detector_type], 1u);

@@ -8,6 +8,8 @@ const uint null_uint = minus_1_uint;
 const uint decrement_uint = minus_1_uint;
 const uint max_uint = 0xFFFFFFFF;
 
+const uint minus_3_uint = uint(-3);
+
 const uint uint_size_shift = 2u;
 const uint uint_size = 1u << uint_size_shift;
 
