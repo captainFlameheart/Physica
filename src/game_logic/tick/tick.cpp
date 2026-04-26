@@ -55,8 +55,6 @@ namespace game_logic::tick
 					index_in_tick_entities_shader_array * environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.top_level_array_stride
 				};
 				glDispatchComputeIndirect(command_offset);
-
-				glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 			}
 
 			for (GLuint tick_skycircle_elements_shader_index{ ::game_state::shader_indices::tick::process_entities::skycircle_elements::base }; tick_skycircle_elements_shader_index < ::game_state::shader_indices::tick::process_entities::skycircle_elements::end; ++tick_skycircle_elements_shader_index)
@@ -70,6 +68,8 @@ namespace game_logic::tick
 				};
 				glDispatchComputeIndirect(static_cast<GLintptr>(command_offset));
 			}
+
+			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);	// IMPORTANT TODO: Is this needed?
 
 			GLenum fence_status{ glClientWaitSync(bounding_volume_hierarchy_fence, GL_SYNC_FLUSH_COMMANDS_BIT, 0u) };
 			while (fence_status != GL_ALREADY_SIGNALED && fence_status != GL_CONDITION_SATISFIED)
@@ -142,25 +142,6 @@ namespace game_logic::tick
 			}
 
 			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-
-			glUseProgram
-			(
-				environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::swap_leaf_bounding_box_buffers::Indices::swap_leaf_bounding_box_buffers)]
-			);
-			constexpr GLuint leaf_bounding_box_type_count{ ::game_state::leaf_bounding_box_types::count };
-			constexpr GLuint swap_leaf_bounding_box_buffers_local_size
-			{
-				::game_state::local_sizes::process_entities_local_sizes
-				[
-					static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::swap_leaf_bounding_box_buffers::Indices::swap_leaf_bounding_box_buffers)
-					- static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::base)
-				]
-			};
-			constexpr GLuint swap_leaf_bounding_box_buffers_work_group_count
-			{
-				(leaf_bounding_box_type_count + swap_leaf_bounding_box_buffers_local_size - 1u) / swap_leaf_bounding_box_buffers_local_size
-			};
-			glDispatchCompute(swap_leaf_bounding_box_buffers_work_group_count, 1u, 1u);
 
 			glUseProgram
 			(
