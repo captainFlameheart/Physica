@@ -630,7 +630,12 @@ void main()
 
 	for (uint entity_type = 0u; entity_type < entity_type_count; ++entity_type)
 	{
-		if (entity_type != rigid_body_circle_contact_constraint_spawner_type_index && entity_type != rigid_body_circle_contact_constraint_type_index)
+		if
+		(
+			entity_type != bounding_box_contact_detector_type &&
+			entity_type != rigid_body_circle_contact_constraint_spawner_type_index &&
+			entity_type != rigid_body_circle_contact_constraint_type_index
+		)
 		{
 			continue;
 		}

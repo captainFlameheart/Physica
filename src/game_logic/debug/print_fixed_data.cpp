@@ -60,6 +60,14 @@ namespace game_logic::debug
 			fixed_data + environment.state.layouts.fixed_data.bounding_box_contact_detector_indices_source_pad_base_state.offset,
 			sizeof(GLuint)
 		);
+		GLuint bounding_box_contact_detector_old_death_index_base;
+		std::memcpy
+		(
+			&bounding_box_contact_detector_old_death_index_base,
+			fixed_data + environment.state.layouts.fixed_data.old_death_index_bases_state.offset +
+			bounding_box_contact_detector_type * environment.state.layouts.fixed_data.old_death_index_bases_state.array_stride,
+			sizeof(GLuint)
+		);
 
 		GLuint point_mass_distance_constraint_flags_target_distance_base;
 		std::memcpy
@@ -574,6 +582,16 @@ namespace game_logic::debug
 			bounding_box_contact_detector_indices_source_pads
 		);
 
+		GLuint bounding_box_contact_detector_old_death_indices_size{ bounding_box_contact_detector_capacity * sizeof(GLuint) };
+		GLubyte* bounding_box_contact_detector_old_death_indices = new GLubyte[bounding_box_contact_detector_old_death_indices_size];
+		glGetNamedBufferSubData
+		(
+			environment.state.buffers.GPU_only.buffers[environment.state.buffers.GPU_only.current],
+			environment.state.layouts.uint_data.state.offset + bounding_box_contact_detector_old_death_index_base * environment.state.layouts.uint_data.state.array_stride,
+			bounding_box_contact_detector_old_death_indices_size,
+			bounding_box_contact_detector_old_death_indices
+		);
+
 		GLuint bounding_box_contact_detector_read_count;
 		std::memcpy
 		(
@@ -608,10 +626,20 @@ namespace game_logic::debug
 				<< bounding_box_contact_detector_indices_source_pad[1u] << ", "
 				<< bounding_box_contact_detector_indices_source_pad[2u] << ", "
 				<< bounding_box_contact_detector_indices_source_pad[3u] << ")\n";
+
+			GLuint old_death_index;
+			std::memcpy
+			(
+				&old_death_index,
+				bounding_box_contact_detector_old_death_indices + bounding_box_contact_detector * environment.state.layouts.uint_data.state.array_stride,
+				sizeof(GLuint)
+			);
+			std::cout << bounding_box_contact_detector << ": old_death_index: (" << old_death_index << ")\n";
 		}
 		std::cout << '\n';
 
 		delete[] bounding_box_contact_detector_indices_source_pads;
+		delete[] bounding_box_contact_detector_old_death_indices;
 
 		GLuint temp;
 		std::memcpy
