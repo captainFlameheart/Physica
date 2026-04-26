@@ -8,6 +8,8 @@ namespace game_logic::initialize
 {
 	void initialize(game_environment::Environment& environment)
 	{
+		environment.state.debug_flag = 0u;
+
 		glfw::initialize(environment);
 
 		glCreateVertexArrays(1u, &environment.state.vertex_array);

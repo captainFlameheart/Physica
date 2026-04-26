@@ -1,8 +1,6 @@
 layout(local_size_x = perform_bounding_box_contact_detector_compaction_local_size) in;
 void main()
 {
-	atomicAdd(fixed_data.temp, fixed_data.old_kill_counts[bounding_box_contact_detector_type]);	// MUST TODO: REMOVE!!!
-
 	uint killed;
 	uint source;
 

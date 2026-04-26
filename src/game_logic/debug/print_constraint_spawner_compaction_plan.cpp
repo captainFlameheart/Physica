@@ -4,7 +4,8 @@ namespace game_logic::debug
 {
 	void print_constraint_spawner_compaction_plan(game_environment::Environment& environment)
 	{
-		glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
+		glMemoryBarrier(GL_ALL_BARRIER_BITS);
+		//glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
 
 		GLubyte* fixed_data = new GLubyte[environment.state.layouts.fixed_data.block_state.buffer_data_size];
 		glGetNamedBufferSubData
@@ -118,10 +119,16 @@ namespace game_logic::debug
 			sizeof(GLuint)
 		);
 
-		std::cout << "temp: " << temp << '\n';
-		std::cout << "rigid_body_circle_contact_constraint_spawner_old_write_count: " << rigid_body_circle_contact_constraint_spawner_old_write_count << '\n';
-		std::cout << "rigid_body_circle_contact_constraint_spawner_write_count: " << rigid_body_circle_contact_constraint_spawner_write_count << '\n';
-		std::cout << '\n';
+		std::cout << "temp: " << temp << std::endl;
+		if (temp == 1u)
+		{
+			environment.state.debug_flag = 1u;
+			std::cout << "Breakpoint" << std::endl;
+		}
+		//std::cout << "rigid_body_circle_contact_constraint_spawner_old_write_count: " << rigid_body_circle_contact_constraint_spawner_old_write_count << '\n';
+		//std::cout << "rigid_body_circle_contact_constraint_spawner_write_count: " << rigid_body_circle_contact_constraint_spawner_write_count << '\n';
+		//std::cout << '\n';
+		return;
 
 		if (rigid_body_circle_contact_constraint_spawner_old_kill_count != 0u)
 		{

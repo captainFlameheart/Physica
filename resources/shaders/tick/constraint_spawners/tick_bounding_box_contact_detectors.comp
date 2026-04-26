@@ -158,6 +158,9 @@ void tick_detector
 			if (indices_source_pad[collapse_side] == collapse_parent_parent_children_height.z)	// Is the detector holding the right child of the collapsed node?
 			{	// Die.
 				// TODO: Make into reusable function/macro.
+				
+				atomicAdd(fixed_data.temp, index);	// MUST TODO: REMOVE!!!
+
 				uint death_index = atomicAdd(fixed_data.kill_counts[bounding_box_contact_detector_type], 1u);
 				uint death_index_base = fixed_data.death_index_bases[bounding_box_contact_detector_type];
 				uint_data.data[death_index_base + index] = death_index;

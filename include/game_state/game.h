@@ -11,6 +11,8 @@ namespace game_state
 {
 	struct Game
 	{
+		GLuint debug_flag;
+
 		bool is_debugging;
 		bool tick_paused;
 
