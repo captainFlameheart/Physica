@@ -158,9 +158,6 @@ void tick_detector
 			if (indices_source_pad[collapse_side] == collapse_parent_parent_children_height.z)	// Is the detector holding the right child of the collapsed node?
 			{	// Die.
 				// TODO: Make into reusable function/macro.
-				
-				atomicAdd(fixed_data.temp, index);	// MUST TODO: REMOVE!!!
-
 				uint death_index = atomicAdd(fixed_data.kill_counts[bounding_box_contact_detector_type], 1u);
 				uint death_index_base = fixed_data.death_index_bases[bounding_box_contact_detector_type];
 				uint_data.data[death_index_base + index] = death_index;
@@ -197,17 +194,6 @@ void tick_detector
 layout(local_size_x = tick_bounding_box_contact_detectors_local_size) in;
 void main()
 {
-	//	1. If boxes overlap:
-	//		2. Split biggest box.
-	//		3. Create new contact detectors and repeat step 1 for each of these contact detectors.
-	//	4. Else:
-	//		5. If the parent to either of the two nodes do not overlap the other node:
-	//			6. Pick the smallest such parent.
-	//				7. If holds left child of parent.
-	//					8. Repoint the pointer from the left child to the parent.
-	//				9. Else:
-	//					10. Kill me.
-
 	uint index = gl_GlobalInvocationID.x;
 	uint count = fixed_data.read_counts[bounding_box_contact_detector_type];
 	if (index >= count)
