@@ -117,6 +117,10 @@ namespace game_runner
 				game_environment.ticks_this_frame < max_ticks_per_frame
 			)
 			{
+				if (game_environment.ticks_this_frame > 0u)
+				{
+					game_logic::_between_ticks(game_environment);
+				}
 				game_logic::_tick(game_environment);
 				glfwSetTime(glfwGetTime() - static_cast<double>(::game_state::units::time_unit_in_seconds));
 				++game_environment.ticks_this_frame;

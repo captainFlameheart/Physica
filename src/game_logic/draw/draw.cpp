@@ -367,9 +367,11 @@ namespace game_logic::draw
 
 	void draw(game_environment::Environment& environment)
 	{
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_UNIFORM_BARRIER_BIT);
+
 		//glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::draw::highlight_hovered_objects::Indices::find_highlighted_hovered_leafs)]);
 		//glDispatchCompute(1u, 1u, 1u);
-
+		
 		glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::draw::update_counts::Indices::update_counts)]);
 		constexpr GLuint draw_entities_shader_count{ ::game_state::shader_indices::draw::entities::count };
 		constexpr GLuint update_draw_count_local_size{ ::game_state::local_sizes::update_draw_counts_local_size };

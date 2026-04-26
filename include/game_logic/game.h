@@ -45,6 +45,8 @@ namespace game_logic
 
 	void _tick(game_environment::Environment& environment);
 
+	void _between_ticks(game_environment::Environment& environment);
+
 	void _draw(game_environment::Environment& environment);
 
 	void _free(game_environment::Environment& environment);

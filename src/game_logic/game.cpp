@@ -11,6 +11,7 @@
 #include "game_logic/on_scroll_event/include.h"
 #include "game_logic/on_events_polled/include.h"
 #include "game_logic/tick/include.h"
+#include "game_logic/between_ticks/include.h"
 #include "game_logic/draw/draw.h"
 #include "game_logic/free/include.h"
 #endif
@@ -144,6 +145,11 @@ namespace game_logic
 			tick::tick(environment);
 		}
 #endif
+	}
+
+	void _between_ticks(game_environment::Environment& environment)
+	{
+		between_ticks::between_ticks(environment);
 	}
 
 	void _draw(game_environment::Environment& environment)

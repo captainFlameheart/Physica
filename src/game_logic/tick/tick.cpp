@@ -403,9 +403,6 @@ namespace game_logic::tick
 			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
 			tick_constraints(environment);
-
-			// IMPORTANT TODO: Only have GL_UNIFORM_BARRIER_BIT right before drawing
-			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_UNIFORM_BARRIER_BIT);
 		}
 
 		++environment.state.tick_count;
