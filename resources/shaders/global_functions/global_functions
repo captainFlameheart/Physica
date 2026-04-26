@@ -1,6 +1,16 @@
-int compute_bounding_box_cost(in ivec4 bounding_box)
+int compute_bounding_box_area_cost(in ivec4 bounding_box)
+{
+	return (bounding_box.z - bounding_box.x) * (bounding_box.w - bounding_box.y);
+}
+
+int compute_bounding_box_perimiter_cost(in ivec4 bounding_box)
 {
 	return (bounding_box.z - bounding_box.x) + (bounding_box.w - bounding_box.y);
+}
+
+int compute_bounding_box_cost(in ivec4 bounding_box)
+{
+	return compute_bounding_box_perimiter_cost(bounding_box);
 }
 
 uint compute_bounding_box_cost(in uvec4 bounding_box)
