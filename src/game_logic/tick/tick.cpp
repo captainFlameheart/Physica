@@ -141,8 +141,6 @@ namespace game_logic::tick
 				glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 			}
 
-			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-
 			glUseProgram
 			(
 				environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::commit_counts::Indices::commit_counts)]
