@@ -290,7 +290,7 @@ void main()
 	}
 	else if (any(is_split))
 	{	// Atypical case.
-		/*uint second_index = atomicAdd(fixed_data.write_counts[bounding_box_contact_detector_type], 1u);
+		uint second_index = atomicAdd(fixed_data.write_counts[bounding_box_contact_detector_type], 1u);
 		if (second_index >= fixed_data.capacities[bounding_box_contact_detector_type])
 		{
 			// MUST TODO: Increase capacity and retry shader.
@@ -312,7 +312,7 @@ void main()
 		indices_source_pad_index_array[1u] = second_indices_source_pad_index;
 		uvec4 second_indices_source_pad = uvec4(split_indices.y, indices_source_pad[unsplit_side], 0u, 0u);
 		indices_source_pad_array[1u] = second_indices_source_pad;
-		uvec4_data.data[second_indices_source_pad_index] = second_indices_source_pad;*/
+		uvec4_data.data[second_indices_source_pad_index] = second_indices_source_pad;
 	}
 
 	for (uint detector = 0u; detector < detector_count; ++detector)
