@@ -23,12 +23,14 @@ namespace game_logic::initialize::compile_shaders::environment
 		compile_environment.version_directive = "#version " + std::string{ ::game_state::device_requirements::OpenGL_versions::version_string } + '\n';
 		
 		compile_environment.readonly_constant_definitions =
+			"#define WRITING_ALLOWED 0\n"
 			"#define FIXED_DATA_RESTRICT_PLACEHOLDER \n"
 			"#define FIXED_DATA_BUFFER_PLACEHOLDER uniform\n"
 			"#define READ_ONLY_PLACEHOLDER readonly\n"
 			"const uint fixed_data_binding = " + std::to_string(::game_state::bindings::uniform::fixed_data) + ";\n"
 		;
 		compile_environment.writable_constant_definitions =
+			"#define WRITING_ALLOWED 1\n"
 			"#define FIXED_DATA_RESTRICT_PLACEHOLDER restrict\n"
 			"#define FIXED_DATA_BUFFER_PLACEHOLDER buffer\n"
 			"#define READ_ONLY_PLACEHOLDER \n"
@@ -540,13 +542,17 @@ namespace game_logic::initialize::compile_shaders::environment
 
 		compile_environment.constants_and_data_source = compile_environment.constant_definitions + compile_environment.combined_data_source;
 
+		compile_environment.functions_source = ::util::shader::file_to_string("global_functions/global_functions");
+
+		compile_environment.global_source = compile_environment.constants_and_data_source + compile_environment.functions_source;
+
 		compile_environment.readonly_prefix_source =
 			compile_environment.version_directive +
 			compile_environment.readonly_constant_definitions +
-			compile_environment.constants_and_data_source;
+			compile_environment.global_source;
 		compile_environment.writable_prefix_source =
 			compile_environment.version_directive +
 			compile_environment.writable_constant_definitions +
-			compile_environment.constants_and_data_source;
+			compile_environment.global_source;
 	}
 }

@@ -1,0 +1,14 @@
+#if WRITING_ALLOWED
+
+	void kill(in uint entity_type, in uint index)
+	{
+		uint death_index = atomicAdd(fixed_data.kill_counts[entity_type], 1u);
+	
+		uint death_index_base = fixed_data.death_index_bases[entity_type];
+		uint_data.data[death_index_base + index] = death_index;
+	
+		uint killed_base = fixed_data.killed_bases[entity_type];	// TODO: Merge with death_index.
+		uint_data.data[killed_base + death_index] = index;
+	}
+
+#endif

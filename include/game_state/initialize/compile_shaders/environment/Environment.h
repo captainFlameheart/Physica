@@ -28,6 +28,10 @@ namespace game_state::initialize::compile_shaders::environment
 
 		std::string constants_and_data_source;
 
+		std::string functions_source;
+
+		std::string global_source;
+
 		std::string readonly_prefix_source;
 		std::string writable_prefix_source;
 	};
