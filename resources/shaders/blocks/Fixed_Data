@@ -141,11 +141,6 @@ uint address_to_float_index(uint address)
 	return address >> float_size_shift;
 }
 
-uint compute_bounding_box_cost(in uvec4 bounding_box)
-{
-	return (bounding_box.z - bounding_box.x) + (bounding_box.w - bounding_box.y);
-}
-
 float lerp(float start, float end, float remaining_error_fraction_per_second, float delta_time)
 {
 	return mix(start, end, 1.0 - pow(remaining_error_fraction_per_second, delta_time));

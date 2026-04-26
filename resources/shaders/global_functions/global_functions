@@ -1,3 +1,13 @@
+int compute_bounding_box_cost(in ivec4 bounding_box)
+{
+	return (bounding_box.z - bounding_box.x) + (bounding_box.w - bounding_box.y);
+}
+
+uint compute_bounding_box_cost(in uvec4 bounding_box)
+{
+	return uint(compute_bounding_box_cost(ivec4(bounding_box)));
+}
+
 #if WRITING_ALLOWED
 
 	void kill(in uint entity_type, in uint index)
