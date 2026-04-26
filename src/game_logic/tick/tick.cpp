@@ -4,142 +4,195 @@
 
 namespace game_logic::tick
 {
-	void tick(game_environment::Environment& environment)
+	void tick_bodies(game_environment::Environment& environment)
 	{
-		if (environment.state.tick_count % 1u == 0u)	// TODO: Make into proper feature
+		for (GLuint tick_bodies_shader_index{ ::game_state::shader_indices::tick::process_entities::bodies::base }; tick_bodies_shader_index < ::game_state::shader_indices::tick::process_entities::bodies::end; ++tick_bodies_shader_index)
 		{
-			if (environment.state.is_debugging)
+			glUseProgram(environment.state.shaders[tick_bodies_shader_index]);
+			GLuint index_in_tick_entities_shader_array{ tick_bodies_shader_index - ::game_state::shader_indices::tick::process_entities::base };
+			GLintptr command_offset
 			{
-				//::game_logic::debug::print_fixed_data(environment);
-			}
+				environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.offset +
+				index_in_tick_entities_shader_array * environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.top_level_array_stride
+			};
+			glDispatchComputeIndirect(static_cast<GLintptr>(command_offset));
+		}
+	}
 
-			for (GLuint tick_bodies_shader_index{ ::game_state::shader_indices::tick::process_entities::bodies::base }; tick_bodies_shader_index < ::game_state::shader_indices::tick::process_entities::bodies::end; ++tick_bodies_shader_index)
+	GLsync send_bounding_volume_hierarchy_metadata_to_CPU(game_environment::Environment& environment)
+	{
+		glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::send_to_CPU::Indices::send_to_CPU)]);
+		glDispatchCompute(1u, 1u, 1u);
+		glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
+		return glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0u);
+	}
+
+	void tick_bounding_volume_hierarchy_leafs(game_environment::Environment& environment)
+	{
+		// MUST TODO: Set work group counts!
+		for (GLuint tick_bounding_volume_hierarchy_leafs_shader_index{ ::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::leafs::base }; tick_bounding_volume_hierarchy_leafs_shader_index < ::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::leafs::end; ++tick_bounding_volume_hierarchy_leafs_shader_index)
+		{
+			glUseProgram(environment.state.shaders[tick_bounding_volume_hierarchy_leafs_shader_index]);
+			GLuint index_in_tick_entities_shader_array{ tick_bounding_volume_hierarchy_leafs_shader_index - ::game_state::shader_indices::tick::process_entities::base };
+			GLintptr command_offset
 			{
-				glUseProgram(environment.state.shaders[tick_bodies_shader_index]);
-				GLuint index_in_tick_entities_shader_array{ tick_bodies_shader_index - ::game_state::shader_indices::tick::process_entities::base };
-				GLintptr command_offset
-				{
-					environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.offset +
-					index_in_tick_entities_shader_array * environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.top_level_array_stride
-				};
-				glDispatchComputeIndirect(static_cast<GLintptr>(command_offset));
+				environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.offset +
+				index_in_tick_entities_shader_array * environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.top_level_array_stride
+			};
+			glDispatchComputeIndirect(static_cast<GLintptr>(command_offset));
+		}
+	}
+
+	void find_inner_bounding_box_height_changes(game_environment::Environment& environment)
+	{
+		glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::initialize_inner_bounding_box_traversal::Indices::find_height_changes)]);
+		constexpr GLuint index_in_tick_entities_shader_array{ static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::initialize_inner_bounding_box_traversal::Indices::find_height_changes) - ::game_state::shader_indices::tick::process_entities::base };
+		GLintptr command_offset
+		{
+			environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.offset +
+			index_in_tick_entities_shader_array * environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.top_level_array_stride
+		};
+		glDispatchComputeIndirect(command_offset);
+	}
+
+	void tick_skycircle_elements(game_environment::Environment& environment)
+	{
+		for (GLuint tick_skycircle_elements_shader_index{ ::game_state::shader_indices::tick::process_entities::skycircle_elements::base }; tick_skycircle_elements_shader_index < ::game_state::shader_indices::tick::process_entities::skycircle_elements::end; ++tick_skycircle_elements_shader_index)
+		{
+			glUseProgram(environment.state.shaders[tick_skycircle_elements_shader_index]);
+			GLuint index_in_tick_entities_shader_array{ tick_skycircle_elements_shader_index - ::game_state::shader_indices::tick::process_entities::base };
+			GLintptr command_offset
+			{
+				environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.offset +
+				index_in_tick_entities_shader_array * environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.top_level_array_stride
+			};
+			glDispatchComputeIndirect(static_cast<GLintptr>(command_offset));
+		}
+	}
+
+	void wait_for_fence
+	(
+		GLsync fence,
+		std::string error_message,
+		std::string timeout_message = "",
+		bool show_timeout_message = false
+	)
+	{
+		GLenum fence_status{ glClientWaitSync(fence, GL_SYNC_FLUSH_COMMANDS_BIT, 0u) };
+		while (fence_status != GL_ALREADY_SIGNALED && fence_status != GL_CONDITION_SATISFIED)
+		{
+			if (fence_status == GL_WAIT_FAILED)
+			{
+				std::cerr << error_message << std::endl;
 			}
+			if (show_timeout_message && fence_status == GL_TIMEOUT_EXPIRED)
+			{
+				std::cout << timeout_message << std::endl;
+			}
+			fence_status = glClientWaitSync(fence, 0u, 0u);
+		}
+		glDeleteSync(fence);
+	}
+
+	GLuint get_bounding_volume_hierarchy_height(game_environment::Environment& environment)
+	{
+		GLuint bounding_volume_hierarchy_height;
+		std::memcpy
+		(
+			&bounding_volume_hierarchy_height,
+			environment.state.buffers.bounding_volume_hierarchy.mapping + environment.state.layouts.bounding_volume_hierarchy.height_state.offset,
+			sizeof(GLuint)
+		);
+		return bounding_volume_hierarchy_height;
+	}
+
+	void migrate_inner_bounding_boxes(game_environment::Environment& environment)
+	{
+		glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::initialize_inner_bounding_box_traversal::Indices::migrate_inner_bounding_boxes)]);
+		glDispatchCompute(1u, 1u, 1u);
+	}
+
+	void initialize_inner_bounding_box_traversal(game_environment::Environment& environment, GLuint bounding_volume_hierarchy_height)
+	{
+		{
+			glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::initialize_inner_bounding_box_traversal::Indices::initialize_inner_bounding_box_traversal)]);
+			glDispatchCompute(1u, 1u, 1u);
+		}
+		{
+			glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::initialize_inner_bounding_box_traversal::Indices::set_commands)]);
+			GLuint thread_count{ bounding_volume_hierarchy_height };
+			constexpr GLuint local_size{ ::game_state::local_sizes::process_entities_local_sizes[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::initialize_inner_bounding_box_traversal::Indices::set_commands) - static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::base)] };
+			glDispatchCompute((thread_count + local_size - 1u) / local_size, 1u, 1u);
+		}
+	}
+
+	void tick_deepest_inner_bounding_boxes(game_environment::Environment& environment)
+	{
+		glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::inner_bounding_boxes::Indices::inner_bounding_boxes)]);
+		GLintptr command_offset
+		{
+			environment.state.layouts.commands.remaining_dispatch_commands_work_group_count_x_state.offset
+		};
+		glDispatchComputeIndirect(static_cast<GLintptr>(command_offset));
+	}
+
+	void tick_remaining_inner_bounding_boxes(game_environment::Environment& environment, GLuint bounding_volume_hierarchy_height)
+	{
+		for (GLuint height_level{ 1u }; height_level <= bounding_volume_hierarchy_height; ++height_level) {
+			glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::inner_bounding_boxes::Indices::increment_height_level)]);
+			glDispatchCompute(1u, 1u, 1u);
 
 			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-
-			glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::send_to_CPU::Indices::send_to_CPU)]);
-			glDispatchCompute(1u, 1u, 1u);
-			glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
-			
-			GLsync bounding_volume_hierarchy_fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0u);
-
-			// MUST TODO: Set work group counts!
-			for (GLuint tick_bounding_volume_hierarchy_leafs_shader_index{ ::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::leafs::base }; tick_bounding_volume_hierarchy_leafs_shader_index < ::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::leafs::end; ++tick_bounding_volume_hierarchy_leafs_shader_index)
-			{
-				glUseProgram(environment.state.shaders[tick_bounding_volume_hierarchy_leafs_shader_index]);
-				GLuint index_in_tick_entities_shader_array{ tick_bounding_volume_hierarchy_leafs_shader_index - ::game_state::shader_indices::tick::process_entities::base };
-				GLintptr command_offset
-				{
-					environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.offset +
-					index_in_tick_entities_shader_array * environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.top_level_array_stride
-				};
-				glDispatchComputeIndirect(static_cast<GLintptr>(command_offset));
-			}
-
-			{
-				glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::initialize_inner_bounding_box_traversal::Indices::find_height_changes)]);
-				constexpr GLuint index_in_tick_entities_shader_array{ static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::initialize_inner_bounding_box_traversal::Indices::find_height_changes) - ::game_state::shader_indices::tick::process_entities::base };
-				GLintptr command_offset
-				{
-					environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.offset +
-					index_in_tick_entities_shader_array * environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.top_level_array_stride
-				};
-				glDispatchComputeIndirect(command_offset);
-			}
-
-			for (GLuint tick_skycircle_elements_shader_index{ ::game_state::shader_indices::tick::process_entities::skycircle_elements::base }; tick_skycircle_elements_shader_index < ::game_state::shader_indices::tick::process_entities::skycircle_elements::end; ++tick_skycircle_elements_shader_index)
-			{
-				glUseProgram(environment.state.shaders[tick_skycircle_elements_shader_index]);
-				GLuint index_in_tick_entities_shader_array{ tick_skycircle_elements_shader_index - ::game_state::shader_indices::tick::process_entities::base };
-				GLintptr command_offset
-				{
-					environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.offset +
-					index_in_tick_entities_shader_array * environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.top_level_array_stride
-				};
-				glDispatchComputeIndirect(static_cast<GLintptr>(command_offset));
-			}
-
-			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);	// IMPORTANT TODO: Is this needed?
-
-			GLenum fence_status{ glClientWaitSync(bounding_volume_hierarchy_fence, GL_SYNC_FLUSH_COMMANDS_BIT, 0u) };
-			while (fence_status != GL_ALREADY_SIGNALED && fence_status != GL_CONDITION_SATISFIED)
-			{
-				if (fence_status == GL_WAIT_FAILED)
-				{
-					std::cerr << "Failed to wait on bounding volume hierarchy fence!" << std::endl;
-				}
-				if (fence_status == GL_TIMEOUT_EXPIRED)
-				{
-					//std::cout << "Had to wait on bounding volume hierarchy fence!" << std::endl;
-				}
-				fence_status = glClientWaitSync(bounding_volume_hierarchy_fence, 0u, 0u);
-			}
-			glDeleteSync(bounding_volume_hierarchy_fence);
-
-			GLuint bounding_volume_hierarchy_height;
-			std::memcpy
-			(
-				&bounding_volume_hierarchy_height,
-				environment.state.buffers.bounding_volume_hierarchy.mapping + environment.state.layouts.bounding_volume_hierarchy.height_state.offset,
-				sizeof(GLuint)
-			);
-			//std::cout << "Bounding volume hierarchy height: " << bounding_volume_hierarchy_height << std::endl;
-
-			{
-				glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::initialize_inner_bounding_box_traversal::Indices::migrate_inner_bounding_boxes)]);
-				glDispatchCompute(1u, 1u, 1u);
-
-				glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-			}
-
-			{
-				glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::initialize_inner_bounding_box_traversal::Indices::initialize_inner_bounding_box_traversal)]);
-				glDispatchCompute(1u, 1u, 1u);
-			}
-			{
-				glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::initialize_inner_bounding_box_traversal::Indices::set_commands)]);
-				GLuint thread_count{ bounding_volume_hierarchy_height };
-				constexpr GLuint local_size{ ::game_state::local_sizes::process_entities_local_sizes[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::initialize_inner_bounding_box_traversal::Indices::set_commands) - static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::base)]};
-				glDispatchCompute((thread_count + local_size - 1u) / local_size, 1u, 1u);
-			}
-			
-			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_COMMAND_BARRIER_BIT);
 
 			glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::inner_bounding_boxes::Indices::inner_bounding_boxes)]);
 			GLintptr command_offset
 			{
-				environment.state.layouts.commands.remaining_dispatch_commands_work_group_count_x_state.offset
+				environment.state.layouts.commands.remaining_dispatch_commands_work_group_count_x_state.offset +
+				height_level * environment.state.layouts.commands.remaining_dispatch_commands_work_group_count_x_state.top_level_array_stride
 			};
 			glDispatchComputeIndirect(static_cast<GLintptr>(command_offset));
 
 			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+		}
+	}
 
-			for (GLuint height_level{ 1u }; height_level <= bounding_volume_hierarchy_height; ++height_level) {
-				glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::inner_bounding_boxes::Indices::increment_height_level)]);
-				glDispatchCompute(1u, 1u, 1u);
+	void tick_inner_bounding_boxes(game_environment::Environment& environment, GLuint bounding_volume_hierarchy_height)
+	{
+		tick_deepest_inner_bounding_boxes(environment);
 
-				glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
-				glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::inner_bounding_boxes::Indices::inner_bounding_boxes)]);
-				GLintptr command_offset
-				{
-					environment.state.layouts.commands.remaining_dispatch_commands_work_group_count_x_state.offset +
-					height_level * environment.state.layouts.commands.remaining_dispatch_commands_work_group_count_x_state.top_level_array_stride
-				};
-				glDispatchComputeIndirect(static_cast<GLintptr>(command_offset));
+		tick_remaining_inner_bounding_boxes(environment, bounding_volume_hierarchy_height);
+	}
 
-				glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-			}
+	void tick(game_environment::Environment& environment)
+	{
+		if (environment.state.tick_count % 1u == 0u)	// TODO: Make into proper feature
+		{
+			tick_bodies(environment);
+
+			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+			GLsync bounding_volume_hierarchy_fence{ send_bounding_volume_hierarchy_metadata_to_CPU(environment) };
+
+			tick_bounding_volume_hierarchy_leafs(environment);
+			find_inner_bounding_box_height_changes(environment);
+			tick_skycircle_elements(environment);
+
+			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);	// Dependency in mind: find_inner_bounding_box_height_changes -> migrate_inner_bounding_boxes
+
+			wait_for_fence(bounding_volume_hierarchy_fence, "Failed to wait on bounding volume hierarchy fence!", "Had to wait on bounding volume hierarchy fence!", false);
+			GLuint bounding_volume_hierarchy_height{ get_bounding_volume_hierarchy_height(environment) };
+
+			migrate_inner_bounding_boxes(environment);	// TODO: Can currently be done before waiting for BVH height, but maybe not when properly parallelized.
+
+			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+			initialize_inner_bounding_box_traversal(environment, bounding_volume_hierarchy_height);
+			
+			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_COMMAND_BARRIER_BIT);
+
+			tick_inner_bounding_boxes(environment, bounding_volume_hierarchy_height);
 
 			glUseProgram
 			(
