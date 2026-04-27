@@ -205,6 +205,24 @@ void main()
 	uint bounding_box_base = fixed_data.inner_bounding_box_base;
 	uint bounding_box_parent_children_height_base = fixed_data.inner_bounding_box_parent_children_height_base;
 	uint bounding_box_split_indices_base = fixed_data.inner_bounding_box_split_indices_base;
+	uint bounding_box_moved_to_base = fixed_data.inner_bounding_box_moved_to_base;
+
+	uint moved_to_0 = indices_source_pad.x;
+	if (int(indices_source_pad.x) >= 0)	// IMPORTANT TODO: Store expression in variable.
+	{
+		moved_to_0 = uint_data.data[bounding_box_moved_to_base + indices_source_pad.x];
+	}
+	uint moved_to_1 = indices_source_pad.y;
+	if (int(indices_source_pad.y) >= 0)
+	{
+		moved_to_1 = uint_data.data[bounding_box_moved_to_base + indices_source_pad.y];
+	}
+	if (any(bvec2(moved_to_0 != indices_source_pad.x, moved_to_1 != indices_source_pad.y)))
+	{
+		indices_source_pad.x = moved_to_0;
+		indices_source_pad.y = moved_to_1;
+		uvec4_data.data[indices_source_pad_index] = indices_source_pad;
+	}
 
 	// Initially assume that neither box was split, which is the typical case.
 	uint detector_count = 1u;
