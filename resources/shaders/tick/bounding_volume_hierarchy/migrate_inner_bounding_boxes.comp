@@ -139,7 +139,7 @@ void main()
 
 void move
 (
-	in uint parent_children_height_base, in uint box_base, in uint old_height_base, in uint migration_entry_base, in uint migration_list_base,
+	in uint parent_children_height_base, in uint box_base, in uint moved_from_base, in uint moved_to_base, in uint old_height_base, in uint migration_entry_base, in uint migration_list_base,
 	in uint from, in uint to
 )
 {
@@ -150,16 +150,21 @@ void move
 
 	uvec4 parent_children_height = uvec4_data.data[parent_children_height_base + from];
 	uvec4 box = uvec4_data.data[box_base + from];
+	uint moved_from = uint_data.data[moved_from_base + from];
 	uint old_height = uint_data.data[old_height_base + from];
 	uint migration_entry = uint_data.data[migration_entry_base + from];
 
 	uvec4_data.data[parent_children_height_base + to] = parent_children_height;
 	uvec4_data.data[box_base + to] = box;
+	uint_data.data[moved_from_base + to] = moved_from;
 	uint_data.data[old_height_base + to] = old_height;
-	uint_data.data[migration_entry_base + to] = migration_entry;
+	uint_data.data[migration_entry_base + to] = migration_entry;	// IMPORTANT TODO: migration_entry_base redundant in the presense of moved_from/to bases.
+
+	// Update moved to pointer.
+	uint_data.data[moved_to_base + moved_from] = to;
 
 	// Update migration entry pointer to moved node.
-	if (migration_entry != null_uint)
+	if (migration_entry != null_uint)	// IMPORTANT TODO: migration_entry_base redundant in the presense of moved_from/to bases.
 	{
 		uint migration_entry_index = migration_list_base + migration_entry;
 		uvec4 migration_entry = uvec4_data.data[migration_entry_index];
@@ -196,6 +201,8 @@ void main()
 
 	uint parent_children_height_base = fixed_data.inner_bounding_box_parent_children_height_base;
 	uint box_base = fixed_data.inner_bounding_box_base;
+	uint moved_from_base = fixed_data.inner_bounding_box_moved_from_base;
+	uint moved_to_base = fixed_data.inner_bounding_box_moved_to_base;
 	uint old_height_base = fixed_data.inner_bounding_box_old_height_base;
 	uint migration_entry_base = fixed_data.inner_bounding_box_migration_entry_base;
 	uint height_delimiters_base = fixed_data.inner_bounding_box_height_delimiters_base;
@@ -210,7 +217,7 @@ void main()
 		uint_data.data[migration_entry_base + migration.x] = null_uint;
 		move
 		(
-			parent_children_height_base, box_base, old_height_base, migration_entry_base, migration_list_base,
+			parent_children_height_base, box_base, moved_from_base, moved_to_base, old_height_base, migration_entry_base, migration_list_base,
 			migration.x, leaf_bounding_box_capacity - 1u
 		);
 		uint empty_spot = migration.x;
@@ -231,7 +238,7 @@ void main()
 
 			move
 			(
-				parent_children_height_base, box_base, old_height_base, migration_entry_base, migration_list_base,
+				parent_children_height_base, box_base, moved_from_base, moved_to_base, old_height_base, migration_entry_base, migration_list_base,
 				moved_spot, empty_spot
 			);
 			empty_spot = moved_spot;
@@ -241,7 +248,7 @@ void main()
 
 		move
 		(
-			parent_children_height_base, box_base, old_height_base, migration_entry_base, migration_list_base,
+			parent_children_height_base, box_base, moved_from_base, moved_to_base, old_height_base, migration_entry_base, migration_list_base,
 			leaf_bounding_box_capacity - 1u, empty_spot
 		);
 	}
