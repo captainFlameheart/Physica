@@ -1,4 +1,4 @@
-// TODO: Rename shader to include the clearing of split data.
+// TODO: Rename shader to include the clearing of split and move data.
 
 layout(local_size_x = find_inner_bounding_box_height_changes_local_size) in;
 void main()
@@ -13,13 +13,19 @@ void main()
 	uint parent_children_height_base = fixed_data.inner_bounding_box_parent_children_height_base;
 	uint split_indices_base = fixed_data.inner_bounding_box_split_indices_base;
 	uint old_height_base = fixed_data.inner_bounding_box_old_height_base;
+	uint moved_from_base = fixed_data.inner_bounding_box_moved_from_base;
+	uint moved_to_base = fixed_data.inner_bounding_box_moved_to_base;
 
 	uint parent_children_height_index = parent_children_height_base + index;
 	uint split_indices_index = split_indices_base + index;
 	uint old_height_index = old_height_base + index;
+	uint moved_from_index = moved_from_base + index;
+	uint moved_to_index = moved_to_base + index;
 
 	uvec4 parent_children_height = uvec4_data.data[parent_children_height_index];
 	uvec2_data.data[split_indices_index] = uvec2(null_uint, null_uint);
+	uint_data.data[moved_from_index] = index;
+	uint_data.data[moved_to_index] = index;
 	uint old_height = uint_data.data[old_height_index];
 
 	if (parent_children_height.w != old_height)
