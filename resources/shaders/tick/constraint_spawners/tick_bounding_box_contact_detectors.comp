@@ -77,7 +77,7 @@ void tick_detector
 
 				// Create new detector -> other child.
 				uint new_detector_index = atomicAdd(fixed_data.write_counts[bounding_box_contact_detector_type], 1u);
-				if (new_detector_index >= detector_capacity)
+				if (new_detector_index >= detector_capacity)	// MUST TODO: Retry shader logic.
 				{
 					atomicAdd(fixed_data.write_counts[bounding_box_contact_detector_type], minus_1_uint);
 					return;
@@ -86,12 +86,16 @@ void tick_detector
 				indices_source_pad = uvec4(split_parent_children_height.z, unsplit_index, detector_index, 0u);
 				uvec4_data.data[indices_source_pad_base + new_detector_index] = indices_source_pad;
 
+				// IMPORTANT TODO: One of these fetches is redundant.
 				bounding_boxes[0u] = ivec4(uvec4_data.data[bounding_box_base + indices_source_pad.x]);
 				bounding_boxes[1u] = ivec4(uvec4_data.data[bounding_box_base + indices_source_pad.y]);
 
+				is_inner[0u] = (int(indices_source_pad.x) >= 0);
+				is_inner[1u] = (int(indices_source_pad.y) >= 0);
+
 				detector_index = new_detector_index;
 
-				if (bounding_boxes_overlap(bounding_boxes))
+				if (bounding_boxes_overlap(bounding_boxes) && any(is_inner))
 				{
 					continue;	// Split the new detector as well.
 				}
@@ -103,10 +107,14 @@ void tick_detector
 					detector_index = indices_source_pad.z;	// Follow source pointer.
 				
 					indices_source_pad = uvec4_data.data[indices_source_pad_base + detector_index];
+
 					bounding_boxes[0u] = ivec4(uvec4_data.data[bounding_box_base + indices_source_pad.x]);
 					bounding_boxes[1u] = ivec4(uvec4_data.data[bounding_box_base + indices_source_pad.y]);
 				
-					if (bounding_boxes_overlap(bounding_boxes))
+					is_inner[0u] = (int(indices_source_pad.x) >= 0);
+					is_inner[1u] = (int(indices_source_pad.y) >= 0);
+
+					if (bounding_boxes_overlap(bounding_boxes) && any(is_inner))
 					{
 						break;	// Resume splitting from this detector.
 					}
