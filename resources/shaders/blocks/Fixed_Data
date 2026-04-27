@@ -211,6 +211,8 @@ FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 	uint leaf_bounding_box_bases[leaf_bounding_box_type_count];
 	uint inner_bounding_box_base;
 	uint inner_bounding_box_split_indices_base;
+	uint inner_bounding_box_moved_from_base;
+	uint inner_bounding_box_moved_to_base;
 	uint inner_bounding_box_old_height_base;
 	uint inner_bounding_box_migration_entry_base;
 

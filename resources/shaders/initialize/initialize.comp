@@ -231,7 +231,15 @@ void main()
 	uint inner_bounding_box_split_indices_base = address_to_uvec2_index(inner_bounding_box_split_indices_base_address);
 	fixed_data.inner_bounding_box_split_indices_base = inner_bounding_box_split_indices_base;
 
-	uint inner_bounding_box_old_height_base_address = align_up(inner_bounding_box_split_indices_base_address + inner_bounding_box_capacity * uvec2_data_array_stride);
+	uint inner_bounding_box_moved_from_base_address = align_up(inner_bounding_box_split_indices_base_address + inner_bounding_box_capacity * uvec2_data_array_stride);
+	uint inner_bounding_box_moved_from_base = address_to_uint_index(inner_bounding_box_moved_from_base_address);
+	fixed_data.inner_bounding_box_moved_from_base = inner_bounding_box_moved_from_base;
+
+	uint inner_bounding_box_moved_to_base_address = align_up(inner_bounding_box_moved_from_base_address + inner_bounding_box_capacity * uint_data_array_stride);
+	uint inner_bounding_box_moved_to_base = address_to_uint_index(inner_bounding_box_moved_to_base_address);
+	fixed_data.inner_bounding_box_moved_to_base = inner_bounding_box_moved_to_base;
+
+	uint inner_bounding_box_old_height_base_address = align_up(inner_bounding_box_moved_to_base_address + inner_bounding_box_capacity * uint_data_array_stride);
 	uint inner_bounding_box_old_height_base = address_to_uint_index(inner_bounding_box_old_height_base_address);
 	fixed_data.inner_bounding_box_old_height_base = inner_bounding_box_old_height_base;
 
