@@ -155,7 +155,7 @@ void main()
 	fixed_data.point_mass_write_flags_base = point_mass_write_flags_base;
 	fixed_data.point_mass_write_position_velocity_base = point_mass_write_position_velocity_base;
 	
-	capacities[rigid_body_type_index] = 3u;
+	capacities[rigid_body_type_index] = 5u;
 
 	uint rigid_body_inverse_mass_inertia_base_address = align_up(point_mass_write_position_velocity_base_address + capacities[point_mass_type_index] * uvec4_data_array_stride);
 	uint rigid_body_constraint_start_base_address = align_up(rigid_body_inverse_mass_inertia_base_address + capacities[rigid_body_type_index] * vec2_data_array_stride);
@@ -282,7 +282,7 @@ void main()
 	uint bounding_box_stack_capacity = leaf_bounding_box_capacity;
 
 	uint minimum_bounding_box_contact_detector_capacity = inner_bounding_box_capacity;
-	const uint bounding_box_contact_detector_capacity_factor = 10u;
+	const uint bounding_box_contact_detector_capacity_factor = 100u;
 	capacities[bounding_box_contact_detector_type] = bounding_box_contact_detector_capacity_factor * minimum_bounding_box_contact_detector_capacity;
 
 	uint bounding_box_contact_detector_indices_source_pad_base_address = align_up(bounding_box_stack_base_address + bounding_box_stack_capacity * uint_data_array_stride);

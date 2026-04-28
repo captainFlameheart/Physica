@@ -73,7 +73,7 @@ void tick_detector
 		
 				// Update current detector -> one child.
 				indices_source_pad[split_side] = split_parent_children_height.y;
-				uvec4_data.data[indices_source_pad_base + index] = indices_source_pad;
+				uvec4_data.data[indices_source_pad_base + detector_index] = indices_source_pad;	// TODO: Use index variable as detector_index.
 
 				// Create new detector -> other child.
 				uint new_detector_index = atomicAdd(fixed_data.write_counts[bounding_box_contact_detector_type], 1u);
