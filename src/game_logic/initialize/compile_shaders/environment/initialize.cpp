@@ -42,7 +42,18 @@ namespace game_logic::initialize::compile_shaders::environment
 			::game_state::shader_indices::tick::process_entities::count
 			- ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::commit_counts::count
 		};
-		
+
+		constexpr GLuint merge_bounding_box_contact_detectors_program_index
+		{
+			static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bounding_box_contact_detectors::Indices::merge_bounding_box_contact_detectors)
+			- ::game_state::shader_indices::tick::process_entities::base
+		};
+		constexpr GLuint clear_bounding_box_contact_detector_merge_data_program_index
+		{
+			static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bounding_box_contact_detectors::Indices::clear_bounding_box_contact_detector_merge_data)
+			- ::game_state::shader_indices::tick::process_entities::base
+		};
+
 		// TODO: Remove commit count programs.
 		constexpr GLuint constraint_spawner_plan_compaction_program_base
 		{
@@ -442,6 +453,9 @@ namespace game_logic::initialize::compile_shaders::environment
 
 			"const uint dispatch_program_count = " + std::to_string(::game_state::shader_indices::tick::process_entities::count) + ";\n"
 			"const uint draw_arrays_program_count = " + std::to_string(::game_state::shader_indices::draw::entities::count) + ";\n"
+
+			"const uint merge_bounding_box_contact_detectors_program_index = " + std::to_string(merge_bounding_box_contact_detectors_program_index) + ";\n"
+			"const uint clear_bounding_box_contact_detector_merge_data_program_index = " + std::to_string(clear_bounding_box_contact_detector_merge_data_program_index) + ";\n"
 
 			"const uint constraint_spawner_plan_compaction_program_base = " + std::to_string(constraint_spawner_plan_compaction_program_base) + ";\n"
 			"const uint constraint_spawner_clear_deaths_program_base = " + std::to_string(constraint_spawner_clear_deaths_program_base) + ";\n"

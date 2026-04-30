@@ -4,6 +4,8 @@ void main()
 	uint write_count = fixed_data.write_counts[bounding_box_contact_detector_type];
 	fixed_data.read_counts[bounding_box_contact_detector_type] = write_count;
 
-	commands.dispatch_commands[merge_bounding_box_contact_detectors_program_index] =
+	commands.dispatch_commands[merge_bounding_box_contact_detectors_program_index].work_group_count_x =
 		(write_count + merge_bounding_box_contact_detectors_local_size - 1u) / merge_bounding_box_contact_detectors_local_size;
+	commands.dispatch_commands[clear_bounding_box_contact_detector_merge_data_program_index].work_group_count_x =
+		(write_count + clear_bounding_box_contact_detector_merge_data_local_size - 1u) / clear_bounding_box_contact_detector_merge_data_local_size;
 }

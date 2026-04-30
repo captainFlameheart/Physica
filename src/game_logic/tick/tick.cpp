@@ -235,7 +235,7 @@ namespace game_logic::tick
 		
 		//commit_detector_counts(environment);asij	// MUST TODO: Make into specialized shader that commits spawned detectors to merge shaders.
 		
-		//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+		//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_COMMAND_BARRIER_BIT);
 
 		// TODO: Merge then clear merge data.
 
