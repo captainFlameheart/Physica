@@ -127,8 +127,41 @@ void tick_detector
 		}
 	}
 	else
-	{	// Collapse logic.
+	{	// Merge logic.
 		uvec4 parent_children_heights[2u] = uvec4[2u]
+		(
+			uvec4_data.data[bounding_box_parent_children_height_base + indices_source_flags.x],
+			uvec4_data.data[bounding_box_parent_children_height_base + indices_source_flags.y]
+		);
+
+		ivec4 parent_bounding_boxes[2u] = ivec4[2u]
+		(
+			ivec4(uvec4_data.data[bounding_box_base + parent_children_heights[0u].x]),
+			ivec4(uvec4_data.data[bounding_box_base + parent_children_heights[1u].x])
+		);
+
+		uint merged_side = uint(compute_bounding_box_cost(parent_bounding_boxes[1u]) <= compute_bounding_box_cost(parent_bounding_boxes[0u]));
+		uint unmerged_side = merged_side ^ 1u;
+
+		if (bounding_boxes_are_separated(parent_bounding_boxes[merged_side], bounding_boxes[unmerged_side]))
+		{
+			indices_source_flags.w |= 1u << merged_side;	// Store which side the detector is willing to merge.
+
+			// Insert detector into lookup table.
+			uint lookup_table_capacity = fixed_data.mergeable_bounding_box_contact_detector_lookup_table_capacity;
+			uint lookup_index = compute_mergeable_contact_detector_lookup_index(indices_source_flags.x, indices_source_flags.y, lookup_table_capacity);
+			uint lookup_table_base = fixed_data.mergeable_bounding_box_contact_detector_lookup_table_base;
+			uint head_index = lookup_table_base + lookup_index;
+			uint old_head;
+			do
+			{
+				old_head = uint_data.data[head_index];
+				indices_source_flags.z = old_head;
+				uvec4_data.data[indices_source_flags_index] = indices_source_flags;
+			} while (atomicCompSwap(uint_data.data[head_index], old_head, index) != old_head);
+		}
+
+		/*uvec4 parent_children_heights[2u] = uvec4[2u]
 		(
 			uvec4_data.data[bounding_box_parent_children_height_base + indices_source_flags.x],
 			uvec4_data.data[bounding_box_parent_children_height_base + indices_source_flags.y]
@@ -157,18 +190,6 @@ void tick_detector
 		{
 			return;
 		}
-
-		// MUST TODO: REMOVE!!!
-		if (bounding_boxes_overlap(parent_bounding_boxes[0u], parent_bounding_boxes[1u]))
-		{
-			//return;
-		}
-		/*uint REMOVE = atomicAdd(fixed_data.temp, 1u);
-		if (REMOVE >= 5u)
-		{
-			return;
-		}*/
-
 
 		do
 		{
@@ -202,7 +223,7 @@ void tick_detector
 			}
 		} while (collapse_cost != max_uint);
 
-		uvec4_data.data[indices_source_flags_index] = indices_source_flags;
+		uvec4_data.data[indices_source_flags_index] = indices_source_flags;*/
 	}
 }
 
