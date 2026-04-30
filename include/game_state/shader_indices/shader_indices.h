@@ -298,6 +298,8 @@ namespace game_state::shader_indices
 				enum struct Indices : GLuint
 				{
 					bounding_box_contact_detectors = base,
+					merge_bounding_box_contact_detectors,
+					clear_bounding_box_contact_detector_merge_data,
 					rigid_body_circle_contact_constraint_spawners,
 
 					end

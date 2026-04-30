@@ -219,7 +219,19 @@ namespace game_logic::tick
 
 	void tick_detectors(game_environment::Environment& environment)
 	{
-		for (GLuint tick_constraint_spawners_shader_index{ ::game_state::shader_indices::tick::process_entities::constraint_spawners::base }; tick_constraint_spawners_shader_index < ::game_state::shader_indices::tick::process_entities::constraint_spawners::end; ++tick_constraint_spawners_shader_index)
+		{
+			GLuint shader_index{ static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraint_spawners::Indices::bounding_box_contact_detectors) };
+			GLuint index_in_tick_entities_shader_array{ shader_index - ::game_state::shader_indices::tick::process_entities::base };
+			GLintptr command_offset
+			{
+				environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.offset +
+				index_in_tick_entities_shader_array * environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.top_level_array_stride
+			};
+
+			glUseProgram(environment.state.shaders[shader_index]);
+			glDispatchComputeIndirect(command_offset);
+		}
+		for (GLuint tick_constraint_spawners_shader_index{ static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraint_spawners::Indices::rigid_body_circle_contact_constraint_spawners) }; tick_constraint_spawners_shader_index < ::game_state::shader_indices::tick::process_entities::constraint_spawners::end; ++tick_constraint_spawners_shader_index)
 		{
 			glUseProgram(environment.state.shaders[tick_constraint_spawners_shader_index]);
 			GLuint index_in_tick_entities_shader_array{ tick_constraint_spawners_shader_index - ::game_state::shader_indices::tick::process_entities::base };

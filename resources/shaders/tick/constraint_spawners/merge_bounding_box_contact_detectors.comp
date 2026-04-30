@@ -19,7 +19,7 @@ void main()
 		return;
 	}
 
-	uint bounding_box_parent_children_height_base = fixed_data.bounding_box_parent_children_height_base;
+	uint bounding_box_parent_children_height_base = fixed_data.inner_bounding_box_parent_children_height_base;
 	uint lookup_table_base = fixed_data.mergeable_bounding_box_contact_detector_lookup_table_base;
 
 	uint unmerged_side = indices_source_flags.w & bounding_box_contact_detector_willing_to_merge_side_0_mask;

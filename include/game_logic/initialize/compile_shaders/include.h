@@ -25,6 +25,7 @@
 #include "compile_increment_inner_bounding_box_height_level.h"
 #include "compile_initialize.h"
 #include "compile_initialize_inner_bounding_box_traversal.h"
+#include "compile_merge_bounding_box_contact_detectors.h"
 #include "compile_migrate_inner_bounding_boxes.h"
 #include "compile_on_events_polled.h"
 #include "compile_on_key_event.h"

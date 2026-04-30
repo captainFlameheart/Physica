@@ -361,6 +361,12 @@ namespace game_logic::initialize::compile_shaders::environment
 		constexpr GLuint tick_bounding_box_contact_detectors_local_size{ ::game_state::local_sizes::process_entities_local_sizes[
 			static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraint_spawners::Indices::bounding_box_contact_detectors) - tick_entities_local_size_base
 		] };
+		constexpr GLuint merge_bounding_box_contact_detectors_local_size{ ::game_state::local_sizes::process_entities_local_sizes[
+			static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraint_spawners::Indices::merge_bounding_box_contact_detectors) - tick_entities_local_size_base
+		] };
+		constexpr GLuint clear_bounding_box_contact_detector_merge_data_local_size{ ::game_state::local_sizes::process_entities_local_sizes[
+			static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraint_spawners::Indices::clear_bounding_box_contact_detector_merge_data) - tick_entities_local_size_base
+		] };
 		constexpr GLuint tick_rigid_body_circle_contact_constraint_spawners_local_size{ ::game_state::local_sizes::process_entities_local_sizes[
 			static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraint_spawners::Indices::rigid_body_circle_contact_constraint_spawners) - tick_entities_local_size_base
 		] };
@@ -477,6 +483,8 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uint perform_bounding_box_contact_detector_compaction_local_size = " + ::std::to_string(perform_bounding_box_contact_detector_compaction_local_size) + ";\n"
 			"const uint perform_rigid_body_circle_contact_constraint_spawner_compaction_local_size = " + ::std::to_string(perform_rigid_body_circle_contact_constraint_spawner_compaction_local_size) + ";\n"
 			"const uint tick_bounding_box_contact_detectors_local_size = " + ::std::to_string(tick_bounding_box_contact_detectors_local_size) + ";\n"
+			"const uint merge_bounding_box_contact_detectors_local_size = " + ::std::to_string(merge_bounding_box_contact_detectors_local_size) + ";\n"
+			"const uint clear_bounding_box_contact_detector_merge_data_local_size = " + ::std::to_string(clear_bounding_box_contact_detector_merge_data_local_size) + ";\n"
 			"const uint tick_rigid_body_circle_contact_constraint_spawners_local_size = " + ::std::to_string(tick_rigid_body_circle_contact_constraint_spawners_local_size) + ";\n"
 			"const uint commit_constraint_counts_local_size = " + ::std::to_string(commit_constraint_counts_local_size) + ";\n"
 			"const uint plan_rigid_body_circle_contact_constraint_compaction_local_size = " + ::std::to_string(plan_rigid_body_circle_contact_constraint_compaction_local_size) + ";\n"
