@@ -158,6 +158,18 @@ void tick_detector
 			return;
 		}
 
+		// MUST TODO: REMOVE!!!
+		if (bounding_boxes_overlap(parent_bounding_boxes[0u], parent_bounding_boxes[1u]))
+		{
+			//return;
+		}
+		/*uint REMOVE = atomicAdd(fixed_data.temp, 1u);
+		if (REMOVE >= 5u)
+		{
+			return;
+		}*/
+
+
 		do
 		{
 			uvec4 collapse_parent_children_height = parent_children_heights[collapse_side];
