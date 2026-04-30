@@ -236,7 +236,7 @@ FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 
 	uint bounding_box_contact_detector_indices_source_flags_base;	// flags: (bit 0: willing to merge side 0, bit 1: willing to merge side 1)
 	
-	uint mergeable_bounding_box_contact_detector_lookup_table_capacity;
+	uint mergeable_bounding_box_contact_detector_lookup_table_capacity;	// IMPORTANT: ASSUMED TO BE POWER OF TWO.
 	uint mergeable_bounding_box_contact_detector_lookup_table_base;
 
 	uint rigid_body_circle_contact_constraint_spawner_indices_flags_base;

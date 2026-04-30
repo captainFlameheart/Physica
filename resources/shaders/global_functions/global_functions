@@ -18,6 +18,32 @@ uint compute_bounding_box_cost(in uvec4 bounding_box)
 	return uint(compute_bounding_box_cost(ivec4(bounding_box)));
 }
 
+uint round_up_to_power_of_two(uint x)
+{
+	if (x <= 1u)
+	{
+		return 1u;
+	}
+
+    uint most_significant_bit = uint(findMSB(x - 1u));
+    return 1u << (most_significant_bit + 1u);
+}
+
+uint compute_mergeable_contact_detector_lookup_index(in uint index_0, in uint index_1, in uint lookup_table_capacity)
+{
+	uint min_index = min(index_0, index_1);
+	uint max_index = max(index_0, index_1);
+
+	uint hash = min_index * 0x9E3779B9u ^ max_index * 0x85EBCA6Bu;
+	hash ^= hash >> 16;
+	hash *= 0x7feb352du;
+	hash ^= hash >> 15;
+	hash *= 0x846ca68bu;
+	hash ^= hash >> 16;
+
+	return hash & (lookup_table_capacity - 1u);	// IMPORTANT: Assumes lookup_table_capacity is a power of two.
+}
+
 #if WRITING_ALLOWED
 
 	void kill(in uint entity_type, in uint index)

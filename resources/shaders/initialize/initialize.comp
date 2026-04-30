@@ -299,7 +299,7 @@ void main()
 
 	fixed_data.bounding_box_contact_detector_indices_source_flags_base = bounding_box_contact_detector_indices_source_flags_base;
 
-	uint mergeable_bounding_box_contact_detector_lookup_table_capacity = capacities[bounding_box_contact_detector_type] * 2u;
+	uint mergeable_bounding_box_contact_detector_lookup_table_capacity = round_up_to_power_of_two(capacities[bounding_box_contact_detector_type] * 2u);
 	fixed_data.mergeable_bounding_box_contact_detector_lookup_table_capacity = mergeable_bounding_box_contact_detector_lookup_table_capacity;
 
 	uint mergeable_bounding_box_contact_detector_lookup_table_base_address = align_up(killed_base_addresses[bounding_box_contact_detector_type] + capacities[bounding_box_contact_detector_type] * uint_data_array_stride);
