@@ -37,20 +37,20 @@ void main()
 	uvec4 camera_position = fixed_data.camera_position;
 	mat4 camera_offset_to_clip_coordinates = fixed_data.camera_offset_to_clip_coordinates;
 
-	uint indices_source_pad_base = fixed_data.bounding_box_contact_detector_indices_source_pad_base;
+	uint indices_source_flags_base = fixed_data.bounding_box_contact_detector_indices_source_flags_base;
 
-	uint indices_source_pad_index = indices_source_pad_base + index;
+	uint indices_source_flags_index = indices_source_flags_base + index;
 
-	uvec4 indices_source_pad = uvec4_data.data[indices_source_pad_index];
+	uvec4 indices_source_flags = uvec4_data.data[indices_source_flags_index];
 
 	uint bounding_box_base = fixed_data.inner_bounding_box_base;
 	uint bounding_box_parent_children_height_base = fixed_data.inner_bounding_box_parent_children_height_base;
 
-	uint bounding_box_index_0 = bounding_box_base + indices_source_pad.x;
-	uint bounding_box_index_1 = bounding_box_base + indices_source_pad.y;
+	uint bounding_box_index_0 = bounding_box_base + indices_source_flags.x;
+	uint bounding_box_index_1 = bounding_box_base + indices_source_flags.y;
 
-	uint bounding_box_parent_children_height_index_0 = bounding_box_parent_children_height_base + indices_source_pad.x;
-	uint bounding_box_parent_children_height_index_1 = bounding_box_parent_children_height_base + indices_source_pad.y;
+	uint bounding_box_parent_children_height_index_0 = bounding_box_parent_children_height_base + indices_source_flags.x;
+	uint bounding_box_parent_children_height_index_1 = bounding_box_parent_children_height_base + indices_source_flags.y;
 
 	uvec4 bounding_boxes[2u] = uvec4[2u]
 	(
@@ -94,7 +94,7 @@ void main()
 	(
 		leaf_bounding_box_color,
 		inner_bounding_box_height_colors[height % inner_bounding_box_height_colors.length()],
-		float(int(indices_source_pad[endpoint_index]) >= 0)
+		float(int(indices_source_flags[endpoint_index]) >= 0)
 	);
 
 	#if CULL_DEAD

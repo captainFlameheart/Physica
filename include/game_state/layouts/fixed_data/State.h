@@ -123,7 +123,7 @@ namespace game_state::layouts::fixed_data
 		GLint offset;
 	};
 
-	struct bounding_box_contact_detector_indices_source_pad_base
+	struct bounding_box_contact_detector_indices_source_flags_base
 	{
 		GLint offset;
 	};
@@ -496,8 +496,8 @@ namespace game_state::layouts::fixed_data
 
 		union
 		{
-			bounding_box_contact_detector_indices_source_pad_base bounding_box_contact_detector_indices_source_pad_base_state;
-			GLint bounding_box_contact_detector_indices_source_pad_base_properties[sizeof(bounding_box_contact_detector_indices_source_pad_base) / sizeof(GLint)];
+			bounding_box_contact_detector_indices_source_flags_base bounding_box_contact_detector_indices_source_flags_base_state;
+			GLint bounding_box_contact_detector_indices_source_flags_base_properties[sizeof(bounding_box_contact_detector_indices_source_flags_base) / sizeof(GLint)];
 		};
 		union
 		{

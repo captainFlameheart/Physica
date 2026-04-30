@@ -28,15 +28,15 @@ bool bounding_boxes_are_separated(in ivec4 bounding_box_0, in ivec4 bounding_box
 void tick_detector
 (
 	in uint index,
-	in uint indices_source_pad_base,
+	in uint indices_source_flags_base,
 	in uint bounding_box_base,
 	in uint bounding_box_parent_children_height_base,
-	in uint indices_source_pad_index,
-	in uvec4 indices_source_pad
+	in uint indices_source_flags_index,
+	in uvec4 indices_source_flags
 )
 {
-	uint bounding_box_index_0 = bounding_box_base + indices_source_pad.x;
-	uint bounding_box_index_1 = bounding_box_base + indices_source_pad.y;
+	uint bounding_box_index_0 = bounding_box_base + indices_source_flags.x;
+	uint bounding_box_index_1 = bounding_box_base + indices_source_flags.y;
 
 	ivec4 bounding_boxes[2u] = ivec4[2u]
 	(
@@ -48,8 +48,8 @@ void tick_detector
 	{
 		bvec2 is_inner = bvec2
 		(
-			int(indices_source_pad.x) >= 0,
-			int(indices_source_pad.y) >= 0
+			int(indices_source_flags.x) >= 0,
+			int(indices_source_flags.y) >= 0
 		);
 		if (any(is_inner))
 		{
@@ -66,14 +66,14 @@ void tick_detector
 				uint split_side = uint(cost_1 > cost_0 && is_inner.y);
 				uint unsplit_side = split_side ^ 1u;
 			
-				uint split_index = indices_source_pad[split_side];
-				uint unsplit_index = indices_source_pad[unsplit_side];
+				uint split_index = indices_source_flags[split_side];
+				uint unsplit_index = indices_source_flags[unsplit_side];
 			
 				uvec4 split_parent_children_height = uvec4_data.data[bounding_box_parent_children_height_base + split_index];
 		
 				// Update current detector -> one child.
-				indices_source_pad[split_side] = split_parent_children_height.y;
-				uvec4_data.data[indices_source_pad_base + detector_index] = indices_source_pad;	// TODO: Use index variable as detector_index.
+				indices_source_flags[split_side] = split_parent_children_height.y;
+				uvec4_data.data[indices_source_flags_base + detector_index] = indices_source_flags;	// TODO: Use index variable as detector_index.
 
 				// Create new detector -> other child.
 				uint new_detector_index = atomicAdd(fixed_data.write_counts[bounding_box_contact_detector_type], 1u);
@@ -83,15 +83,15 @@ void tick_detector
 					return;
 				}
 
-				indices_source_pad = uvec4(split_parent_children_height.z, unsplit_index, detector_index, 0u);
-				uvec4_data.data[indices_source_pad_base + new_detector_index] = indices_source_pad;
+				indices_source_flags = uvec4(split_parent_children_height.z, unsplit_index, detector_index, 0u);
+				uvec4_data.data[indices_source_flags_base + new_detector_index] = indices_source_flags;
 
 				// IMPORTANT TODO: One of these fetches is redundant.
-				bounding_boxes[0u] = ivec4(uvec4_data.data[bounding_box_base + indices_source_pad.x]);
-				bounding_boxes[1u] = ivec4(uvec4_data.data[bounding_box_base + indices_source_pad.y]);
+				bounding_boxes[0u] = ivec4(uvec4_data.data[bounding_box_base + indices_source_flags.x]);
+				bounding_boxes[1u] = ivec4(uvec4_data.data[bounding_box_base + indices_source_flags.y]);
 
-				is_inner[0u] = (int(indices_source_pad.x) >= 0);
-				is_inner[1u] = (int(indices_source_pad.y) >= 0);
+				is_inner[0u] = (int(indices_source_flags.x) >= 0);
+				is_inner[1u] = (int(indices_source_flags.y) >= 0);
 
 				detector_index = new_detector_index;
 
@@ -104,15 +104,15 @@ void tick_detector
 				while (true)
 				{	// Backtrack.
 				
-					detector_index = indices_source_pad.z;	// Follow source pointer.
+					detector_index = indices_source_flags.z;	// Follow source pointer.
 				
-					indices_source_pad = uvec4_data.data[indices_source_pad_base + detector_index];
+					indices_source_flags = uvec4_data.data[indices_source_flags_base + detector_index];
 
-					bounding_boxes[0u] = ivec4(uvec4_data.data[bounding_box_base + indices_source_pad.x]);
-					bounding_boxes[1u] = ivec4(uvec4_data.data[bounding_box_base + indices_source_pad.y]);
+					bounding_boxes[0u] = ivec4(uvec4_data.data[bounding_box_base + indices_source_flags.x]);
+					bounding_boxes[1u] = ivec4(uvec4_data.data[bounding_box_base + indices_source_flags.y]);
 				
-					is_inner[0u] = (int(indices_source_pad.x) >= 0);
-					is_inner[1u] = (int(indices_source_pad.y) >= 0);
+					is_inner[0u] = (int(indices_source_flags.x) >= 0);
+					is_inner[1u] = (int(indices_source_flags.y) >= 0);
 
 					if (bounding_boxes_overlap(bounding_boxes) && any(is_inner))
 					{
@@ -130,8 +130,8 @@ void tick_detector
 	{	// Collapse logic.
 		uvec4 parent_children_heights[2u] = uvec4[2u]
 		(
-			uvec4_data.data[bounding_box_parent_children_height_base + indices_source_pad.x],
-			uvec4_data.data[bounding_box_parent_children_height_base + indices_source_pad.y]
+			uvec4_data.data[bounding_box_parent_children_height_base + indices_source_flags.x],
+			uvec4_data.data[bounding_box_parent_children_height_base + indices_source_flags.y]
 		);
 
 		ivec4 parent_bounding_boxes[2u] = ivec4[2u]
@@ -175,14 +175,14 @@ void tick_detector
 			uvec4 collapse_parent_children_height = parent_children_heights[collapse_side];
 			uvec4 collapse_parent_parent_children_height = uvec4_data.data[bounding_box_parent_children_height_base + collapse_parent_children_height.x];
 			
-			if (indices_source_pad[collapse_side] == collapse_parent_parent_children_height.z)	// Is the detector holding the right child of the collapsed node?
+			if (indices_source_flags[collapse_side] == collapse_parent_parent_children_height.z)	// Is the detector holding the right child of the collapsed node?
 			{	// Die.
 				kill(bounding_box_contact_detector_type, index);
 				return;
 			}
 			
 			// Perform collapse.
-			indices_source_pad[collapse_side] = collapse_parent_children_height.x;
+			indices_source_flags[collapse_side] = collapse_parent_children_height.x;
 			bounding_boxes[collapse_side] = parent_bounding_boxes[collapse_side];
 			parent_children_heights[collapse_side] = uvec4_data.data[bounding_box_parent_children_height_base + collapse_parent_children_height.x];
 			parent_bounding_boxes[collapse_side] = ivec4(uvec4_data.data[bounding_box_base + parent_children_heights[collapse_side].x]);
@@ -202,7 +202,7 @@ void tick_detector
 			}
 		} while (collapse_cost != max_uint);
 
-		uvec4_data.data[indices_source_pad_index] = indices_source_pad;
+		uvec4_data.data[indices_source_flags_index] = indices_source_flags;
 	}
 }
 
@@ -216,32 +216,32 @@ void main()
 		return;
 	}
 	
-	uint indices_source_pad_base = fixed_data.bounding_box_contact_detector_indices_source_pad_base;
+	uint indices_source_flags_base = fixed_data.bounding_box_contact_detector_indices_source_flags_base;
 
-	uint indices_source_pad_index = indices_source_pad_base + index;
+	uint indices_source_flags_index = indices_source_flags_base + index;
 
-	uvec4 indices_source_pad = uvec4_data.data[indices_source_pad_index];
+	uvec4 indices_source_flags = uvec4_data.data[indices_source_flags_index];
 
 	uint bounding_box_base = fixed_data.inner_bounding_box_base;
 	uint bounding_box_parent_children_height_base = fixed_data.inner_bounding_box_parent_children_height_base;
 	uint bounding_box_split_indices_base = fixed_data.inner_bounding_box_split_indices_base;
 	uint bounding_box_moved_to_base = fixed_data.inner_bounding_box_moved_to_base;
 
-	uint moved_to_0 = indices_source_pad.x;
-	if (int(indices_source_pad.x) >= 0)	// IMPORTANT TODO: Store expression in variable.
+	uint moved_to_0 = indices_source_flags.x;
+	if (int(indices_source_flags.x) >= 0)	// IMPORTANT TODO: Store expression in variable.
 	{
-		moved_to_0 = uint_data.data[bounding_box_moved_to_base + indices_source_pad.x];
+		moved_to_0 = uint_data.data[bounding_box_moved_to_base + indices_source_flags.x];
 	}
-	uint moved_to_1 = indices_source_pad.y;
-	if (int(indices_source_pad.y) >= 0)
+	uint moved_to_1 = indices_source_flags.y;
+	if (int(indices_source_flags.y) >= 0)
 	{
-		moved_to_1 = uint_data.data[bounding_box_moved_to_base + indices_source_pad.y];
+		moved_to_1 = uint_data.data[bounding_box_moved_to_base + indices_source_flags.y];
 	}
-	if (any(bvec2(moved_to_0 != indices_source_pad.x, moved_to_1 != indices_source_pad.y)))
+	if (any(bvec2(moved_to_0 != indices_source_flags.x, moved_to_1 != indices_source_flags.y)))
 	{
-		indices_source_pad.x = moved_to_0;
-		indices_source_pad.y = moved_to_1;
-		uvec4_data.data[indices_source_pad_index] = indices_source_pad;
+		indices_source_flags.x = moved_to_0;
+		indices_source_flags.y = moved_to_1;
+		uvec4_data.data[indices_source_flags_index] = indices_source_flags;
 	}
 
 	// Initially assume that neither box was split, which is the typical case.
@@ -250,23 +250,23 @@ void main()
 	uint index_array[4u];
 	index_array[0u] = index;
 	
-	uint indices_source_pad_index_array[4u];	// IMPORTANT TODO: Consider not storing this, and instead computing such indices on demand.
-	indices_source_pad_index_array[0u] = indices_source_pad_index;
+	uint indices_source_flags_index_array[4u];	// IMPORTANT TODO: Consider not storing this, and instead computing such indices on demand.
+	indices_source_flags_index_array[0u] = indices_source_flags_index;
 	
-	uvec4 indices_source_pad_array[4u];
-	indices_source_pad_array[0u] = indices_source_pad;
+	uvec4 indices_source_flags_array[4u];
+	indices_source_flags_array[0u] = indices_source_flags;
 
 	bvec2 is_split = bvec2(false, false);
 	uvec2 split_indices_array[2u];
 
-	if (int(indices_source_pad.x) >= 0)
+	if (int(indices_source_flags.x) >= 0)
 	{
-		split_indices_array[0u] = uvec2_data.data[bounding_box_split_indices_base + indices_source_pad.x];
+		split_indices_array[0u] = uvec2_data.data[bounding_box_split_indices_base + indices_source_flags.x];
 		is_split[0u] = (split_indices_array[0u].x != null_uint);
 	}
-	if (int(indices_source_pad.y) >= 0)
+	if (int(indices_source_flags.y) >= 0)
 	{
-		split_indices_array[1u] = uvec2_data.data[bounding_box_split_indices_base + indices_source_pad.y];
+		split_indices_array[1u] = uvec2_data.data[bounding_box_split_indices_base + indices_source_flags.y];
 		is_split[1u] = (split_indices_array[1u].x != null_uint);
 	}
 
@@ -284,31 +284,31 @@ void main()
 
 		detector_count = 4u;
 
-		indices_source_pad.x = split_indices_array[0u].x;
-		indices_source_pad.y = split_indices_array[1u].x;
-		indices_source_pad_array[0u] = indices_source_pad;
-		uvec4_data.data[indices_source_pad_index] = indices_source_pad;
+		indices_source_flags.x = split_indices_array[0u].x;
+		indices_source_flags.y = split_indices_array[1u].x;
+		indices_source_flags_array[0u] = indices_source_flags;
+		uvec4_data.data[indices_source_flags_index] = indices_source_flags;
 
 		index_array[1u] = second_index;
-		uint second_indices_source_pad_index = indices_source_pad_base + second_index;
-		indices_source_pad_index_array[1u] = second_indices_source_pad_index;
-		uvec4 second_indices_source_pad = uvec4(split_indices_array[0u].x, split_indices_array[1u].y, 0u, 0u);
-		indices_source_pad_array[1u] = second_indices_source_pad;
-		uvec4_data.data[second_indices_source_pad_index] = second_indices_source_pad;
+		uint second_indices_source_flags_index = indices_source_flags_base + second_index;
+		indices_source_flags_index_array[1u] = second_indices_source_flags_index;
+		uvec4 second_indices_source_flags = uvec4(split_indices_array[0u].x, split_indices_array[1u].y, 0u, 0u);
+		indices_source_flags_array[1u] = second_indices_source_flags;
+		uvec4_data.data[second_indices_source_flags_index] = second_indices_source_flags;
 
 		index_array[2u] = third_index;
-		uint third_indices_source_pad_index = indices_source_pad_base + third_index;
-		indices_source_pad_index_array[2u] = third_indices_source_pad_index;
-		uvec4 third_indices_source_pad = uvec4(split_indices_array[0u].y, split_indices_array[1u].x, 0u, 0u);
-		indices_source_pad_array[2u] = third_indices_source_pad;
-		uvec4_data.data[third_indices_source_pad_index] = third_indices_source_pad;
+		uint third_indices_source_flags_index = indices_source_flags_base + third_index;
+		indices_source_flags_index_array[2u] = third_indices_source_flags_index;
+		uvec4 third_indices_source_flags = uvec4(split_indices_array[0u].y, split_indices_array[1u].x, 0u, 0u);
+		indices_source_flags_array[2u] = third_indices_source_flags;
+		uvec4_data.data[third_indices_source_flags_index] = third_indices_source_flags;
 
 		index_array[3u] = fourth_index;
-		uint fourth_indices_source_pad_index = indices_source_pad_base + fourth_index;
-		indices_source_pad_index_array[3u] = fourth_indices_source_pad_index;
-		uvec4 fourth_indices_source_pad = uvec4(split_indices_array[0u].y, split_indices_array[1u].y, 0u, 0u);
-		indices_source_pad_array[3u] = fourth_indices_source_pad;
-		uvec4_data.data[fourth_indices_source_pad_index] = fourth_indices_source_pad;
+		uint fourth_indices_source_flags_index = indices_source_flags_base + fourth_index;
+		indices_source_flags_index_array[3u] = fourth_indices_source_flags_index;
+		uvec4 fourth_indices_source_flags = uvec4(split_indices_array[0u].y, split_indices_array[1u].y, 0u, 0u);
+		indices_source_flags_array[3u] = fourth_indices_source_flags;
+		uvec4_data.data[fourth_indices_source_flags_index] = fourth_indices_source_flags;
 	}
 	else if (any(is_split))
 	{	// Atypical case.
@@ -325,16 +325,16 @@ void main()
 		uvec2 split_indices = split_indices_array[split_side];
 		detector_count = 2u;
 
-		indices_source_pad[split_side] = split_indices.x;
-		indices_source_pad_array[0u] = indices_source_pad;
-		uvec4_data.data[indices_source_pad_index] = indices_source_pad;
+		indices_source_flags[split_side] = split_indices.x;
+		indices_source_flags_array[0u] = indices_source_flags;
+		uvec4_data.data[indices_source_flags_index] = indices_source_flags;
 
 		index_array[1u] = second_index;
-		uint second_indices_source_pad_index = indices_source_pad_base + second_index;
-		indices_source_pad_index_array[1u] = second_indices_source_pad_index;
-		uvec4 second_indices_source_pad = uvec4(split_indices.y, indices_source_pad[unsplit_side], 0u, 0u);
-		indices_source_pad_array[1u] = second_indices_source_pad;
-		uvec4_data.data[second_indices_source_pad_index] = second_indices_source_pad;
+		uint second_indices_source_flags_index = indices_source_flags_base + second_index;
+		indices_source_flags_index_array[1u] = second_indices_source_flags_index;
+		uvec4 second_indices_source_flags = uvec4(split_indices.y, indices_source_flags[unsplit_side], 0u, 0u);
+		indices_source_flags_array[1u] = second_indices_source_flags;
+		uvec4_data.data[second_indices_source_flags_index] = second_indices_source_flags;
 	}
 
 	for (uint detector = 0u; detector < detector_count; ++detector)
@@ -342,11 +342,11 @@ void main()
 		tick_detector
 		(
 			index_array[detector],
-			indices_source_pad_base,
+			indices_source_flags_base,
 			bounding_box_base,
 			bounding_box_parent_children_height_base,
-			indices_source_pad_index_array[detector],
-			indices_source_pad_array[detector]
+			indices_source_flags_index_array[detector],
+			indices_source_flags_array[detector]
 		);
 	}
 }

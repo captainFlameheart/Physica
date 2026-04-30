@@ -53,11 +53,11 @@ namespace game_logic::debug
 			sizeof(GLuint)
 		);
 
-		GLuint bounding_box_contact_detector_indices_source_pad_base;
+		GLuint bounding_box_contact_detector_indices_source_flags_base;
 		std::memcpy
 		(
-			&bounding_box_contact_detector_indices_source_pad_base,
-			fixed_data + environment.state.layouts.fixed_data.bounding_box_contact_detector_indices_source_pad_base_state.offset,
+			&bounding_box_contact_detector_indices_source_flags_base,
+			fixed_data + environment.state.layouts.fixed_data.bounding_box_contact_detector_indices_source_flags_base_state.offset,
 			sizeof(GLuint)
 		);
 		GLuint bounding_box_contact_detector_old_death_index_base;
@@ -572,14 +572,14 @@ namespace game_logic::debug
 		delete[] inner_bounding_boxes;
 		delete[] inner_bounding_box_height_delimiters;
 
-		GLuint bounding_box_contact_detector_indices_source_pads_size{ bounding_box_contact_detector_capacity * sizeof(GLuint[4u]) };
-		GLubyte* bounding_box_contact_detector_indices_source_pads = new GLubyte[bounding_box_contact_detector_indices_source_pads_size];
+		GLuint bounding_box_contact_detector_indices_source_flagss_size{ bounding_box_contact_detector_capacity * sizeof(GLuint[4u]) };
+		GLubyte* bounding_box_contact_detector_indices_source_flagss = new GLubyte[bounding_box_contact_detector_indices_source_flagss_size];
 		glGetNamedBufferSubData
 		(
 			environment.state.buffers.GPU_only.buffers[environment.state.buffers.GPU_only.current],
-			environment.state.layouts.uvec4_data.state.offset + bounding_box_contact_detector_indices_source_pad_base * environment.state.layouts.uvec4_data.state.array_stride,
-			bounding_box_contact_detector_indices_source_pads_size,
-			bounding_box_contact_detector_indices_source_pads
+			environment.state.layouts.uvec4_data.state.offset + bounding_box_contact_detector_indices_source_flags_base * environment.state.layouts.uvec4_data.state.array_stride,
+			bounding_box_contact_detector_indices_source_flagss_size,
+			bounding_box_contact_detector_indices_source_flagss
 		);
 
 		GLuint bounding_box_contact_detector_old_death_indices_size{ bounding_box_contact_detector_capacity * sizeof(GLuint) };
@@ -614,18 +614,18 @@ namespace game_logic::debug
 		std::cout << "Contact detectors:\n";
 		for (GLuint bounding_box_contact_detector{ 0u }; bounding_box_contact_detector < bounding_box_contact_detector_write_count; ++bounding_box_contact_detector)
 		{
-			GLuint bounding_box_contact_detector_indices_source_pad[4u];
+			GLuint bounding_box_contact_detector_indices_source_flags[4u];
 			std::memcpy
 			(
-				&bounding_box_contact_detector_indices_source_pad,
-				bounding_box_contact_detector_indices_source_pads + bounding_box_contact_detector * environment.state.layouts.uvec4_data.state.array_stride,
+				&bounding_box_contact_detector_indices_source_flags,
+				bounding_box_contact_detector_indices_source_flagss + bounding_box_contact_detector * environment.state.layouts.uvec4_data.state.array_stride,
 				sizeof(GLuint[4u])
 			);
-			std::cout << bounding_box_contact_detector << ": indices_source_pad: ("
-				<< bounding_box_contact_detector_indices_source_pad[0u] << ", "
-				<< bounding_box_contact_detector_indices_source_pad[1u] << ", "
-				<< bounding_box_contact_detector_indices_source_pad[2u] << ", "
-				<< bounding_box_contact_detector_indices_source_pad[3u] << ")\n";
+			std::cout << bounding_box_contact_detector << ": indices_source_flags: ("
+				<< bounding_box_contact_detector_indices_source_flags[0u] << ", "
+				<< bounding_box_contact_detector_indices_source_flags[1u] << ", "
+				<< bounding_box_contact_detector_indices_source_flags[2u] << ", "
+				<< bounding_box_contact_detector_indices_source_flags[3u] << ")\n";
 
 			GLuint old_death_index;
 			std::memcpy
@@ -638,7 +638,7 @@ namespace game_logic::debug
 		}
 		std::cout << '\n';
 
-		delete[] bounding_box_contact_detector_indices_source_pads;
+		delete[] bounding_box_contact_detector_indices_source_flagss;
 		delete[] bounding_box_contact_detector_old_death_indices;
 
 		GLuint temp;

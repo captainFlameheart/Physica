@@ -96,8 +96,8 @@ namespace game_logic::initialize::query_layouts
 		);
 		::game_logic::shader_util::query::query_shader_storage_variable_offset
 		(
-			program, "Fixed_Data.bounding_box_contact_detector_indices_source_pad_base",
-			environment.state.layouts.fixed_data.bounding_box_contact_detector_indices_source_pad_base_properties
+			program, "Fixed_Data.bounding_box_contact_detector_indices_source_flags_base",
+			environment.state.layouts.fixed_data.bounding_box_contact_detector_indices_source_flags_base_properties
 		);
 
 		::game_logic::shader_util::query::query_shader_storage_variable_offset
