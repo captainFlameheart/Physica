@@ -42,6 +42,12 @@ const uint align_up_to_common_base_mask = ~align_up_to_common_base_addition;
 const uint point_mass_is_dead_shift = 0u;
 const uint point_mass_is_dead_mask = 1u << point_mass_is_dead_shift;
 
+const uint bounding_box_contact_detector_willing_to_merge_side_0_shift = 0u;
+const uint bounding_box_contact_detector_willing_to_merge_side_0_mask = 1u << bounding_box_contact_detector_willing_to_merge_side_0_shift;
+
+const uint bounding_box_contact_detector_willing_to_merge_side_1_shift = 1u;
+const uint bounding_box_contact_detector_willing_to_merge_side_1_mask = 1u << bounding_box_contact_detector_willing_to_merge_side_1_shift;
+
 const uint rigid_body_circle_contact_constraint_spawner_is_dead_shift = 0u;
 const uint rigid_body_circle_contact_constraint_spawner_is_dead_mask = 1u << rigid_body_circle_contact_constraint_spawner_is_dead_shift;
 
