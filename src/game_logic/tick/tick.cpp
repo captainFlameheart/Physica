@@ -233,11 +233,40 @@ namespace game_logic::tick
 
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 		
-		//commit_detector_counts(environment);asij	// MUST TODO: Make into specialized shader that commits spawned detectors to merge shaders.
+		{
+			glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bounding_box_contact_detectors::Indices::commit_spawned_bounding_box_contact_detectors)]);
+			glDispatchCompute(1u, 1u, 1u);
+		}
 		
-		//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_COMMAND_BARRIER_BIT);
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_COMMAND_BARRIER_BIT);
 
-		// TODO: Merge then clear merge data.
+		{
+			GLuint shader_index{ static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bounding_box_contact_detectors::Indices::merge_bounding_box_contact_detectors) };
+			glUseProgram(environment.state.shaders[shader_index]);
+			GLuint index_in_tick_entities_shader_array{ shader_index - ::game_state::shader_indices::tick::process_entities::base };
+			GLintptr command_offset
+			{
+				environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.offset +
+				index_in_tick_entities_shader_array * environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.top_level_array_stride
+			};
+			glDispatchComputeIndirect(command_offset);
+		}
+
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+		{
+			GLuint shader_index{ static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bounding_box_contact_detectors::Indices::clear_bounding_box_contact_detector_merge_data) };
+			glUseProgram(environment.state.shaders[shader_index]);
+			GLuint index_in_tick_entities_shader_array{ shader_index - ::game_state::shader_indices::tick::process_entities::base };
+			GLintptr command_offset
+			{
+				environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.offset +
+				index_in_tick_entities_shader_array * environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.top_level_array_stride
+			};
+			glDispatchComputeIndirect(command_offset);
+		}
+
+		// TODO: Memory barriers
 
 		for (GLuint tick_constraint_spawners_shader_index{ static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraint_spawners::Indices::rigid_body_circle_contact_constraint_spawners) }; tick_constraint_spawners_shader_index < ::game_state::shader_indices::tick::process_entities::constraint_spawners::end; ++tick_constraint_spawners_shader_index)
 		{
