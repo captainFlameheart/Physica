@@ -36,7 +36,8 @@ void main()
 
 	uint merged_to_parent_other_child_index = merged_to_parent_children_height[1u + merged_to_parent_other_child_side];
 
-	uint other_detector_lookup_index = compute_mergeable_contact_detector_lookup_index(unmerged_index, merged_to_parent_other_child_index);
+	uint lookup_table_capacity = fixed_data.mergeable_bounding_box_contact_detector_lookup_table_capacity;
+	uint other_detector_lookup_index = compute_mergeable_contact_detector_lookup_index(unmerged_index, merged_to_parent_other_child_index, lookup_table_capacity);
 	uint other_detector_index = uint_data.data[lookup_table_base + other_detector_lookup_index];
 
 	while (other_detector_index != null_uint)
