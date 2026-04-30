@@ -24,7 +24,9 @@ void main()
 
 	if (indices_source_flags.z == null_uint)
 	{	// Only let the last element clear the head pointer in the lookup table.
+		uint lookup_table_capacity = fixed_data.mergeable_bounding_box_contact_detector_lookup_table_capacity;
+		uint lookup_index = compute_mergeable_contact_detector_lookup_index(indices_source_flags.x, indices_source_flags.y,	lookup_table_capacity);
 		uint lookup_table_base = fixed_data.mergeable_bounding_box_contact_detector_lookup_table_base;
-		uint_data.data[lookup_table_base + other_detector_lookup_index] = null_uint;
+		uint_data.data[lookup_table_base + lookup_index] = null_uint;
 	}
 }
