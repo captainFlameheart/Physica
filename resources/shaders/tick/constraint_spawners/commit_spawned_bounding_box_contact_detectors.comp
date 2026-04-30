@@ -1,0 +1,9 @@
+layout(local_size_x = 1u) in;
+void main()
+{
+	uint write_count = fixed_data.write_counts[bounding_box_contact_detector_type];
+	fixed_data.read_counts[bounding_box_contact_detector_type] = write_count;
+
+	commands.dispatch_commands[merge_bounding_box_contact_detectors_program_index] =
+		(write_count + merge_bounding_box_contact_detectors_local_size - 1u) / merge_bounding_box_contact_detectors_local_size;
+}

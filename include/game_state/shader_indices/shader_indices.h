@@ -291,15 +291,31 @@ namespace game_state::shader_indices
 				constexpr GLuint count{ end - base };
 			}
 
-			namespace constraint_spawners
+			namespace bounding_box_contact_detectors
 			{
 				constexpr GLuint base{ ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::end };
 
 				enum struct Indices : GLuint
 				{
-					bounding_box_contact_detectors = base,
+					commit_spawned_bounding_box_contact_detectors = base,
 					merge_bounding_box_contact_detectors,
 					clear_bounding_box_contact_detector_merge_data,
+
+					end
+				};
+
+				constexpr GLuint end{ static_cast<GLuint>(Indices::end) };
+				constexpr GLuint count{ end - base };
+				
+			}
+
+			namespace constraint_spawners
+			{
+				constexpr GLuint base{ ::game_state::shader_indices::tick::process_entities::bounding_box_contact_detectors::end };
+
+				enum struct Indices : GLuint
+				{
+					bounding_box_contact_detectors = base,	// TODO: Move to bounding_box_contact_detectors namespace.
 					rigid_body_circle_contact_constraint_spawners,
 
 					end

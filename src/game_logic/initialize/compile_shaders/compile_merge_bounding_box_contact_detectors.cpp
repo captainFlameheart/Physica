@@ -19,7 +19,7 @@ namespace game_logic::initialize::compile_shaders
 			::util::shader::file_to_string("tick/constraint_spawners/merge_bounding_box_contact_detectors.comp")
 		);
 
-		environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraint_spawners::Indices::merge_bounding_box_contact_detectors)] = ::util::shader::create_program
+		environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bounding_box_contact_detectors::Indices::merge_bounding_box_contact_detectors)] = ::util::shader::create_program
 		(
 			compile_environment.shader_group.compute_shader
 		);

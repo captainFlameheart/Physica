@@ -221,16 +221,24 @@ namespace game_logic::tick
 	{
 		{
 			GLuint shader_index{ static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraint_spawners::Indices::bounding_box_contact_detectors) };
+			glUseProgram(environment.state.shaders[shader_index]);
 			GLuint index_in_tick_entities_shader_array{ shader_index - ::game_state::shader_indices::tick::process_entities::base };
 			GLintptr command_offset
 			{
 				environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.offset +
 				index_in_tick_entities_shader_array * environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.top_level_array_stride
 			};
-
-			glUseProgram(environment.state.shaders[shader_index]);
 			glDispatchComputeIndirect(command_offset);
 		}
+
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+		
+		//commit_detector_counts(environment);asij	// MUST TODO: Make into specialized shader that commits spawned detectors to merge shaders.
+		
+		//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+		// TODO: Merge then clear merge data.
+
 		for (GLuint tick_constraint_spawners_shader_index{ static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraint_spawners::Indices::rigid_body_circle_contact_constraint_spawners) }; tick_constraint_spawners_shader_index < ::game_state::shader_indices::tick::process_entities::constraint_spawners::end; ++tick_constraint_spawners_shader_index)
 		{
 			glUseProgram(environment.state.shaders[tick_constraint_spawners_shader_index]);
