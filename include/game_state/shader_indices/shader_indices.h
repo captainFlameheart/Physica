@@ -299,7 +299,6 @@ namespace game_state::shader_indices
 				{
 					commit_spawned_bounding_box_contact_detectors = base,
 					merge_bounding_box_contact_detectors,
-					clear_bounding_box_contact_detector_merge_data,
 
 					end
 				};

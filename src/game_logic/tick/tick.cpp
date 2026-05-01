@@ -252,20 +252,6 @@ namespace game_logic::tick
 			glDispatchComputeIndirect(command_offset);
 		}
 
-		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-
-		{
-			GLuint shader_index{ static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bounding_box_contact_detectors::Indices::clear_bounding_box_contact_detector_merge_data) };
-			glUseProgram(environment.state.shaders[shader_index]);
-			GLuint index_in_tick_entities_shader_array{ shader_index - ::game_state::shader_indices::tick::process_entities::base };
-			GLintptr command_offset
-			{
-				environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.offset +
-				index_in_tick_entities_shader_array * environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.top_level_array_stride
-			};
-			glDispatchComputeIndirect(command_offset);
-		}
-
 		// TODO: Memory barriers
 
 		for (GLuint tick_constraint_spawners_shader_index{ static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraint_spawners::Indices::rigid_body_circle_contact_constraint_spawners) }; tick_constraint_spawners_shader_index < ::game_state::shader_indices::tick::process_entities::constraint_spawners::end; ++tick_constraint_spawners_shader_index)
