@@ -23,7 +23,7 @@ void main()
 	uint lookup_table_base = fixed_data.mergeable_bounding_box_contact_detector_lookup_table_base;
 
 	uint unmerged_side = indices_source_flags.w & bounding_box_contact_detector_willing_to_merge_side_0_mask;
-	uint merged_side = indices_source_flags.w >> bounding_box_contact_detector_willing_to_merge_side_1_shift;
+	uint merged_side = unmerged_side ^ 1u;
 
 	uint unmerged_index = indices_source_flags[unmerged_side];
 	uint merged_index = indices_source_flags[merged_side];
@@ -43,16 +43,6 @@ void main()
 	while (other_detector_index != null_uint)
 	{
 		uvec4 other_indices_source_flags = uvec4_data.data[indices_source_flags_base + other_detector_index];
-
-		if
-		(
-			other_indices_source_flags.w == 0u ||
-			compute_mergeable_contact_detector_lookup_index(other_indices_source_flags.x, other_indices_source_flags.y, lookup_table_capacity) != other_detector_lookup_index
-		)
-		{
-			break;
-		}
-
 		if
 		(
 			(other_indices_source_flags.x == unmerged_index && other_indices_source_flags.y == merged_to_parent_other_child_index) ||

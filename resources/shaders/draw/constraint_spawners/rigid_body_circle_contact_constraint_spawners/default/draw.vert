@@ -21,7 +21,7 @@ const float offset_index_to_orthogonal_direction_sign[6u] = float[6u]
 );
 
 #define CULL_DEAD 0
-#define CULL_ALIVE 0
+#define CULL_ALIVE 1
 
 #if CULL_DEAD == 1 || CULL_ALIVE == 1
 	out float gl_CullDistance[1u];

@@ -19,14 +19,13 @@ void main()
 		return;
 	}
 
-	indices_source_flags.w = 0u;
-	uvec4_data.data[indices_source_flags_index] = indices_source_flags;
-
-	/*if (indices_source_flags.z == null_uint)
+	if (indices_source_flags.z == null_uint)
 	{	// Only let the last element clear the head pointer in the lookup table.
-		uint lookup_table_capacity = fixed_data.mergeable_bounding_box_contact_detector_lookup_table_capacity;
-		uint lookup_index = compute_mergeable_contact_detector_lookup_index(indices_source_flags.x, indices_source_flags.y,	lookup_table_capacity);
+		uint lookup_index = indices_source_flags.w >> 2u;
 		uint lookup_table_base = fixed_data.mergeable_bounding_box_contact_detector_lookup_table_base;
 		uint_data.data[lookup_table_base + lookup_index] = null_uint;
-	}*/
+	}
+
+	indices_source_flags.w = 0u;
+	uvec4_data.data[indices_source_flags_index] = indices_source_flags;
 }
