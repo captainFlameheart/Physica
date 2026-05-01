@@ -195,11 +195,10 @@ void main()
 	{
 		moved_to_1 = uint_data.data[bounding_box_moved_to_base + indices_source_flags.y];
 	}
-	if (any(bvec3(moved_to_0 != indices_source_flags.x, moved_to_1 != indices_source_flags.y, indices_source_flags.w != 0u)))
+	if (any(bvec2(moved_to_0 != indices_source_flags.x, moved_to_1 != indices_source_flags.y)))
 	{
 		indices_source_flags.x = moved_to_0;
 		indices_source_flags.y = moved_to_1;
-		indices_source_flags.w = 0u;
 		uvec4_data.data[indices_source_flags_index] = indices_source_flags;
 	}
 
