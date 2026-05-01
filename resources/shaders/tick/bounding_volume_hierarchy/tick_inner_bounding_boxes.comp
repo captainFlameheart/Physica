@@ -1,5 +1,5 @@
-#define SWAP_ALLOWED 0
-#define CHILD_GRANDCHILD_SWAP_ALLOWED 1
+#define SWAP_ALLOWED 1
+#define CHILD_GRANDCHILD_SWAP_ALLOWED SWAP_ALLOWED
 #define GRANDCHILD_GRANDCHILD_SWAP_ALLOWED SWAP_ALLOWED
 
 #define SWAP_0_ALLOWED CHILD_GRANDCHILD_SWAP_ALLOWED
@@ -248,7 +248,7 @@ void main()
 			uvec4 still_child_bounding_box = uvec4(min(moved_child_bounding_box.xy, still_grandchild_bounding_box.xy), max(moved_child_bounding_box.zw, still_grandchild_bounding_box.zw));
 			uvec4_data.data[bounding_box_base + still_child_index] = still_child_bounding_box;
 
-			// 6. Mark the still child as split into the grandchildren.
+			// Mark the still child as split into the grandchildren.
 			uvec2_data.data[split_indices_base + still_child_index] = uvec2(moved_grandchild_index, still_grandchild_index);
 		}
 		else	// Grandchild-Grandchild
@@ -324,6 +324,10 @@ void main()
 			uvec4 moved_child_1_child_parent_children_height = grandchild_parent_children_heights[global_moved_child_1_child];
 			moved_child_1_child_parent_children_height.x = parent_children_height.y;
 			uvec4_data.data[parent_children_height_base + moved_child_1_child_index] = moved_child_1_child_parent_children_height;
+
+			// Mark both children as split into their previous grandchildren.
+			uvec2_data.data[split_indices_base + parent_children_height.y] = uvec2(moved_child_0_child_index, still_child_0_child_index);
+			uvec2_data.data[split_indices_base + parent_children_height.z] = uvec2(moved_child_1_child_index, still_child_1_child_index);
 		}
 	}
 
