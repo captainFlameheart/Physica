@@ -21,7 +21,7 @@ const float offset_index_to_orthogonal_direction_sign[6u] = float[6u]
 );
 
 #define CULL_DEAD 0
-#define CULL_ALIVE 1
+#define CULL_ALIVE 0
 
 #if CULL_DEAD == 1 || CULL_ALIVE == 1
 	out float gl_CullDistance[1u];
@@ -100,12 +100,12 @@ void main()
 		-angle_sin, angle_cos
 	) * endpoint_circle_position;
 
-	camera_offset.xy += (0.0 * direction_sign) * direction + (0.02 * orthogonal_direction_sign) * orthogonal_direction;
+	camera_offset.xy += (0.0 * direction_sign) * direction + (0.08 * orthogonal_direction_sign) * orthogonal_direction;
 	gl_Position = camera_offset_to_clip_coordinates * camera_offset;
 
 	color = mix
 	(
-		vec4(1.0, 1.0, 0.0, default_reflectivity),
+		vec4(1.0, 1.0, 1.0, default_reflectivity),
 		vec4(1.0, 0.0, 0.0, default_reflectivity),
 		float((indices_flags.z >> rigid_body_circle_contact_constraint_spawner_is_dead_shift) & 1u)
 	);
