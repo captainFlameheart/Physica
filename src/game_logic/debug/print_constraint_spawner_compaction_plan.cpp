@@ -16,7 +16,7 @@ namespace game_logic::debug
 
 		constexpr GLuint rigid_body_circle_contact_constraint_spawner_type
 		{
-			static_cast<GLuint>(::game_state::entity_type_indices::constraint_spawners::Indices::rigid_body_circle_contact_constraint_spawner)
+			static_cast<GLuint>(::game_state::entity_type_indices::rigid_body_circle_contact_detector)
 		};
 
 		GLuint rigid_body_circle_contact_constraint_spawner_capacity;

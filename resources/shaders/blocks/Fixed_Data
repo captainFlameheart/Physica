@@ -239,6 +239,8 @@ FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 	uint mergeable_bounding_box_contact_detector_lookup_table_capacity;	// IMPORTANT: ASSUMED TO BE POWER OF TWO.
 	uint mergeable_bounding_box_contact_detector_lookup_table_base;
 
+	uint specific_contact_detector_indices_bases[contact_type_count];
+
 	uint rigid_body_circle_contact_constraint_spawner_indices_flags_base;
 
 	uint point_mass_distance_constraint_flags_target_distance_base;

@@ -14,6 +14,9 @@ namespace game_logic::initialize::query_layouts
 	{
 		// TODO: Do avoid repeats of constants and file loads
 		
+		constexpr GLuint bounding_box_leaf_type_count{ ::game_state::leaf_bounding_box_types::count };
+		constexpr GLuint contact_type_count{ (bounding_box_leaf_type_count * (bounding_box_leaf_type_count + 1u)) >> 1u };
+
 		std::string prefix
 		{
 			"#version " + std::string{ ::game_state::device_requirements::OpenGL_versions::version_string } + "\n"
@@ -32,6 +35,7 @@ namespace game_logic::initialize::query_layouts
 			"const uint private_input_binding = " + std::to_string(::game_state::bindings::uniform::private_input) + ";\n"
 			"const uint entity_type_count = " + std::to_string(::game_state::entity_type_indices::count) + ";\n"
 			"const uint leaf_bounding_box_type_count = " + std::to_string(::game_state::leaf_bounding_box_types::count) + ";\n"
+			"const uint contact_type_count = " + std::to_string(contact_type_count) + ";\n"
 			"const uint dispatch_program_count = " + std::to_string(::game_state::shader_indices::tick::process_entities::count) + ";\n"
 			"const uint draw_arrays_program_count = " + std::to_string(::game_state::shader_indices::draw::entities::count) + ";\n" +
 			::game_logic::initialize::compile_shaders::environment::initialize_input_constants(environment) +

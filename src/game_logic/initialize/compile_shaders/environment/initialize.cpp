@@ -108,10 +108,10 @@ namespace game_logic::initialize::compile_shaders::environment
 
 		std::string constraint_spawners_local_sizes_flags
 		{
-			"const uvec4 constraint_spawners_local_sizes_flags[" + std::to_string(::game_state::entity_type_indices::constraint_spawners::count) + "] = \n"
+			"const uvec4 constraint_spawners_local_sizes_flags[" + std::to_string(::game_state::entity_type_indices::constraint_spawners::count + ::game_state::leaf_bounding_box_types::contact_type_count) + "] = \n"
 			"{	// (clear_deaths_local_size, perform_compaction_local_size, tick_entities_local_size, flags)\n"
 		};
-		for (GLuint i{ 0u }; i < ::game_state::entity_type_indices::constraint_spawners::count; ++i)
+		for (GLuint i{ 0u }; i < ::game_state::entity_type_indices::constraint_spawners::count + ::game_state::leaf_bounding_box_types::contact_type_count; ++i)
 		{
 			constexpr GLuint clear_deaths_base
 			{
@@ -414,6 +414,9 @@ namespace game_logic::initialize::compile_shaders::environment
 			static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraints::Indices::rigid_body_circle_contact_constraints) - tick_entities_local_size_base
 		] };
 
+		constexpr GLuint bounding_box_leaf_type_count{ ::game_state::leaf_bounding_box_types::count };
+		constexpr GLuint contact_type_count{ (bounding_box_leaf_type_count * (bounding_box_leaf_type_count + 1u)) >> 1u  };
+
 		compile_environment.constant_definitions = 
 			constraint_spawners_local_sizes_flags +
 			constraint_local_sizes_flags +
@@ -443,13 +446,14 @@ namespace game_logic::initialize::compile_shaders::environment
 
 			"const uint entity_type_count = " + std::to_string(game_state::entity_type_indices::count) + ";\n"
 			"const uint constraint_spawner_type_base = " + std::to_string(game_state::entity_type_indices::constraint_spawners::base) + ";\n"
-			"const uint constraint_spawner_type_count = " + std::to_string(game_state::entity_type_indices::constraint_spawners::count) + ";\n"
+			"const uint constraint_spawner_type_count = " + std::to_string(game_state::entity_type_indices::constraint_spawners::total_count) + ";\n"
 			"const uint constraint_type_base = " + std::to_string(game_state::entity_type_indices::constraints::base) + ";\n"
 			"const uint constraint_type_count = " + std::to_string(game_state::entity_type_indices::constraints::count) + ";\n"
 			"const uint hover_highlighter_type_base = " + std::to_string(game_state::entity_type_indices::hover_highlighters::base) + ";\n"
 			"const uint hover_highlighter_type_count = " + std::to_string(game_state::entity_type_indices::hover_highlighters::count) + ";\n"
 
 			"const uint leaf_bounding_box_type_count = " + std::to_string(game_state::leaf_bounding_box_types::count) + ";\n"
+			"const uint contact_type_count = " + std::to_string(contact_type_count) + ";\n"
 
 			"const uint dispatch_program_count = " + std::to_string(::game_state::shader_indices::tick::process_entities::count) + ";\n"
 			"const uint draw_arrays_program_count = " + std::to_string(::game_state::shader_indices::draw::entities::count) + ";\n"
@@ -471,7 +475,7 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uint rigid_body_circle_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::body_attachments::Indices::rigid_body_circle)) + ";\n"
 			"const uint inner_bounding_box_type = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::bounding_volume_hierarchy::Indices::inner_bounding_box)) + ";\n"
 			"const uint bounding_box_contact_detector_type = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::constraint_spawners::Indices::bounding_box_contact_detector)) + ";\n"
-			"const uint rigid_body_circle_contact_constraint_spawner_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::constraint_spawners::Indices::rigid_body_circle_contact_constraint_spawner)) + ";\n"
+			"const uint rigid_body_circle_contact_constraint_spawner_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::rigid_body_circle_contact_detector)) + ";\n"
 			"const uint point_mass_distance_constraint_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::constraints::Indices::point_mass_distance_constraint)) + ";\n"
 			"const uint rigid_body_circle_contact_constraint_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::constraints::Indices::rigid_body_circle_contact_constraint)) + ";\n"
 			"const uint default_skycircle_element_type = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::skycircle_elements::Indices::default_skycircle_element)) + ";\n"

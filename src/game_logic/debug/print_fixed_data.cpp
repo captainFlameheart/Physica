@@ -364,7 +364,7 @@ namespace game_logic::debug
 				i * environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.top_level_array_stride,
 				sizeof(GLuint)
 			);
-			std::cout << "work_group_count_x: " << work_group_count_x << '\n';
+			std::cout << "i (" << ::game_state::shader_indices::names[::game_state::shader_indices::tick::process_entities::base + i] << "): work_group_count_x: " << work_group_count_x << '\n';
 		}
 
 		std::cout << '\n';

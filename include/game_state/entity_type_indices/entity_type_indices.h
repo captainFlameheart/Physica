@@ -1,7 +1,9 @@
 #pragma once
 #include "glad_glfw.h"
+#include "game_state/entity_type_indices/leaf_bounding_box_types.h"
 #include <array>
 #include <string_view>
+#include <algorithm>
 using namespace std::string_view_literals;
 
 namespace game_state::entity_type_indices
@@ -62,18 +64,19 @@ namespace game_state::entity_type_indices
 		enum struct Indices : GLuint
 		{
 			bounding_box_contact_detector = base,
-			rigid_body_circle_contact_constraint_spawner,
+			//rigid_body_circle_contact_constraint_spawner,
 
 			end
 		};
 
 		constexpr GLuint end{ static_cast<GLuint>(Indices::end) };
 		constexpr GLuint count{ end - base };
+		constexpr GLuint total_count{ count + ::game_state::leaf_bounding_box_types::contact_type_count };
 	}
 
 	namespace constraints
 	{
-		constexpr GLuint base{ ::game_state::entity_type_indices::constraint_spawners::end };
+		constexpr GLuint base{ ::game_state::entity_type_indices::constraint_spawners::base + 1u + ::game_state::leaf_bounding_box_types::contact_type_count };
 
 		enum struct Indices : GLuint
 		{
@@ -120,6 +123,18 @@ namespace game_state::entity_type_indices
 
 	constexpr GLuint end{ static_cast<GLuint>(hover_highlighters::end) };
 	constexpr GLuint count{ end - base };
+
+	constexpr GLuint get_contact_detector_type(::game_state::leaf_bounding_box_types::Indices leaf_type_0, ::game_state::leaf_bounding_box_types::Indices leaf_type_1)
+	{
+		GLuint min_leaf_type{ std::min(static_cast<GLuint>(leaf_type_0), static_cast<GLuint>(leaf_type_1)) };
+		GLuint max_leaf_type{ std::max(static_cast<GLuint>(leaf_type_0), static_cast<GLuint>(leaf_type_1)) };
+
+		return constraint_spawners::base + 1u + ((max_leaf_type * (max_leaf_type + 1u)) >> 1u) + min_leaf_type;
+	}
+
+	constexpr GLuint rigid_body_triangle_contact_detector{ get_contact_detector_type(::game_state::leaf_bounding_box_types::Indices::rigid_body_triangle, ::game_state::leaf_bounding_box_types::Indices::rigid_body_triangle) };
+	constexpr GLuint rigid_body_triangle_circle_contact_detector{ get_contact_detector_type(::game_state::leaf_bounding_box_types::Indices::rigid_body_triangle, ::game_state::leaf_bounding_box_types::Indices::rigid_body_circle) };
+	constexpr GLuint rigid_body_circle_contact_detector{ get_contact_detector_type(::game_state::leaf_bounding_box_types::Indices::rigid_body_circle, ::game_state::leaf_bounding_box_types::Indices::rigid_body_circle) };
 
 	constexpr std::array<std::string_view, count> initialize_names()
 	{

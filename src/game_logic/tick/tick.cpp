@@ -159,7 +159,7 @@ namespace game_logic::tick
 		(
 			environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::commit_counts::Indices::commit_counts)]
 		);
-		constexpr GLuint constraint_spawner_type_count{ ::game_state::entity_type_indices::constraint_spawners::count };
+		constexpr GLuint constraint_spawner_type_count{ ::game_state::entity_type_indices::constraint_spawners::count + ::game_state::leaf_bounding_box_types::contact_type_count };
 		constexpr GLuint commit_constraint_spawner_counts_local_size
 		{
 			::game_state::local_sizes::process_entities_local_sizes
@@ -179,6 +179,14 @@ namespace game_logic::tick
 	{
 		for (GLuint clear_constraint_spawner_deaths_shader_index{ ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::clear_deaths::base }; clear_constraint_spawner_deaths_shader_index < ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::clear_deaths::end; ++clear_constraint_spawner_deaths_shader_index)
 		{
+			if (
+				clear_constraint_spawner_deaths_shader_index != static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::clear_deaths::Indices::clear_bounding_box_contact_detector_deaths) &&
+				clear_constraint_spawner_deaths_shader_index != static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::clear_deaths::Indices::clear_rigid_body_circle_contact_constraint_spawner_deaths)
+				)
+			{
+				continue;
+			}
+
 			glUseProgram(environment.state.shaders[clear_constraint_spawner_deaths_shader_index]);
 			// TODO: We should exclude commit-count shaders.
 			GLuint index_in_tick_entities_shader_array{ clear_constraint_spawner_deaths_shader_index - ::game_state::shader_indices::tick::process_entities::base };
@@ -200,6 +208,14 @@ namespace game_logic::tick
 	{
 		for (GLuint perform_constraint_spawner_compaction_shader_index{ ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::perform_compaction::base }; perform_constraint_spawner_compaction_shader_index < ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::perform_compaction::end; ++perform_constraint_spawner_compaction_shader_index)
 		{
+			if (
+				perform_constraint_spawner_compaction_shader_index != static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::perform_compaction::Indices::perform_bounding_box_contact_detector_compaction) &&
+				perform_constraint_spawner_compaction_shader_index != static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::perform_compaction::Indices::perform_rigid_body_circle_contact_constraint_spawner_compaction)
+			)
+			{
+				continue;
+			}
+
 			glUseProgram(environment.state.shaders[perform_constraint_spawner_compaction_shader_index]);
 			// TODO: We should exclude commit-count shaders.
 			GLuint index_in_tick_entities_shader_array{ perform_constraint_spawner_compaction_shader_index - ::game_state::shader_indices::tick::process_entities::base };
@@ -270,6 +286,13 @@ namespace game_logic::tick
 
 		for (GLuint tick_constraint_spawners_shader_index{ static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraint_spawners::Indices::rigid_body_circle_contact_constraint_spawners) }; tick_constraint_spawners_shader_index < ::game_state::shader_indices::tick::process_entities::constraint_spawners::end; ++tick_constraint_spawners_shader_index)
 		{
+			if (
+				tick_constraint_spawners_shader_index != static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraint_spawners::Indices::rigid_body_circle_contact_constraint_spawners)
+			)
+			{
+				continue;
+			}
+
 			glUseProgram(environment.state.shaders[tick_constraint_spawners_shader_index]);
 			GLuint index_in_tick_entities_shader_array{ tick_constraint_spawners_shader_index - ::game_state::shader_indices::tick::process_entities::base };
 			GLintptr command_offset

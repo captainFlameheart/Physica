@@ -1,5 +1,8 @@
 #pragma once
 #include "glad_glfw.h"
+#include <array>
+#include <string_view>
+using namespace std::string_view_literals;
 
 namespace game_state::shader_indices
 {
@@ -262,6 +265,9 @@ namespace game_state::shader_indices
 					enum struct Indices : GLuint
 					{
 						clear_bounding_box_contact_detector_deaths = base,
+						
+						clear_rigid_body_triangle_contact_detector_deaths,	// TODO: Define these implicitly as the order matters.
+						clear_rigid_body_triangle_circle_contact_detector_deaths,
 						clear_rigid_body_circle_contact_constraint_spawner_deaths,
 
 						end
@@ -278,6 +284,9 @@ namespace game_state::shader_indices
 					enum struct Indices : GLuint
 					{
 						perform_bounding_box_contact_detector_compaction = base,
+						
+						perform_rigid_body_triangle_contact_detector_compaction,	// TODO: Define these implicitly as the order matters.
+						perform_rigid_body_triangle_circle_contact_detector_compaction,
 						perform_rigid_body_circle_contact_constraint_spawner_compaction,
 
 						end
@@ -316,6 +325,9 @@ namespace game_state::shader_indices
 				enum struct Indices : GLuint
 				{
 					bounding_box_contact_detectors = base,	// TODO: Move to bounding_box_contact_detectors namespace.
+
+					rigid_body_triangle_contact_detectors,
+					rigid_body_triangle_circle_contact_detectors,
 					rigid_body_circle_contact_constraint_spawners,
 
 					end
@@ -635,4 +647,44 @@ namespace game_state::shader_indices
 
 	constexpr GLuint end{ draw::end };
 	constexpr GLuint count{ end - base };
+
+	constexpr std::array<std::string_view, count> initialize_names()
+	{
+		std::array<std::string_view, count> names{};
+
+		names[static_cast<GLuint>(tick::update_counts::Indices::on_update_counts)] = "on_update_tick_counts"sv;
+		names[static_cast<GLuint>(tick::update_counts::Indices::update_counts)] = "update_tick_counts"sv;
+
+		names[static_cast<GLuint>(tick::process_entities::bodies::Indices::rigid_bodies)] = "tick_rigid_bodes"sv;
+		names[static_cast<GLuint>(tick::process_entities::bodies::Indices::point_masses)] = "point_masses"sv;
+
+		names[static_cast<GLuint>(tick::process_entities::skycircle_elements::Indices::default_elements)] = "tick_default_skycircle_elements"sv;
+
+		names[static_cast<GLuint>(tick::process_entities::bounding_volume_hierarchy::send_to_CPU::Indices::send_to_CPU)] = "send_bounding_volume_hierarchy_to_CPU"sv;
+
+		names[static_cast<GLuint>(tick::process_entities::bounding_volume_hierarchy::leafs::Indices::rigid_body_circles)] = "tick_rigid_body_circles"sv;
+
+		names[static_cast<GLuint>(tick::process_entities::bounding_volume_hierarchy::initialize_inner_bounding_box_traversal::Indices::find_height_changes)] = "find_inner_bounding_box_height_changes"sv;
+		names[static_cast<GLuint>(tick::process_entities::bounding_volume_hierarchy::initialize_inner_bounding_box_traversal::Indices::migrate_inner_bounding_boxes)] = "migrate_inner_bounding_boxes"sv;
+		names[static_cast<GLuint>(tick::process_entities::bounding_volume_hierarchy::initialize_inner_bounding_box_traversal::Indices::initialize_inner_bounding_box_traversal)] = "initialize_inner_bounding_box_traversal"sv;
+		names[static_cast<GLuint>(tick::process_entities::bounding_volume_hierarchy::initialize_inner_bounding_box_traversal::Indices::set_commands)] = "set_inner_bounding_box_traversal_commands"sv;
+
+		names[static_cast<GLuint>(tick::process_entities::bounding_volume_hierarchy::inner_bounding_boxes::Indices::inner_bounding_boxes)] = "tick_inner_bounding_boxes"sv;
+		names[static_cast<GLuint>(tick::process_entities::bounding_volume_hierarchy::inner_bounding_boxes::Indices::increment_height_level)] = "increment_inner_bounding_box_height_level"sv;
+
+		names[static_cast<GLuint>(tick::process_entities::bounding_volume_hierarchy::swap_leaf_bounding_box_buffers::Indices::swap_leaf_bounding_box_buffers)] = "swap_leaf_bounding_box_buffers"sv;
+
+		names[static_cast<GLuint>(tick::process_entities::pre_constraint_spawners::commit_counts::Indices::commit_counts)] = "commit_detector_counts"sv;
+
+		names[static_cast<GLuint>(tick::process_entities::pre_constraint_spawners::plan_compaction::Indices::plan_rigid_body_circle_contact_constraint_spawner_compaction)] = "plan_rigid_body_circle_contact_constraint_spawner_compaction"sv;
+
+		names[static_cast<GLuint>(tick::process_entities::pre_constraint_spawners::clear_deaths::Indices::clear_bounding_box_contact_detector_deaths)] = "clear_bounding_box_contact_detector_deaths"sv;
+		names[static_cast<GLuint>(tick::process_entities::pre_constraint_spawners::clear_deaths::Indices::clear_rigid_body_triangle_contact_detector_deaths)] = "clear_rigid_body_triangle_contact_detector_deaths"sv;
+		names[static_cast<GLuint>(tick::process_entities::pre_constraint_spawners::clear_deaths::Indices::clear_rigid_body_triangle_circle_contact_detector_deaths)] = "clear_rigid_body_triangle_circle_contact_detector_deaths"sv;
+		names[static_cast<GLuint>(tick::process_entities::pre_constraint_spawners::clear_deaths::Indices::clear_rigid_body_circle_contact_constraint_spawner_deaths)] = "clear_rigid_body_circle_contact_constraint_spawner_deaths"sv;
+		
+		return names;
+	}
+
+	constexpr std::array<std::string_view, count> names{ initialize_names() };
 }
