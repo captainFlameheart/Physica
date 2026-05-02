@@ -1,0 +1,13 @@
+layout(local_size_x = 1u) in;
+void main()
+{
+	// TODO: Remove redundant out-of-bounds if-statement and other index-based logic.
+	PRE_TICK_ENTITIES_COMMIT_COUNTS(
+		bounding_box_contact_detector_type,
+		1u,
+		clear_bounding_box_contact_detector_deaths_program_index,
+		perform_bounding_box_contact_detector_compaction_program_index,
+		tick_bounding_box_contact_detectors_program_index,
+		bounding_box_contact_detector_local_sizes_flags
+	);
+}

@@ -16,10 +16,10 @@ namespace game_logic::initialize::compile_shaders
 		(
 			compile_environment.shader_group.compute_shader,
 			compile_environment.writable_prefix_source,
-			::util::shader::file_to_string("tick/pre_constraint_spawners/clear_deaths/clear_bounding_box_contact_detector_deaths.comp")
+			::util::shader::file_to_string("tick/pre_bounding_box_contact_detectors/clear_deaths/clear_bounding_box_contact_detector_deaths.comp")
 		);
 
-		environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::clear_deaths::Indices::clear_bounding_box_contact_detector_deaths)] = ::util::shader::create_program
+		environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::pre_bounding_box_contact_detectors::clear_deaths::Indices::clear_bounding_box_contact_detector_deaths)] = ::util::shader::create_program
 		(
 			compile_environment.shader_group.compute_shader
 		);

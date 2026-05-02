@@ -153,6 +153,107 @@ namespace game_logic::tick
 		}
 	}
 
+	void commit_bounding_box_contact_detector_counts(game_environment::Environment& environment)
+	{
+		glUseProgram
+		(
+			environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::pre_bounding_box_contact_detectors::commit_counts::Indices::commit_counts)]
+		);
+		glDispatchCompute(1u, 1u, 1u);
+	}
+
+	void clear_bounding_box_contact_detector_deaths(game_environment::Environment& environment)
+	{
+		for (GLuint clear_bounding_box_contact_detector_deaths_shader_index{ ::game_state::shader_indices::tick::process_entities::pre_bounding_box_contact_detectors::clear_deaths::base }; clear_bounding_box_contact_detector_deaths_shader_index < ::game_state::shader_indices::tick::process_entities::pre_bounding_box_contact_detectors::clear_deaths::end; ++clear_bounding_box_contact_detector_deaths_shader_index)
+		{
+			glUseProgram(environment.state.shaders[clear_bounding_box_contact_detector_deaths_shader_index]);
+			// TODO: We should exclude commit-count shaders.
+			GLuint index_in_tick_entities_shader_array{ clear_bounding_box_contact_detector_deaths_shader_index - ::game_state::shader_indices::tick::process_entities::base };
+			GLintptr command_offset
+			{
+				environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.offset +
+				index_in_tick_entities_shader_array * environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.top_level_array_stride
+			};
+			glDispatchComputeIndirect(command_offset);
+
+			if (environment.state.debug_flag == 1u)
+			{
+				::game_logic::debug::print_fixed_data(environment);
+			}
+		}
+	}
+
+	void perform_bounding_box_contact_detector_compaction(game_environment::Environment& environment)
+	{
+		for (GLuint perform_bounding_box_contact_detector_compaction_shader_index{ ::game_state::shader_indices::tick::process_entities::pre_bounding_box_contact_detectors::perform_compaction::base }; perform_bounding_box_contact_detector_compaction_shader_index < ::game_state::shader_indices::tick::process_entities::pre_bounding_box_contact_detectors::perform_compaction::end; ++perform_bounding_box_contact_detector_compaction_shader_index)
+		{
+			glUseProgram(environment.state.shaders[perform_bounding_box_contact_detector_compaction_shader_index]);
+			// TODO: We should exclude commit-count shaders.
+			GLuint index_in_tick_entities_shader_array{ perform_bounding_box_contact_detector_compaction_shader_index - ::game_state::shader_indices::tick::process_entities::base };
+			GLintptr command_offset
+			{
+				environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.offset +
+				index_in_tick_entities_shader_array * environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.top_level_array_stride
+			};
+			glDispatchComputeIndirect(command_offset);
+
+			if (environment.state.debug_flag == 1u)
+			{
+				::game_logic::debug::print_fixed_data(environment);	// THE PROBLEM IS HERE!!! We likely get stuck in an infinite loop.
+			}
+		}
+	}
+
+	void tick_bounding_box_contact_detectors(game_environment::Environment& environment)
+	{
+		{
+			GLuint shader_index{ static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraint_spawners::Indices::bounding_box_contact_detectors) };
+			glUseProgram(environment.state.shaders[shader_index]);
+			GLuint index_in_tick_entities_shader_array{ shader_index - ::game_state::shader_indices::tick::process_entities::base };
+			GLintptr command_offset
+			{
+				environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.offset +
+				index_in_tick_entities_shader_array * environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.top_level_array_stride
+			};
+			glDispatchComputeIndirect(command_offset);
+		}
+
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+		{
+			glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bounding_box_contact_detectors::Indices::commit_spawned_bounding_box_contact_detectors)]);
+			glDispatchCompute(1u, 1u, 1u);
+		}
+
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_COMMAND_BARRIER_BIT);
+
+		{
+			GLuint shader_index{ static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bounding_box_contact_detectors::Indices::merge_bounding_box_contact_detectors) };
+			glUseProgram(environment.state.shaders[shader_index]);
+			GLuint index_in_tick_entities_shader_array{ shader_index - ::game_state::shader_indices::tick::process_entities::base };
+			GLintptr command_offset
+			{
+				environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.offset +
+				index_in_tick_entities_shader_array * environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.top_level_array_stride
+			};
+			glDispatchComputeIndirect(command_offset);
+		}
+
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+		{
+			GLuint shader_index{ static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bounding_box_contact_detectors::Indices::clear_bounding_box_contact_detector_merge_data) };
+			glUseProgram(environment.state.shaders[shader_index]);
+			GLuint index_in_tick_entities_shader_array{ shader_index - ::game_state::shader_indices::tick::process_entities::base };
+			GLintptr command_offset
+			{
+				environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.offset +
+				index_in_tick_entities_shader_array * environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.top_level_array_stride
+			};
+			glDispatchComputeIndirect(command_offset);
+		}
+	}
+
 	void commit_detector_counts(game_environment::Environment& environment)
 	{
 		glUseProgram
@@ -180,9 +281,8 @@ namespace game_logic::tick
 		for (GLuint clear_constraint_spawner_deaths_shader_index{ ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::clear_deaths::base }; clear_constraint_spawner_deaths_shader_index < ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::clear_deaths::end; ++clear_constraint_spawner_deaths_shader_index)
 		{
 			if (
-				clear_constraint_spawner_deaths_shader_index != static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::clear_deaths::Indices::clear_bounding_box_contact_detector_deaths) &&
 				clear_constraint_spawner_deaths_shader_index != static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::clear_deaths::Indices::clear_rigid_body_circle_contact_constraint_spawner_deaths)
-				)
+			)
 			{
 				continue;
 			}
@@ -209,7 +309,6 @@ namespace game_logic::tick
 		for (GLuint perform_constraint_spawner_compaction_shader_index{ ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::perform_compaction::base }; perform_constraint_spawner_compaction_shader_index < ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::perform_compaction::end; ++perform_constraint_spawner_compaction_shader_index)
 		{
 			if (
-				perform_constraint_spawner_compaction_shader_index != static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::perform_compaction::Indices::perform_bounding_box_contact_detector_compaction) &&
 				perform_constraint_spawner_compaction_shader_index != static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::perform_compaction::Indices::perform_rigid_body_circle_contact_constraint_spawner_compaction)
 			)
 			{
@@ -447,6 +546,19 @@ namespace game_logic::tick
 			tick_inner_bounding_boxes(environment, bounding_volume_hierarchy_height);
 
 			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);	// TODO: Is this needed?
+
+			commit_bounding_box_contact_detector_counts(environment);
+
+			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_COMMAND_BARRIER_BIT);
+
+			clear_bounding_box_contact_detector_deaths(environment);
+			perform_bounding_box_contact_detector_compaction(environment);
+
+			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+			tick_bounding_box_contact_detectors(environment);
+
+			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);	// This is likely not needed due to barriers inside tick_bounding_box_contact_detectors.
 
 			commit_detector_counts(environment);	// TODO: Can this move up to help hide latency of getting BVH height?
 

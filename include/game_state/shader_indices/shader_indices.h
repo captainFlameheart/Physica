@@ -224,9 +224,62 @@ namespace game_state::shader_indices
 				constexpr GLuint count{ end - base };
 			}
 
-			namespace pre_constraint_spawners
+			namespace pre_bounding_box_contact_detectors
 			{
 				constexpr GLuint base{ ::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::end };
+
+				namespace commit_counts
+				{
+					constexpr GLuint base{ ::game_state::shader_indices::tick::process_entities::pre_bounding_box_contact_detectors::base };
+
+					enum struct Indices : GLuint
+					{
+						commit_counts = base,
+
+						end
+					};
+
+					constexpr GLuint end{ static_cast<GLuint>(Indices::end) };
+					constexpr GLuint count{ end - base };
+				}
+
+				namespace clear_deaths
+				{
+					constexpr GLuint base{ ::game_state::shader_indices::tick::process_entities::pre_bounding_box_contact_detectors::commit_counts::end };
+
+					enum struct Indices : GLuint
+					{
+						clear_bounding_box_contact_detector_deaths = base,
+
+						end
+					};
+
+					constexpr GLuint end{ static_cast<GLuint>(Indices::end) };
+					constexpr GLuint count{ end - base };
+				}
+
+				namespace perform_compaction
+				{
+					constexpr GLuint base{ ::game_state::shader_indices::tick::process_entities::pre_bounding_box_contact_detectors::clear_deaths::end };
+
+					enum struct Indices : GLuint
+					{
+						perform_bounding_box_contact_detector_compaction = base,
+
+						end
+					};
+
+					constexpr GLuint end{ static_cast<GLuint>(Indices::end) };
+					constexpr GLuint count{ end - base };
+				}
+
+				constexpr GLuint end{ static_cast<GLuint>(perform_compaction::end) };
+				constexpr GLuint count{ end - base };
+			}
+
+			namespace pre_constraint_spawners
+			{
+				constexpr GLuint base{ ::game_state::shader_indices::tick::process_entities::pre_bounding_box_contact_detectors::end };
 
 				namespace commit_counts
 				{
@@ -264,9 +317,9 @@ namespace game_state::shader_indices
 
 					enum struct Indices : GLuint
 					{
-						clear_bounding_box_contact_detector_deaths = base,
+						//clear_bounding_box_contact_detector_deaths = base,
 						
-						clear_rigid_body_triangle_contact_detector_deaths,	// TODO: Define these implicitly as the order matters.
+						clear_rigid_body_triangle_contact_detector_deaths = base,	// TODO: Define these implicitly as the order matters.
 						clear_rigid_body_triangle_circle_contact_detector_deaths,
 						clear_rigid_body_circle_contact_constraint_spawner_deaths,
 
@@ -283,9 +336,9 @@ namespace game_state::shader_indices
 
 					enum struct Indices : GLuint
 					{
-						perform_bounding_box_contact_detector_compaction = base,
+						//perform_bounding_box_contact_detector_compaction = base,
 						
-						perform_rigid_body_triangle_contact_detector_compaction,	// TODO: Define these implicitly as the order matters.
+						perform_rigid_body_triangle_contact_detector_compaction = base,	// TODO: Define these implicitly as the order matters.
 						perform_rigid_body_triangle_circle_contact_detector_compaction,
 						perform_rigid_body_circle_contact_constraint_spawner_compaction,
 
@@ -300,7 +353,7 @@ namespace game_state::shader_indices
 				constexpr GLuint count{ end - base };
 			}
 
-			namespace bounding_box_contact_detectors
+			namespace bounding_box_contact_detectors	// TODO: Move up.
 			{
 				constexpr GLuint base{ ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::end };
 
@@ -678,7 +731,6 @@ namespace game_state::shader_indices
 
 		names[static_cast<GLuint>(tick::process_entities::pre_constraint_spawners::plan_compaction::Indices::plan_rigid_body_circle_contact_constraint_spawner_compaction)] = "plan_rigid_body_circle_contact_constraint_spawner_compaction"sv;
 
-		names[static_cast<GLuint>(tick::process_entities::pre_constraint_spawners::clear_deaths::Indices::clear_bounding_box_contact_detector_deaths)] = "clear_bounding_box_contact_detector_deaths"sv;
 		names[static_cast<GLuint>(tick::process_entities::pre_constraint_spawners::clear_deaths::Indices::clear_rigid_body_triangle_contact_detector_deaths)] = "clear_rigid_body_triangle_contact_detector_deaths"sv;
 		names[static_cast<GLuint>(tick::process_entities::pre_constraint_spawners::clear_deaths::Indices::clear_rigid_body_triangle_circle_contact_detector_deaths)] = "clear_rigid_body_triangle_circle_contact_detector_deaths"sv;
 		names[static_cast<GLuint>(tick::process_entities::pre_constraint_spawners::clear_deaths::Indices::clear_rigid_body_circle_contact_constraint_spawner_deaths)] = "clear_rigid_body_circle_contact_constraint_spawner_deaths"sv;

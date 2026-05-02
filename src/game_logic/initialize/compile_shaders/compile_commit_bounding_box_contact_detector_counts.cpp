@@ -7,7 +7,7 @@
 
 namespace game_logic::initialize::compile_shaders
 {
-	void compile_perform_bounding_box_contact_detector_compaction
+	void compile_commit_bounding_box_contact_detector_counts
 	(
 		game_environment::Environment& environment, ::game_state::initialize::compile_shaders::environment::Environment compile_environment
 	)
@@ -16,10 +16,10 @@ namespace game_logic::initialize::compile_shaders
 		(
 			compile_environment.shader_group.compute_shader,
 			compile_environment.writable_prefix_source,
-			::util::shader::file_to_string("tick/pre_bounding_box_contact_detectors/perform_compaction/perform_bounding_box_contact_detector_compaction.comp")
+			::util::shader::file_to_string("tick/pre_bounding_box_contact_detectors/commit_counts/commit_counts.comp")
 		);
 
-		environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::pre_bounding_box_contact_detectors::perform_compaction::Indices::perform_bounding_box_contact_detector_compaction)] = ::util::shader::create_program
+		environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::pre_bounding_box_contact_detectors::commit_counts::Indices::commit_counts)] = ::util::shader::create_program
 		(
 			compile_environment.shader_group.compute_shader
 		);

@@ -41,18 +41,23 @@ namespace game_logic::initialize::compile_shaders
 
 		compile_swap_leaf_bounding_box_buffers(environment, compile_environment);
 
-		compile_commit_constraint_spawner_counts(environment, compile_environment);
-		
+		compile_commit_bounding_box_contact_detector_counts(environment, compile_environment);
+
 		compile_clear_bounding_box_contact_detector_deaths(environment, compile_environment);
-		compile_clear_rigid_body_circle_contact_constraint_spawner_deaths(environment, compile_environment);
 
 		compile_perform_bounding_box_contact_detector_compaction(environment, compile_environment);
-		compile_perform_rigid_body_circle_contact_constraint_spawner_compaction(environment, compile_environment);
 
 		compile_tick_bounding_box_contact_detectors(environment, compile_environment);
 		compile_commit_bounding_box_contact_detector_spawns(environment, compile_environment);
 		compile_merge_bounding_box_contact_detectors(environment, compile_environment);
 		compile_clear_bounding_box_contact_detector_merge_data(environment, compile_environment);
+
+		compile_commit_constraint_spawner_counts(environment, compile_environment);
+		
+		compile_clear_rigid_body_circle_contact_constraint_spawner_deaths(environment, compile_environment);
+
+		compile_perform_rigid_body_circle_contact_constraint_spawner_compaction(environment, compile_environment);
+
 		compile_tick_rigid_body_circle_contact_constraint_spawners(environment, compile_environment);
 
 		compile_commit_constraint_counts(environment, compile_environment);
