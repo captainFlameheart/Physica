@@ -53,6 +53,16 @@ uint compute_contact_type(in uint leaf_bounding_box_type_0, in uint leaf_boundin
 
 #if WRITING_ALLOWED
 
+	uint spawn(in uint entity_type, in uint count)
+	{	// IMPORTANT TODO: Do we need to clear the death index of each spawned entity?
+		return atomicAdd(fixed_data.write_counts[entity_type], count);
+	}
+
+	uint spawn(in uint entity_type)
+	{
+		return spawn(entity_type, 1u);
+	}
+
 	void kill(in uint entity_type, in uint index)
 	{
 		uint death_index = atomicAdd(fixed_data.kill_counts[entity_type], 1u);
