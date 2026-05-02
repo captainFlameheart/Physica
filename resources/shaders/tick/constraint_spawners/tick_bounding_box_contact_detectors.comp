@@ -25,6 +25,15 @@ bool bounding_boxes_are_separated(in ivec4 bounding_box_0, in ivec4 bounding_box
 	);
 }
 
+void convert_to_specific_detector
+(
+	in uint detector_index
+)
+{
+	//kill(bounding_box_contact_detector_type, detector_index);
+	//spawn();
+}
+
 void tick_detector
 (
 	in uint index,
@@ -95,9 +104,16 @@ void tick_detector
 
 				detector_index = new_detector_index;
 
-				if (bounding_boxes_overlap(bounding_boxes) && any(is_inner))
+				if (bounding_boxes_overlap(bounding_boxes))
 				{
-					continue;	// Split the new detector as well.
+					if (any(is_inner))
+					{
+						continue;	// Split the new detector as well.
+					}
+					else
+					{
+						convert_to_specific_detector(detector_index);
+					}
 				}
 			
 				// IMPORTANT TODO: Avoid the need for backtracking by using next pointers instead of source pointers (ask ChatGPT).
@@ -114,9 +130,16 @@ void tick_detector
 					is_inner[0u] = (int(indices_source_flags.x) >= 0);
 					is_inner[1u] = (int(indices_source_flags.y) >= 0);
 
-					if (bounding_boxes_overlap(bounding_boxes) && any(is_inner))
+					if (bounding_boxes_overlap(bounding_boxes))
 					{
-						break;	// Resume splitting from this detector.
+						if (any(is_inner))
+						{
+							break;	// Resume splitting from this detector.
+						}
+						else
+						{
+							convert_to_specific_detector(detector_index);
+						}
 					}
 					if (detector_index == index)
 					{
@@ -124,6 +147,10 @@ void tick_detector
 					}
 				}
 			}
+		}
+		else
+		{
+			convert_to_specific_detector(index);	//  IMPORTANT TODO: Splitting logic.
 		}
 	}
 	else
