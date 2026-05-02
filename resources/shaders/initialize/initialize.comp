@@ -310,10 +310,10 @@ void main()
 	uint leaf_bounding_box_capacities[leaf_bounding_box_type_count];	// TODO: Merge this with the logic for assigning leaf base addresses.
 	leaf_bounding_box_capacities[rigid_body_triangle_bounding_box_type] = capacities[rigid_body_triangle_type_index];
 	leaf_bounding_box_capacities[rigid_body_circle_bounding_box_type] = capacities[rigid_body_circle_type_index];
-	for (uint leaf_bounding_box_type_0 = 0u; leaf_bounding_box_type_0 < leaf_bounding_box_type_count - 1u; ++leaf_bounding_box_type_0)
+	for (uint leaf_bounding_box_type_0 = 0u; leaf_bounding_box_type_0 < leaf_bounding_box_type_count; ++leaf_bounding_box_type_0)
 	{
 		uint capacity_0 = leaf_bounding_box_capacities[leaf_bounding_box_type_0];
-		for (uint leaf_bounding_box_type_1 = leaf_bounding_box_type_0 + 1u; leaf_bounding_box_type_1 < leaf_bounding_box_type_count; ++leaf_bounding_box_type_1)
+		for (uint leaf_bounding_box_type_1 = leaf_bounding_box_type_0; leaf_bounding_box_type_1 < leaf_bounding_box_type_count; ++leaf_bounding_box_type_1)
 		{
 			uint contact_type = compute_contact_type(leaf_bounding_box_type_0, leaf_bounding_box_type_1);
 			uint contact_detector_type = contact_detector_type_base + contact_type;

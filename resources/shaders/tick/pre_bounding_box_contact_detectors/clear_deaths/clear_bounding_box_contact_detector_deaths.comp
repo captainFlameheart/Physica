@@ -1,0 +1,5 @@
+layout(local_size_x = clear_bounding_box_contact_detector_deaths_local_size) in;
+void main()
+{
+	PRE_TICK_ENTITIES_CLEAR_DEATHS(bounding_box_contact_detector_type);
+}
