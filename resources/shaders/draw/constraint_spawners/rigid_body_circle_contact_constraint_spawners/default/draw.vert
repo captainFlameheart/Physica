@@ -37,16 +37,16 @@ void main()
 	uvec4 camera_position = fixed_data.camera_position;
 	mat4 camera_offset_to_clip_coordinates = fixed_data.camera_offset_to_clip_coordinates;
 
-	uint indices_flags_base = fixed_data.rigid_body_circle_contact_constraint_spawner_indices_flags_base;
+	uint indices_base = fixed_data.specific_contact_detector_indices_bases[rigid_body_circle_contact_type];
 
-	uint indices_flags_index = indices_flags_base + index;
+	uint indices_index = indices_base + index;
 
-	uvec4 indices_flags = uvec4_data.data[indices_flags_index];
+	uvec2 indices = uvec2_data.data[indices_index];
 
 	uint circle_body_position_radius_base = fixed_data.rigid_body_circle_body_position_radius_base;
 
-	uint circle_body_position_radius_index_0 = circle_body_position_radius_base + indices_flags.x;
-	uint circle_body_position_radius_index_1 = circle_body_position_radius_base + indices_flags.y;
+	uint circle_body_position_radius_index_0 = circle_body_position_radius_base + indices.x;
+	uint circle_body_position_radius_index_1 = circle_body_position_radius_base + indices.y;
 
 	uvec4 circle_body_position_radius_0 = uvec4_data.data[circle_body_position_radius_index_0];
 	uvec4 circle_body_position_radius_1 = uvec4_data.data[circle_body_position_radius_index_1];
@@ -103,17 +103,12 @@ void main()
 	camera_offset.xy += (0.0 * direction_sign) * direction + (0.08 * orthogonal_direction_sign) * orthogonal_direction;
 	gl_Position = camera_offset_to_clip_coordinates * camera_offset;
 
-	color = mix
-	(
-		vec4(1.0, 1.0, 1.0, default_reflectivity),
-		vec4(1.0, 0.0, 0.0, default_reflectivity),
-		float((indices_flags.z >> rigid_body_circle_contact_constraint_spawner_is_dead_shift) & 1u)
-	);
+	color = vec4(1.0, 1.0, 1.0, default_reflectivity);
 
-	#if CULL_DEAD == 1
-		gl_CullDistance[0u] = -float((indices_flags.z >> rigid_body_circle_contact_constraint_spawner_is_dead_shift) & 1u);
+	#if CULL_DEAD
+		gl_CullDistance[0u] = 0.0;
 	#endif
-	#if CULL_ALIVE == 1
-		gl_CullDistance[0u] = -float((indices_flags.z >> rigid_body_circle_contact_constraint_spawner_is_dead_shift) ^ 1u);
+	#if CULL_ALIVE
+		gl_CullDistance[0u] = -1.0;
 	#endif
 }

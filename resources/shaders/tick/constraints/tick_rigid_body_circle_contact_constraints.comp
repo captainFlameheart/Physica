@@ -113,13 +113,13 @@ void main()
 			return;
 		}
 
-		uint spawner_indices_flags_base = fixed_data.rigid_body_circle_contact_constraint_spawner_indices_flags_base;
+		uint contact_detector_indices_base = fixed_data.specific_contact_detector_indices_bases[rigid_body_circle_contact_type];
 		uint spawner_death_index_base = fixed_data.death_index_bases[rigid_body_circle_contact_constraint_spawner_type_index];
 
-		uint spawner_indices_flags_index = spawner_indices_flags_base + spawner_index;
+		uint contact_detector_indices_index = contact_detector_indices_base + spawner_index;
 		uint spawner_death_index_index = spawner_death_index_base + spawner_index;
 
-		uvec4_data.data[spawner_indices_flags_index] = uvec4(indices_turns.xy, 0u, 0u);
+		uvec2_data.data[contact_detector_indices_index] = uvec2(indices_turns.xy);
 		uint_data.data[spawner_death_index_index] = null_uint;
 
 		flags |= rigid_body_circle_contact_constraint_is_dying_mask;

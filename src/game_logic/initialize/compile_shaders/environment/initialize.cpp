@@ -446,6 +446,7 @@ namespace game_logic::initialize::compile_shaders::environment
 
 			"const uint entity_type_count = " + std::to_string(game_state::entity_type_indices::count) + ";\n"
 			"const uint constraint_spawner_type_base = " + std::to_string(game_state::entity_type_indices::constraint_spawners::base) + ";\n"
+			"const uint contact_detector_type_base = " + std::to_string(game_state::entity_type_indices::constraint_spawners::base + 1u) + ";\n"
 			"const uint constraint_spawner_type_count = " + std::to_string(game_state::entity_type_indices::constraint_spawners::total_count) + ";\n"
 			"const uint constraint_type_base = " + std::to_string(game_state::entity_type_indices::constraints::base) + ";\n"
 			"const uint constraint_type_count = " + std::to_string(game_state::entity_type_indices::constraints::count) + ";\n"
@@ -468,6 +469,10 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uint constraint_clear_deaths_program_base = " + std::to_string(constraint_clear_deaths_program_base) + ";\n"
 			"const uint constraint_perform_compaction_program_base = " + std::to_string(constraint_perform_compaction_program_base) + ";\n"
 			"const uint constraint_tick_entities_program_base = " + std::to_string(constraint_tick_entities_program_base) + ";\n"
+
+			"const uint rigid_body_triangle_contact_type  = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::rigid_body_triangle_contact)) + ";\n"
+			"const uint rigid_body_triangle_circle_contact_type  = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::rigid_body_triangle_circle_contact)) + ";\n"
+			"const uint rigid_body_circle_contact_type  = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::rigid_body_circle_contact)) + ";\n"
 
 			"const uint point_mass_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::bodies::Indices::point_mass)) + ";\n"
 			"const uint rigid_body_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::bodies::Indices::rigid_body)) + ";\n"

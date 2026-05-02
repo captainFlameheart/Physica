@@ -44,6 +44,13 @@ uint compute_mergeable_contact_detector_lookup_index(in uint index_0, in uint in
 	return hash & (lookup_table_capacity - 1u);	// IMPORTANT: Assumes lookup_table_capacity is a power of two.
 }
 
+uint compute_contact_type(in uint leaf_bounding_box_type_0, in uint leaf_bounding_box_type_1)
+{
+	uint min_leaf_bounding_box_type = min(leaf_bounding_box_type_0, leaf_bounding_box_type_1);
+	uint max_leaf_bounding_box_type = max(leaf_bounding_box_type_0, leaf_bounding_box_type_1);
+	return ((max_leaf_bounding_box_type * (max_leaf_bounding_box_type + 1u)) >> 1u) + min_leaf_bounding_box_type;
+}
+
 #if WRITING_ALLOWED
 
 	void kill(in uint entity_type, in uint index)

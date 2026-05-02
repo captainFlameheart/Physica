@@ -7,7 +7,7 @@ void main()
 	PRE_TICK_ENTITIES_PERFORM_COMPACTION_DETERMINE_FLOW(rigid_body_circle_contact_constraint_spawner_type_index, killed, source);
 
 	// Copy source -> killed.
-	uint indices_flags_base = fixed_data.rigid_body_circle_contact_constraint_spawner_indices_flags_base;
+	uint indices_base = fixed_data.specific_contact_detector_indices_bases[rigid_body_circle_contact_type];
 	
-	uvec4_data.data[indices_flags_base + killed] = uvec4_data.data[indices_flags_base + source];
+	uvec2_data.data[indices_base + killed] = uvec2_data.data[indices_base + source];
 }

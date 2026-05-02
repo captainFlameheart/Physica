@@ -124,6 +124,18 @@ namespace game_state::entity_type_indices
 	constexpr GLuint end{ static_cast<GLuint>(hover_highlighters::end) };
 	constexpr GLuint count{ end - base };
 
+	constexpr GLuint get_contact_type(::game_state::leaf_bounding_box_types::Indices leaf_type_0, ::game_state::leaf_bounding_box_types::Indices leaf_type_1)
+	{
+		GLuint min_leaf_type{ std::min(static_cast<GLuint>(leaf_type_0), static_cast<GLuint>(leaf_type_1)) };
+		GLuint max_leaf_type{ std::max(static_cast<GLuint>(leaf_type_0), static_cast<GLuint>(leaf_type_1)) };
+
+		return ((max_leaf_type * (max_leaf_type + 1u)) >> 1u) + min_leaf_type;
+	}
+
+	constexpr GLuint rigid_body_triangle_contact{ get_contact_type(::game_state::leaf_bounding_box_types::Indices::rigid_body_triangle, ::game_state::leaf_bounding_box_types::Indices::rigid_body_triangle) };
+	constexpr GLuint rigid_body_triangle_circle_contact{ get_contact_type(::game_state::leaf_bounding_box_types::Indices::rigid_body_triangle, ::game_state::leaf_bounding_box_types::Indices::rigid_body_circle) };
+	constexpr GLuint rigid_body_circle_contact{ get_contact_type(::game_state::leaf_bounding_box_types::Indices::rigid_body_circle, ::game_state::leaf_bounding_box_types::Indices::rigid_body_circle) };
+
 	constexpr GLuint get_contact_detector_type(::game_state::leaf_bounding_box_types::Indices leaf_type_0, ::game_state::leaf_bounding_box_types::Indices leaf_type_1)
 	{
 		GLuint min_leaf_type{ std::min(static_cast<GLuint>(leaf_type_0), static_cast<GLuint>(leaf_type_1)) };
