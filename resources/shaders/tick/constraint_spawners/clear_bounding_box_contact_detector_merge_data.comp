@@ -2,7 +2,7 @@ layout(local_size_x = clear_bounding_box_contact_detector_merge_data_local_size)
 void main()
 {
 	uint index = gl_GlobalInvocationID.x;
-	uint count = fixed_data.read_counts[bounding_box_contact_detector_type];
+	uint count = fixed_data.write_counts[bounding_box_contact_detector_type];	// NOTE: We use the write count in this case.
 	if (index >= count)
 	{
 		return;

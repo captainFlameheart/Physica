@@ -299,7 +299,8 @@ namespace game_logic::debug
 		std::memcpy
 		(
 			&rigid_body_circle_contact_constraint_spawner_indices_flags_base,
-			fixed_data + environment.state.layouts.fixed_data.rigid_body_circle_contact_constraint_spawner_indices_flags_base_state.offset,
+			fixed_data + environment.state.layouts.fixed_data.specific_contact_detector_indices_bases_state.offset
+			+ ::game_state::entity_type_indices::rigid_body_circle_contact_detector * environment.state.layouts.fixed_data.specific_contact_detector_indices_bases_state.array_stride,
 			sizeof(GLuint)
 		);
 		std::cout << "rigid_body_circle_contact_constraint_spawner_indices_flags_base: " << rigid_body_circle_contact_constraint_spawner_indices_flags_base << '\n';

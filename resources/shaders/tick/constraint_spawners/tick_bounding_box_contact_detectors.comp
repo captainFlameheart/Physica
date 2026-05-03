@@ -27,10 +27,11 @@ bool bounding_boxes_are_separated(in ivec4 bounding_box_0, in ivec4 bounding_box
 
 void convert_to_specific_detector
 (
-	in uint detector_index
+	in uint index
 )
 {
-	//kill(bounding_box_contact_detector_type, detector_index);
+	//atomicAdd(fixed_data.temp, 1u);	// MUST TODO: REMOVE!!!
+	//kill(bounding_box_contact_detector_type, index);
 	//spawn();
 }
 
@@ -155,6 +156,8 @@ void tick_detector
 	}
 	else
 	{	// Merge logic.
+		//return;	// MUST TODO: REMOVE
+
 		uvec4 parent_children_heights[2u] = uvec4[2u]
 		(
 			uvec4_data.data[bounding_box_parent_children_height_base + indices_source_flags.x],
@@ -212,6 +215,17 @@ void main()
 	uint bounding_box_parent_children_height_base = fixed_data.inner_bounding_box_parent_children_height_base;
 	uint bounding_box_split_indices_base = fixed_data.inner_bounding_box_split_indices_base;
 	uint bounding_box_moved_to_base = fixed_data.inner_bounding_box_moved_to_base;
+
+	// MUST TODO: REMOVE!!!
+	if (index == 1u)
+	{
+		atomicAdd(fixed_data.temp, 1u);
+		/*uint added = indices_source_flags.x;
+		if (atomicAdd(fixed_data.temp, added) != 0u)
+		{
+			atomicAdd(fixed_data.temp, uint(-int(added)));
+		}*/
+	}
 
 	uint moved_to_0 = indices_source_flags.x;
 	if (int(indices_source_flags.x) >= 0)	// IMPORTANT TODO: Store expression in variable.

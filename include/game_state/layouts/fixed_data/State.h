@@ -128,10 +128,16 @@ namespace game_state::layouts::fixed_data
 		GLint offset;
 	};
 
-	struct rigid_body_circle_contact_constraint_spawner_indices_flags_base
+	struct specific_contact_detector_indices_bases
 	{
 		GLint offset;
+		GLint array_stride;
 	};
+
+	/*struct rigid_body_circle_contact_constraint_spawner_indices_flags_base
+	{
+		GLint offset;
+	};*/
 
 	struct rigid_body_circle_contact_constraint_spawner_killed_ring_base
 	{
@@ -501,8 +507,8 @@ namespace game_state::layouts::fixed_data
 		};
 		union
 		{
-			rigid_body_circle_contact_constraint_spawner_indices_flags_base rigid_body_circle_contact_constraint_spawner_indices_flags_base_state;
-			GLint rigid_body_circle_contact_constraint_spawner_indices_flags_base_properties[sizeof(rigid_body_circle_contact_constraint_spawner_indices_flags_base) / sizeof(GLint)];
+			specific_contact_detector_indices_bases specific_contact_detector_indices_bases_state;
+			GLint specific_contact_detector_indices_bases_properties[sizeof(specific_contact_detector_indices_bases) / sizeof(GLint)];
 		};
 		union
 		{

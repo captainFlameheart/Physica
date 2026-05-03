@@ -100,10 +100,10 @@ namespace game_logic::initialize::query_layouts
 			environment.state.layouts.fixed_data.bounding_box_contact_detector_indices_source_flags_base_properties
 		);
 
-		::game_logic::shader_util::query::query_shader_storage_variable_offset
+		::game_logic::shader_util::query::query_shader_storage_variable_offset_array_stride
 		(
-			program, "Fixed_Data.rigid_body_circle_contact_constraint_spawner_indices_flags_base",
-			environment.state.layouts.fixed_data.rigid_body_circle_contact_constraint_spawner_indices_flags_base_properties
+			program, "Fixed_Data.specific_contact_detector_indices_bases",
+			environment.state.layouts.fixed_data.specific_contact_detector_indices_bases_properties
 		);
 
 		::game_logic::shader_util::query::query_shader_storage_variable_offset
