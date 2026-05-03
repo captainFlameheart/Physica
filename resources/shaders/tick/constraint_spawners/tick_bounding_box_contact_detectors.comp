@@ -149,8 +149,6 @@ void tick_detector
 	}
 	else
 	{	// Merge logic.
-		//return;	// MUST TODO: REMOVE
-
 		uvec4 parent_children_heights[2u] = uvec4[2u]
 		(
 			uvec4_data.data[bounding_box_parent_children_height_base + indices_source_flags.x],
@@ -163,28 +161,53 @@ void tick_detector
 			ivec4(uvec4_data.data[bounding_box_base + parent_children_heights[1u].x])
 		);
 
-		uint merged_side = uint(compute_bounding_box_cost(parent_bounding_boxes[1u]) <= compute_bounding_box_cost(parent_bounding_boxes[0u]));
-		uint unmerged_side = merged_side ^ 1u;
+		#define ONLY_MERGE_TO_SMALLEST_PARENT 0
 
-		if (bounding_boxes_are_separated(parent_bounding_boxes[merged_side], bounding_boxes[unmerged_side]))
-		{
-			indices_source_flags.w |= 1u << merged_side;	// Store which side the detector is willing to merge.
+		#if ONLY_MERGE_TO_SMALLEST_PARENT
+		
+			uint merged_side = uint(compute_bounding_box_cost(parent_bounding_boxes[1u]) <= compute_bounding_box_cost(parent_bounding_boxes[0u]));
+			uint unmerged_side = merged_side ^ 1u;
 
-			uint lookup_table_capacity = fixed_data.mergeable_bounding_box_contact_detector_lookup_table_capacity;
-			uint lookup_index = compute_mergeable_contact_detector_lookup_index(indices_source_flags.x, indices_source_flags.y, lookup_table_capacity);
-			indices_source_flags.w |= lookup_index << 2u;
-			uint lookup_table_base = fixed_data.mergeable_bounding_box_contact_detector_lookup_table_base;
-			uint head_index = lookup_table_base + lookup_index;
-
-			// Insert detector into lookup table.
-			uint old_head;
-			do
+			if (bounding_boxes_are_separated(parent_bounding_boxes[merged_side], bounding_boxes[unmerged_side]))
+		#else
+		
+			uint merge_cost = max_uint;
+			uint merged_side;
+			if (bounding_boxes_are_separated(parent_bounding_boxes[0u], bounding_boxes[1u]))
 			{
-				old_head = uint_data.data[head_index];
-				indices_source_flags.z = old_head;
-				uvec4_data.data[indices_source_flags_index] = indices_source_flags;
-			} while (atomicCompSwap(uint_data.data[head_index], old_head, index) != old_head);
-		}
+				merge_cost = compute_bounding_box_cost(parent_bounding_boxes[0u]);
+				merged_side = 0u;
+			}
+			if (bounding_boxes_are_separated(parent_bounding_boxes[1u], bounding_boxes[0u]))
+			{
+				uint merge_1_cost = compute_bounding_box_cost(parent_bounding_boxes[1u]);
+				if (merge_1_cost < merge_cost)
+				{
+					merge_cost = merge_1_cost;
+					merged_side = 1u;
+				}
+			}
+
+			if (merge_cost != max_uint)
+		#endif
+			{
+				indices_source_flags.w |= 1u << merged_side;	// Store which side the detector is willing to merge.
+
+				uint lookup_table_capacity = fixed_data.mergeable_bounding_box_contact_detector_lookup_table_capacity;
+				uint lookup_index = compute_mergeable_contact_detector_lookup_index(indices_source_flags.x, indices_source_flags.y, lookup_table_capacity);
+				indices_source_flags.w |= lookup_index << 2u;
+				uint lookup_table_base = fixed_data.mergeable_bounding_box_contact_detector_lookup_table_base;
+				uint head_index = lookup_table_base + lookup_index;
+
+				// Insert detector into lookup table.
+				uint old_head;
+				do
+				{
+					old_head = uint_data.data[head_index];
+					indices_source_flags.z = old_head;
+					uvec4_data.data[indices_source_flags_index] = indices_source_flags;
+				} while (atomicCompSwap(uint_data.data[head_index], old_head, index) != old_head);
+			}
 	}
 }
 
