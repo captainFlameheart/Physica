@@ -10,6 +10,20 @@ namespace game_state::local_sizes
 	constexpr GLuint update_tick_counts_local_size{ default_local_size };
 	constexpr GLuint update_draw_counts_local_size{ default_local_size };
 
+	constexpr std::array<GLuint, ::game_state::shader_indices::reusable::count> initialize_reusable_local_sizes()
+	{
+		std::array<GLuint, ::game_state::shader_indices::reusable::count> local_sizes{};
+
+		for (GLuint i{ 0u }; i < ::game_state::shader_indices::reusable::count; ++i)
+		{
+			local_sizes[i] = default_local_size;
+		}
+
+		return local_sizes;
+	}
+
+	constexpr std::array<GLuint, ::game_state::shader_indices::reusable::count> reusable_local_sizes{ initialize_reusable_local_sizes() };
+
 	constexpr std::array<GLuint, ::game_state::shader_indices::tick::process_entities::count> initialize_process_entities_local_sizes()
 	{
 		std::array<GLuint, ::game_state::shader_indices::tick::process_entities::count> local_sizes{};

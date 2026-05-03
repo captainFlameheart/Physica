@@ -36,6 +36,7 @@ namespace game_logic::initialize::query_layouts
 			"const uint entity_type_count = " + std::to_string(::game_state::entity_type_indices::count) + ";\n"
 			"const uint leaf_bounding_box_type_count = " + std::to_string(::game_state::leaf_bounding_box_types::count) + ";\n"
 			"const uint contact_type_count = " + std::to_string(contact_type_count) + ";\n"
+			"const uint reusable_dispatch_program_count = " + std::to_string(::game_state::shader_indices::reusable::reusable_program_count) + ";\n"
 			"const uint dispatch_program_count = " + std::to_string(::game_state::shader_indices::tick::process_entities::count) + ";\n"
 			"const uint draw_arrays_program_count = " + std::to_string(::game_state::shader_indices::draw::entities::count) + ";\n" +
 			::game_logic::initialize::compile_shaders::environment::initialize_input_constants(environment) +

@@ -1,3 +1,8 @@
+uint compute_work_group_count(uint count, uint local_size)
+{
+	return (count + local_size - 1u) / local_size;
+}
+
 int compute_bounding_box_area_cost(in ivec4 bounding_box)
 {
 	return (bounding_box.z - bounding_box.x) * (bounding_box.w - bounding_box.y);

@@ -18,7 +18,8 @@ struct Draw_Arrays_Command
 layout(std430, binding = commands_binding) restrict writeonly
 buffer Commands
 {
+	Dispatch_Command reusable_dispatch_commands[reusable_dispatch_program_count];
 	Dispatch_Command dispatch_commands[dispatch_program_count];
 	Draw_Arrays_Command draw_arrays_commands[draw_arrays_program_count];
-	Dispatch_Command remaining_dispatch_commands[];	// TODO: Resize buffer during capacity changes.
+	Dispatch_Command remaining_dispatch_commands[];	// MUST TODO: Resize buffer during capacity changes.
 } commands;

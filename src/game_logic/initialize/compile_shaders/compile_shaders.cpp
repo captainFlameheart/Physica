@@ -12,6 +12,9 @@ namespace game_logic::initialize::compile_shaders
 		::game_state::initialize::compile_shaders::environment::Environment compile_environment;
 		environment::initialize(environment, compile_environment);
 
+		compile_initialize_bounding_box_contact_detector_metadata(environment, compile_environment);
+		compile_initialize_bounding_box_contact_detectors(environment, compile_environment);
+
 		compile_initialize(environment, compile_environment);
 		
 		compile_on_key_event(environment, compile_environment);

@@ -8,9 +8,35 @@ namespace game_state::shader_indices
 {
 	constexpr GLuint base{ 0u };
 
-	namespace initialize
+	namespace reusable
 	{
 		constexpr GLuint base{ ::game_state::shader_indices::base };
+
+		namespace initialize_contacts
+		{
+			constexpr GLuint base{ ::game_state::shader_indices::reusable::base };
+
+			enum struct Indices : GLuint
+			{
+				initialize_bounding_box_contact_detector_metadata = base,
+				initialize_bounding_box_contact_detectors,
+
+				end
+			};
+
+			constexpr GLuint end{ static_cast<GLuint>(Indices::end) };
+			constexpr GLuint count{ end - base };
+		}
+
+		constexpr GLuint end{ static_cast<GLuint>(initialize_contacts::end) };
+		constexpr GLuint count{ end - base };
+
+		constexpr GLuint reusable_program_count{ 1u };
+	}
+
+	namespace initialize
+	{
+		constexpr GLuint base{ ::game_state::shader_indices::reusable::end };
 
 		enum struct Indices : GLuint
 		{

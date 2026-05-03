@@ -1,0 +1,9 @@
+layout(local_size_x = 1u) in;
+void main()
+{
+	uint count = fixed_data.read_counts[inner_bounding_box_type];
+	fixed_data.read_counts[bounding_box_contact_detector_type] = count;
+	fixed_data.write_counts[bounding_box_contact_detector_type] = count;
+
+	commands.reusable_dispatch_commands[initialize_bounding_box_contact_detectors_program_index].work_group_count_x = compute_work_group_count(count, initialize_bounding_box_contact_detectors_local_size);
+}

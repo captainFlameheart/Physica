@@ -43,6 +43,11 @@ namespace game_logic::initialize::compile_shaders::environment
 			- ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::commit_counts::count
 		};
 
+		constexpr GLuint initialize_bounding_box_contact_detectors_program_index
+		{
+			0u
+		};
+
 		constexpr GLuint clear_bounding_box_contact_detector_deaths_program_index
 		{
 			static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::pre_bounding_box_contact_detectors::clear_deaths::Indices::clear_bounding_box_contact_detector_deaths)
@@ -403,6 +408,15 @@ namespace game_logic::initialize::compile_shaders::environment
 		constexpr GLuint update_tick_counts_local_size{ ::game_state::local_sizes::update_tick_counts_local_size };
 		constexpr GLuint update_draw_counts_local_size{ ::game_state::local_sizes::update_draw_counts_local_size };
 
+		constexpr GLuint reusable_local_size_base{ ::game_state::shader_indices::reusable::base };
+
+		constexpr GLuint initialize_bounding_box_contact_detector_metadata_local_size{ ::game_state::local_sizes::reusable_local_sizes[
+			static_cast<GLuint>(::game_state::shader_indices::reusable::initialize_contacts::Indices::initialize_bounding_box_contact_detector_metadata) - reusable_local_size_base
+		] };
+		constexpr GLuint initialize_bounding_box_contact_detectors_local_size{ ::game_state::local_sizes::reusable_local_sizes[
+			static_cast<GLuint>(::game_state::shader_indices::reusable::initialize_contacts::Indices::initialize_bounding_box_contact_detectors) - reusable_local_size_base
+		] };
+
 		constexpr GLuint tick_entities_local_size_base{ ::game_state::shader_indices::tick::process_entities::base };
 
 		constexpr GLuint process_point_masses_local_size{ ::game_state::local_sizes::process_entities_local_sizes[
@@ -539,9 +553,11 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uint leaf_bounding_box_type_count = " + std::to_string(game_state::leaf_bounding_box_types::count) + ";\n"
 			"const uint contact_type_count = " + std::to_string(contact_type_count) + ";\n"
 
+			"const uint reusable_dispatch_program_count = " + std::to_string(::game_state::shader_indices::reusable::reusable_program_count) + ";\n"
 			"const uint dispatch_program_count = " + std::to_string(::game_state::shader_indices::tick::process_entities::count) + ";\n"
 			"const uint draw_arrays_program_count = " + std::to_string(::game_state::shader_indices::draw::entities::count) + ";\n"
 
+			"const uint initialize_bounding_box_contact_detectors_program_index = " + std::to_string(initialize_bounding_box_contact_detectors_program_index) + ";\n"
 			"const uint clear_bounding_box_contact_detector_deaths_program_index = " + std::to_string(clear_bounding_box_contact_detector_deaths_program_index) + ";\n"
 			"const uint perform_bounding_box_contact_detector_compaction_program_index = " + std::to_string(perform_bounding_box_contact_detector_compaction_program_index) + ";\n"
 			"const uint tick_bounding_box_contact_detectors_program_index = " + std::to_string(tick_bounding_box_contact_detectors_program_index) + ";\n"
@@ -587,6 +603,7 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uint private_input_binding = " + ::std::to_string(::game_state::bindings::uniform::private_input) + ";\n"
 			"const uint bounding_volume_hierarchy_binding = " + ::std::to_string(::game_state::bindings::shader_storage::bounding_volume_hierarchy) + ";\n"
 
+			"const uint initialize_bounding_box_contact_detectors_local_size = " + ::std::to_string(initialize_bounding_box_contact_detectors_local_size) + ";\n"
 			"const uint update_tick_counts_local_size = " + ::std::to_string(update_tick_counts_local_size) + ";\n"
 			"const uint process_point_masses_local_size = " + ::std::to_string(process_point_masses_local_size) + ";\n"
 			"const uint tick_rigid_bodies_local_size = " + ::std::to_string(tick_rigid_bodies_local_size) + ";\n"
