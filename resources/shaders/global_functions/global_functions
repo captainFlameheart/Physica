@@ -76,7 +76,22 @@ uint compute_mergeable_contact_detector_lookup_index(in uint index_0, in uint in
 	return hash & (lookup_table_capacity - 1u);	// IMPORTANT: Assumes lookup_table_capacity is a power of two.
 }
 
-//uint choose_contact_capacity(in uint )
+uint choose_contact_capacity(in uint leaf_bounding_box_type_0, in uint leaf_bounding_box_type_1, in uint capacity_0, in uint capacity_1)
+{
+	const uint per_leaf_contact_capacity = 100u;
+	const uint safety_multiplier = 2u;
+	const uint safety_denominator = 1u;
+
+	uint capacity =
+	(
+		leaf_bounding_box_type_0 == leaf_bounding_box_type_1 ?
+		(per_leaf_contact_capacity * capacity_0) >> 1u :
+		per_leaf_contact_capacity * min(capacity_0, capacity_1)
+	);
+	capacity = (capacity * safety_multiplier) / safety_denominator;
+	
+	return capacity;
+}
 
 uint compute_contact_type(in uint leaf_bounding_box_type_0, in uint leaf_bounding_box_type_1)
 {

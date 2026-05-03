@@ -315,13 +315,13 @@ void main()
 		uint capacity_0 = leaf_bounding_box_capacities[leaf_bounding_box_type_0];
 		for (uint leaf_bounding_box_type_1 = leaf_bounding_box_type_0; leaf_bounding_box_type_1 < leaf_bounding_box_type_count; ++leaf_bounding_box_type_1)
 		{
+			uint capacity_1 = leaf_bounding_box_capacities[leaf_bounding_box_type_1];
+
 			uint contact_type = compute_contact_type(leaf_bounding_box_type_0, leaf_bounding_box_type_1);
 			uint contact_detector_type = contact_detector_type_base + contact_type;
 
-			capacities[contact_detector_type] =	// TODO: Use smaller capacity that fits in memory.
-				leaf_bounding_box_type_0 != leaf_bounding_box_type_1 ?
-				capacity_0 * capacities[leaf_bounding_box_type_1] :
-				(capacity_0 * (capacity_0 - 1u)) >> 1u;
+			capacities[contact_detector_type] = choose_contact_capacity(leaf_bounding_box_type_0, leaf_bounding_box_type_1, capacity_0, capacity_1);
+
 			fixed_data.read_counts[contact_detector_type] = 0u;
 			fixed_data.write_counts[contact_detector_type] = 0u;
 
@@ -437,6 +437,7 @@ void main()
 	}
 
 	uint end_base_address = default_skycircle_element_radiance_base_address + capacities[default_skycircle_element_type] * uvec4_data_array_stride;
+	fixed_data.end_address = end_base_address;
 	uint end_base = address_to_uint_index(end_base_address);
 	uint has_enough_memory = uint(end_base <= uint_data.data.length());
 	

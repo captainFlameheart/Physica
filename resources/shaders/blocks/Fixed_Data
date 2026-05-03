@@ -254,6 +254,8 @@ FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 	uint default_skycircle_element_end_points_velocity_flags_base;
 	uint default_skycircle_element_radiance_base;
 
+	uint end_address;
+
 	uint capacities[entity_type_count];
 
 	// TODO: Split these kinds of arrays into one array group per entity subtype (e.g. "bodies") for greater flexibility.
