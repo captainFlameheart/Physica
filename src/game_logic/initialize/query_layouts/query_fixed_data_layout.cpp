@@ -116,6 +116,12 @@ namespace game_logic::initialize::query_layouts
 			program, "Fixed_Data.point_mass_distance_constraint_indices_turns_base",
 			environment.state.layouts.fixed_data.point_mass_distance_constraint_indices_turns_base_properties
 		);
+
+		::game_logic::shader_util::query::query_shader_storage_variable_offset
+		(
+			program, "Fixed_Data.end_address",
+			environment.state.layouts.fixed_data.end_address_properties
+		);
 		
 		::game_logic::shader_util::query::query_shader_storage_variable_offset_array_stride_array_size
 		(

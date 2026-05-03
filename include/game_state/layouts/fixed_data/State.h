@@ -214,6 +214,11 @@ namespace game_state::layouts::fixed_data
 		GLint offset;
 	};
 
+	struct end_address
+	{
+		GLint offset;
+	};
+
 	struct capacities
 	{
 		GLint offset;
@@ -586,6 +591,11 @@ namespace game_state::layouts::fixed_data
 		{
 			rigid_body_circle_contact_constraint_source_kill_items_ring_base rigid_body_circle_contact_constraint_source_kill_items_ring_base_state;
 			GLint rigid_body_circle_contact_constraint_source_kill_items_ring_base_properties[sizeof(rigid_body_circle_contact_constraint_source_kill_items_ring_base) / sizeof(GLint)];
+		};
+		union
+		{
+			end_address end_address_state;
+			GLint end_address_properties[sizeof(end_address) / sizeof(GLint)];
 		};
 		union
 		{

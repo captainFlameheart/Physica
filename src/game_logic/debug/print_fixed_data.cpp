@@ -651,6 +651,15 @@ namespace game_logic::debug
 		);
 		std::cout << "Temp: " << temp << std::endl;
 
+		GLuint end_address;
+		std::memcpy
+		(
+			&end_address,
+			fixed_data + environment.state.layouts.fixed_data.end_address_state.offset,
+			sizeof(GLuint)
+		);
+		std::cout << "end_address: " << end_address << " = " << static_cast<GLfloat>(end_address) / static_cast<GLfloat>(1024u * 1024u) << " MiB" << std::endl;
+
 		std::cout << std::endl;
 
 		delete[] fixed_data;
