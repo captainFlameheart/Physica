@@ -1,30 +1,3 @@
-bool bounding_boxes_overlap(in ivec4 bounding_boxes[2u])
-{
-	return
-	(
-		all(lessThanEqual(bounding_boxes[0u].xy, bounding_boxes[1u].zw)) &&
-		all(lessThanEqual(bounding_boxes[1u].xy, bounding_boxes[0u].zw))
-	);
-}
-
-bool bounding_boxes_overlap(in ivec4 bounding_box_0, in ivec4 bounding_box_1)
-{
-	return
-	(
-		all(lessThanEqual(bounding_box_0.xy, bounding_box_1.zw)) &&
-		all(lessThanEqual(bounding_box_1.xy, bounding_box_0.zw))
-	);
-}
-
-bool bounding_boxes_are_separated(in ivec4 bounding_box_0, in ivec4 bounding_box_1)
-{
-	return
-	(
-		any(greaterThan(bounding_box_0.xy, bounding_box_1.zw)) ||
-		any(greaterThan(bounding_box_1.xy, bounding_box_0.zw))
-	);
-}
-
 void convert_to_specific_detector
 (
 	in uint bounding_box_parent_children_height_base, in uint inner_bounding_box_base, in uint index, in uvec4 indices_source_flags
@@ -37,7 +10,7 @@ void convert_to_specific_detector
 	uint contact_detector_type = contact_detector_type_base + contact_type;
 	uint specific_index = spawn(contact_detector_type);
 	uint specific_capacity = fixed_data.capacities[contact_detector_type];
-	if (specific_index > specific_capacity)
+	if (specific_index >= specific_capacity)
 	{
 		undo_spawn(contact_detector_type);
 		return;

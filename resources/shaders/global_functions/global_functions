@@ -18,6 +18,38 @@ uint compute_bounding_box_cost(in uvec4 bounding_box)
 	return uint(compute_bounding_box_cost(ivec4(bounding_box)));
 }
 
+bool bounding_boxes_overlap(in ivec4 bounding_boxes[2u])
+{
+	return
+	(
+		all(lessThanEqual(bounding_boxes[0u].xy, bounding_boxes[1u].zw)) &&
+		all(lessThanEqual(bounding_boxes[1u].xy, bounding_boxes[0u].zw))
+	);
+}
+
+bool bounding_boxes_overlap(in ivec4 bounding_box_0, in ivec4 bounding_box_1)
+{
+	return
+	(
+		all(lessThanEqual(bounding_box_0.xy, bounding_box_1.zw)) &&
+		all(lessThanEqual(bounding_box_1.xy, bounding_box_0.zw))
+	);
+}
+
+bool bounding_boxes_are_separated(in ivec4 bounding_box_0, in ivec4 bounding_box_1)
+{
+	return
+	(
+		any(greaterThan(bounding_box_0.xy, bounding_box_1.zw)) ||
+		any(greaterThan(bounding_box_1.xy, bounding_box_0.zw))
+	);
+}
+
+bool bounding_boxes_are_separated(in uvec4 bounding_box_0, in uvec4 bounding_box_1)
+{
+	return bounding_boxes_are_separated(ivec4(bounding_box_0), ivec4(bounding_box_1));
+}
+
 uint round_up_to_power_of_two(uint x)
 {
 	if (x <= 1u)
@@ -89,6 +121,50 @@ uint compute_contact_type(in uvec4 parent_pad_pad_type_0, in uvec4 parent_pad_pa
 	
 		uint killed_base = fixed_data.killed_bases[entity_type];	// TODO: Merge with death_index.
 		uint_data.data[killed_base + death_index] = index;
+	}
+
+	void maybe_convert_to_bounding_box_contact_detector(in uint leaf_bounding_box_base_0, in uint leaf_bounding_box_base_1, in uint contact_detector_type, in uint index, in uvec2 indices)
+	{
+		uint bounding_box_index_0 = leaf_bounding_box_base_0 + indices.x;
+		uint bounding_box_index_1 = leaf_bounding_box_base_1 + indices.y;
+
+		uvec4 bounding_box_0 = uvec4_data.data[bounding_box_index_0];
+		uvec4 bounding_box_1 = uvec4_data.data[bounding_box_index_1];
+
+		if (bounding_boxes_are_separated(bounding_box_0, bounding_box_1))
+		{
+			uint bounding_box_contact_detector_index = spawn(bounding_box_contact_detector_type);
+			uint bounding_box_contact_detector_capacity = fixed_data.capacities[bounding_box_contact_detector_type];
+			if (bounding_box_contact_detector_index >= bounding_box_contact_detector_capacity)
+			{
+				undo_spawn(bounding_box_contact_detector_type);
+				return;
+			}
+
+			uint inner_bounding_box_base = fixed_data.inner_bounding_box_base;
+			uint bounding_box_contact_detector_indices_source_flags_base = fixed_data.bounding_box_contact_detector_indices_source_flags_base;
+			uvec4_data.data[bounding_box_contact_detector_indices_source_flags_base + bounding_box_contact_detector_index] = uvec4
+			(
+				bounding_box_index_0 - inner_bounding_box_base,
+				bounding_box_index_1 - inner_bounding_box_base,
+				null_uint, 0u
+			);
+
+			kill(contact_detector_type, index);
+		}
+	}
+
+	void maybe_convert_binary_contact_detector_to_bounding_box_contact_detector(in uint bounding_box_type_0, in uint bounding_box_type_1, in uint contact_detector_type, in uint index, in uvec2 indices)
+	{
+		uint bounding_box_base_0 = fixed_data.leaf_bounding_box_bases[bounding_box_type_0];
+		uint bounding_box_base_1 = fixed_data.leaf_bounding_box_bases[bounding_box_type_1];
+		maybe_convert_to_bounding_box_contact_detector(bounding_box_base_0, bounding_box_base_1, contact_detector_type, index, indices);
+	}
+
+	void maybe_convert_unary_contact_detector_to_bounding_box_contact_detector(in uint bounding_box_type, in uint contact_detector_type, in uint index, in uvec2 indices)
+	{
+		uint bounding_box_base = fixed_data.leaf_bounding_box_bases[bounding_box_type];
+		maybe_convert_to_bounding_box_contact_detector(bounding_box_base, bounding_box_base, contact_detector_type, index, indices);
 	}
 
 #endif
