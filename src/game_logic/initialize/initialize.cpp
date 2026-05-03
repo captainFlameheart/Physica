@@ -35,17 +35,7 @@ namespace game_logic::initialize
 		glDispatchCompute(1u, 1u, 1u);
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
-		glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::reusable::initialize_contacts::Indices::initialize_bounding_box_contact_detector_metadata)]);
-		glDispatchCompute(1u, 1u, 1u);
-
-		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_COMMAND_BARRIER_BIT);
-
-		glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::reusable::initialize_contacts::Indices::initialize_bounding_box_contact_detectors)]);
-		glDispatchComputeIndirect
-		(
-			environment.state.layouts.commands.reusable_dispatch_commands_work_group_count_x_state.offset +
-			0 * environment.state.layouts.commands.reusable_dispatch_commands_work_group_count_x_state.top_level_array_stride
-		);
+		//::game_logic::tasks::initialize_contacts(environment);
 
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);
 

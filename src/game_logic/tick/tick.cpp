@@ -474,6 +474,13 @@ namespace game_logic::tick
 
 	void tick(game_environment::Environment& environment)
 	{
+		if (environment.state.tick_count ==	1u * 60u * 20u)
+		{
+			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+			::game_logic::tasks::initialize_contacts(environment);
+			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT); 
+		}
+
 		if (environment.state.tick_count % 1u == 0u)	// TODO: Make into proper feature
 		{
 			tick_bodies(environment);

@@ -7,3 +7,4 @@
 #include "initialize.h"
 #include "game_state/local_sizes/include.h"
 #include "game_logic/debug/include.h"
+#include "game_logic/tasks/include.h"

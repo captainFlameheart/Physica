@@ -155,7 +155,7 @@ void main()
 	fixed_data.point_mass_write_flags_base = point_mass_write_flags_base;
 	fixed_data.point_mass_write_position_velocity_base = point_mass_write_position_velocity_base;
 	
-	capacities[rigid_body_type_index] = 1000u;//6u;
+	capacities[rigid_body_type_index] = 4u;//1000u;//6u;
 
 	uint rigid_body_inverse_mass_inertia_base_address = align_up(point_mass_write_position_velocity_base_address + capacities[point_mass_type_index] * uvec4_data_array_stride);
 	uint rigid_body_constraint_start_base_address = align_up(rigid_body_inverse_mass_inertia_base_address + capacities[rigid_body_type_index] * vec2_data_array_stride);
@@ -497,6 +497,14 @@ void main()
 	uint bounding_box_contact_detector_count = inner_bounding_box_count * 0u;
 	fixed_data.read_counts[bounding_box_contact_detector_type] = bounding_box_contact_detector_count;
 	fixed_data.write_counts[bounding_box_contact_detector_type] = bounding_box_contact_detector_count;
+
+	for (uint reusable_dispatch_program_index = 0u; reusable_dispatch_program_index < reusable_dispatch_program_count; ++reusable_dispatch_program_index)
+	{
+		commands.reusable_dispatch_commands[reusable_dispatch_program_index].work_group_count_x = 0u;
+		commands.reusable_dispatch_commands[reusable_dispatch_program_index].work_group_count_y = 1u;
+		commands.reusable_dispatch_commands[reusable_dispatch_program_index].work_group_count_z = 1u;
+		commands.reusable_dispatch_commands[reusable_dispatch_program_index].pad = 0u;
+	}
 
 	for (uint dispatch_program_index = 0u; dispatch_program_index < dispatch_program_count; ++dispatch_program_index)
 	{
