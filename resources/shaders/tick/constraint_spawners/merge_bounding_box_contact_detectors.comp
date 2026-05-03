@@ -51,7 +51,6 @@ void main()
 			) && other_indices_source_flags[other_indices_source_flags.w & bounding_box_contact_detector_willing_to_merge_side_0_mask] == unmerged_index
 		)
 		{	// The matching detector also wants to merge.
-			//return;	// MUST TODO: REMOVE!
 			if (merged_to_parent_child_side == 1u)
 			{
 				kill(bounding_box_contact_detector_type, index);
@@ -60,11 +59,6 @@ void main()
 			{
 				indices_source_flags[merged_side] = merged_side_parent_children_height.x;
 				uvec4_data.data[indices_source_flags_index] = indices_source_flags;
-				
-				/*if (indices_source_flags.x == indices_source_flags.y)
-				{
-					atomicAdd(fixed_data.temp, 1u);
-				}*/
 			}
 			return;
 		}
