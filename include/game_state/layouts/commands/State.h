@@ -3,6 +3,23 @@
 
 namespace game_state::layouts::commands
 {
+	struct reusable_dispatch_commands_work_group_count_x
+	{
+		GLint offset;
+		GLint top_level_array_stride;
+		GLint top_level_array_size;
+	};
+
+	struct reusable_dispatch_commands_work_group_count_y
+	{
+		GLint offset;
+	};
+
+	struct reusable_dispatch_commands_work_group_count_z
+	{
+		GLint offset;
+	};
+
 	struct dispatch_commands_work_group_count_x
 	{
 		GLint offset;
@@ -65,6 +82,22 @@ namespace game_state::layouts::commands
 
 	struct State
 	{
+		union
+		{
+			reusable_dispatch_commands_work_group_count_x reusable_dispatch_commands_work_group_count_x_state;
+			GLint reusable_dispatch_commands_work_group_count_x_properties[sizeof(reusable_dispatch_commands_work_group_count_x) / sizeof(GLint)];
+		};
+		union
+		{
+			reusable_dispatch_commands_work_group_count_y reusable_dispatch_commands_work_group_count_y_state;
+			GLint reusable_dispatch_commands_work_group_count_y_properties[sizeof(reusable_dispatch_commands_work_group_count_y) / sizeof(GLint)];
+		};
+		union
+		{
+			reusable_dispatch_commands_work_group_count_z reusable_dispatch_commands_work_group_count_z_state;
+			GLint reusable_dispatch_commands_work_group_count_z_properties[sizeof(reusable_dispatch_commands_work_group_count_z) / sizeof(GLint)];
+		};
+
 		union
 		{
 			dispatch_commands_work_group_count_x dispatch_commands_work_group_count_x_state;

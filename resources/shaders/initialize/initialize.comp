@@ -494,7 +494,7 @@ void main()
 	fixed_data.read_counts[inner_bounding_box_type] = inner_bounding_box_count;
 	fixed_data.write_counts[inner_bounding_box_type] = inner_bounding_box_count;
 
-	uint bounding_box_contact_detector_count = inner_bounding_box_count;
+	uint bounding_box_contact_detector_count = inner_bounding_box_count * 0u;
 	fixed_data.read_counts[bounding_box_contact_detector_type] = bounding_box_contact_detector_count;
 	fixed_data.write_counts[bounding_box_contact_detector_type] = bounding_box_contact_detector_count;
 
