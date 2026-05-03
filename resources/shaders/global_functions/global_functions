@@ -44,11 +44,18 @@ uint compute_mergeable_contact_detector_lookup_index(in uint index_0, in uint in
 	return hash & (lookup_table_capacity - 1u);	// IMPORTANT: Assumes lookup_table_capacity is a power of two.
 }
 
+//uint choose_contact_capacity(in uint )
+
 uint compute_contact_type(in uint leaf_bounding_box_type_0, in uint leaf_bounding_box_type_1)
 {
 	uint min_leaf_bounding_box_type = min(leaf_bounding_box_type_0, leaf_bounding_box_type_1);
 	uint max_leaf_bounding_box_type = max(leaf_bounding_box_type_0, leaf_bounding_box_type_1);
 	return ((max_leaf_bounding_box_type * (max_leaf_bounding_box_type + 1u)) >> 1u) + min_leaf_bounding_box_type;
+}
+
+uint compute_contact_type(in uvec4 parent_pad_pad_type_0, in uvec4 parent_pad_pad_type_1)
+{
+	return compute_contact_type(parent_pad_pad_type_0.w, parent_pad_pad_type_1.w);
 }
 
 #if WRITING_ALLOWED
@@ -61,6 +68,16 @@ uint compute_contact_type(in uint leaf_bounding_box_type_0, in uint leaf_boundin
 	uint spawn(in uint entity_type)
 	{
 		return spawn(entity_type, 1u);
+	}
+
+	void undo_spawn(in uint entity_type, in uint count)
+	{
+		atomicAdd(fixed_data.write_counts[entity_type], uint(-int(count)));
+	}
+
+	void undo_spawn(in uint entity_type)
+	{
+		undo_spawn(entity_type, 1u);
 	}
 
 	void kill(in uint entity_type, in uint index)

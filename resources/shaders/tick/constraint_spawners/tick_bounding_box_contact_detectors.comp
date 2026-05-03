@@ -27,12 +27,32 @@ bool bounding_boxes_are_separated(in ivec4 bounding_box_0, in ivec4 bounding_box
 
 void convert_to_specific_detector
 (
-	in uint index
+	in uint bounding_box_parent_children_height_base, in uint inner_bounding_box_base, in uint index, in uvec4 indices_source_flags
 )
 {
-	//atomicAdd(fixed_data.temp, 1u);	// MUST TODO: REMOVE!!!
-	//kill(bounding_box_contact_detector_type, index);
-	//spawn();
+	uvec4 parent_pad_pad_type_0 = uvec4_data.data[bounding_box_parent_children_height_base + indices_source_flags.x];
+	uvec4 parent_pad_pad_type_1 = uvec4_data.data[bounding_box_parent_children_height_base + indices_source_flags.y];
+
+	uint contact_type = compute_contact_type(parent_pad_pad_type_0, parent_pad_pad_type_1);
+	uint contact_detector_type = contact_detector_type_base + contact_type;
+	uint specific_index = spawn(contact_detector_type);
+	uint specific_capacity = fixed_data.capacities[contact_detector_type];
+	if (specific_index > specific_capacity)
+	{
+		undo_spawn(contact_detector_type);
+		return;
+	}
+
+	uint leaf_bounding_box_base_0 = fixed_data.leaf_bounding_box_bases[parent_pad_pad_type_0.w];
+	uint leaf_bounding_box_base_1 = fixed_data.leaf_bounding_box_bases[parent_pad_pad_type_1.w];
+	uint specific_indices_base = fixed_data.specific_contact_detector_indices_bases[contact_type];
+	uvec2_data.data[specific_indices_base + specific_index] = uvec2
+	(
+		inner_bounding_box_base + indices_source_flags.x - leaf_bounding_box_base_0,
+		inner_bounding_box_base + indices_source_flags.y - leaf_bounding_box_base_1
+	);
+
+	kill(bounding_box_contact_detector_type, index);
 }
 
 void tick_detector
@@ -113,7 +133,7 @@ void tick_detector
 					}
 					else
 					{
-						convert_to_specific_detector(detector_index);
+						convert_to_specific_detector(bounding_box_parent_children_height_base, bounding_box_base, detector_index, indices_source_flags);
 					}
 				}
 			
@@ -139,7 +159,7 @@ void tick_detector
 						}
 						else
 						{
-							convert_to_specific_detector(detector_index);
+							convert_to_specific_detector(bounding_box_parent_children_height_base, bounding_box_base, detector_index, indices_source_flags);
 						}
 					}
 					if (detector_index == index)
@@ -151,7 +171,7 @@ void tick_detector
 		}
 		else
 		{
-			convert_to_specific_detector(index);	//  IMPORTANT TODO: Splitting logic.
+			convert_to_specific_detector(bounding_box_parent_children_height_base, bounding_box_base, index, indices_source_flags);	//  IMPORTANT TODO: Splitting logic.
 		}
 	}
 	else
@@ -215,17 +235,6 @@ void main()
 	uint bounding_box_parent_children_height_base = fixed_data.inner_bounding_box_parent_children_height_base;
 	uint bounding_box_split_indices_base = fixed_data.inner_bounding_box_split_indices_base;
 	uint bounding_box_moved_to_base = fixed_data.inner_bounding_box_moved_to_base;
-
-	// MUST TODO: REMOVE!!!
-	if (index == 1u)
-	{
-		atomicAdd(fixed_data.temp, 1u);
-		/*uint added = indices_source_flags.x;
-		if (atomicAdd(fixed_data.temp, added) != 0u)
-		{
-			atomicAdd(fixed_data.temp, uint(-int(added)));
-		}*/
-	}
 
 	uint moved_to_0 = indices_source_flags.x;
 	if (int(indices_source_flags.x) >= 0)	// IMPORTANT TODO: Store expression in variable.
