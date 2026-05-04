@@ -165,34 +165,29 @@ void tick_detector
 
 		#if ONLY_MERGE_TO_SMALLEST_PARENT
 		
-			uint merged_side = uint(compute_bounding_box_cost(parent_bounding_boxes[1u]) <= compute_bounding_box_cost(parent_bounding_boxes[0u]));
+			uint cost_0 = compute_bounding_box_cost(parent_bounding_boxes[0u]);
+			uint cost_1 = compute_bounding_box_cost(parent_bounding_boxes[1u]);
+			
+			uint merged_side = uint(cost_1 < cost_0 || (cost_1 == cost_0 && parent_children_heights[1u].x < parent_children_heights[0u].x));
 			uint unmerged_side = merged_side ^ 1u;
 
 			if (bounding_boxes_are_separated(parent_bounding_boxes[merged_side], bounding_boxes[unmerged_side]))
+			{
+				indices_source_flags.w |= 1u << merged_side;
 		#else
 		
-			uint merge_cost = max_uint;
-			uint merged_side;
 			if (bounding_boxes_are_separated(parent_bounding_boxes[0u], bounding_boxes[1u]))
 			{
-				merge_cost = compute_bounding_box_cost(parent_bounding_boxes[0u]);
-				merged_side = 0u;
+				indices_source_flags.w |= bounding_box_contact_detector_willing_to_merge_side_0_mask;
 			}
 			if (bounding_boxes_are_separated(parent_bounding_boxes[1u], bounding_boxes[0u]))
 			{
-				uint merge_1_cost = compute_bounding_box_cost(parent_bounding_boxes[1u]);
-				if (merge_1_cost < merge_cost)
-				{
-					merge_cost = merge_1_cost;
-					merged_side = 1u;
-				}
+				indices_source_flags.w |= bounding_box_contact_detector_willing_to_merge_side_1_mask;
 			}
 
-			if (merge_cost != max_uint)
-		#endif
+			if (indices_source_flags.w != 0u)
 			{
-				indices_source_flags.w |= 1u << merged_side;	// Store which side the detector is willing to merge.
-
+		#endif
 				uint lookup_table_capacity = fixed_data.mergeable_bounding_box_contact_detector_lookup_table_capacity;
 				uint lookup_index = compute_mergeable_contact_detector_lookup_index(indices_source_flags.x, indices_source_flags.y, lookup_table_capacity);
 				indices_source_flags.w |= lookup_index << 2u;
