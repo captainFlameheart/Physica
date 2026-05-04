@@ -69,6 +69,99 @@ void initialize_cursor_icons()
 	}
 }
 
+void create_balanced_bounding_volume_hierarchy
+(
+	in uint end_address,
+	in uint rigid_body_circle_count,
+	in uint leaf_bounding_box_local_bases[leaf_bounding_box_type_count],
+	in uint next_bounding_box_local_base,
+	in uint inner_bounding_box_parent_children_height_base,
+	in uint inner_bounding_box_split_indices_base,
+	in uint inner_bounding_box_migration_entry_base,
+	in uint inner_bounding_box_old_height_base,
+	in uint bounding_box_contact_detector_indices_source_flags_base,
+	in uint inner_bounding_box_height_delimiters_base,
+	in uint inner_bounding_box_height_delimiters_capacity
+)
+{
+	for (uint leaf_bounding_box_type = 0u; leaf_bounding_box_type < leaf_bounding_box_type_count; ++leaf_bounding_box_type)
+	{
+		// TODO: Generalize
+		if (leaf_bounding_box_type != rigid_body_circle_bounding_box_type)
+		{
+			continue;
+		}
+
+		uint leaf_count = rigid_body_circle_count;
+		uint base = leaf_bounding_box_local_bases[leaf_bounding_box_type] - next_bounding_box_local_base;
+	
+		uint current_base = address_to_uint_index(align_up(end_address));
+		uint next_base = current_base + leaf_count;
+		uint current_node_count = leaf_count;
+		uint next_node_count = 0u;
+
+		for (uint i = 0u; i < leaf_count; ++i)
+		{
+			uint_data.data[current_base + i] = base + i;
+		}
+
+		uint inner_node_count = 0u;
+
+		uint next_height = 0u;
+		while (current_node_count > 1u)
+		{
+			for (uint i = 0u; i < current_node_count; i += 2u)
+			{
+				if (i + 1u < current_node_count)
+				{
+					uint child_0 = uint_data.data[current_base + i];
+					uint child_1 = uint_data.data[current_base + i + 1u];
+
+					int height_0 = (int(child_0) < 0 ? -1 : int(uvec4_data.data[inner_bounding_box_parent_children_height_base + child_0].w));
+					int height_1 = (int(child_1) < 0 ? -1 : int(uvec4_data.data[inner_bounding_box_parent_children_height_base + child_1].w));
+					
+					uint height = uint(max(height_0, height_1) + 1);
+
+					uvec4_data.data[inner_bounding_box_parent_children_height_base + child_0].x = inner_node_count;
+					uvec4_data.data[inner_bounding_box_parent_children_height_base + child_1].x = inner_node_count;
+
+					uvec4_data.data[inner_bounding_box_parent_children_height_base + inner_node_count] = uvec4(null_uint, child_0, child_1, height);
+					uvec2_data.data[inner_bounding_box_split_indices_base + inner_node_count] = uvec2(null_uint);
+					uint_data.data[inner_bounding_box_migration_entry_base + inner_node_count] = null_uint;
+					uint_data.data[inner_bounding_box_old_height_base + inner_node_count] = height;
+
+					uvec4_data.data[bounding_box_contact_detector_indices_source_flags_base + inner_node_count] = uvec4(child_0, child_1, null_uint, 0u);
+
+					uint_data.data[next_base + next_node_count] = inner_node_count;
+					++next_node_count;
+
+					++inner_node_count;
+				}
+				else
+				{
+					uint_data.data[next_base + next_node_count] = uint_data.data[current_base + i];
+					++next_node_count;
+				}
+			}
+
+			uint old_current_base = current_base;
+			current_base = next_base;
+			next_base = old_current_base;
+			current_node_count = next_node_count;
+			next_node_count = 0u;
+
+			uint_data.data[inner_bounding_box_height_delimiters_base + next_height] = inner_node_count;
+			++next_height;
+		}
+
+		while (next_height < inner_bounding_box_height_delimiters_capacity)
+		{
+			uint_data.data[inner_bounding_box_height_delimiters_base + next_height] = inner_node_count;
+			++next_height;
+		}
+	}
+}
+
 layout(local_size_x = 1u) in;
 void main()
 {
@@ -155,7 +248,7 @@ void main()
 	fixed_data.point_mass_write_flags_base = point_mass_write_flags_base;
 	fixed_data.point_mass_write_position_velocity_base = point_mass_write_position_velocity_base;
 	
-	capacities[rigid_body_type_index] = 2000u;
+	capacities[rigid_body_type_index] = 4u;
 
 	uint rigid_body_inverse_mass_inertia_base_address = align_up(point_mass_write_position_velocity_base_address + capacities[point_mass_type_index] * uvec4_data_array_stride);
 	uint rigid_body_constraint_start_base_address = align_up(rigid_body_inverse_mass_inertia_base_address + capacities[rigid_body_type_index] * vec2_data_array_stride);
@@ -722,7 +815,22 @@ void main()
 
 	next_bounding_box_local_base = align_up_to_common_base(next_bounding_box_local_base);
 
-	uint bounding_volume_hierarchy_root = max_uint;
+	create_balanced_bounding_volume_hierarchy
+	(
+		end_base_address,
+		rigid_body_circle_count,
+		leaf_bounding_box_local_bases,
+		next_bounding_box_local_base,
+		inner_bounding_box_parent_children_height_base,
+		inner_bounding_box_split_indices_base,
+		inner_bounding_box_migration_entry_base,
+		inner_bounding_box_old_height_base,
+		bounding_box_contact_detector_indices_source_flags_base,
+		inner_bounding_box_height_delimiters_base,
+		inner_bounding_box_height_delimiters_capacity
+	);
+
+	/*uint bounding_volume_hierarchy_root = max_uint;
 	uint inner_bounding_box_index = 0u;
 	for (uint leaf_bounding_box_type = 0u; leaf_bounding_box_type < leaf_bounding_box_type_count; ++leaf_bounding_box_type)
 	{
@@ -762,14 +870,14 @@ void main()
 				uint_data.data[inner_bounding_box_height_delimiters_base + inner_bounding_box_height] = inner_bounding_box_index;
 			}
 		}
-	}
+	}*/
 
 	for (uint mergeable_bounding_box_contact_detector_lookup_head = 0u; mergeable_bounding_box_contact_detector_lookup_head < mergeable_bounding_box_contact_detector_lookup_table_capacity; ++mergeable_bounding_box_contact_detector_lookup_head)
 	{
 		uint_data.data[mergeable_bounding_box_contact_detector_lookup_table_base + mergeable_bounding_box_contact_detector_lookup_head] = null_uint;
 	}
 
-	uint bounding_volume_hierarchy_height = inner_bounding_box_index - 1u;
+	//uint bounding_volume_hierarchy_height = inner_bounding_box_index - 1u;
 
 	for (uint hover_highlighter_type = hover_highlighter_type_base; hover_highlighter_type < hover_highlighter_type_base + hover_highlighter_type_count; ++hover_highlighter_type)
 	{
