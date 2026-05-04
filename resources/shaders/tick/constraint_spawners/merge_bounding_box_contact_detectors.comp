@@ -39,6 +39,43 @@
 	/* No matching detector found that was willing to merge. */\
 }
 
+#define PAIR_WITH_MERGE_PARTNER\
+{\
+	uvec4 merged_to_parent_children_height = uvec4_data.data[bounding_box_parent_children_height_base + merged_side_parent_children_heights[merged_side].x];\
+	\
+	uint merged_to_parent_child_side = uint(merged_to_parent_children_height.z == merged_index);\
+	uint merged_to_parent_other_child_side = merged_to_parent_child_side ^ 1u;\
+	\
+	uint merged_to_parent_other_child_index = merged_to_parent_children_height[1u + merged_to_parent_other_child_side];\
+	\
+	uint lookup_table_capacity = fixed_data.mergeable_bounding_box_contact_detector_lookup_table_capacity;\
+	uint other_detector_lookup_index = compute_mergeable_contact_detector_lookup_index(unmerged_index, merged_to_parent_other_child_index, lookup_table_capacity);\
+	uint other_detector_index = uint_data.data[lookup_table_base + other_detector_lookup_index];\
+	\
+	while (other_detector_index != null_uint)\
+	{\
+		uvec4 other_indices_source_flags = uvec4_data.data[indices_source_flags_base + other_detector_index];\
+		if\
+		(\
+			(\
+				(other_indices_source_flags.x == unmerged_index && other_indices_source_flags.y == merged_to_parent_other_child_index) ||\
+				(other_indices_source_flags.y == unmerged_index && other_indices_source_flags.x == merged_to_parent_other_child_index)\
+			) && (((other_indices_source_flags.w >> uint(other_indices_source_flags.y == merged_to_parent_other_child_index)) & 1u) != 0u)\
+		)\
+		{\
+			indices_source_flags.w &= ~(1u << unmerged_side);\
+			uvec4_data.data[indices_source_flags_index] = indices_source_flags;\
+			\
+			uint_data.data[merge_partner_index] = other_detector_index;\
+			\
+			return;\
+		}\
+		\
+		other_detector_index = other_indices_source_flags.z;	/* TODO: Rename source -> next.*/\
+	}\
+	/* No merge partner found. */\
+}
+
 layout(local_size_x = merge_bounding_box_contact_detectors_local_size) in;
 void main()
 {
@@ -50,7 +87,6 @@ void main()
 	}
 
 	uint indices_source_flags_base = fixed_data.bounding_box_contact_detector_indices_source_flags_base;
-
 	uint indices_source_flags_index = indices_source_flags_base + index;
 
 	uvec4 indices_source_flags = uvec4_data.data[indices_source_flags_index];
@@ -59,6 +95,9 @@ void main()
 	{	// This detector is not willing to merge any side (typical case).
 		return;
 	}
+
+	uint merge_partner_base = fixed_data.bounding_box_contact_detector_merge_partner_base;
+	uint merge_partner_index = merge_partner_base + index;
 
 	uvec4 merged_side_parent_children_heights[2u];
 
@@ -93,7 +132,7 @@ void main()
 		unmerged_index = indices_source_flags[unmerged_side];
 	}
 
-	MERGE_IF_MATCHING_DETECTOR_EXISTS
+	PAIR_WITH_MERGE_PARTNER
 
 	if (both_sides_are_mergeable)
 	{
@@ -103,6 +142,8 @@ void main()
 		merged_index = indices_source_flags[merged_side];
 		unmerged_index = indices_source_flags[unmerged_side];
 
-		MERGE_IF_MATCHING_DETECTOR_EXISTS
+		PAIR_WITH_MERGE_PARTNER
 	}
+
+	uint_data.data[merge_partner_index] = null_uint;
 }

@@ -21,9 +21,26 @@ void main()
 
 	if (indices_source_flags.z == null_uint)
 	{	// Only let the last element clear the head pointer in the lookup table.
-		uint lookup_index = indices_source_flags.w >> 2u;
+		uint lookup_index = indices_source_flags.w >> 2u;	// IMPORTANT TODO: Storing hash is no longer needed, so instead use w to store merge partner.
 		uint lookup_table_base = fixed_data.mergeable_bounding_box_contact_detector_lookup_table_base;
 		uint_data.data[lookup_table_base + lookup_index] = null_uint;
+	}
+
+	uint merge_partner_base = fixed_data.bounding_box_contact_detector_merge_partner_base;
+	uint merge_partner = uint_data.data[merge_partner_base + index];
+	if (merge_partner != null_uint && uint_data.data[merge_partner_base + merge_partner] == index)
+	{
+		if (index < merge_partner)
+		{
+			kill(bounding_box_contact_detector_type, index);\
+		}
+		else
+		{
+			uint merged_side = (indices_source_flags.w >> 1u) & 1u;
+			uint merged_index = indices_source_flags[merged_side];
+			uint bounding_box_parent_children_height_base = fixed_data.inner_bounding_box_parent_children_height_base;
+			indices_source_flags[merged_side] = uvec4_data.data[bounding_box_parent_children_height_base + merged_index].x;
+		}
 	}
 
 	indices_source_flags.w = 0u;
