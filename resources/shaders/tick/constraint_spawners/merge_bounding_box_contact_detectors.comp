@@ -63,10 +63,8 @@
 			) && (((other_indices_source_flags.w >> uint(other_indices_source_flags.y == merged_to_parent_other_child_index)) & 1u) != 0u)\
 		)\
 		{\
-			indices_source_flags.w &= ~(1u << unmerged_side);\
+			indices_source_flags.w = (other_detector_index << 2u) | (1u << merged_side);\
 			uvec4_data.data[indices_source_flags_index] = indices_source_flags;\
-			\
-			uint_data.data[merge_partner_index] = other_detector_index;\
 			\
 			return;\
 		}\
@@ -95,9 +93,6 @@ void main()
 	{	// This detector is not willing to merge any side (typical case).
 		return;
 	}
-
-	uint merge_partner_base = fixed_data.bounding_box_contact_detector_merge_partner_base;
-	uint merge_partner_index = merge_partner_base + index;
 
 	uvec4 merged_side_parent_children_heights[2u];
 
@@ -145,5 +140,5 @@ void main()
 		PAIR_WITH_MERGE_PARTNER
 	}
 
-	uint_data.data[merge_partner_index] = null_uint;
+	indices_source_flags.w |= null_uint << 2u;
 }

@@ -190,7 +190,6 @@ void tick_detector
 		#endif
 				uint lookup_table_capacity = fixed_data.mergeable_bounding_box_contact_detector_lookup_table_capacity;
 				uint lookup_index = compute_mergeable_contact_detector_lookup_index(indices_source_flags.x, indices_source_flags.y, lookup_table_capacity);
-				indices_source_flags.w |= lookup_index << 2u;
 				uint lookup_table_base = fixed_data.mergeable_bounding_box_contact_detector_lookup_table_base;
 				uint head_index = lookup_table_base + lookup_index;
 
