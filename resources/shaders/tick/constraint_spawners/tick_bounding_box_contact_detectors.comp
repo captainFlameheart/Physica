@@ -28,6 +28,166 @@ void convert_to_specific_detector
 	kill(bounding_box_contact_detector_type, index);
 }
 
+const uint shared_cache_capacity = 8u;	// Both caches do not necessarily have to share this capacity.
+const uint stack_cache_capacity = shared_cache_capacity;	// Must be >= 1u.
+const uint flush_cache_capacity = shared_cache_capacity;	// Must be >= 1u.
+
+void flush
+(
+	in uint indices_source_flags_base,
+	in uint base,
+	in uvec2 cached_flush_indices[flush_cache_capacity],
+	in uint cached_flush_size
+)
+{
+	uint global_base = indices_source_flags_base + base;
+	for (uint i = 0u; i < cached_flush_size; ++i)
+	{
+		uvec4_data.data[global_base + i] = uvec4(cached_flush_indices[i], null_uint, 0u);
+	}
+}
+
+void split_recursively
+(
+	in uint indices_source_flags_base,
+	in uint bounding_box_parent_children_height_base,
+	in uint inner_bounding_box_base,
+	in uint capacity,
+	in uint index,
+	in uvec4 indices_source_flags,
+	in ivec4 bounding_boxes[2u]
+)
+{
+
+	uvec2 cached_stack_indices[stack_cache_capacity];
+	ivec4 cached_stack_bounding_boxes[stack_cache_capacity][2u];
+
+	cached_stack_indices[0u] = indices_source_flags.xy;
+	cached_stack_bounding_boxes[0u][0u] = bounding_boxes[0u];
+	cached_stack_bounding_boxes[0u][1u] = bounding_boxes[1u];
+
+	uint stack_size = 1u;
+
+	uvec2 cached_flush_indices[flush_cache_capacity];
+	uint cached_flush_size = 0u;
+
+	do
+	{
+		uvec2 indices;
+		uint source;
+		ivec4 bounding_boxes[2u];
+
+		--stack_size;
+		if (stack_size < stack_cache_capacity)
+		{	// Typical case.
+			indices = cached_stack_indices[stack_size];
+			bounding_boxes[0u] = cached_stack_bounding_boxes[stack_size][0u];
+			bounding_boxes[1u] = cached_stack_bounding_boxes[stack_size][1u];
+		}
+		else
+		{	// Fallback if cache capacity is insufficient (unlikely).
+			uvec4 indices_source_flags = uvec4_data.data[indices_source_flags_base + index];
+			indices = indices_source_flags.xy;
+			source = indices_source_flags.z;
+			bounding_boxes[0u] = ivec4(uvec4_data.data[inner_bounding_box_base + indices_source_flags.x]);
+			bounding_boxes[1u] = ivec4(uvec4_data.data[inner_bounding_box_base + indices_source_flags.y]);
+		}
+
+		if (bounding_boxes_are_separated(bounding_boxes))
+		{	// Go to next.
+			if (cached_flush_size == flush_cache_capacity)
+			{	// Fallback case if cache capacity is insufficient (unlikely).
+				uint base = spawn(bounding_box_contact_detector_type, cached_flush_size);
+				if (base + cached_flush_size >= capacity)
+				{	// MUST TODO: Retry logic.
+					return;
+				}
+				flush(indices_source_flags_base, base, cached_flush_indices, cached_flush_size);
+				cached_flush_size = 0u;
+			}
+			cached_flush_indices[cached_flush_size++] = indices;
+
+			if (stack_size == 0u)
+			{
+				break;
+			}
+			index = source;	// Only well-defined if we are not inside the cache, which is intentional.
+			continue;
+		}
+
+		bvec2 is_inner = bvec2
+		(
+			int(indices.x) >= 0,
+			int(indices.y) >= 0
+		);
+
+		if (any(is_inner))
+		{
+			uint costs[2u] = uint[2u]
+			(
+				compute_bounding_box_cost(bounding_boxes[0u]),
+				compute_bounding_box_cost(bounding_boxes[1u])
+			);
+
+			uint split_side = uint(costs[1u] > costs[0u] && is_inner[1u]);
+			uint unsplit_side = split_side ^ 1u;
+
+			uint split_index = indices[split_side];
+			uint unsplit_index = indices[unsplit_side];
+
+			uvec4 split_side_parent_children_height = uvec4_data.data[bounding_box_parent_children_height_base + split_index];
+
+			// Give one child to the current detector.
+			if (stack_size < stack_cache_capacity)
+			{	// Typical case.
+				cached_stack_indices[stack_size][split_side] = split_side_parent_children_height[1u];
+				cached_stack_bounding_boxes[stack_size][split_side] = ivec4(uvec4_data.data[inner_bounding_box_base + split_side_parent_children_height[1u]]);
+			}
+			else
+			{	// Fallback if cache capacity is insufficient (unlikely).
+				indices[split_side] = split_side_parent_children_height[1u];
+				uvec4_data.data[indices_source_flags_base + index] = uvec4(indices.xy, source, 0u);
+			}
+			++stack_size;
+			
+			// Give the other child to a new detector.
+			if (stack_size < stack_cache_capacity)
+			{	// Typical case.
+				cached_stack_indices[stack_size] = uvec2(unsplit_index, split_side_parent_children_height[2u]);
+				cached_stack_bounding_boxes[stack_size][0u] = bounding_boxes[unsplit_side];
+				cached_stack_bounding_boxes[stack_size][1u] = ivec4(uvec4_data.data[inner_bounding_box_base + split_side_parent_children_height[2u]]);
+			}
+			else
+			{	// Fallback if cache capacity is insufficient (unlikely).
+				uint new_index = spawn(bounding_box_contact_detector_type);
+				if (new_index >= capacity)
+				{	// MUST TODO: Retry logic.
+					return;
+				}
+				uvec4_data.data[indices_source_flags_base + new_index] = uvec4(unsplit_index, split_side_parent_children_height[2u], index, 0u);
+				index = new_index;
+			}
+			++stack_size;
+			continue;
+		}
+		else
+		{
+			convert_to_specific_detector(bounding_box_parent_children_height_base, inner_bounding_box_base, index, indices_source_flags);
+			index = source;	// Only well-defined if we are not inside the cache, which is intentional.
+			continue;
+		}
+	} while (true);
+
+	// Flush generated detectors to global memory.
+	// IMPORTANT TODO: Consider reducing global memory atomic contention through shared memory atomics.
+	uint base = spawn(bounding_box_contact_detector_type, cached_flush_size);
+	if (base + cached_flush_size > capacity)
+	{	// MUST TODO: Retry logic.
+		return;
+	}
+	flush(indices_source_flags_base, base, cached_flush_indices, cached_flush_size);
+}
+
 void tick_detector
 (
 	in uint index,

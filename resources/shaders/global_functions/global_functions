@@ -50,6 +50,11 @@ bool bounding_boxes_are_separated(in ivec4 bounding_box_0, in ivec4 bounding_box
 	);
 }
 
+bool bounding_boxes_are_separated(in ivec4 bounding_boxes[2u])
+{
+	return bounding_boxes_are_separated(bounding_boxes[0u], bounding_boxes[1u]);
+}
+
 bool bounding_boxes_are_separated(in uvec4 bounding_box_0, in uvec4 bounding_box_1)
 {
 	return bounding_boxes_are_separated(ivec4(bounding_box_0), ivec4(bounding_box_1));

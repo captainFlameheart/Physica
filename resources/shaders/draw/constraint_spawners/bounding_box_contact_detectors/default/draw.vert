@@ -97,7 +97,7 @@ void main()
 		float(int(indices_source_flags[endpoint_index]) >= 0)
 	);
 
-	uint picked_type = rigid_body_circle_bounding_box_type;
+	/*uint picked_type = rigid_body_circle_bounding_box_type;
 	uint picked = 115u;
 	uint picked_index = fixed_data.leaf_bounding_box_bases[picked_type] + picked - fixed_data.inner_bounding_box_base;
 	if (indices_source_flags.x == picked_index || indices_source_flags.y == picked_index)
@@ -107,7 +107,7 @@ void main()
 	else
 	{
 		gl_CullDistance[0u] = -1.0;
-	}
+	}*/
 
 	#if CULL_DEAD
 	#endif
