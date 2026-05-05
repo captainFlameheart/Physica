@@ -94,7 +94,7 @@ void split_recursively
 		}
 
 		if (bounding_boxes_are_separated(bounding_boxes))
-		{	// Go to next.
+		{
 			if (cached_flush_size == flush_cache_capacity)
 			{	// Fallback case if cache capacity is insufficient (unlikely).
 				uint base = spawn(bounding_box_contact_detector_type, cached_flush_size);
@@ -125,8 +125,8 @@ void split_recursively
 		{
 			uint costs[2u] = uint[2u]
 			(
-				compute_bounding_box_cost(bounding_boxes[0u]),
-				compute_bounding_box_cost(bounding_boxes[1u])
+				uint(compute_bounding_box_cost(bounding_boxes[0u])),
+				uint(compute_bounding_box_cost(bounding_boxes[1u]))
 			);
 
 			uint split_side = uint(costs[1u] > costs[0u] && is_inner[1u]);
@@ -173,6 +173,10 @@ void split_recursively
 		else
 		{
 			convert_to_specific_detector(bounding_box_parent_children_height_base, bounding_box_base, index, indices_source_flags);
+			if (stack_size == 0u)
+			{
+				break;
+			}
 			index = source;	// Only well-defined if we are not inside the cache, which is intentional.
 			continue;
 		}
@@ -320,7 +324,7 @@ void tick_detector
 	if (bounding_boxes_overlap(bounding_boxes))
 	{
 		uint capacity = fixed_data.capacities[bounding_box_contact_detector_type];
-		OLD_split_recursively
+		split_recursively
 		(
 			indices_source_flags_base,
 			bounding_box_parent_children_height_base,
