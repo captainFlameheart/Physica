@@ -28,7 +28,7 @@ void convert_to_specific_detector
 	kill(bounding_box_contact_detector_type, index);
 }
 
-const uint shared_cache_capacity = 4u;	// Both caches do not necessarily have to share this capacity.
+const uint shared_cache_capacity = 1u;	// Both caches do not necessarily have to share this capacity.
 const uint stack_cache_capacity = shared_cache_capacity;	// Must be >= 1u.
 const uint flush_cache_capacity = shared_cache_capacity;	// Must be >= 1u.
 
@@ -78,6 +78,7 @@ void split_recursively
 		uint source = 0u;
 		ivec4 bounding_boxes[2u];
 
+		// Pop
 		--stack_size;
 		if (stack_size < stack_cache_capacity)
 		{	// Typical case.
@@ -87,7 +88,7 @@ void split_recursively
 		}
 		else
 		{	// Fallback if cache capacity is insufficient (unlikely).
-			uvec4 indices_source_flags = uvec4_data.data[indices_source_flags_base + index];
+			indices_source_flags = uvec4_data.data[indices_source_flags_base + index];
 			indices = indices_source_flags.xy;
 			source = indices_source_flags.z;
 			bounding_boxes[0u] = ivec4(uvec4_data.data[bounding_box_base + indices_source_flags.x]);
@@ -95,24 +96,27 @@ void split_recursively
 		}
 
 		if (bounding_boxes_are_separated(bounding_boxes))
-		{
+		{	// Backtrack.
 			if (stack_size == 0u)
 			{
 				uvec4_data.data[indices_source_flags_base + original_index] = uvec4(indices, null_uint, 0u);
 				break;
 			}
 
-			if (cached_flush_size == flush_cache_capacity)
-			{	// Fallback case if cache capacity is insufficient (unlikely).
-				uint base = spawn(bounding_box_contact_detector_type, cached_flush_size);
-				if (base + cached_flush_size >= capacity)
-				{	// MUST TODO: Retry logic.
-					break;
+			if (stack_size < stack_cache_capacity)
+			{	// Add the detector to the flush cache.
+				if (cached_flush_size == flush_cache_capacity)
+				{	// Fallback flush if cache capacity is insufficient (unlikely).
+					uint base = spawn(bounding_box_contact_detector_type, cached_flush_size);
+					if (base + cached_flush_size >= capacity)
+					{	// MUST TODO: Retry logic.
+						break;
+					}
+					flush(indices_source_flags_base, base, cached_flush_indices, cached_flush_size);
+					cached_flush_size = 0u;
 				}
-				flush(indices_source_flags_base, base, cached_flush_indices, cached_flush_size);
-				cached_flush_size = 0u;
+				cached_flush_indices[cached_flush_size++] = indices;
 			}
-			cached_flush_indices[cached_flush_size++] = indices;
 
 			index = source;	// Only well-defined if we are not inside the cache, which is intentional.
 			continue;
@@ -125,7 +129,7 @@ void split_recursively
 		);
 
 		if (any(is_inner))
-		{
+		{	// Split.
 			uint costs[2u] = uint[2u]
 			(
 				uint(compute_bounding_box_cost(bounding_boxes[0u])),
@@ -149,7 +153,7 @@ void split_recursively
 			else
 			{	// Fallback if cache capacity is insufficient (unlikely).
 				indices[split_side] = split_side_parent_children_height[1u];
-				uvec4_data.data[indices_source_flags_base + index] = uvec4(indices.xy, source, 0u);
+				uvec4_data.data[indices_source_flags_base + index] = uvec4(indices, source, 0u);
 			}
 			++stack_size;
 			
