@@ -192,6 +192,43 @@ uint compute_contact_type(in uvec4 parent_pad_pad_type_0, in uvec4 parent_pad_pa
 		maybe_convert_to_bounding_box_contact_detector(bounding_box_base, bounding_box_base, contact_detector_type, index, indices);
 	}
 
+	void spawn_specific_detector
+	(
+		in uint bounding_box_parent_children_height_base, in uint inner_bounding_box_base, uvec2 indices
+	)
+	{
+		uvec4 parent_pad_pad_type_0 = uvec4_data.data[bounding_box_parent_children_height_base + indices.x];
+		uvec4 parent_pad_pad_type_1 = uvec4_data.data[bounding_box_parent_children_height_base + indices.y];
+
+		uint contact_type = compute_contact_type(parent_pad_pad_type_0, parent_pad_pad_type_1);
+		uint contact_detector_type = contact_detector_type_base + contact_type;
+		uint specific_index = spawn(contact_detector_type);
+		uint specific_capacity = fixed_data.capacities[contact_detector_type];
+		if (specific_index >= specific_capacity)
+		{
+			undo_spawn(contact_detector_type);
+			return;
+		}
+
+		uint leaf_bounding_box_base_0 = fixed_data.leaf_bounding_box_bases[parent_pad_pad_type_0.w];
+		uint leaf_bounding_box_base_1 = fixed_data.leaf_bounding_box_bases[parent_pad_pad_type_1.w];
+		uint specific_indices_base = fixed_data.specific_contact_detector_indices_bases[contact_type];
+		uvec2_data.data[specific_indices_base + specific_index] = uvec2
+		(
+			inner_bounding_box_base + indices.x - leaf_bounding_box_base_0,
+			inner_bounding_box_base + indices.y - leaf_bounding_box_base_1
+		);
+	}
+
+	void convert_to_specific_detector
+	(
+		in uint bounding_box_parent_children_height_base, in uint inner_bounding_box_base, in uint index, in uvec4 indices_source_flags
+	)
+	{
+		spawn_specific_detector(bounding_box_parent_children_height_base, inner_bounding_box_base, indices_source_flags.xy);
+		kill(bounding_box_contact_detector_type, index);
+	}
+
 	#define DEFINE_SPLIT_RECURSIVELY_FUNCTION(stack_cache_capacity, flush_cache_capacity)\
 	void flush\
 	(\
