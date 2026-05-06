@@ -2,7 +2,7 @@ const uint shared_cache_capacity = 6u;	// Both caches do not necessarily have to
 const uint stack_cache_capacity = shared_cache_capacity;	// Must be >= 1u.
 const uint flush_cache_capacity = shared_cache_capacity;	// Must be >= 1u.
 
-DEFINE_SPLIT_RECURSIVELY_FUNCTION(stack_cache_capacity, flush_cache_capacity, 1)
+DEFINE_SPLIT_RECURSIVELY_FUNCTION(stack_cache_capacity, flush_cache_capacity, 1, 0)
 
 // TODO: REMOVE.
 void OLD_split_recursively

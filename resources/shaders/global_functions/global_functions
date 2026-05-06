@@ -1,5 +1,8 @@
-#define IF_ENABLED_1(code) code
-#define IF_ENABLED_0(code)
+#define IF_1(then) then
+#define IF_0(then)
+
+#define IF_ELSE_1(then, else) then
+#define IF_ELSE_0(then, else) else
 
 uint compute_work_group_count(uint count, uint local_size)
 {
@@ -232,7 +235,7 @@ uint compute_contact_type(in uvec4 parent_pad_pad_type_0, in uvec4 parent_pad_pa
 		kill(bounding_box_contact_detector_type, index);
 	}
 
-	#define DEFINE_SPLIT_RECURSIVELY_FUNCTION(stack_cache_capacity, flush_cache_capacity, ALLOW_SPECIFIC_DETECTOR_SPAWN)\
+	#define DEFINE_SPLIT_RECURSIVELY_FUNCTION(stack_cache_capacity, flush_cache_capacity, ALLOW_SPECIFIC_DETECTOR_SPAWN, MANY_SPLITS_PREDICTED)\
 	void flush\
 	(\
 		in uint indices_source_flags_base,\
@@ -379,7 +382,7 @@ uint compute_contact_type(in uvec4 parent_pad_pad_type_0, in uvec4 parent_pad_pa
 			}\
 			else\
 			{\
-				IF_ENABLED_##ALLOW_SPECIFIC_DETECTOR_SPAWN(\
+				IF_##ALLOW_SPECIFIC_DETECTOR_SPAWN(\
 					spawn_specific_detector(bounding_box_parent_children_height_base, bounding_box_base, indices);\
 				)\
 				\
@@ -403,13 +406,20 @@ uint compute_contact_type(in uvec4 parent_pad_pad_type_0, in uvec4 parent_pad_pa
 		} while (true);\
 		\
 		/* Flush generated detectors to global memory. */\
-		/* IMPORTANT TODO: Consider reducing global memory atomic contention through shared memory atomics. */\
-		uint base = spawn(bounding_box_contact_detector_type, cached_flush_size);\
-		if (base + cached_flush_size > capacity)\
-		{	/* MUST TODO: Retry logic. */\
-			return;\
+		IF_ELSE_##MANY_SPLITS_PREDICTED(\
+		{\
+			\
+		},\
+		{\
+			uint base = spawn(bounding_box_contact_detector_type, cached_flush_size);\
+			if (base + cached_flush_size > capacity)\
+			{	/* MUST TODO: Retry logic. */\
+				return;\
+			}\
+			flush(indices_source_flags_base, base, cached_flush_indices, cached_flush_size);\
 		}\
-		flush(indices_source_flags_base, base, cached_flush_indices, cached_flush_size);\
+		)\
+		\
 	}
 
 #endif
