@@ -354,8 +354,7 @@ void tick_detector
 	in uint bounding_box_base,
 	in uint bounding_box_parent_children_height_base,
 	in uint indices_source_flags_index,
-	in uvec4 indices_source_flags,
-	in uint temp
+	in uvec4 indices_source_flags
 )
 {
 	uint bounding_box_index_0 = bounding_box_base + indices_source_flags.x;
@@ -383,11 +382,6 @@ void tick_detector
 	}
 	else
 	{	// Merge logic.
-		if (temp >= 4u)
-		{
-			//return;
-		}
-
 		uvec4 parent_children_heights[2u] = uvec4[2u]
 		(
 			uvec4_data.data[bounding_box_parent_children_height_base + indices_source_flags.x],
@@ -508,8 +502,6 @@ void main()
 		is_split[1u] = (split_indices_array[1u].x != positive_null_uint);
 	}
 
-	uint temp = atomicAdd(fixed_data.temp, 0u) - 1u;	// MUST TODO: REMOVE!!!
-
 	if (all(is_split))
 	{	// Case whose probability approaches zero as the time step size approaches zero.
 		uint second_index = atomicAdd(fixed_data.write_counts[bounding_box_contact_detector_type], 3u);
@@ -549,14 +541,6 @@ void main()
 		uvec4 fourth_indices_source_flags = uvec4(split_indices_array[0u].y, split_indices_array[1u].y, null_uint, 0u);
 		indices_source_flags_array[3u] = fourth_indices_source_flags;
 		uvec4_data.data[fourth_indices_source_flags_index] = fourth_indices_source_flags;
-
-		
-		// MUST TODO: REMOVE!!!
-		temp = atomicAdd(fixed_data.temp, 1u);
-		if (temp == 4u)
-		{
-			// (88, 94), (88, 90), (92, 94), (92, 90)
-		}
 	}
 	else if (any(is_split))
 	{	// Atypical case.
@@ -585,11 +569,6 @@ void main()
 		uvec4_data.data[second_indices_source_flags_index] = second_indices_source_flags;
 	}
 
-	if (temp == 4u)
-	{
-		//return;
-	}
-
 	for (uint detector = 0u; detector < detector_count; ++detector)
 	{
 		tick_detector
@@ -599,8 +578,7 @@ void main()
 			bounding_box_base,
 			bounding_box_parent_children_height_base,
 			indices_source_flags_index_array[detector],
-			indices_source_flags_array[detector],
-			temp
+			indices_source_flags_array[detector]
 		);
 	}
 }
