@@ -93,6 +93,11 @@ namespace game_state::layouts::fixed_data
 		GLint offset;
 	};
 
+	struct inner_bounding_box_split_indices_base
+	{
+		GLint offset;
+	};
+
 	struct inner_bounding_box_height_delimiters_base
 	{
 		GLint offset;
@@ -471,6 +476,11 @@ namespace game_state::layouts::fixed_data
 		{
 			inner_bounding_box_base inner_bounding_box_base_state;
 			GLint inner_bounding_box_base_properties[sizeof(inner_bounding_box_base) / sizeof(GLint)];
+		};
+		union
+		{
+			inner_bounding_box_split_indices_base inner_bounding_box_split_indices_base_state;
+			GLint inner_bounding_box_split_indices_base_properties[sizeof(inner_bounding_box_split_indices_base) / sizeof(GLint)];
 		};
 		
 		union

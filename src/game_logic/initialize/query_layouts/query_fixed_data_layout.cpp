@@ -62,6 +62,11 @@ namespace game_logic::initialize::query_layouts
 			program, "Fixed_Data.inner_bounding_box_base",
 			environment.state.layouts.fixed_data.inner_bounding_box_base_properties
 		);
+		::game_logic::shader_util::query::query_shader_storage_variable_offset
+		(
+			program, "Fixed_Data.inner_bounding_box_split_indices_base",
+			environment.state.layouts.fixed_data.inner_bounding_box_split_indices_base_properties
+		);
 
 		::game_logic::shader_util::query::query_shader_storage_variable_offset
 		(

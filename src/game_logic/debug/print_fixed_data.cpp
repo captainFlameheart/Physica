@@ -235,6 +235,15 @@ namespace game_logic::debug
 		);
 		std::cout << "inner_bounding_box_base: " << inner_bounding_box_base << '\n';
 
+		GLuint inner_bounding_box_split_indices_base;
+		std::memcpy
+		(
+			&inner_bounding_box_split_indices_base,
+			fixed_data + environment.state.layouts.fixed_data.inner_bounding_box_split_indices_base_state.offset,
+			sizeof(GLuint)
+		);
+		std::cout << "inner_bounding_box_split_indices_base: " << inner_bounding_box_split_indices_base << '\n';
+
 		std::cout << '\n';
 
 		GLuint inner_bounding_box_height_delimiters_base;
@@ -465,6 +474,16 @@ namespace game_logic::debug
 			inner_bounding_boxes
 		);
 
+		GLuint inner_bounding_box_split_indices_size{ inner_bounding_box_capacity * sizeof(GLuint[2u]) };
+		GLubyte* inner_bounding_box_split_indices = new GLubyte[inner_bounding_box_split_indices_size];
+		glGetNamedBufferSubData
+		(
+			environment.state.buffers.GPU_only.buffers[environment.state.buffers.GPU_only.current],
+			environment.state.layouts.uvec2_data.state.offset + inner_bounding_box_split_indices_base * environment.state.layouts.uvec2_data.state.array_stride,
+			inner_bounding_box_split_indices_size,
+			inner_bounding_box_split_indices
+		);
+
 		GLuint inner_bounding_box_height_delimiters_size{ inner_bounding_box_capacity * sizeof(GLuint) };
 		GLubyte* inner_bounding_box_height_delimiters = new GLubyte[inner_bounding_box_height_delimiters_size];
 		glGetNamedBufferSubData
@@ -523,7 +542,24 @@ namespace game_logic::debug
 				<< bounding_box[2u] << ", "
 				<< bounding_box[3u] << ")\n";*/
 		}
+		std::cout << '\n';
 
+		std::cout << "Inner bounding box split indices:\n";
+		for (GLuint inner_bounding_box{ 0u }; inner_bounding_box < inner_bounding_box_write_count; ++inner_bounding_box)
+		{
+			GLuint inner_bounding_box_split_indices_value[2u];
+			std::memcpy
+			(
+				&inner_bounding_box_split_indices_value,
+				inner_bounding_box_split_indices + inner_bounding_box * environment.state.layouts.uvec2_data.state.array_stride,
+				sizeof(GLuint[2u])
+			);
+			std::string split_index_0 = (inner_bounding_box_split_indices_value[0u] == static_cast<GLuint>(-1) ? "-" : std::to_string(inner_bounding_box_split_indices_value[0u]));
+			std::string split_index_1 = (inner_bounding_box_split_indices_value[1u] == static_cast<GLuint>(-1) ? "-" : std::to_string(inner_bounding_box_split_indices_value[1u]));
+			std::cout << inner_bounding_box << ": ("
+				<< split_index_0 << ", "
+				<< split_index_1 << ")\n";
+		}
 		std::cout << '\n';
 
 		std::cout << "Inner bounding box height delimiters:\n";
@@ -571,6 +607,7 @@ namespace game_logic::debug
 
 		delete[] inner_bounding_box_parent_children_heights;
 		delete[] inner_bounding_boxes;
+		delete[] inner_bounding_box_split_indices;
 		delete[] inner_bounding_box_height_delimiters;
 
 		GLuint bounding_box_contact_detector_indices_source_flagss_size{ bounding_box_contact_detector_capacity * sizeof(GLuint[4u]) };

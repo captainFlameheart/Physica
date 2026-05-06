@@ -354,7 +354,8 @@ void tick_detector
 	in uint bounding_box_base,
 	in uint bounding_box_parent_children_height_base,
 	in uint indices_source_flags_index,
-	in uvec4 indices_source_flags
+	in uvec4 indices_source_flags,
+	in uint temp
 )
 {
 	uint bounding_box_index_0 = bounding_box_base + indices_source_flags.x;
@@ -379,107 +380,14 @@ void tick_detector
 			indices_source_flags,
 			bounding_boxes
 		);
-
-		/*bvec2 is_inner = bvec2
-		(
-			int(indices_source_flags.x) >= 0,
-			int(indices_source_flags.y) >= 0
-		);
-		if (any(is_inner))
-		{
-			uint detector_index = index;
-			uint detector_capacity = fixed_data.capacities[bounding_box_contact_detector_type];
-
-			while (true)
-			{	// Split logic.
-
-				// Determine which box to split.
-				uint cost_0 = compute_bounding_box_cost(bounding_boxes[0u]);
-				uint cost_1 = compute_bounding_box_cost(bounding_boxes[1u]);
-		
-				uint split_side = uint(cost_1 > cost_0 && is_inner.y);
-				uint unsplit_side = split_side ^ 1u;
-			
-				uint split_index = indices_source_flags[split_side];
-				uint unsplit_index = indices_source_flags[unsplit_side];
-			
-				uvec4 split_parent_children_height = uvec4_data.data[bounding_box_parent_children_height_base + split_index];
-		
-				// Update current detector -> one child.
-				indices_source_flags[split_side] = split_parent_children_height.y;
-				uvec4_data.data[indices_source_flags_base + detector_index] = indices_source_flags;	// TODO: Use index variable as detector_index.
-
-				// Create new detector -> other child.
-				uint new_detector_index = atomicAdd(fixed_data.write_counts[bounding_box_contact_detector_type], 1u);
-				if (new_detector_index >= detector_capacity)	// MUST TODO: Retry shader logic.
-				{
-					atomicAdd(fixed_data.write_counts[bounding_box_contact_detector_type], minus_1_uint);
-					return;
-				}
-
-				indices_source_flags = uvec4(split_parent_children_height.z, unsplit_index, detector_index, 0u);
-				uvec4_data.data[indices_source_flags_base + new_detector_index] = indices_source_flags;
-
-				// IMPORTANT TODO: One of these fetches is redundant.
-				bounding_boxes[0u] = ivec4(uvec4_data.data[bounding_box_base + indices_source_flags.x]);
-				bounding_boxes[1u] = ivec4(uvec4_data.data[bounding_box_base + indices_source_flags.y]);
-
-				is_inner[0u] = (int(indices_source_flags.x) >= 0);
-				is_inner[1u] = (int(indices_source_flags.y) >= 0);
-
-				detector_index = new_detector_index;
-
-				if (bounding_boxes_overlap(bounding_boxes))
-				{
-					if (any(is_inner))
-					{
-						continue;	// Split the new detector as well.
-					}
-					else
-					{
-						convert_to_specific_detector(bounding_box_parent_children_height_base, bounding_box_base, detector_index, indices_source_flags);
-					}
-				}
-			
-				// IMPORTANT TODO: Avoid the need for backtracking by using next pointers instead of source pointers (ask ChatGPT).
-				while (true)
-				{	// Backtrack.
-					uvec4_data.data[indices_source_flags_base + detector_index].z = null_uint;
-					detector_index = indices_source_flags.z;	// Follow source pointer.
-				
-					indices_source_flags = uvec4_data.data[indices_source_flags_base + detector_index];
-
-					bounding_boxes[0u] = ivec4(uvec4_data.data[bounding_box_base + indices_source_flags.x]);
-					bounding_boxes[1u] = ivec4(uvec4_data.data[bounding_box_base + indices_source_flags.y]);
-				
-					is_inner[0u] = (int(indices_source_flags.x) >= 0);
-					is_inner[1u] = (int(indices_source_flags.y) >= 0);
-
-					if (bounding_boxes_overlap(bounding_boxes))
-					{
-						if (any(is_inner))
-						{
-							break;	// Resume splitting from this detector.
-						}
-						else
-						{
-							convert_to_specific_detector(bounding_box_parent_children_height_base, bounding_box_base, detector_index, indices_source_flags);
-						}
-					}
-					if (detector_index == index)
-					{
-						return;
-					}
-				}
-			}
-		}
-		else
-		{
-			convert_to_specific_detector(bounding_box_parent_children_height_base, bounding_box_base, index, indices_source_flags);	//  IMPORTANT TODO: Splitting logic.
-		}*/
 	}
 	else
 	{	// Merge logic.
+		if (temp >= 4u)
+		{
+			return;
+		}
+
 		uvec4 parent_children_heights[2u] = uvec4[2u]
 		(
 			uvec4_data.data[bounding_box_parent_children_height_base + indices_source_flags.x],
@@ -600,6 +508,8 @@ void main()
 		is_split[1u] = (split_indices_array[1u].x != null_uint);
 	}
 
+	uint temp = atomicAdd(fixed_data.temp, 0u) - 1u;	// MUST TODO: REMOVE!!!
+
 	if (all(is_split))
 	{	// Case whose probability approaches zero as the time step size approaches zero.
 		uint second_index = atomicAdd(fixed_data.write_counts[bounding_box_contact_detector_type], 3u);
@@ -639,6 +549,14 @@ void main()
 		uvec4 fourth_indices_source_flags = uvec4(split_indices_array[0u].y, split_indices_array[1u].y, null_uint, 0u);
 		indices_source_flags_array[3u] = fourth_indices_source_flags;
 		uvec4_data.data[fourth_indices_source_flags_index] = fourth_indices_source_flags;
+
+		
+		// MUST TODO: REMOVE!!!
+		temp = atomicAdd(fixed_data.temp, 1u);
+		if (temp == 4u)
+		{
+			// (88, 94), (88, 90), (92, 94), (92, 90)
+		}
 	}
 	else if (any(is_split))
 	{	// Atypical case.
@@ -667,6 +585,11 @@ void main()
 		uvec4_data.data[second_indices_source_flags_index] = second_indices_source_flags;
 	}
 
+	if (temp == 4u)
+	{
+		return;
+	}
+
 	for (uint detector = 0u; detector < detector_count; ++detector)
 	{
 		tick_detector
@@ -676,7 +599,8 @@ void main()
 			bounding_box_base,
 			bounding_box_parent_children_height_base,
 			indices_source_flags_index_array[detector],
-			indices_source_flags_array[detector]
+			indices_source_flags_array[detector],
+			temp
 		);
 	}
 }

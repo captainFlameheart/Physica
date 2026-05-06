@@ -120,10 +120,11 @@ namespace game_logic::debug
 		);
 
 		std::cout << "temp: " << temp << std::endl;
-		if (temp == 1u)
+		if (temp == 5u)
 		{
 			environment.state.debug_flag = 1u;
 			std::cout << "Breakpoint" << std::endl;
+			print_fixed_data(environment);
 		}
 		//std::cout << "rigid_body_circle_contact_constraint_spawner_old_write_count: " << rigid_body_circle_contact_constraint_spawner_old_write_count << '\n';
 		//std::cout << "rigid_body_circle_contact_constraint_spawner_write_count: " << rigid_body_circle_contact_constraint_spawner_write_count << '\n';
