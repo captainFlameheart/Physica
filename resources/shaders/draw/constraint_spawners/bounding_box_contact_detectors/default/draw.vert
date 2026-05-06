@@ -20,7 +20,7 @@ const float offset_index_to_orthogonal_direction_sign[6u] = float[6u]
 	1.0
 );
 
-#define CULL_DEAD 0
+#define CULL_DEAD 1
 #define CULL_ALIVE 0
 
 #if CULL_DEAD || CULL_ALIVE
@@ -110,6 +110,9 @@ void main()
 	}*/
 
 	#if CULL_DEAD
+		uint death_index_base = fixed_data.death_index_bases[bounding_box_contact_detector_type];
+		uint death_index = uint_data.data[death_index_base + index];
+		gl_CullDistance[0u] = -float(death_index != null_uint);
 	#endif
 	#if CULL_ALIVE
 		gl_CullDistance[0u] = -1.0;

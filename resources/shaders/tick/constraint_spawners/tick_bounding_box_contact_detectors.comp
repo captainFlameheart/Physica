@@ -385,7 +385,7 @@ void tick_detector
 	{	// Merge logic.
 		if (temp >= 4u)
 		{
-			return;
+			//return;
 		}
 
 		uvec4 parent_children_heights[2u] = uvec4[2u]
@@ -587,7 +587,7 @@ void main()
 
 	if (temp == 4u)
 	{
-		return;
+		//return;
 	}
 
 	for (uint detector = 0u; detector < detector_count; ++detector)
