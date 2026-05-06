@@ -126,7 +126,7 @@ void create_balanced_bounding_volume_hierarchy
 					uvec4_data.data[inner_bounding_box_parent_children_height_base + child_1].x = inner_node_count;
 
 					uvec4_data.data[inner_bounding_box_parent_children_height_base + inner_node_count] = uvec4(null_uint, child_0, child_1, height);
-					uvec2_data.data[inner_bounding_box_split_indices_base + inner_node_count] = uvec2(null_uint);
+					uvec2_data.data[inner_bounding_box_split_indices_base + inner_node_count] = uvec2(positive_null_uint);
 					uint_data.data[inner_bounding_box_migration_entry_base + inner_node_count] = null_uint;
 					uint_data.data[inner_bounding_box_old_height_base + inner_node_count] = height;
 
@@ -855,7 +855,7 @@ void main()
 				uint inner_bounding_box_height = inner_bounding_box_index;
 				uvec4_data.data[inner_bounding_box_parent_children_height_base + inner_bounding_box_index] =
 					uvec4(null_uint, leaf_index, bounding_volume_hierarchy_root, inner_bounding_box_height);
-				uvec2_data.data[inner_bounding_box_split_indices_base + inner_bounding_box_index] = uvec2(null_uint);
+				uvec2_data.data[inner_bounding_box_split_indices_base + inner_bounding_box_index] = uvec2(positive_null_uint);
 				uvec4_data.data[bounding_box_contact_detector_indices_source_flags_base + inner_bounding_box_index] = uvec4(leaf_index, bounding_volume_hierarchy_root, null_uint, 0u);
 				uvec4_data.data[inner_bounding_box_parent_children_height_base + leaf_index].x = inner_bounding_box_index;
 				uvec4_data.data[inner_bounding_box_parent_children_height_base + bounding_volume_hierarchy_root].x = inner_bounding_box_index;

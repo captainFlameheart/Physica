@@ -554,8 +554,8 @@ namespace game_logic::debug
 				inner_bounding_box_split_indices + inner_bounding_box * environment.state.layouts.uvec2_data.state.array_stride,
 				sizeof(GLuint[2u])
 			);
-			std::string split_index_0 = (inner_bounding_box_split_indices_value[0u] == static_cast<GLuint>(-1) ? "-" : std::to_string(inner_bounding_box_split_indices_value[0u]));
-			std::string split_index_1 = (inner_bounding_box_split_indices_value[1u] == static_cast<GLuint>(-1) ? "-" : std::to_string(inner_bounding_box_split_indices_value[1u]));
+			std::string split_index_0 = (inner_bounding_box_split_indices_value[0u] == static_cast<GLuint>(2147483647) ? "-" : std::to_string(inner_bounding_box_split_indices_value[0u]));
+			std::string split_index_1 = (inner_bounding_box_split_indices_value[1u] == static_cast<GLuint>(2147483647) ? "-" : std::to_string(inner_bounding_box_split_indices_value[1u]));
 			std::cout << inner_bounding_box << ": ("
 				<< split_index_0 << ", "
 				<< split_index_1 << ")\n";

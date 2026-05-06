@@ -500,12 +500,12 @@ void main()
 	if (int(indices_source_flags.x) >= 0)
 	{
 		split_indices_array[0u] = uvec2_data.data[bounding_box_split_indices_base + indices_source_flags.x];
-		is_split[0u] = (split_indices_array[0u].x != null_uint);
+		is_split[0u] = (split_indices_array[0u].x != positive_null_uint);
 	}
 	if (int(indices_source_flags.y) >= 0)
 	{
 		split_indices_array[1u] = uvec2_data.data[bounding_box_split_indices_base + indices_source_flags.y];
-		is_split[1u] = (split_indices_array[1u].x != null_uint);
+		is_split[1u] = (split_indices_array[1u].x != positive_null_uint);
 	}
 
 	uint temp = atomicAdd(fixed_data.temp, 0u) - 1u;	// MUST TODO: REMOVE!!!

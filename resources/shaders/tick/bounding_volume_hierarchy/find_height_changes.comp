@@ -23,7 +23,7 @@ void main()
 	uint moved_to_index = moved_to_base + index;
 
 	uvec4 parent_children_height = uvec4_data.data[parent_children_height_index];
-	uvec2_data.data[split_indices_index] = uvec2(null_uint, null_uint);
+	uvec2_data.data[split_indices_index] = uvec2(positive_null_uint);
 	uint_data.data[moved_from_index] = index;
 	uint_data.data[moved_to_index] = index;
 	uint old_height = uint_data.data[old_height_index];
