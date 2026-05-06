@@ -1,3 +1,6 @@
+#define IF_ENABLED_1(code) code
+#define IF_ENABLED_0(code)
+
 uint compute_work_group_count(uint count, uint local_size)
 {
 	return (count + local_size - 1u) / local_size;
@@ -229,7 +232,7 @@ uint compute_contact_type(in uvec4 parent_pad_pad_type_0, in uvec4 parent_pad_pa
 		kill(bounding_box_contact_detector_type, index);
 	}
 
-	#define DEFINE_SPLIT_RECURSIVELY_FUNCTION(stack_cache_capacity, flush_cache_capacity)\
+	#define DEFINE_SPLIT_RECURSIVELY_FUNCTION(stack_cache_capacity, flush_cache_capacity, ALLOW_SPECIFIC_DETECTOR_SPAWN)\
 	void flush\
 	(\
 		in uint indices_source_flags_base,\
@@ -376,7 +379,9 @@ uint compute_contact_type(in uvec4 parent_pad_pad_type_0, in uvec4 parent_pad_pa
 			}\
 			else\
 			{\
-				spawn_specific_detector(bounding_box_parent_children_height_base, bounding_box_base, indices);\
+				IF_ENABLED_##ALLOW_SPECIFIC_DETECTOR_SPAWN(\
+					spawn_specific_detector(bounding_box_parent_children_height_base, bounding_box_base, indices);\
+				)\
 				\
 				/* Kill bounding box detector if it exists in global memory. */\
 				if (stack_size == 0u)\
