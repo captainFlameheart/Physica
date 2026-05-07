@@ -236,6 +236,12 @@ uint compute_contact_type(in uvec4 parent_pad_pad_type_0, in uvec4 parent_pad_pa
 	}
 
 	#define DEFINE_SPLIT_RECURSIVELY_FUNCTION(stack_cache_capacity, flush_cache_capacity, ALLOW_SPECIFIC_DETECTOR_SPAWN, MANY_SPLITS_PREDICTED)\
+	IF_##MANY_SPLITS_PREDICTED\
+	(\
+		shared uint work_group_spawn_count;\
+		shared uint work_group_base;\
+	)\
+	\
 	void flush\
 	(\
 		in uint indices_source_flags_base,\
@@ -253,6 +259,7 @@ uint compute_contact_type(in uvec4 parent_pad_pad_type_0, in uvec4 parent_pad_pa
 	\
 	void split_recursively\
 	(\
+		in bool thread_is_active,\
 		in uint indices_source_flags_base,\
 		in uint bounding_box_parent_children_height_base,\
 		in uint bounding_box_base,\
@@ -262,162 +269,200 @@ uint compute_contact_type(in uvec4 parent_pad_pad_type_0, in uvec4 parent_pad_pa
 		in ivec4 bounding_boxes[2u]\
 	)\
 	{\
-		uint original_index = index;\
-		\
-		uvec2 cached_stack_indices[stack_cache_capacity];\
-		ivec4 cached_stack_bounding_boxes[stack_cache_capacity][2u];\
-		\
-		cached_stack_indices[0u] = indices_source_flags.xy;\
-		cached_stack_bounding_boxes[0u][0u] = bounding_boxes[0u];\
-		cached_stack_bounding_boxes[0u][1u] = bounding_boxes[1u];\
-		\
-		uint stack_size = 1u;\
-		\
 		uvec2 cached_flush_indices[flush_cache_capacity];\
-		uint cached_flush_size = 0u;\
-		\
-		do\
+		uint cached_flush_size;\
+		if (thread_is_active)\
 		{\
-			uvec2 indices;\
-			uint source = 0u;\
-			ivec4 bounding_boxes[2u];\
+			uint original_index = index;\
 			\
-			/* Pop */\
-			--stack_size;\
-			if (stack_size < stack_cache_capacity)\
-			{	/* Typical case. */\
-				indices = cached_stack_indices[stack_size];\
-				bounding_boxes[0u] = cached_stack_bounding_boxes[stack_size][0u];\
-				bounding_boxes[1u] = cached_stack_bounding_boxes[stack_size][1u];\
-			}\
-			else\
-			{	/* Fallback if cache capacity is insufficient (unlikely). */\
-				indices_source_flags = uvec4_data.data[indices_source_flags_base + index];\
-				indices = indices_source_flags.xy;\
-				source = indices_source_flags.z;\
-				bounding_boxes[0u] = ivec4(uvec4_data.data[bounding_box_base + indices_source_flags.x]);\
-				bounding_boxes[1u] = ivec4(uvec4_data.data[bounding_box_base + indices_source_flags.y]);\
-			}\
+			uvec2 cached_stack_indices[stack_cache_capacity];\
+			ivec4 cached_stack_bounding_boxes[stack_cache_capacity][2u];\
 			\
-			if (bounding_boxes_are_separated(bounding_boxes))\
-			{	/* Backtrack. */\
-				if (stack_size == 0u)\
-				{\
-					uvec4_data.data[indices_source_flags_base + original_index] = uvec4(indices, null_uint, 0u);\
-					break;\
+			cached_stack_indices[0u] = indices_source_flags.xy;\
+			cached_stack_bounding_boxes[0u][0u] = bounding_boxes[0u];\
+			cached_stack_bounding_boxes[0u][1u] = bounding_boxes[1u];\
+			\
+			uint stack_size = 1u;\
+			\
+			cached_flush_size = 0u;\
+			\
+			do\
+			{\
+				uvec2 indices;\
+				uint source = 0u;\
+				ivec4 bounding_boxes[2u];\
+				\
+				/* Pop */\
+				--stack_size;\
+				if (stack_size < stack_cache_capacity)\
+				{	/* Typical case. */\
+					indices = cached_stack_indices[stack_size];\
+					bounding_boxes[0u] = cached_stack_bounding_boxes[stack_size][0u];\
+					bounding_boxes[1u] = cached_stack_bounding_boxes[stack_size][1u];\
+				}\
+				else\
+				{	/* Fallback if cache capacity is insufficient (unlikely). */\
+					indices_source_flags = uvec4_data.data[indices_source_flags_base + index];\
+					indices = indices_source_flags.xy;\
+					source = indices_source_flags.z;\
+					bounding_boxes[0u] = ivec4(uvec4_data.data[bounding_box_base + indices_source_flags.x]);\
+					bounding_boxes[1u] = ivec4(uvec4_data.data[bounding_box_base + indices_source_flags.y]);\
 				}\
 				\
-				if (stack_size < stack_cache_capacity)\
-				{	/* Add the detector to the flush cache. */\
-					if (cached_flush_size == flush_cache_capacity)\
-					{	/* Fallback flush if cache capacity is insufficient (unlikely). */\
-						uint base = spawn(bounding_box_contact_detector_type, cached_flush_size);\
-						if (base + cached_flush_size >= capacity)\
+				if (bounding_boxes_are_separated(bounding_boxes))\
+				{	/* Backtrack. */\
+					if (stack_size == 0u)\
+					{\
+						uvec4_data.data[indices_source_flags_base + original_index] = uvec4(indices, null_uint, 0u);\
+						break;\
+					}\
+					\
+					if (stack_size < stack_cache_capacity)\
+					{	/* Add the detector to the flush cache. */\
+						if (cached_flush_size == flush_cache_capacity)\
+						{	/* Fallback flush if cache capacity is insufficient (unlikely). */\
+							uint base = spawn(bounding_box_contact_detector_type, cached_flush_size);\
+							if (base + cached_flush_size >= capacity)\
+							{	/* MUST TODO: Retry logic. */\
+								break;\
+							}\
+							flush(indices_source_flags_base, base, cached_flush_indices, cached_flush_size);\
+							cached_flush_size = 0u;\
+						}\
+						cached_flush_indices[cached_flush_size++] = indices;\
+					}\
+					\
+					index = source;	/* Only well-defined if we are not inside the cache, which is intentional. */\
+					continue;\
+				}\
+				\
+				bvec2 is_inner = bvec2\
+				(\
+					int(indices.x) >= 0,\
+					int(indices.y) >= 0\
+				);\
+				\
+				if (any(is_inner))\
+				{	/* Split. */\
+					uint costs[2u] = uint[2u]\
+					(\
+						uint(compute_bounding_box_cost(bounding_boxes[0u])),\
+						uint(compute_bounding_box_cost(bounding_boxes[1u]))\
+					);\
+					\
+					uint split_side = uint((costs[1u] > costs[0u] || (costs[1u] == costs[0u] && indices[1u] > indices[0u])) && is_inner[1u]);\
+					uint unsplit_side = split_side ^ 1u;\
+					\
+					uint split_index = indices[split_side];\
+					uint unsplit_index = indices[unsplit_side];\
+					\
+					uvec4 split_side_parent_children_height = uvec4_data.data[bounding_box_parent_children_height_base + split_index];\
+					\
+					/* Give one child to the current detector. */\
+					if (stack_size < stack_cache_capacity)\
+					{	/* Typical case. */\
+						cached_stack_indices[stack_size][split_side] = split_side_parent_children_height[1u];\
+						cached_stack_bounding_boxes[stack_size][split_side] = ivec4(uvec4_data.data[bounding_box_base + split_side_parent_children_height[1u]]);\
+					}\
+					else\
+					{	/* Fallback if cache capacity is insufficient (unlikely). */\
+						indices[split_side] = split_side_parent_children_height[1u];\
+						uvec4_data.data[indices_source_flags_base + index] = uvec4(indices, source, 0u);\
+					}\
+					++stack_size;\
+					\
+					/* Give the other child to a new detector. */\
+					if (stack_size < stack_cache_capacity)\
+					{	/* Typical case. */\
+						cached_stack_indices[stack_size] = uvec2(unsplit_index, split_side_parent_children_height[2u]);\
+						cached_stack_bounding_boxes[stack_size][0u] = bounding_boxes[unsplit_side];\
+						cached_stack_bounding_boxes[stack_size][1u] = ivec4(uvec4_data.data[bounding_box_base + split_side_parent_children_height[2u]]);\
+					}\
+					else\
+					{	/* Fallback if cache capacity is insufficient (unlikely). */\
+						uint new_index = spawn(bounding_box_contact_detector_type);\
+						if (new_index >= capacity)\
 						{	/* MUST TODO: Retry logic. */\
 							break;\
 						}\
-						flush(indices_source_flags_base, base, cached_flush_indices, cached_flush_size);\
-						cached_flush_size = 0u;\
+						uvec4_data.data[indices_source_flags_base + new_index] = uvec4(unsplit_index, split_side_parent_children_height[2u], index, 0u);\
+						index = new_index;\
 					}\
-					cached_flush_indices[cached_flush_size++] = indices;\
-				}\
-				\
-				index = source;	/* Only well-defined if we are not inside the cache, which is intentional. */\
-				continue;\
-			}\
-			\
-			bvec2 is_inner = bvec2\
-			(\
-				int(indices.x) >= 0,\
-				int(indices.y) >= 0\
-			);\
-			\
-			if (any(is_inner))\
-			{	/* Split. */\
-				uint costs[2u] = uint[2u]\
-				(\
-					uint(compute_bounding_box_cost(bounding_boxes[0u])),\
-					uint(compute_bounding_box_cost(bounding_boxes[1u]))\
-				);\
-				\
-				uint split_side = uint((costs[1u] > costs[0u] || (costs[1u] == costs[0u] && indices[1u] > indices[0u])) && is_inner[1u]);\
-				uint unsplit_side = split_side ^ 1u;\
-				\
-				uint split_index = indices[split_side];\
-				uint unsplit_index = indices[unsplit_side];\
-				\
-				uvec4 split_side_parent_children_height = uvec4_data.data[bounding_box_parent_children_height_base + split_index];\
-				\
-				/* Give one child to the current detector. */\
-				if (stack_size < stack_cache_capacity)\
-				{	/* Typical case. */\
-					cached_stack_indices[stack_size][split_side] = split_side_parent_children_height[1u];\
-					cached_stack_bounding_boxes[stack_size][split_side] = ivec4(uvec4_data.data[bounding_box_base + split_side_parent_children_height[1u]]);\
+					++stack_size;\
 				}\
 				else\
-				{	/* Fallback if cache capacity is insufficient (unlikely). */\
-					indices[split_side] = split_side_parent_children_height[1u];\
-					uvec4_data.data[indices_source_flags_base + index] = uvec4(indices, source, 0u);\
-				}\
-				++stack_size;\
-				\
-				/* Give the other child to a new detector. */\
-				if (stack_size < stack_cache_capacity)\
-				{	/* Typical case. */\
-					cached_stack_indices[stack_size] = uvec2(unsplit_index, split_side_parent_children_height[2u]);\
-					cached_stack_bounding_boxes[stack_size][0u] = bounding_boxes[unsplit_side];\
-					cached_stack_bounding_boxes[stack_size][1u] = ivec4(uvec4_data.data[bounding_box_base + split_side_parent_children_height[2u]]);\
-				}\
-				else\
-				{	/* Fallback if cache capacity is insufficient (unlikely). */\
-					uint new_index = spawn(bounding_box_contact_detector_type);\
-					if (new_index >= capacity)\
-					{	/* MUST TODO: Retry logic. */\
+				{\
+					IF_##ALLOW_SPECIFIC_DETECTOR_SPAWN\
+					(\
+						spawn_specific_detector(bounding_box_parent_children_height_base, bounding_box_base, indices);\
+					)\
+					\
+					/* Kill bounding box detector if it exists in global memory. */\
+					if (stack_size == 0u)\
+					{\
+						index = original_index;\
+					}\
+					if (stack_size == 0u || stack_size >= stack_cache_capacity)\
+					{\
+						kill(bounding_box_contact_detector_type, index);\
+					}\
+					\
+					/* Backtrack. */\
+					if (stack_size == 0u)\
+					{\
 						break;\
 					}\
-					uvec4_data.data[indices_source_flags_base + new_index] = uvec4(unsplit_index, split_side_parent_children_height[2u], index, 0u);\
-					index = new_index;\
+					index = source;	/* Only well-defined if we are not inside the cache, which is intentional. */\
 				}\
-				++stack_size;\
-			}\
-			else\
-			{\
-				IF_##ALLOW_SPECIFIC_DETECTOR_SPAWN(\
-					spawn_specific_detector(bounding_box_parent_children_height_base, bounding_box_base, indices);\
-				)\
-				\
-				/* Kill bounding box detector if it exists in global memory. */\
-				if (stack_size == 0u)\
-				{\
-					index = original_index;\
-				}\
-				if (stack_size == 0u || stack_size >= stack_cache_capacity)\
-				{\
-					kill(bounding_box_contact_detector_type, index);\
-				}\
-				\
-				/* Backtrack. */\
-				if (stack_size == 0u)\
-				{\
-					break;\
-				}\
-				index = source;	/* Only well-defined if we are not inside the cache, which is intentional. */\
-			}\
-		} while (true);\
+			} while (true);\
+		}\
 		\
 		/* Flush generated detectors to global memory. */\
-		IF_ELSE_##MANY_SPLITS_PREDICTED(\
-		{\
-			\
-		},\
-		{\
-			uint base = spawn(bounding_box_contact_detector_type, cached_flush_size);\
-			if (base + cached_flush_size > capacity)\
-			{	/* MUST TODO: Retry logic. */\
-				return;\
+		IF_ELSE_##MANY_SPLITS_PREDICTED\
+		(\
+			{\
+				if (gl_LocalInvocationIndex == 0u)\
+				{\
+					work_group_spawn_count = 0u;\
+				}\
+				\
+				barrier();\
+				\
+				if (thread_is_active && cached_flush_size != 0u)\
+				{\
+					uint local_base = atomicAdd(work_group_spawn_count, cached_flush_size);\
+				}\
+				\
+				barrier();\
+				\
+				if (gl_LocalInvocationIndex == 0u && work_group_spawn_count != 0u)\
+				{\
+					work_group_base = spawn(bounding_box_contact_detector_type, work_group_spawn_count);\
+				}\
+				\
+				barrier();\
+				\
+				if (thread_is_active)\
+				{\
+					uint base = work_group_base + local_base;\
+					if (base + cached_flush_size > capacity)\
+					{	/* MUST TODO: Retry logic. */\
+						return;\
+					}\
+					flush(indices_source_flags_base, base, cached_flush_indices, cached_flush_size);\
+				}\
+			},\
+			{\
+				if (thread_is_active)\
+				{\
+					uint base = spawn(bounding_box_contact_detector_type, cached_flush_size);\
+					if (base + cached_flush_size > capacity)\
+					{	/* MUST TODO: Retry logic. */\
+						return;\
+					}\
+					flush(indices_source_flags_base, base, cached_flush_indices, cached_flush_size);\
+				}\
 			}\
-			flush(indices_source_flags_base, base, cached_flush_indices, cached_flush_size);\
-		}\
 		)\
 		\
 	}

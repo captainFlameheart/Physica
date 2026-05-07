@@ -116,6 +116,7 @@ void OLD_split_recursively
 
 void tick_detector
 (
+	bool thread_is_active,
 	in uint index,
 	in uint indices_source_flags_base,
 	in uint bounding_box_base,
@@ -124,30 +125,34 @@ void tick_detector
 	in uvec4 indices_source_flags
 )
 {
-	uint bounding_box_index_0 = bounding_box_base + indices_source_flags.x;
-	uint bounding_box_index_1 = bounding_box_base + indices_source_flags.y;
+	ivec4 bounding_boxes[2u];
+	bool are_overlapping;
 
-	ivec4 bounding_boxes[2u] = ivec4[2u]
+	if (thread_is_active)
+	{
+		uint bounding_box_index_0 = bounding_box_base + indices_source_flags.x;
+		uint bounding_box_index_1 = bounding_box_base + indices_source_flags.y;
+
+		bounding_boxes[0u] = ivec4(uvec4_data.data[bounding_box_index_0]);
+		bounding_boxes[1u] = ivec4(uvec4_data.data[bounding_box_index_1]);
+
+		are_overlapping = bounding_boxes_overlap(bounding_boxes);
+	}
+
+	uint capacity = fixed_data.capacities[bounding_box_contact_detector_type];	// IMPORTANT TODO: Read capacity in the main function.
+	split_recursively
 	(
-		ivec4(uvec4_data.data[bounding_box_index_0]),
-		ivec4(uvec4_data.data[bounding_box_index_1])
+		thread_is_active && are_overlapping,
+		indices_source_flags_base,
+		bounding_box_parent_children_height_base,
+		bounding_box_base,
+		capacity,
+		index,
+		indices_source_flags,
+		bounding_boxes
 	);
 
-	if (bounding_boxes_overlap(bounding_boxes))
-	{
-		uint capacity = fixed_data.capacities[bounding_box_contact_detector_type];
-		split_recursively
-		(
-			indices_source_flags_base,
-			bounding_box_parent_children_height_base,
-			bounding_box_base,
-			capacity,
-			index,
-			indices_source_flags,
-			bounding_boxes
-		);
-	}
-	else
+	if (thread_is_active && !are_overlapping)
 	{	// Merge logic.
 		uvec4 parent_children_heights[2u] = uvec4[2u]
 		(
@@ -210,136 +215,140 @@ void main()
 {
 	uint index = gl_GlobalInvocationID.x;
 	uint count = fixed_data.read_counts[bounding_box_contact_detector_type];
-	if (index >= count)
-	{
-		return;
-	}
-	
-	uint indices_source_flags_base = fixed_data.bounding_box_contact_detector_indices_source_flags_base;
+	bool thread_is_active = index < count;
 
-	uint indices_source_flags_index = indices_source_flags_base + index;
-
-	uvec4 indices_source_flags = uvec4_data.data[indices_source_flags_index];
-
-	uint bounding_box_base = fixed_data.inner_bounding_box_base;
-	uint bounding_box_parent_children_height_base = fixed_data.inner_bounding_box_parent_children_height_base;
-	uint bounding_box_split_indices_base = fixed_data.inner_bounding_box_split_indices_base;
-	uint bounding_box_moved_to_base = fixed_data.inner_bounding_box_moved_to_base;
-
-	uint moved_to_0 = indices_source_flags.x;
-	if (int(indices_source_flags.x) >= 0)	// IMPORTANT TODO: Store expression in variable.
-	{
-		moved_to_0 = uint_data.data[bounding_box_moved_to_base + indices_source_flags.x];
-	}
-	uint moved_to_1 = indices_source_flags.y;
-	if (int(indices_source_flags.y) >= 0)
-	{
-		moved_to_1 = uint_data.data[bounding_box_moved_to_base + indices_source_flags.y];
-	}
-	if (any(bvec2(moved_to_0 != indices_source_flags.x, moved_to_1 != indices_source_flags.y)))
-	{
-		indices_source_flags.x = moved_to_0;
-		indices_source_flags.y = moved_to_1;
-		uvec4_data.data[indices_source_flags_index] = indices_source_flags;
-	}
-
-	// Initially assume that neither box was split, which is the typical case.
-	uint detector_count = 1u;
+	uint indices_source_flags_base;
+	uint bounding_box_base;
+	uint bounding_box_parent_children_height_base;
 
 	uint index_array[4u];
-	index_array[0u] = index;
-	
 	uint indices_source_flags_index_array[4u];	// IMPORTANT TODO: Consider not storing this, and instead computing such indices on demand.
-	indices_source_flags_index_array[0u] = indices_source_flags_index;
-	
 	uvec4 indices_source_flags_array[4u];
-	indices_source_flags_array[0u] = indices_source_flags;
+	uint detector_count;
 
-	bvec2 is_split = bvec2(false, false);
-	uvec2 split_indices_array[2u];
-
-	if (int(indices_source_flags.x) >= 0)
+	if (thread_is_active)	// IMPORTANT TODO: Put reaction to bounding volume hierarchy changes (heights + rotations) in its own pass.
 	{
-		split_indices_array[0u] = uvec2_data.data[bounding_box_split_indices_base + indices_source_flags.x];
-		is_split[0u] = (split_indices_array[0u].x != positive_null_uint);
-	}
-	if (int(indices_source_flags.y) >= 0)
-	{
-		split_indices_array[1u] = uvec2_data.data[bounding_box_split_indices_base + indices_source_flags.y];
-		is_split[1u] = (split_indices_array[1u].x != positive_null_uint);
-	}
+		indices_source_flags_base = fixed_data.bounding_box_contact_detector_indices_source_flags_base;
 
-	if (all(is_split))
-	{	// Case whose probability approaches zero as the time step size approaches zero.
-		uint second_index = atomicAdd(fixed_data.write_counts[bounding_box_contact_detector_type], 3u);
-		uint third_index = second_index + 1u;
-		uint fourth_index = second_index + 2u;
-		if (fourth_index >= fixed_data.capacities[bounding_box_contact_detector_type])
+		uint indices_source_flags_index = indices_source_flags_base + index;
+
+		uvec4 indices_source_flags = uvec4_data.data[indices_source_flags_index];
+
+		bounding_box_base = fixed_data.inner_bounding_box_base;
+		bounding_box_parent_children_height_base = fixed_data.inner_bounding_box_parent_children_height_base;
+		uint bounding_box_split_indices_base = fixed_data.inner_bounding_box_split_indices_base;
+		uint bounding_box_moved_to_base = fixed_data.inner_bounding_box_moved_to_base;
+
+		uint moved_to_0 = indices_source_flags.x;
+		if (int(indices_source_flags.x) >= 0)	// IMPORTANT TODO: Store expression in variable.
 		{
-			// MUST TODO: Increase capacity and retry shader.
-			atomicAdd(fixed_data.write_counts[bounding_box_contact_detector_type], minus_3_uint);
-			return;
+			moved_to_0 = uint_data.data[bounding_box_moved_to_base + indices_source_flags.x];
+		}
+		uint moved_to_1 = indices_source_flags.y;
+		if (int(indices_source_flags.y) >= 0)
+		{
+			moved_to_1 = uint_data.data[bounding_box_moved_to_base + indices_source_flags.y];
+		}
+		if (any(bvec2(moved_to_0 != indices_source_flags.x, moved_to_1 != indices_source_flags.y)))
+		{
+			indices_source_flags.x = moved_to_0;
+			indices_source_flags.y = moved_to_1;
+			uvec4_data.data[indices_source_flags_index] = indices_source_flags;
 		}
 
-		detector_count = 4u;
+		// Initially assume that neither box was split, which is the typical case.
+		detector_count = 1u;
 
-		indices_source_flags.x = split_indices_array[0u].x;
-		indices_source_flags.y = split_indices_array[1u].x;
+		index_array[0u] = index;
+	
+		indices_source_flags_index_array[0u] = indices_source_flags_index;
+	
 		indices_source_flags_array[0u] = indices_source_flags;
-		uvec4_data.data[indices_source_flags_index] = indices_source_flags;
 
-		index_array[1u] = second_index;
-		uint second_indices_source_flags_index = indices_source_flags_base + second_index;
-		indices_source_flags_index_array[1u] = second_indices_source_flags_index;
-		uvec4 second_indices_source_flags = uvec4(split_indices_array[0u].x, split_indices_array[1u].y, null_uint, 0u);
-		indices_source_flags_array[1u] = second_indices_source_flags;
-		uvec4_data.data[second_indices_source_flags_index] = second_indices_source_flags;
+		bvec2 is_split = bvec2(false, false);
+		uvec2 split_indices_array[2u];
 
-		index_array[2u] = third_index;
-		uint third_indices_source_flags_index = indices_source_flags_base + third_index;
-		indices_source_flags_index_array[2u] = third_indices_source_flags_index;
-		uvec4 third_indices_source_flags = uvec4(split_indices_array[0u].y, split_indices_array[1u].x, null_uint, 0u);
-		indices_source_flags_array[2u] = third_indices_source_flags;
-		uvec4_data.data[third_indices_source_flags_index] = third_indices_source_flags;
-
-		index_array[3u] = fourth_index;
-		uint fourth_indices_source_flags_index = indices_source_flags_base + fourth_index;
-		indices_source_flags_index_array[3u] = fourth_indices_source_flags_index;
-		uvec4 fourth_indices_source_flags = uvec4(split_indices_array[0u].y, split_indices_array[1u].y, null_uint, 0u);
-		indices_source_flags_array[3u] = fourth_indices_source_flags;
-		uvec4_data.data[fourth_indices_source_flags_index] = fourth_indices_source_flags;
-	}
-	else if (any(is_split))
-	{	// Atypical case.
-		uint second_index = atomicAdd(fixed_data.write_counts[bounding_box_contact_detector_type], 1u);
-		if (second_index >= fixed_data.capacities[bounding_box_contact_detector_type])
+		if (int(indices_source_flags.x) >= 0)
 		{
-			// MUST TODO: Increase capacity and retry shader.
-			atomicAdd(fixed_data.write_counts[bounding_box_contact_detector_type], minus_1_uint);
-			return;
+			split_indices_array[0u] = uvec2_data.data[bounding_box_split_indices_base + indices_source_flags.x];
+			is_split[0u] = (split_indices_array[0u].x != positive_null_uint);
 		}
+		if (int(indices_source_flags.y) >= 0)
+		{
+			split_indices_array[1u] = uvec2_data.data[bounding_box_split_indices_base + indices_source_flags.y];
+			is_split[1u] = (split_indices_array[1u].x != positive_null_uint);
+		}
+
+		if (all(is_split))
+		{	// Case whose probability approaches zero as the time step size approaches zero.
+			uint second_index = atomicAdd(fixed_data.write_counts[bounding_box_contact_detector_type], 3u);
+			uint third_index = second_index + 1u;
+			uint fourth_index = second_index + 2u;
+			if (fourth_index >= fixed_data.capacities[bounding_box_contact_detector_type])
+			{
+				// MUST TODO: Increase capacity and retry shader.
+			}
+
+			detector_count = 4u;
+
+			indices_source_flags.x = split_indices_array[0u].x;
+			indices_source_flags.y = split_indices_array[1u].x;
+			indices_source_flags_array[0u] = indices_source_flags;
+			uvec4_data.data[indices_source_flags_index] = indices_source_flags;
+
+			index_array[1u] = second_index;
+			uint second_indices_source_flags_index = indices_source_flags_base + second_index;
+			indices_source_flags_index_array[1u] = second_indices_source_flags_index;
+			uvec4 second_indices_source_flags = uvec4(split_indices_array[0u].x, split_indices_array[1u].y, null_uint, 0u);
+			indices_source_flags_array[1u] = second_indices_source_flags;
+			uvec4_data.data[second_indices_source_flags_index] = second_indices_source_flags;
+
+			index_array[2u] = third_index;
+			uint third_indices_source_flags_index = indices_source_flags_base + third_index;
+			indices_source_flags_index_array[2u] = third_indices_source_flags_index;
+			uvec4 third_indices_source_flags = uvec4(split_indices_array[0u].y, split_indices_array[1u].x, null_uint, 0u);
+			indices_source_flags_array[2u] = third_indices_source_flags;
+			uvec4_data.data[third_indices_source_flags_index] = third_indices_source_flags;
+
+			index_array[3u] = fourth_index;
+			uint fourth_indices_source_flags_index = indices_source_flags_base + fourth_index;
+			indices_source_flags_index_array[3u] = fourth_indices_source_flags_index;
+			uvec4 fourth_indices_source_flags = uvec4(split_indices_array[0u].y, split_indices_array[1u].y, null_uint, 0u);
+			indices_source_flags_array[3u] = fourth_indices_source_flags;
+			uvec4_data.data[fourth_indices_source_flags_index] = fourth_indices_source_flags;
+		}
+		else if (any(is_split))
+		{	// Atypical case.
+			uint second_index = atomicAdd(fixed_data.write_counts[bounding_box_contact_detector_type], 1u);
+			if (second_index >= fixed_data.capacities[bounding_box_contact_detector_type])
+			{
+				// MUST TODO: Increase capacity and retry shader.
+			}
 		 
-		uint split_side = uint(is_split[1u]);
-		uint unsplit_side = split_side ^ 1u;
-		uvec2 split_indices = split_indices_array[split_side];
-		detector_count = 2u;
+			uint split_side = uint(is_split[1u]);
+			uint unsplit_side = split_side ^ 1u;
+			uvec2 split_indices = split_indices_array[split_side];
+			detector_count = 2u;
 
-		indices_source_flags[split_side] = split_indices.x;
-		indices_source_flags_array[0u] = indices_source_flags;
-		uvec4_data.data[indices_source_flags_index] = indices_source_flags;
+			indices_source_flags[split_side] = split_indices.x;
+			indices_source_flags_array[0u] = indices_source_flags;
+			uvec4_data.data[indices_source_flags_index] = indices_source_flags;
 
-		index_array[1u] = second_index;
-		uint second_indices_source_flags_index = indices_source_flags_base + second_index;
-		indices_source_flags_index_array[1u] = second_indices_source_flags_index;
-		uvec4 second_indices_source_flags = uvec4(split_indices.y, indices_source_flags[unsplit_side], null_uint, 0u);
-		indices_source_flags_array[1u] = second_indices_source_flags;
-		uvec4_data.data[second_indices_source_flags_index] = second_indices_source_flags;
+			index_array[1u] = second_index;
+			uint second_indices_source_flags_index = indices_source_flags_base + second_index;
+			indices_source_flags_index_array[1u] = second_indices_source_flags_index;
+			uvec4 second_indices_source_flags = uvec4(split_indices.y, indices_source_flags[unsplit_side], null_uint, 0u);
+			indices_source_flags_array[1u] = second_indices_source_flags;
+			uvec4_data.data[second_indices_source_flags_index] = second_indices_source_flags;
+		}
 	}
 
-	for (uint detector = 0u; detector < detector_count; ++detector)
+	for (uint detector = 0u; detector < 4u; ++detector)
 	{
+		thread_is_active = thread_is_active && detector < detector_count;
 		tick_detector
 		(
+			thread_is_active,
 			index_array[detector],
 			indices_source_flags_base,
 			bounding_box_base,
