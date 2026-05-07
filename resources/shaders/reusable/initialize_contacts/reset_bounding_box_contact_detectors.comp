@@ -1,0 +1,48 @@
+const uint shared_cache_capacity = 8u;	// Both caches do not necessarily have to share this capacity.
+const uint stack_cache_capacity = shared_cache_capacity;	// Must be >= 1u.
+const uint flush_cache_capacity = shared_cache_capacity;	// Must be >= 1u.
+
+DEFINE_SPLIT_RECURSIVELY_FUNCTION(stack_cache_capacity, flush_cache_capacity, 0, 1)
+
+layout(local_size_x = reset_bounding_box_contact_detectors_local_size) in;
+void main()
+{
+	uint index = gl_GlobalInvocationID.x;
+	uint count = fixed_data.read_counts[inner_bounding_box_type];
+	bool thread_is_active = index < count;
+	
+	uint bounding_box_parent_children_height_base;
+	uint bounding_box_base;
+	uint indices_source_flags_base;
+	uint capacity;
+	uvec4 indices_source_flags;
+	ivec4 bounding_boxes[2u];
+
+	if (thread_is_active)
+	{
+		bounding_box_parent_children_height_base = fixed_data.bounding_box_parent_children_height_base;
+		bounding_box_base = fixed_data.inner_bounding_box_base;
+		indices_source_flags_base = fixed_data.bounding_box_contact_detector_indices_source_flags_base;
+		capacity = fixed_data.capacities[bounding_box_contact_detector_type];
+
+		uint inner_bounding_box_parent_children_height_index = inner_bounding_box_parent_children_height_base + index;
+		uint indices_source_flags_index = indices_source_flags_base + index;
+
+		uvec4 inner_bounding_box_parent_children_height = uvec4_data.data[inner_bounding_box_parent_children_height_index];
+		indices_source_flags = uvec4(inner_bounding_box_parent_children_height.yz, null_uint, 0u);
+
+		bounding_boxes[0u] = ivec4(uvec4_data.data[bounding_box_base + indices_source_flags.x]);
+		bounding_boxes[1u] = ivec4(uvec4_data.data[bounding_box_base + indices_source_flags.y]);
+	}
+	split_recursively
+	(
+		thread_is_active,
+		indices_source_flags_base,
+		bounding_box_parent_children_height_base,
+		bounding_box_base,
+		capacity,
+		index,
+		indices_source_flags,
+		bounding_boxes
+	);
+}
