@@ -343,6 +343,11 @@ void main()
 		}
 	}
 
+	/*if (fixed_data.tick > 5337u)
+	{
+		return;	// TODO: REMOVE!
+	}*/
+
 	for (uint detector = 0u; detector < 4u; ++detector)
 	{
 		thread_is_active = thread_is_active && detector < detector_count;

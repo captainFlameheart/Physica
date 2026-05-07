@@ -885,5 +885,5 @@ void main()
 		fixed_data.write_counts[hover_highlighter_type] = 0u;
 	}
 
-	fixed_data.temp = 0u;
+	fixed_data.temp = null_uint;
 }

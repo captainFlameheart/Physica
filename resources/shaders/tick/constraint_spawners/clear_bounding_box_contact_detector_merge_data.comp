@@ -11,7 +11,7 @@ void main()
 	uint indices_source_flags_base = fixed_data.bounding_box_contact_detector_indices_source_flags_base;
 
 	uint indices_source_flags_index = indices_source_flags_base + index;
-
+	
 	uvec4 indices_source_flags = uvec4_data.data[indices_source_flags_index];
 
 	if (indices_source_flags.w == 0u)

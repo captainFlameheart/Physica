@@ -696,6 +696,7 @@ namespace game_logic::debug
 			sizeof(GLuint)
 		);
 		std::cout << "end_address: " << end_address << " = " << static_cast<GLfloat>(end_address) / static_cast<GLfloat>(1024u * 1024u) << " MiB" << std::endl;
+		std::cout << "tick: " << environment.state.tick_count << std::endl;
 
 		std::cout << std::endl;
 
