@@ -428,9 +428,10 @@ uint compute_contact_type(in uvec4 parent_pad_pad_type_0, in uvec4 parent_pad_pa
 				\
 				barrier();\
 				\
+				uint local_base;\
 				if (thread_is_active && cached_flush_size != 0u)\
 				{\
-					uint local_base = atomicAdd(work_group_spawn_count, cached_flush_size);\
+					local_base = atomicAdd(work_group_spawn_count, cached_flush_size);\
 				}\
 				\
 				barrier();\
