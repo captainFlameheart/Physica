@@ -1,23 +1,36 @@
 layout(local_size_x = 1u) in;
 void main()
 {
-	const uint max_detectors_per_bounding_box = 5u;
+	const uint max_detectors_per_bounding_box = 3u;
 
 	uint inner_bounding_box_count = fixed_data.read_counts[inner_bounding_box_type];
 	uint detector_count = fixed_data.read_counts[bounding_box_contact_detector_type];
-	bool should_reset = detector_count > max_detectors_per_bounding_box * inner_bounding_box_count;
+	bool should_reset =
+	(
+		detector_count > max_detectors_per_bounding_box * inner_bounding_box_count
+		|| detector_count == 0u
+	);
+	should_reset = true;	// TODO: REMOVE
 
 	if (should_reset)
 	{
+		// MUST TODO: REMOVE!!!
+		atomicAdd(fixed_data.temp, 1u);
+
 		uint count = fixed_data.read_counts[inner_bounding_box_type];
 		fixed_data.read_counts[bounding_box_contact_detector_type] = count;
 		fixed_data.write_counts[bounding_box_contact_detector_type] = count;
+		// IMPORTANT TODO: Rename old_old_kill_counts -> clear_kill_counts.
+		uint clear_kill_count = fixed_data.kill_counts[bounding_box_contact_detector_type];
+		fixed_data.old_old_kill_counts[bounding_box_contact_detector_type] = clear_kill_count;
 		fixed_data.kill_counts[bounding_box_contact_detector_type] = 0u;
 
 		commands.reusable_dispatch_commands[reset_bounding_box_contact_detectors_program_index].work_group_count_x = compute_work_group_count(count, reset_bounding_box_contact_detectors_local_size);
+		commands.reusable_dispatch_commands[reset_bounding_box_contact_detector_deaths_program_index].work_group_count_x = compute_work_group_count(clear_kill_count, reset_bounding_box_contact_detector_deaths_local_size);
 	}
 	else
 	{
 		commands.reusable_dispatch_commands[reset_bounding_box_contact_detectors_program_index].work_group_count_x = 0u;
+		commands.reusable_dispatch_commands[reset_bounding_box_contact_detector_deaths_program_index].work_group_count_x = 0u;
 	}
 }

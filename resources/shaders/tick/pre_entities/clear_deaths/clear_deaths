@@ -1,7 +1,7 @@
-#define PRE_TICK_ENTITIES_CLEAR_DEATHS(entity_type)\
+#define PRE_TICK_ENTITIES_CLEAR_DEATHS(entity_type) /* IMPORTANT TODO: Rename to generic CLEAR_DEATHS. */\
 {\
 	uint kill_item = gl_GlobalInvocationID.x;\
-	uint kill_count = fixed_data.old_old_kill_counts[entity_type];\
+	uint kill_count = fixed_data.old_old_kill_counts[entity_type]; /* IMPORTANT TODO: Rename to clear_kill_counts. */\
 	if (kill_item >= kill_count)\
 	{\
 		return;\

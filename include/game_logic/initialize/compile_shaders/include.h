@@ -45,6 +45,7 @@
 #include "compile_plan_rigid_body_circle_contact_constraint_spawner_compaction.h"
 #include "compile_process_point_masses.h"
 #include "compile_reset_bounding_box_contact_detectors.h"
+#include "compile_reset_bounding_box_contact_detector_deaths.h"
 #include "compile_reset_bounding_box_contact_detector_metadata.h"
 #include "compile_send_bounding_volume_hierarchy_to_CPU.h"
 #include "compile_set_inner_bounding_box_tick_commands.h"
