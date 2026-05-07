@@ -20,15 +20,15 @@ void main()
 
 	if (thread_is_active)
 	{
-		bounding_box_parent_children_height_base = fixed_data.bounding_box_parent_children_height_base;
+		bounding_box_parent_children_height_base = fixed_data.inner_bounding_box_parent_children_height_base;
 		bounding_box_base = fixed_data.inner_bounding_box_base;
 		indices_source_flags_base = fixed_data.bounding_box_contact_detector_indices_source_flags_base;
 		capacity = fixed_data.capacities[bounding_box_contact_detector_type];
 
-		uint inner_bounding_box_parent_children_height_index = inner_bounding_box_parent_children_height_base + index;
+		uint bounding_box_parent_children_height_index = bounding_box_parent_children_height_base + index;
 		uint indices_source_flags_index = indices_source_flags_base + index;
 
-		uvec4 inner_bounding_box_parent_children_height = uvec4_data.data[inner_bounding_box_parent_children_height_index];
+		uvec4 inner_bounding_box_parent_children_height = uvec4_data.data[bounding_box_parent_children_height_index];
 		indices_source_flags = uvec4(inner_bounding_box_parent_children_height.yz, null_uint, 0u);
 
 		bounding_boxes[0u] = ivec4(uvec4_data.data[bounding_box_base + indices_source_flags.x]);

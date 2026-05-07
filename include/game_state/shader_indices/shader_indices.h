@@ -20,6 +20,8 @@ namespace game_state::shader_indices
 			{
 				initialize_bounding_box_contact_detector_metadata = base,
 				initialize_bounding_box_contact_detectors,
+				reset_bounding_box_contact_detector_metadata,
+				reset_bounding_box_contact_detectors,
 
 				end
 			};
@@ -31,7 +33,7 @@ namespace game_state::shader_indices
 		constexpr GLuint end{ static_cast<GLuint>(initialize_contacts::end) };
 		constexpr GLuint count{ end - base };
 
-		constexpr GLuint reusable_program_count{ 1u };
+		constexpr GLuint reusable_program_count{ 2u };
 	}
 
 	namespace initialize
