@@ -402,7 +402,7 @@ namespace game_logic::tick
 			glDispatchComputeIndirect(command_offset);
 		}
 
-		/*for (GLuint clear_invalid_contacts_shader_index{::game_state::shader_indices::reusable::initialize_contacts::clear_invalid_contacts::base}; clear_invalid_contacts_shader_index < ::game_state::shader_indices::reusable::initialize_contacts::clear_invalid_contacts::end; ++clear_invalid_contacts_shader_index)
+		for (GLuint clear_invalid_contacts_shader_index{::game_state::shader_indices::reusable::initialize_contacts::clear_invalid_contacts::base}; clear_invalid_contacts_shader_index < ::game_state::shader_indices::reusable::initialize_contacts::clear_invalid_contacts::end; ++clear_invalid_contacts_shader_index)
 		{
 			if (
 				clear_invalid_contacts_shader_index != static_cast<GLuint>(::game_state::shader_indices::reusable::initialize_contacts::clear_invalid_contacts::Indices::rigid_body_circle)
@@ -419,7 +419,7 @@ namespace game_logic::tick
 				program_index * environment.state.layouts.commands.reusable_dispatch_commands_work_group_count_x_state.top_level_array_stride
 			};
 			glDispatchComputeIndirect(command_offset);
-		}*/
+		}
 	}
 
 	void tick_detectors(game_environment::Environment& environment)
