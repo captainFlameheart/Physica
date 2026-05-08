@@ -374,6 +374,8 @@ uint compute_contact_type(in uvec4 parent_pad_pad_type_0, in uvec4 parent_pad_pa
 	(\
 		shared uint work_group_spawn_count;\
 		shared uint work_group_base;\
+		shared uint work_group_kill_count;\
+		shared uint work_group_kill_base;\
 	)\
 	\
 	void flush\
@@ -405,9 +407,12 @@ uint compute_contact_type(in uvec4 parent_pad_pad_type_0, in uvec4 parent_pad_pa
 	{\
 		uvec2 cached_flush_indices[flush_cache_capacity];\
 		uint cached_flush_size;\
+		uint original_index;\
+		bool original_is_killed;\
 		if (thread_is_active)\
 		{\
-			uint original_index = index;\
+			original_index = index;\
+			original_is_killed = false;\
 			\
 			uvec2 cached_stack_indices[stack_cache_capacity];\
 			ivec4 cached_stack_bounding_boxes[stack_cache_capacity][2u];\
@@ -532,11 +537,7 @@ uint compute_contact_type(in uvec4 parent_pad_pad_type_0, in uvec4 parent_pad_pa
 					)\
 					\
 					/* Kill bounding box detector if it exists in global memory. */\
-					if (stack_size == 0u)\
-					{\
-						index = original_index;\
-					}\
-					if (stack_size == 0u || stack_size >= stack_cache_capacity)\
+					if (stack_size >= stack_cache_capacity)\
 					{\
 						kill(bounding_box_contact_detector_type, index);\
 					}\
@@ -544,6 +545,7 @@ uint compute_contact_type(in uvec4 parent_pad_pad_type_0, in uvec4 parent_pad_pa
 					/* Backtrack. */\
 					if (stack_size == 0u)\
 					{\
+						original_is_killed = true;\
 						break;\
 					}\
 					index = source;	/* Only well-defined if we are not inside the cache, which is intentional. */\
@@ -558,21 +560,37 @@ uint compute_contact_type(in uvec4 parent_pad_pad_type_0, in uvec4 parent_pad_pa
 				if (gl_LocalInvocationIndex == 0u)\
 				{\
 					work_group_spawn_count = 0u;\
+					work_group_kill_count = 0u;\
 				}\
 				\
 				barrier();\
 				\
 				uint local_base;\
-				if (thread_is_active && cached_flush_size != 0u)\
+				uint local_kill_base;\
+				if (thread_is_active)\
 				{\
-					local_base = atomicAdd(work_group_spawn_count, cached_flush_size);\
+					if (cached_flush_size != 0u)\
+					{\
+						local_base = atomicAdd(work_group_spawn_count, cached_flush_size);\
+					}\
+					if (original_is_killed)\
+					{\
+						local_kill_base = atomicAdd(work_group_kill_count, 1u);\
+					}\
 				}\
 				\
 				barrier();\
 				\
-				if (gl_LocalInvocationIndex == 0u && work_group_spawn_count != 0u)\
+				if (gl_LocalInvocationIndex == 0u)\
 				{\
-					work_group_base = spawn(bounding_box_contact_detector_type, work_group_spawn_count);\
+					if (work_group_spawn_count != 0u)\
+					{\
+						work_group_base = spawn(bounding_box_contact_detector_type, work_group_spawn_count);\
+					}\
+					if (work_group_kill_count != 0u)\
+					{\
+						work_group_kill_base = atomicAdd(fixed_data.kill_counts[bounding_box_contact_detector_type], work_group_kill_count);\
+					}\
 				}\
 				\
 				barrier();\
@@ -585,6 +603,17 @@ uint compute_contact_type(in uvec4 parent_pad_pad_type_0, in uvec4 parent_pad_pa
 						return;\
 					}\
 					flush(indices_source_flags_base, base, cached_flush_indices, cached_flush_size);\
+					\
+					if (original_is_killed)\
+					{\
+						/* IMPORTANT TODO: Store these bases earlier so that they can be used for other kills. */\
+						uint killed_base = fixed_data.killed_bases[bounding_box_contact_detector_type];\
+						uint death_index = work_group_kill_base + local_kill_base;\
+						uint_data.data[killed_base + death_index] = original_index;\
+						\
+						uint death_index_base = fixed_data.death_index_bases[bounding_box_contact_detector_type];\
+						uint_data.data[death_index_base + original_index] = death_index;\
+					}\
 				}\
 			},\
 			{\
@@ -596,6 +625,11 @@ uint compute_contact_type(in uvec4 parent_pad_pad_type_0, in uvec4 parent_pad_pa
 						return;\
 					}\
 					flush(indices_source_flags_base, base, cached_flush_indices, cached_flush_size);\
+					\
+					if (original_is_killed)\
+					{\
+						kill(bounding_box_contact_detector_type, original_index);\
+					}\
 				}\
 			}\
 		)\
