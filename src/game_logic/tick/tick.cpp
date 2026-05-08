@@ -259,33 +259,6 @@ namespace game_logic::tick
 		}
 
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);	// TODO: Is this needed?
-
-		{
-			{
-				glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::reusable::initialize_contacts::Indices::reset_bounding_box_contact_detector_metadata)]);
-				glDispatchCompute(1u, 1u, 1u);
-			}
-			
-			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_COMMAND_BARRIER_BIT);
-			
-			{
-				glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::reusable::initialize_contacts::Indices::reset_bounding_box_contact_detectors)]);
-				glDispatchComputeIndirect
-				(
-					environment.state.layouts.commands.reusable_dispatch_commands_work_group_count_x_state.offset +
-					1u * environment.state.layouts.commands.reusable_dispatch_commands_work_group_count_x_state.top_level_array_stride
-				);
-			}
-
-			{
-				glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::reusable::initialize_contacts::Indices::reset_bounding_box_contact_detector_deaths)]);
-				glDispatchComputeIndirect
-				(
-					environment.state.layouts.commands.reusable_dispatch_commands_work_group_count_x_state.offset +
-					2u * environment.state.layouts.commands.reusable_dispatch_commands_work_group_count_x_state.top_level_array_stride
-				);
-			}
-		}
 	}
 
 	void commit_detector_counts(game_environment::Environment& environment)
@@ -363,6 +336,34 @@ namespace game_logic::tick
 			{
 				::game_logic::debug::print_fixed_data(environment);	// THE PROBLEM IS HERE!!! We likely get stuck in an infinite loop.
 			}
+		}
+	}
+
+	void reset_bounding_box_contact_detectors_if_needed(game_environment::Environment& environment)
+	{
+		{
+			glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::reusable::initialize_contacts::Indices::reset_bounding_box_contact_detector_metadata)]);
+			glDispatchCompute(1u, 1u, 1u);
+		}
+
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_COMMAND_BARRIER_BIT);
+
+		{
+			glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::reusable::initialize_contacts::Indices::reset_bounding_box_contact_detectors)]);
+			glDispatchComputeIndirect
+			(
+				environment.state.layouts.commands.reusable_dispatch_commands_work_group_count_x_state.offset +
+				1u * environment.state.layouts.commands.reusable_dispatch_commands_work_group_count_x_state.top_level_array_stride
+			);
+		}
+
+		{
+			glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::reusable::initialize_contacts::Indices::reset_bounding_box_contact_detector_deaths)]);
+			glDispatchComputeIndirect
+			(
+				environment.state.layouts.commands.reusable_dispatch_commands_work_group_count_x_state.offset +
+				2u * environment.state.layouts.commands.reusable_dispatch_commands_work_group_count_x_state.top_level_array_stride
+			);
 		}
 	}
 
@@ -555,6 +556,10 @@ namespace game_logic::tick
 			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
 			tick_detectors(environment);
+
+			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+			reset_bounding_box_contact_detectors_if_needed(environment);
 
 			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 

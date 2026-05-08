@@ -1,7 +1,7 @@
 layout(local_size_x = 1u) in;
 void main()
 {
-	const uint max_detectors_per_bounding_box = 3u;
+	const uint max_detectors_per_bounding_box = 5u;
 
 	uint inner_bounding_box_count = fixed_data.read_counts[inner_bounding_box_type];
 	uint detector_count = fixed_data.read_counts[bounding_box_contact_detector_type];
@@ -10,11 +10,14 @@ void main()
 		detector_count > max_detectors_per_bounding_box * inner_bounding_box_count
 		|| detector_count == 0u
 	);
+	//should_reset = true;
+	should_reset = detector_count == 0u;
 
+	// PROBLEM: We are reading from kill list for clearing while we are killing detectors from splitting!
 	if (should_reset)
 	{
 		// MUST TODO: REMOVE!!!
-		//atomicAdd(fixed_data.temp, 1u);
+		atomicAdd(fixed_data.temp, 1u);
 
 		uint count = fixed_data.read_counts[inner_bounding_box_type];
 		fixed_data.read_counts[bounding_box_contact_detector_type] = count;
