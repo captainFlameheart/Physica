@@ -188,9 +188,10 @@ uint compute_contact_type(in uvec4 parent_pad_pad_type_0, in uvec4 parent_pad_pa
 
 		if (bounding_boxes_are_separated(bounding_box_0, bounding_box_1))
 		{
+			// IMPORTANT TODO: Pass death_index_base to kill function.
 			uint death_index_base = fixed_data.death_index_bases[contact_detector_type];
 			uint death_index = uint_data.data[death_index_base + index];
-			if (death_index != null_uint)
+			if (death_index == null_uint)
 			{
 				kill(contact_detector_type, index);
 			}
@@ -226,16 +227,16 @@ uint compute_contact_type(in uvec4 parent_pad_pad_type_0, in uvec4 parent_pad_pa
 		kill_binary_contact_detector_if_invalid(bounding_box_type_0, bounding_box_type_1, contact_detector_type, index, indices);\
 	}
 
-	#define CLEAR_INVALID_UNARY_CONTACT_DETECTORS(bounding_box_type, contact_detector_type)\
+	#define CLEAR_INVALID_UNARY_CONTACT_DETECTORS(bounding_box_type, contact_detector_type, contact_type)\
 	{\
 		uint index = gl_GlobalInvocationID.x;\
-		uint count = fixed_data.write_counts[rigid_body_circle_contact_constraint_spawner_type_index];	/* Note: we use the write count in this case. */\
+		uint count = fixed_data.write_counts[contact_detector_type];	/* Note: we use the write count in this case. */\
 		if (index >= count)\
 		{\
 			return;\
 		}\
 		\
-		uint indices_base = fixed_data.specific_contact_detector_indices_bases[rigid_body_circle_contact_type];\
+		uint indices_base = fixed_data.specific_contact_detector_indices_bases[contact_type];\
 		uint indices_index = indices_base + index;\
 		uvec2 indices = uvec2_data.data[indices_index];\
 		\

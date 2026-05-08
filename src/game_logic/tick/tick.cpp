@@ -349,15 +349,6 @@ namespace game_logic::tick
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_COMMAND_BARRIER_BIT);
 
 		{
-			glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::reusable::initialize_contacts::Indices::reset_bounding_box_contact_detectors)]);
-			glDispatchComputeIndirect
-			(
-				environment.state.layouts.commands.reusable_dispatch_commands_work_group_count_x_state.offset +
-				1u * environment.state.layouts.commands.reusable_dispatch_commands_work_group_count_x_state.top_level_array_stride
-			);
-		}
-
-		{
 			glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::reusable::initialize_contacts::Indices::reset_bounding_box_contact_detector_deaths)]);
 			glDispatchComputeIndirect
 			(
@@ -369,8 +360,25 @@ namespace game_logic::tick
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
 		{
+			glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::reusable::initialize_contacts::Indices::reset_bounding_box_contact_detectors)]);
+			glDispatchComputeIndirect
+			(
+				environment.state.layouts.commands.reusable_dispatch_commands_work_group_count_x_state.offset +
+				1u * environment.state.layouts.commands.reusable_dispatch_commands_work_group_count_x_state.top_level_array_stride
+			);
+		}
+
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+		{
 			glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::reusable::initialize_contacts::Indices::set_clear_invalid_contact_commands)]);
-			glDispatchCompute(1u, 1u, 1u);
+			constexpr GLuint count{ ::game_state::leaf_bounding_box_types::contact_type_count };
+			constexpr GLuint local_size{ ::game_state::local_sizes::reusable_local_sizes[static_cast<GLuint>(::game_state::shader_indices::reusable::initialize_contacts::Indices::set_clear_invalid_contact_commands) - ::game_state::shader_indices::reusable::initialize_contacts::base]};
+			constexpr GLuint work_group_count
+			{
+				(count + local_size - 1u) / local_size
+			};
+			glDispatchCompute(work_group_count, 1u, 1u);
 		}
 
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_COMMAND_BARRIER_BIT);
@@ -385,7 +393,6 @@ namespace game_logic::tick
 			}
 
 			glUseProgram(environment.state.shaders[clear_invalid_contact_detectors_shader_index]);
-			// TODO: We should exclude commit-count shaders.
 			GLuint program_index{ 4u + clear_invalid_contact_detectors_shader_index - ::game_state::shader_indices::reusable::initialize_contacts::clear_invalid_contact_detectors::base };
 			GLintptr command_offset
 			{
@@ -395,7 +402,7 @@ namespace game_logic::tick
 			glDispatchComputeIndirect(command_offset);
 		}
 
-		for (GLuint clear_invalid_contacts_shader_index{ ::game_state::shader_indices::reusable::initialize_contacts::clear_invalid_contacts::base }; clear_invalid_contacts_shader_index < ::game_state::shader_indices::reusable::initialize_contacts::clear_invalid_contacts::end; ++clear_invalid_contacts_shader_index)
+		/*for (GLuint clear_invalid_contacts_shader_index{::game_state::shader_indices::reusable::initialize_contacts::clear_invalid_contacts::base}; clear_invalid_contacts_shader_index < ::game_state::shader_indices::reusable::initialize_contacts::clear_invalid_contacts::end; ++clear_invalid_contacts_shader_index)
 		{
 			if (
 				clear_invalid_contacts_shader_index != static_cast<GLuint>(::game_state::shader_indices::reusable::initialize_contacts::clear_invalid_contacts::Indices::rigid_body_circle)
@@ -405,7 +412,6 @@ namespace game_logic::tick
 			}
 
 			glUseProgram(environment.state.shaders[clear_invalid_contacts_shader_index]);
-			// TODO: We should exclude commit-count shaders.
 			GLuint program_index{ 4u + clear_invalid_contacts_shader_index - ::game_state::shader_indices::reusable::initialize_contacts::clear_invalid_contact_detectors::base };
 			GLintptr command_offset
 			{
@@ -413,7 +419,7 @@ namespace game_logic::tick
 				program_index * environment.state.layouts.commands.reusable_dispatch_commands_work_group_count_x_state.top_level_array_stride
 			};
 			glDispatchComputeIndirect(command_offset);
-		}
+		}*/
 	}
 
 	void tick_detectors(game_environment::Environment& environment)

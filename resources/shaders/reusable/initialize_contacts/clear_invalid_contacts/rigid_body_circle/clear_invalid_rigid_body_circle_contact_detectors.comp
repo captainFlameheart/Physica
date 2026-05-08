@@ -1,5 +1,5 @@
 layout(local_size_x = clear_invalid_rigid_body_circle_contact_detectors_local_size) in;
 void main()
 {
-	CLEAR_INVALID_UNARY_CONTACT_DETECTORS(rigid_body_circle_bounding_box_type, rigid_body_circle_contact_constraint_spawner_type_index)
+	CLEAR_INVALID_UNARY_CONTACT_DETECTORS(rigid_body_circle_bounding_box_type, rigid_body_circle_contact_constraint_spawner_type_index, rigid_body_circle_contact_type)
 }
