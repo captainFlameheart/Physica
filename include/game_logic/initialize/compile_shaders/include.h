@@ -48,6 +48,7 @@
 #include "compile_reset_bounding_box_contact_detector_deaths.h"
 #include "compile_reset_bounding_box_contact_detector_metadata.h"
 #include "compile_send_bounding_volume_hierarchy_to_CPU.h"
+#include "compile_set_clear_invalid_contact_commands.h"
 #include "compile_set_inner_bounding_box_tick_commands.h"
 #include "compile_tick_rigid_bodies.h"
 #include "compile_tick_rigid_body_circles.h"

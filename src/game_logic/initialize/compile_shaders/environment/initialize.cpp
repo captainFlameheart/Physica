@@ -83,6 +83,15 @@ namespace game_logic::initialize::compile_shaders::environment
 			- ::game_state::shader_indices::tick::process_entities::base
 		};
 
+		constexpr GLuint clear_invalid_contact_detectors_program_base
+		{
+			3u
+		};
+		constexpr GLuint clear_invalid_contacts_program_base
+		{
+			clear_invalid_contact_detectors_program_base + ::game_state::shader_indices::reusable::initialize_contacts::clear_invalid_contact_detectors::count
+		};
+
 		// TODO: Remove commit count programs.
 		constexpr GLuint constraint_spawner_plan_compaction_program_base
 		{
@@ -252,6 +261,33 @@ namespace game_logic::initialize::compile_shaders::environment
 		}
 		constraint_local_sizes_flags += "};\n";
 		std::cout << constraint_local_sizes_flags << std::endl;
+
+		std::string clear_invalid_contact_local_sizes_flags
+		{
+			"const uvec4 clear_invalid_contact_local_sizes_flags[" + std::to_string(::game_state::leaf_bounding_box_types::contact_type_count) + "] = \n"
+			"{	// (clear_invalid_contact_detectors_local_size, clear_invalid_contacts_local_size, pad, flags)\n"
+		};
+		for (GLuint i{ 0u }; i < ::game_state::leaf_bounding_box_types::contact_type_count; ++i)
+		{
+			constexpr GLuint clear_invalid_contact_detectors_base
+			{
+				3u
+			};
+			constexpr GLuint clear_invalid_contacts_base
+			{
+				clear_invalid_contact_detectors_base + ::game_state::shader_indices::reusable::initialize_contacts::clear_invalid_contact_detectors::count
+			};
+
+			GLuint clear_invalid_contact_detectors_local_size{ ::game_state::local_sizes::process_entities_local_sizes[clear_invalid_contact_detectors_base + i] };
+			GLuint clear_invalid_contacts_local_size{ ::game_state::local_sizes::process_entities_local_sizes[clear_invalid_contacts_base + i] };
+
+			clear_invalid_contact_local_sizes_flags += "	uvec4(" +
+				std::to_string(clear_invalid_contact_detectors_local_size) + ", " +
+				std::to_string(clear_invalid_contacts_local_size) + ", " +
+				std::to_string(0u) + ", 0u" + "),\n";
+		}
+		clear_invalid_contact_local_sizes_flags += "};\n";
+		std::cout << clear_invalid_contact_local_sizes_flags << std::endl;
 
 		std::string	dispatch_command_blueprints
 		{
@@ -424,6 +460,9 @@ namespace game_logic::initialize::compile_shaders::environment
 		constexpr GLuint initialize_bounding_box_contact_detectors_local_size{ ::game_state::local_sizes::reusable_local_sizes[
 			static_cast<GLuint>(::game_state::shader_indices::reusable::initialize_contacts::Indices::initialize_bounding_box_contact_detectors) - reusable_local_size_base
 		] };
+		constexpr GLuint set_clear_invalid_contact_commands_local_size{ ::game_state::local_sizes::reusable_local_sizes[
+			static_cast<GLuint>(::game_state::shader_indices::reusable::initialize_contacts::Indices::set_clear_invalid_contact_commands) - reusable_local_size_base
+		] };
 		constexpr GLuint reset_bounding_box_contact_detectors_local_size{ ::game_state::local_sizes::reusable_local_sizes[
 			static_cast<GLuint>(::game_state::shader_indices::reusable::initialize_contacts::Indices::reset_bounding_box_contact_detectors) - reusable_local_size_base
 		] };
@@ -530,6 +569,7 @@ namespace game_logic::initialize::compile_shaders::environment
 			bounding_box_contact_detector_local_sizes_flags +
 			contact_detector_local_sizes_flags +
 			constraint_local_sizes_flags +
+			clear_invalid_contact_local_sizes_flags +
 
 			dispatch_command_blueprints +
 			draw_arrays_command_blueprints +
@@ -555,6 +595,7 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const float radians_per_second_squared_in_angle_units_per_time_unit_squared = " + std::to_string(game_state::units::radians_per_second_squared_in_angle_units_per_time_unit_squared) + ";\n"
 
 			"const uint entity_type_count = " + std::to_string(game_state::entity_type_indices::count) + ";\n"
+			"const uint contact_constraint_type_base = " + std::to_string(static_cast<GLuint>(game_state::entity_type_indices::constraints::Indices::rigid_body_triangle_contact_constraint)) + ";\n"
 			"const uint constraint_spawner_type_base = " + std::to_string(game_state::entity_type_indices::constraint_spawners::base) + ";\n"
 			"const uint contact_detector_type_base = " + std::to_string(game_state::entity_type_indices::constraint_spawners::base + 1u) + ";\n"
 			"const uint contact_detector_type_count = " + std::to_string(game_state::leaf_bounding_box_types::contact_type_count) + ";\n"
@@ -580,6 +621,8 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uint merge_bounding_box_contact_detectors_program_index = " + std::to_string(merge_bounding_box_contact_detectors_program_index) + ";\n"
 			"const uint clear_bounding_box_contact_detector_merge_data_program_index = " + std::to_string(clear_bounding_box_contact_detector_merge_data_program_index) + ";\n"
 
+			"const uint clear_invalid_contact_detectors_program_base = " + std::to_string(clear_invalid_contact_detectors_program_base) + ";\n"
+			"const uint clear_invalid_contacts_program_base = " + std::to_string(clear_invalid_contacts_program_base) + ";\n"
 			"const uint constraint_spawner_plan_compaction_program_base = " + std::to_string(constraint_spawner_plan_compaction_program_base) + ";\n"
 			"const uint constraint_spawner_clear_deaths_program_base = " + std::to_string(constraint_spawner_clear_deaths_program_base) + ";\n"
 			"const uint contact_detector_clear_deaths_program_base = " + std::to_string(contact_detector_clear_deaths_program_base) + ";\n"
@@ -620,6 +663,7 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uint bounding_volume_hierarchy_binding = " + ::std::to_string(::game_state::bindings::shader_storage::bounding_volume_hierarchy) + ";\n"
 
 			"const uint initialize_bounding_box_contact_detectors_local_size = " + ::std::to_string(initialize_bounding_box_contact_detectors_local_size) + ";\n"
+			"const uint set_clear_invalid_contact_commands_local_size = " + ::std::to_string(set_clear_invalid_contact_commands_local_size) + ";\n"
 			"const uint reset_bounding_box_contact_detectors_local_size = " + ::std::to_string(reset_bounding_box_contact_detectors_local_size) + ";\n"
 			"const uint reset_bounding_box_contact_detector_deaths_local_size = " + ::std::to_string(reset_bounding_box_contact_detector_deaths_local_size) + ";\n"
 			"const uint update_tick_counts_local_size = " + ::std::to_string(update_tick_counts_local_size) + ";\n"

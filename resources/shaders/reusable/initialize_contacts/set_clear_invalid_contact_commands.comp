@@ -7,13 +7,15 @@ void main()
 		return;
 	}
 
+	uvec4 local_sizes_flags = clear_invalid_contact_local_sizes_flags[index];
+
 	uint detector_type = contact_detector_type_base + index;
 	uint detector_count = fixed_data.write_counts[detector_type];
-	uint clear_detectors_local_size = clear_contact_detectors_local_sizes[detector_type];
+	uint clear_detectors_local_size = local_sizes_flags.x;
 	commands.reusable_dispatch_commands[clear_invalid_contact_detectors_program_base + index].work_group_count_x = compute_work_group_count(detector_count, clear_detectors_local_size);
 
 	uint contact_type = contact_constraint_type_base + index;
 	uint contact_count = fixed_data.write_counts[contact_type];
-	uint clear_contacts_local_size = clear_contacts_local_sizes[contact_type];
+	uint clear_contacts_local_size = local_sizes_flags.y;
 	commands.reusable_dispatch_commands[clear_invalid_contacts_program_base + index].work_group_count_x = compute_work_group_count(contact_count, clear_contacts_local_size);
 }

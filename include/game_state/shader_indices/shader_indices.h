@@ -20,6 +20,7 @@ namespace game_state::shader_indices
 			{
 				initialize_bounding_box_contact_detector_metadata = base,
 				initialize_bounding_box_contact_detectors,
+				set_clear_invalid_contact_commands,
 				reset_bounding_box_contact_detector_metadata,
 				reset_bounding_box_contact_detectors,
 				reset_bounding_box_contact_detector_deaths,
@@ -27,14 +28,48 @@ namespace game_state::shader_indices
 				end
 			};
 
-			constexpr GLuint end{ static_cast<GLuint>(Indices::end) };
+			namespace clear_invalid_contact_detectors
+			{
+				constexpr GLuint base{ static_cast<GLuint>(::game_state::shader_indices::reusable::initialize_contacts::Indices::end) };
+
+				enum struct Indices : GLuint
+				{
+					rigid_body_triangle = base,
+					rigid_body_triangle_circle,
+					rigid_body_circle,
+
+					end
+				};
+
+				constexpr GLuint end{ static_cast<GLuint>(Indices::end) };
+				constexpr GLuint count{ end - base };
+			}
+
+			namespace clear_invalid_contacts
+			{
+				constexpr GLuint base{ ::game_state::shader_indices::reusable::initialize_contacts::clear_invalid_contact_detectors::end };
+
+				enum struct Indices : GLuint
+				{
+					rigid_body_triangle = base,
+					rigid_body_triangle_circle,
+					rigid_body_circle,
+
+					end
+				};
+
+				constexpr GLuint end{ static_cast<GLuint>(Indices::end) };
+				constexpr GLuint count{ end - base };
+			}
+
+			constexpr GLuint end{ static_cast<GLuint>(clear_invalid_contacts::end) };
 			constexpr GLuint count{ end - base };
 		}
 
 		constexpr GLuint end{ static_cast<GLuint>(initialize_contacts::end) };
 		constexpr GLuint count{ end - base };
 
-		constexpr GLuint reusable_program_count{ 3u };
+		constexpr GLuint reusable_program_count{ 3u + initialize_contacts::clear_invalid_contact_detectors::count + initialize_contacts::clear_invalid_contacts::count };
 	}
 
 	namespace initialize
