@@ -154,6 +154,94 @@ uint compute_contact_type(in uvec4 parent_pad_pad_type_0, in uvec4 parent_pad_pa
 		uint_data.data[killed_base + death_index] = index;
 	}
 
+	#define CLEAR_INVALID_CONTACTS(contact_type, environment, get_leaf_bounding_box_bases, get_indices, kill_contact)\
+	{\
+		uint index = gl_GlobalInvocationID.x;\
+		uint count = fixed_data.write_counts[contact_type];	/* Note: we use the write count in this case. */\
+		if (index >= count)\
+		{\
+			return;\
+		}\
+		\
+		uvec2 leaf_bounding_box_bases = get_leaf_bounding_box_bases(environment);\
+		\
+		uvec2 indices = get_indices(environment, index);\
+		\
+		uvec2 bounding_box_indices = leaf_bounding_box_bases + indices;\
+		\
+		uvec4 bounding_box_0 = uvec4_data.data[bounding_box_indices.x];\
+		uvec4 bounding_box_1 = uvec4_data.data[bounding_box_indices.y];\
+		\
+		if (bounding_boxes_are_separated(bounding_box_0, bounding_box_1))\
+		{\
+			kill_contact(environment, index);\
+		}\
+	}
+
+	void kill_contact_detector_if_invalid(in uint leaf_bounding_box_base_0, in uint leaf_bounding_box_base_1, in uint contact_detector_type, in uint index, in uvec2 indices)
+	{
+		uint bounding_box_index_0 = leaf_bounding_box_base_0 + indices.x;
+		uint bounding_box_index_1 = leaf_bounding_box_base_1 + indices.y;
+
+		uvec4 bounding_box_0 = uvec4_data.data[bounding_box_index_0];
+		uvec4 bounding_box_1 = uvec4_data.data[bounding_box_index_1];
+
+		if (bounding_boxes_are_separated(bounding_box_0, bounding_box_1))
+		{
+			uint death_index_base = fixed_data.death_index_bases[contact_detector_type];
+			uint death_index = uint_data.data[death_index_base + index];
+			if (death_index != null_uint)
+			{
+				kill(contact_detector_type, index);
+			}
+		}
+	}
+
+	void kill_binary_contact_detector_if_invalid(in uint bounding_box_type_0, in uint bounding_box_type_1, in uint contact_detector_type, in uint index, in uvec2 indices)
+	{
+		uint bounding_box_base_0 = fixed_data.leaf_bounding_box_bases[bounding_box_type_0];
+		uint bounding_box_base_1 = fixed_data.leaf_bounding_box_bases[bounding_box_type_1];
+		kill_contact_detector_if_invalid(bounding_box_base_0, bounding_box_base_1, contact_detector_type, index, indices);
+	}
+
+	void kill_unary_contact_detector_if_invalid(in uint bounding_box_type, in uint contact_detector_type, in uint index, in uvec2 indices)
+	{
+		uint bounding_box_base = fixed_data.leaf_bounding_box_bases[bounding_box_type];
+		kill_contact_detector_if_invalid(bounding_box_base, bounding_box_base, contact_detector_type, index, indices);
+	}
+
+	#define CLEAR_INVALID_BINARY_CONTACT_DETECTORS(bounding_box_type_0, bounding_box_type_1, contact_detector_type)\
+	{\
+		uint index = gl_GlobalInvocationID.x;\
+		uint count = fixed_data.write_counts[rigid_body_circle_contact_constraint_spawner_type_index];	/* Note: we use the write count in this case. */\
+		if (index >= count)\
+		{\
+			return;\
+		}\
+		\
+		uint indices_base = fixed_data.specific_contact_detector_indices_bases[rigid_body_circle_contact_type];\
+		uint indices_index = indices_base + index;\
+		uvec2 indices = uvec2_data.data[indices_index];\
+		\
+		kill_binary_contact_detector_if_invalid(bounding_box_type_0, bounding_box_type_1, contact_detector_type, index, indices);\
+	}
+
+	#define CLEAR_INVALID_UNARY_CONTACT_DETECTORS(bounding_box_type, contact_detector_type)\
+	{\
+		uint index = gl_GlobalInvocationID.x;\
+		uint count = fixed_data.write_counts[rigid_body_circle_contact_constraint_spawner_type_index];	/* Note: we use the write count in this case. */\
+		if (index >= count)\
+		{\
+			return;\
+		}\
+		\
+		uint indices_base = fixed_data.specific_contact_detector_indices_bases[rigid_body_circle_contact_type];\
+		uint indices_index = indices_base + index;\
+		uvec2 indices = uvec2_data.data[indices_index];\
+		\
+		kill_unary_contact_detector_if_invalid(bounding_box_type, contact_detector_type, index, indices);\
+	}
+
 	#define MAYBE_CONVERT_TO_BOUNDING_BOX_CONTACT_DETECTOR(leaf_bounding_box_base_0, leaf_bounding_box_base_1, contact_detector_type, index, indices)\
 	{\
 		uint bounding_box_index_0 = leaf_bounding_box_base_0 + indices.x;\

@@ -1,0 +1,28 @@
+struct Environment
+{
+}
+
+uint get_leaf_bounding_box_bases(in Environment environment)
+{
+	uint bounding_box_base = fixed_data.leaf_bounding_box_bases[rigid_body_circle_bounding_box_type];
+	return uvec2(bounding_box_base, bounding_box_base);
+}
+
+uvec2 get_indices(in Environment environment, in uint index)
+{
+	uint indices_turns_base = fixed_data.rigid_body_circle_contact_constraint_indices_turns_base;
+	uvec4 indices_turns = uvec4_data.data[indices_turns_base + index];
+	return indices_turns.xy;
+}
+
+void kill_contact(in Environment environment, in uint index)
+{
+	uint flags_base = fixed_data.rigid_body_circle_contact_constraint_flags_base;
+	uint_data.data[flags_base + index] |= rigid_body_circle_contact_constraint_is_dying_mask;
+}
+
+layout(local_size_x = clear_invalid_rigid_body_circle_contacts_local_size) in;
+void main()
+{
+	CLEAR_INVALID_CONTACTS(rigid_body_circle_contact_constraint_type_index, environment, get_leaf_bounding_box_bases, get_indices, kill_contact)
+}
