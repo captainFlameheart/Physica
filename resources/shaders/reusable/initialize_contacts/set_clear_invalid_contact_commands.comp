@@ -8,14 +8,22 @@ void main()
 	}
 
 	uvec4 local_sizes_flags = clear_invalid_contact_local_sizes_flags[index];
+	uint contact_detection_flags = fixed_data.contact_detection_flags;
 
 	uint detector_type = contact_detector_type_base + index;
-	uint detector_count = fixed_data.write_counts[detector_type];
+	uint contact_type = contact_constraint_type_base + index;
+
+	uint detector_count = 0u;
+	uint contact_count = 0u;
+	if ((contact_detection_flags & contact_detection_is_resetting_mask) != 0u)
+	{
+		detector_count = fixed_data.write_counts[detector_type];
+		contact_count = fixed_data.write_counts[contact_type];
+	}
+
 	uint clear_detectors_local_size = local_sizes_flags.x;
 	commands.reusable_dispatch_commands[clear_invalid_contact_detectors_program_base + index].work_group_count_x = compute_work_group_count(detector_count, clear_detectors_local_size);
 
-	uint contact_type = contact_constraint_type_base + index;
-	uint contact_count = fixed_data.write_counts[contact_type];
 	uint clear_contacts_local_size = local_sizes_flags.y;
 	commands.reusable_dispatch_commands[clear_invalid_contacts_program_base + index].work_group_count_x = compute_work_group_count(contact_count, clear_contacts_local_size);
 }

@@ -365,6 +365,55 @@ namespace game_logic::tick
 				2u * environment.state.layouts.commands.reusable_dispatch_commands_work_group_count_x_state.top_level_array_stride
 			);
 		}
+
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+		{
+			glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::reusable::initialize_contacts::Indices::set_clear_invalid_contact_commands)]);
+			glDispatchCompute(1u, 1u, 1u);
+		}
+
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_COMMAND_BARRIER_BIT);
+
+		for (GLuint clear_invalid_contact_detectors_shader_index{::game_state::shader_indices::reusable::initialize_contacts::clear_invalid_contact_detectors::base}; clear_invalid_contact_detectors_shader_index < ::game_state::shader_indices::reusable::initialize_contacts::clear_invalid_contact_detectors::end; ++clear_invalid_contact_detectors_shader_index)
+		{
+			if (
+				clear_invalid_contact_detectors_shader_index != static_cast<GLuint>(::game_state::shader_indices::reusable::initialize_contacts::clear_invalid_contact_detectors::Indices::rigid_body_circle)
+			)
+			{
+				continue;
+			}
+
+			glUseProgram(environment.state.shaders[clear_invalid_contact_detectors_shader_index]);
+			// TODO: We should exclude commit-count shaders.
+			GLuint program_index{ 4u + clear_invalid_contact_detectors_shader_index - ::game_state::shader_indices::reusable::initialize_contacts::clear_invalid_contact_detectors::base };
+			GLintptr command_offset
+			{
+				environment.state.layouts.commands.reusable_dispatch_commands_work_group_count_x_state.offset +
+				program_index * environment.state.layouts.commands.reusable_dispatch_commands_work_group_count_x_state.top_level_array_stride
+			};
+			glDispatchComputeIndirect(command_offset);
+		}
+
+		for (GLuint clear_invalid_contacts_shader_index{ ::game_state::shader_indices::reusable::initialize_contacts::clear_invalid_contacts::base }; clear_invalid_contacts_shader_index < ::game_state::shader_indices::reusable::initialize_contacts::clear_invalid_contacts::end; ++clear_invalid_contacts_shader_index)
+		{
+			if (
+				clear_invalid_contacts_shader_index != static_cast<GLuint>(::game_state::shader_indices::reusable::initialize_contacts::clear_invalid_contacts::Indices::rigid_body_circle)
+			)
+			{
+				continue;
+			}
+
+			glUseProgram(environment.state.shaders[clear_invalid_contacts_shader_index]);
+			// TODO: We should exclude commit-count shaders.
+			GLuint program_index{ 4u + clear_invalid_contacts_shader_index - ::game_state::shader_indices::reusable::initialize_contacts::clear_invalid_contact_detectors::base };
+			GLintptr command_offset
+			{
+				environment.state.layouts.commands.reusable_dispatch_commands_work_group_count_x_state.offset +
+				program_index * environment.state.layouts.commands.reusable_dispatch_commands_work_group_count_x_state.top_level_array_stride
+			};
+			glDispatchComputeIndirect(command_offset);
+		}
 	}
 
 	void tick_detectors(game_environment::Environment& environment)
@@ -544,6 +593,10 @@ namespace game_logic::tick
 
 			tick_bounding_box_contact_detectors(environment);
 
+			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+			reset_bounding_box_contact_detectors_if_needed(environment);
+
 			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);	// This is likely not needed due to barriers inside tick_bounding_box_contact_detectors.
 
 			commit_detector_counts(environment);	// TODO: Can this move up to help hide latency of getting BVH height?
@@ -556,10 +609,6 @@ namespace game_logic::tick
 			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
 			tick_detectors(environment);
-
-			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-
-			reset_bounding_box_contact_detectors_if_needed(environment);
 
 			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
