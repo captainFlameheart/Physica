@@ -474,6 +474,13 @@ namespace game_logic::initialize::compile_shaders::environment
 			static_cast<GLuint>(::game_state::shader_indices::reusable::initialize_contacts::Indices::reset_bounding_box_contact_detector_deaths) - reusable_local_size_base
 		] };
 
+		constexpr GLuint clear_invalid_rigid_body_circle_contact_detectors_local_size{ ::game_state::local_sizes::reusable_local_sizes[
+			static_cast<GLuint>(::game_state::shader_indices::reusable::initialize_contacts::clear_invalid_contact_detectors::Indices::rigid_body_circle) - reusable_local_size_base
+		] };
+		constexpr GLuint clear_invalid_rigid_body_circle_contacts_local_size{ ::game_state::local_sizes::reusable_local_sizes[
+			static_cast<GLuint>(::game_state::shader_indices::reusable::initialize_contacts::clear_invalid_contacts::Indices::rigid_body_circle) - reusable_local_size_base
+		] };
+
 		constexpr GLuint tick_entities_local_size_base{ ::game_state::shader_indices::tick::process_entities::base };
 
 		constexpr GLuint process_point_masses_local_size{ ::game_state::local_sizes::process_entities_local_sizes[
@@ -671,6 +678,8 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uint set_clear_invalid_contact_commands_local_size = " + ::std::to_string(set_clear_invalid_contact_commands_local_size) + ";\n"
 			"const uint reset_bounding_box_contact_detectors_local_size = " + ::std::to_string(reset_bounding_box_contact_detectors_local_size) + ";\n"
 			"const uint reset_bounding_box_contact_detector_deaths_local_size = " + ::std::to_string(reset_bounding_box_contact_detector_deaths_local_size) + ";\n"
+			"const uint clear_invalid_rigid_body_circle_contact_detectors_local_size = " + ::std::to_string(clear_invalid_rigid_body_circle_contact_detectors_local_size) + ";\n"
+			"const uint clear_invalid_rigid_body_circle_contacts_local_size = " + ::std::to_string(clear_invalid_rigid_body_circle_contacts_local_size) + ";\n"
 			"const uint update_tick_counts_local_size = " + ::std::to_string(update_tick_counts_local_size) + ";\n"
 			"const uint process_point_masses_local_size = " + ::std::to_string(process_point_masses_local_size) + ";\n"
 			"const uint tick_rigid_bodies_local_size = " + ::std::to_string(tick_rigid_bodies_local_size) + ";\n"
