@@ -69,7 +69,7 @@ namespace game_state::shader_indices
 		constexpr GLuint end{ static_cast<GLuint>(initialize_contacts::end) };
 		constexpr GLuint count{ end - base };
 
-		constexpr GLuint reusable_program_count{ 3u + initialize_contacts::clear_invalid_contact_detectors::count + initialize_contacts::clear_invalid_contacts::count };
+		constexpr GLuint reusable_program_count{ 4u + initialize_contacts::clear_invalid_contact_detectors::count + initialize_contacts::clear_invalid_contacts::count };
 	}
 
 	namespace initialize

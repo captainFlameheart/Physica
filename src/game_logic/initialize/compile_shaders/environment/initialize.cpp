@@ -55,6 +55,10 @@ namespace game_logic::initialize::compile_shaders::environment
 		{
 			2u
 		};
+		constexpr GLuint set_clear_invalid_contact_commands_program_index
+		{
+			3u
+		};
 
 		constexpr GLuint clear_bounding_box_contact_detector_deaths_program_index
 		{
@@ -85,7 +89,7 @@ namespace game_logic::initialize::compile_shaders::environment
 
 		constexpr GLuint clear_invalid_contact_detectors_program_base
 		{
-			3u
+			4u
 		};
 		constexpr GLuint clear_invalid_contacts_program_base
 		{
@@ -615,6 +619,7 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uint initialize_bounding_box_contact_detectors_program_index = " + std::to_string(initialize_bounding_box_contact_detectors_program_index) + ";\n"
 			"const uint reset_bounding_box_contact_detectors_program_index = " + std::to_string(reset_bounding_box_contact_detectors_program_index) + ";\n"
 			"const uint reset_bounding_box_contact_detector_deaths_program_index = " + std::to_string(reset_bounding_box_contact_detector_deaths_program_index) + ";\n"
+			"const uint set_clear_invalid_contact_commands_program_index = " + std::to_string(set_clear_invalid_contact_commands_program_index) + ";\n"
 			"const uint clear_bounding_box_contact_detector_deaths_program_index = " + std::to_string(clear_bounding_box_contact_detector_deaths_program_index) + ";\n"
 			"const uint perform_bounding_box_contact_detector_compaction_program_index = " + std::to_string(perform_bounding_box_contact_detector_compaction_program_index) + ";\n"
 			"const uint tick_bounding_box_contact_detectors_program_index = " + std::to_string(tick_bounding_box_contact_detectors_program_index) + ";\n"
