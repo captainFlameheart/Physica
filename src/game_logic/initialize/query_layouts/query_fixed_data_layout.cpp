@@ -113,6 +113,17 @@ namespace game_logic::initialize::query_layouts
 
 		::game_logic::shader_util::query::query_shader_storage_variable_offset
 		(
+			program, "Fixed_Data.contact_detection_flags",
+			environment.state.layouts.fixed_data.contact_detection_flags_properties
+		);
+		::game_logic::shader_util::query::query_shader_storage_variable_offset
+		(
+			program, "Fixed_Data.contact_reset_count",
+			environment.state.layouts.fixed_data.contact_reset_count_properties
+		);
+
+		::game_logic::shader_util::query::query_shader_storage_variable_offset
+		(
 			program, "Fixed_Data.point_mass_distance_constraint_flags_target_distance_base",
 			environment.state.layouts.fixed_data.point_mass_distance_constraint_flags_target_distance_base_properties
 		);

@@ -10,16 +10,14 @@ void main()
 		detector_count > max_detectors_per_bounding_box * inner_bounding_box_count
 		|| detector_count == 0u
 	);
-	should_reset = true;
+	//should_reset = true;
 	//should_reset = detector_count == 0u;
 
 	fixed_data.contact_detection_flags = uint(should_reset) * contact_detection_is_resetting_mask;
 
-	// PROBLEM: We are reading from kill list for clearing while we are killing detectors from splitting!
 	if (should_reset)
 	{
-		// MUST TODO: REMOVE!!!
-		atomicAdd(fixed_data.temp, 1u);
+		++fixed_data.contact_reset_count;
 
 		uint count = fixed_data.read_counts[inner_bounding_box_type];
 		fixed_data.read_counts[bounding_box_contact_detector_type] = count;

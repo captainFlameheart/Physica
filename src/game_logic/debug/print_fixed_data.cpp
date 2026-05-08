@@ -696,6 +696,25 @@ namespace game_logic::debug
 			sizeof(GLuint)
 		);
 		std::cout << "end_address: " << end_address << " = " << static_cast<GLfloat>(end_address) / static_cast<GLfloat>(1024u * 1024u) << " MiB" << std::endl;
+		
+		GLuint contact_detection_flags;
+		std::memcpy
+		(
+			&contact_detection_flags,
+			fixed_data + environment.state.layouts.fixed_data.contact_detection_flags_state.offset,
+			sizeof(GLuint)
+		);
+		std::cout << "contact_detection_flags: " << contact_detection_flags << std::endl;
+
+		GLuint contact_reset_count;
+		std::memcpy
+		(
+			&contact_reset_count,
+			fixed_data + environment.state.layouts.fixed_data.contact_reset_count_state.offset,
+			sizeof(GLuint)
+		);
+		std::cout << "contact_reset_count: " << contact_reset_count << std::endl;
+		
 		std::cout << "tick: " << environment.state.tick_count << std::endl;
 
 		std::cout << std::endl;

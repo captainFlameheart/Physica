@@ -139,10 +139,15 @@ namespace game_state::layouts::fixed_data
 		GLint array_stride;
 	};
 
-	/*struct rigid_body_circle_contact_constraint_spawner_indices_flags_base
+	struct contact_detection_flags
 	{
 		GLint offset;
-	};*/
+	};
+
+	struct contact_reset_count
+	{
+		GLint offset;
+	};
 
 	struct rigid_body_circle_contact_constraint_spawner_killed_ring_base
 	{
@@ -534,6 +539,17 @@ namespace game_state::layouts::fixed_data
 		{
 			rigid_body_circle_contact_constraint_spawner_source_kill_items_ring_base rigid_body_circle_contact_constraint_spawner_source_kill_items_ring_base_state;
 			GLint rigid_body_circle_contact_constraint_spawner_source_kill_items_ring_base_properties[sizeof(rigid_body_circle_contact_constraint_spawner_source_kill_items_ring_base) / sizeof(GLint)];
+		};
+
+		union
+		{
+			contact_detection_flags contact_detection_flags_state;
+			GLint contact_detection_flags_properties[sizeof(contact_detection_flags) / sizeof(GLint)];
+		};
+		union
+		{
+			contact_reset_count contact_reset_count_state;
+			GLint contact_reset_count_properties[sizeof(contact_reset_count) / sizeof(GLint)];
 		};
 		
 		union
