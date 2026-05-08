@@ -153,7 +153,11 @@ namespace game_state::entity_type_indices
 	constexpr std::array<std::string_view, count> initialize_names()
 	{
 		std::array<std::string_view, count> names{};
+
 		names[static_cast<GLuint>(constraint_spawners::Indices::bounding_box_contact_detector)] = "bounding_box_contact_detector"sv;
+
+		names[static_cast<GLuint>(constraints::Indices::rigid_body_circle_contact_constraint)] = "rigid_body_circle_contact_constraint"sv;
+
 		return names;
 	}
 

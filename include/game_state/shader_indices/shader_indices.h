@@ -496,6 +496,8 @@ namespace game_state::shader_indices
 					enum struct Indices : GLuint
 					{
 						clear_point_mass_distance_constraint_deaths = base,
+						clear_rigid_body_triangle_contact_constraint_deaths,
+						clear_rigid_body_triangle_circle_contact_constraint_deaths,
 						clear_rigid_body_circle_contact_constraint_deaths,
 
 						end
@@ -512,6 +514,8 @@ namespace game_state::shader_indices
 					enum struct Indices : GLuint
 					{
 						perform_point_mass_distance_constraint_compaction = base,
+						perform_rigid_body_triangle_contact_constraint_deaths,
+						perform_rigid_body_triangle_circle_contact_constraint_deaths,
 						perform_rigid_body_circle_contact_constraint_compaction,
 
 						end
@@ -547,6 +551,8 @@ namespace game_state::shader_indices
 				enum struct Indices : GLuint
 				{
 					point_mass_distance_constraints = base,
+					rigid_body_triangle_contact_constraints,
+					rigid_body_triangle_circle_contact_constraints,
 					rigid_body_circle_contact_constraints,
 
 					end
@@ -799,6 +805,8 @@ namespace game_state::shader_indices
 		names[static_cast<GLuint>(tick::process_entities::pre_constraint_spawners::clear_deaths::Indices::clear_rigid_body_triangle_circle_contact_detector_deaths)] = "clear_rigid_body_triangle_circle_contact_detector_deaths"sv;
 		names[static_cast<GLuint>(tick::process_entities::pre_constraint_spawners::clear_deaths::Indices::clear_rigid_body_circle_contact_constraint_spawner_deaths)] = "clear_rigid_body_circle_contact_constraint_spawner_deaths"sv;
 		
+		names[static_cast<GLuint>(tick::process_entities::constraints::Indices::rigid_body_circle_contact_constraints)] = "tick_rigid_body_circle_contact_constraints"sv;
+
 		return names;
 	}
 

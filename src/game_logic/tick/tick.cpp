@@ -541,10 +541,14 @@ namespace game_logic::tick
 
 		for (GLuint tick_constraints_shader_index{ ::game_state::shader_indices::tick::process_entities::constraints::base }; tick_constraints_shader_index < ::game_state::shader_indices::tick::process_entities::constraints::end; ++tick_constraints_shader_index)
 		{
-			/*if (tick_constraints_shader_index != ::game_state::shader_indices::tick::process_entities::constraints::Indices::point_mass_distance_constraints)
+			if
+			(
+				tick_constraints_shader_index != static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraints::Indices::point_mass_distance_constraints) &&
+				tick_constraints_shader_index != static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraints::Indices::rigid_body_circle_contact_constraints)
+			)
 			{
-				return;
-			}*/
+				continue;
+			}
 
 			glUseProgram(environment.state.shaders[tick_constraints_shader_index]);
 			GLuint index_in_tick_entities_shader_array{ tick_constraints_shader_index - ::game_state::shader_indices::tick::process_entities::base };
