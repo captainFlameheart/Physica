@@ -11,10 +11,10 @@ void main()
 	}
 	
 	uint indices_base = fixed_data.specific_contact_detector_indices_bases[rigid_body_circle_contact_type];
-
 	uint indices_index = indices_base + index;
-
 	uvec2 indices = uvec2_data.data[indices_index];
+
+	MAYBE_CONVERT_UNARY_CONTACT_DETECTOR_TO_BOUNDING_BOX_CONTACT_DETECTOR(rigid_body_circle_bounding_box_type, rigid_body_circle_contact_constraint_spawner_type_index, index, indices)
 
 	uint circle_body_position_radius_base = fixed_data.rigid_body_circle_body_position_radius_base;
 
@@ -81,9 +81,5 @@ void main()
 		uint_data.data[death_index_base + index] = death_index;
 		uint killed_base = fixed_data.killed_bases[rigid_body_circle_contact_constraint_spawner_type_index];	// TODO: Merge with kill_index.
 		uint_data.data[killed_base + death_index] = index;
-	}
-	else
-	{
-		maybe_convert_unary_contact_detector_to_bounding_box_contact_detector(rigid_body_circle_bounding_box_type, rigid_body_circle_contact_constraint_spawner_type_index, index, indices);
 	}
 }
