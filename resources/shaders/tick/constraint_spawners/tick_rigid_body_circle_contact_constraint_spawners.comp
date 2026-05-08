@@ -41,9 +41,6 @@ void main()
 	float hit_distance = circle_position_radius_0.z + circle_position_radius_1.z;
 	if (distance_squared < hit_distance * hit_distance)
 	{
-		// TODO: REMOVE!!!
-		atomicAdd(fixed_data.temp, 1u);
-
 		// TODO: Spawn constraint and despawn this spawner.
 		uint constraint_index = atomicAdd(fixed_data.write_counts[rigid_body_circle_contact_constraint_type_index], 1u);
 		if (constraint_index >= fixed_data.capacities[rigid_body_circle_contact_constraint_type_index])
