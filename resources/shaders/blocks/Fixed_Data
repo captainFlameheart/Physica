@@ -247,6 +247,7 @@ FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 	uint specific_contact_detector_indices_bases[contact_type_count];
 
 	uint contact_detection_flags;
+	uint previous_contact_reset_tick;
 	uint contact_reset_count;
 
 	//uint rigid_body_circle_contact_constraint_spawner_indices_flags_base;

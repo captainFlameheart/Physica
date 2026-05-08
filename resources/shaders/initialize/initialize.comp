@@ -449,6 +449,7 @@ void main()
 	}
 
 	fixed_data.contact_detection_flags = 0u;
+	fixed_data.previous_contact_reset_tick = 0u;
 	fixed_data.contact_reset_count = 0u;
 
 	//capacities[rigid_body_circle_contact_constraint_spawner_type_index] =
