@@ -3,7 +3,7 @@ const uint stack_cache_capacity = shared_cache_capacity;	// Must be >= 1u.
 const uint flush_cache_capacity = shared_cache_capacity;	// Must be >= 1u.
 
 // IMPORTANT TODO: Enable shared-memory acceleration.
-DEFINE_SPLIT_RECURSIVELY_FUNCTION(stack_cache_capacity, flush_cache_capacity, 0, 0)
+DEFINE_SPLIT_RECURSIVELY_FUNCTION(stack_cache_capacity, flush_cache_capacity, 0, 1)
 
 layout(local_size_x = reset_bounding_box_contact_detectors_local_size) in;
 void main()
