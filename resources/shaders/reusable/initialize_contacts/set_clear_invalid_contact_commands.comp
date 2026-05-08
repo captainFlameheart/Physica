@@ -1,0 +1,19 @@
+layout(local_size_x = set_clear_invalid_contact_commands_local_size) in;
+void main()
+{
+	uint index = gl_GlobalInvocationID.x;
+	if (index >= contact_type_count)
+	{
+		return;
+	}
+
+	uint detector_type = contact_detector_type_base + index;
+	uint detector_count = fixed_data.write_counts[detector_type];
+	uint clear_detectors_local_size = clear_contact_detectors_local_sizes[detector_type];
+	commands.reusable_dispatch_commands[clear_invalid_contact_detectors_program_base + index].work_group_count_x = compute_work_group_count(detector_count, clear_detectors_local_size);
+
+	uint contact_type = contact_constraint_type_base + index;
+	uint contact_count = fixed_data.write_counts[contact_type];
+	uint clear_contacts_local_size = clear_contacts_local_sizes[contact_type];
+	commands.reusable_dispatch_commands[clear_invalid_contacts_program_base + index].work_group_count_x = compute_work_group_count(contact_count, clear_contacts_local_size);
+}
