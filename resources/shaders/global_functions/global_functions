@@ -154,7 +154,7 @@ uint compute_contact_type(in uvec4 parent_pad_pad_type_0, in uvec4 parent_pad_pa
 		uint_data.data[killed_base + death_index] = index;
 	}
 
-	#define CLEAR_INVALID_CONTACTS(contact_type, environment, get_leaf_bounding_box_bases, get_indices, kill_contact)\
+	#define CLEAR_INVALID_CONTACTS(contact_type, environment, GET_LEAF_BOUNDING_BOX_BASES, GET_INDICES, KILL_CONTACT)\
 	{\
 		uint index = gl_GlobalInvocationID.x;\
 		uint count = fixed_data.write_counts[contact_type];	/* Note: we use the write count in this case. */\
@@ -163,9 +163,9 @@ uint compute_contact_type(in uvec4 parent_pad_pad_type_0, in uvec4 parent_pad_pa
 			return;\
 		}\
 		\
-		uvec2 leaf_bounding_box_bases = get_leaf_bounding_box_bases(environment);\
+		uvec2 leaf_bounding_box_bases = GET_LEAF_BOUNDING_BOX_BASES(environment);\
 		\
-		uvec2 indices = get_indices(environment, index);\
+		uvec2 indices = GET_INDICES(environment, index);\
 		\
 		uvec2 bounding_box_indices = leaf_bounding_box_bases + indices;\
 		\
@@ -174,7 +174,7 @@ uint compute_contact_type(in uvec4 parent_pad_pad_type_0, in uvec4 parent_pad_pa
 		\
 		if (bounding_boxes_are_separated(bounding_box_0, bounding_box_1))\
 		{\
-			kill_contact(environment, index);\
+			KILL_CONTACT(environment, index);\
 		}\
 	}
 

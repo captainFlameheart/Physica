@@ -1,8 +1,9 @@
 struct Environment
 {
-}
+	uint placeholder;
+};
 
-uint get_leaf_bounding_box_bases(in Environment environment)
+uvec2 get_leaf_bounding_box_bases(in Environment environment)
 {
 	uint bounding_box_base = fixed_data.leaf_bounding_box_bases[rigid_body_circle_bounding_box_type];
 	return uvec2(bounding_box_base, bounding_box_base);
@@ -24,5 +25,6 @@ void kill_contact(in Environment environment, in uint index)
 layout(local_size_x = clear_invalid_rigid_body_circle_contacts_local_size) in;
 void main()
 {
+	Environment environment;
 	CLEAR_INVALID_CONTACTS(rigid_body_circle_contact_constraint_type_index, environment, get_leaf_bounding_box_bases, get_indices, kill_contact)
 }
