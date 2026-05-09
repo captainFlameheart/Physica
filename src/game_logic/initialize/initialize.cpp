@@ -54,6 +54,6 @@ namespace game_logic::initialize
 			glMemoryBarrier(GL_ALL_BARRIER_BITS);
 		}
 
-		::game_logic::debug::print_fixed_data(environment);
+		//::game_logic::debug::print_fixed_data(environment);
 	}
 }
