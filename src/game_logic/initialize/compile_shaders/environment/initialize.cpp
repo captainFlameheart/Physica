@@ -87,9 +87,24 @@ namespace game_logic::initialize::compile_shaders::environment
 			- ::game_state::shader_indices::tick::process_entities::base
 		};
 
+		constexpr GLuint draw_rigid_body_circle_bounding_boxes_program_index
+		{
+			static_cast<GLuint>(::game_state::shader_indices::draw::entities::bounding_volume_hierarchy::Indices::rigid_body_circle_bounding_boxes)
+			- ::game_state::shader_indices::draw::entities::base
+		};
 		constexpr GLuint draw_inner_bounding_boxes_program_index
 		{
 			static_cast<GLuint>(::game_state::shader_indices::draw::entities::bounding_volume_hierarchy::Indices::inner_bounding_boxes)
+			- ::game_state::shader_indices::draw::entities::base
+		};
+		constexpr GLuint draw_bounding_box_contact_detectors_program_index
+		{
+			static_cast<GLuint>(::game_state::shader_indices::draw::entities::constraint_spawners::Indices::bounding_box_contact_detectors)
+			- ::game_state::shader_indices::draw::entities::base
+		};
+		constexpr GLuint draw_rigid_body_circle_contact_detectors_program_index
+		{
+			static_cast<GLuint>(::game_state::shader_indices::draw::entities::constraint_spawners::Indices::rigid_body_circle_contact_constraint_spawners)
 			- ::game_state::shader_indices::draw::entities::base
 		};
 
@@ -639,7 +654,10 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uint merge_bounding_box_contact_detectors_program_index = " + std::to_string(merge_bounding_box_contact_detectors_program_index) + ";\n"
 			"const uint clear_bounding_box_contact_detector_merge_data_program_index = " + std::to_string(clear_bounding_box_contact_detector_merge_data_program_index) + ";\n"
 
+			"const uint draw_rigid_body_circle_bounding_boxes_program_index = " + std::to_string(draw_rigid_body_circle_bounding_boxes_program_index) + ";\n"
 			"const uint draw_inner_bounding_boxes_program_index = " + std::to_string(draw_inner_bounding_boxes_program_index) + ";\n"
+			"const uint draw_bounding_box_contact_detectors_program_index = " + std::to_string(draw_bounding_box_contact_detectors_program_index) + ";\n"
+			"const uint draw_rigid_body_circle_contact_detectors_program_index = " + std::to_string(draw_rigid_body_circle_contact_detectors_program_index) + ";\n"
 
 			"const uint clear_invalid_contact_detectors_program_base = " + std::to_string(clear_invalid_contact_detectors_program_base) + ";\n"
 			"const uint clear_invalid_contacts_program_base = " + std::to_string(clear_invalid_contacts_program_base) + ";\n"

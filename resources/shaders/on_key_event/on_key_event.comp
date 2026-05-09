@@ -16,9 +16,18 @@ void main()
 		{
 			switch (key_scancode_action_mods.x)
 			{
-				case key_i:
-					toggle_draw_arrays_program(draw_inner_bounding_boxes_program_index);
+				case key_b:
+				{
+					bool enabled = toggle_draw_arrays_program(draw_inner_bounding_boxes_program_index);
+					set_draw_arrays_program_enabled(draw_rigid_body_circle_bounding_boxes_program_index, enabled);
 					break;
+				}
+				case key_d:
+				{
+					bool enabled = toggle_draw_arrays_program(draw_bounding_box_contact_detectors_program_index);
+					set_draw_arrays_program_enabled(draw_rigid_body_circle_contact_detectors_program_index, enabled);
+					break;
+				}
 			}
 		}
 		else

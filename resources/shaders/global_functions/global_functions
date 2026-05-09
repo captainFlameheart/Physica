@@ -123,9 +123,20 @@ uint compute_contact_type(in uvec4 parent_pad_pad_type_0, in uvec4 parent_pad_pa
 
 #if WRITING_ALLOWED
 
-	void toggle_draw_arrays_program(uint index)
+	void set_draw_arrays_program_enabled(uint index, bool enabled)
 	{
-		fixed_data.draw_arrays_command_flags[index] ^= draw_arrays_command_enabled_mask;
+		uint flags = fixed_data.draw_arrays_command_flags[index];
+		flags &= ~draw_arrays_command_enabled_mask;
+		flags |= uint(enabled) * draw_arrays_command_enabled_mask;
+		fixed_data.draw_arrays_command_flags[index] = flags;
+	}
+
+	bool toggle_draw_arrays_program(uint index)
+	{
+		uint flags = fixed_data.draw_arrays_command_flags[index];
+		flags ^= draw_arrays_command_enabled_mask;
+		fixed_data.draw_arrays_command_flags[index] = flags;
+		return ((flags & draw_arrays_command_enabled_mask) != 0u);
 	}
 
 	uint spawn(in uint entity_type, in uint count)
