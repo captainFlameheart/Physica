@@ -248,7 +248,7 @@ void main()
 	fixed_data.point_mass_write_flags_base = point_mass_write_flags_base;
 	fixed_data.point_mass_write_position_velocity_base = point_mass_write_position_velocity_base;
 
-	capacities[rigid_body_type_index] = 1000u;
+	capacities[rigid_body_type_index] = 5000u;
 
 	uint rigid_body_inverse_mass_inertia_base_address = align_up(point_mass_write_position_velocity_base_address + capacities[point_mass_type_index] * uvec4_data_array_stride);
 	uint rigid_body_constraint_start_base_address = align_up(rigid_body_inverse_mass_inertia_base_address + capacities[rigid_body_type_index] * vec2_data_array_stride);
@@ -296,10 +296,13 @@ void main()
 	leaf_bounding_box_local_bases[rigid_body_circle_bounding_box_type] = next_bounding_box_local_base;
 
 	uint rigid_body_circle_body_position_radius_base_address = align_up(rigid_body_triangle_vertex_base_address + capacities[rigid_body_triangle_type_index] * 3u * vec2_data_array_stride);
+	uint rigid_body_circle_material_base_address = align_up(rigid_body_circle_body_position_radius_base_address + capacities[rigid_body_circle_type_index] * uvec4_data_array_stride);
 
 	uint rigid_body_circle_body_position_radius_base = address_to_uvec4_index(rigid_body_circle_body_position_radius_base_address);
+	uint rigid_body_circle_material_base = address_to_uint_index(rigid_body_circle_material_base_address);
 
 	fixed_data.rigid_body_circle_body_position_radius_base = rigid_body_circle_body_position_radius_base;
+	fixed_data.rigid_body_circle_material_base = rigid_body_circle_material_base;
 
 	leaf_bounding_box_capacity += capacities[rigid_body_circle_type_index];
 	next_bounding_box_local_base += capacities[rigid_body_circle_type_index];
@@ -307,7 +310,7 @@ void main()
 	fixed_data.leaf_bounding_box_capacity = leaf_bounding_box_capacity;
 	uint inner_bounding_box_capacity = leaf_bounding_box_capacity - 1u + 1u;	// IMPORTANT TODO: Remove + 1u.
 	
-	uint leaf_bounding_box_parent_pad_pad_type_base_address = align_up(rigid_body_circle_body_position_radius_base_address + capacities[rigid_body_circle_type_index] * uvec4_data_array_stride);
+	uint leaf_bounding_box_parent_pad_pad_type_base_address = align_up(rigid_body_circle_material_base_address + capacities[rigid_body_circle_type_index] * uint_data_array_stride);
 	uint leaf_bounding_box_parent_pad_pad_type_base = address_to_uvec4_index(leaf_bounding_box_parent_pad_pad_type_base_address);
 
 	uint inner_bounding_box_parent_children_height_base_address = align_up(leaf_bounding_box_parent_pad_pad_type_base_address + next_bounding_box_local_base * uvec4_data_array_stride);
@@ -708,10 +711,11 @@ void main()
 			rigid_body_circle_index,
 			floatBitsToUint(vec3(0.0, 0.0, 0.5))
 		);
+		uint_data.data[rigid_body_circle_material_base + rigid_body_circle_index] = 0u;
+
 		uvec4_data.data[leaf_bounding_box_parent_pad_pad_type_bases[rigid_body_circle_bounding_box_type] + rigid_body_circle_index] =
 			uvec4(null_uint, 0u, 0u, rigid_body_circle_bounding_box_type);
 		uvec4_data.data[leaf_bounding_box_bases[rigid_body_circle_bounding_box_type] + rigid_body_circle_index] = uvec4(0u);
-		//uvec4_data.data[write_leaf_bounding_box_bases[rigid_body_circle_bounding_box_type] + rigid_body_circle_index] = uvec4(0u);
 	}
 
 	/*uint rigid_body_circle_contact_constraint_spawner_index = 0u;
@@ -887,6 +891,13 @@ void main()
 	{
 		fixed_data.read_counts[hover_highlighter_type] = 0u;
 		fixed_data.write_counts[hover_highlighter_type] = 0u;
+	}
+
+	for (uint material_index = 0u; material_index < rigid_body_circle_material_count; ++material_index)
+	{
+		Rigid_Body_Circle_Material material = rigid_body_circle_materials[material_index];
+		fixed_data.rigid_body_circle_material_albedos[material_index] = material.albedo;
+		fixed_data.rigid_body_circle_material_emissions[material_index] = material.emission;
 	}
 
 	fixed_data.temp = null_uint;

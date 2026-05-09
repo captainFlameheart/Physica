@@ -1,5 +1,7 @@
 in vec2 offset;
 in float radius;
+in vec4 material_albedo;
+in vec4 material_emission;
 
 layout(location = 0) out vec4 albedo;
 layout(location = 1) out vec4 emission;
@@ -14,8 +16,8 @@ void main()
         discard;
     }
 
-    albedo = vec4(0.0, 0.5, 1.0, default_reflectivity);
-    emission = vec4(albedo.rgb * default_emission_scalar, default_alpha_emission);
+    albedo = material_albedo;
+    emission = material_emission;
     absorption = default_attenuation;
     scattering = default_scattering;
 }

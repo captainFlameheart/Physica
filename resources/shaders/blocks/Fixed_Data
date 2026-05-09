@@ -112,6 +112,28 @@ const uint grabbing_cursor_index = 1u;
 
 const uint drag_mouse_button = mouse_button_middle;
 
+struct Rigid_Body_Circle_Material
+{
+	vec4 albedo;
+	vec4 emission;
+};
+
+Rigid_Body_Circle_Material create_basic_rigid_body_circle_material(in vec3 albedo, in bool is_lit)
+{
+	return Rigid_Body_Circle_Material
+	(
+		vec4(albedo, default_reflectivity),
+		vec4(albedo * default_emission_scalar, default_alpha_emission) * float(is_lit)
+	);
+}
+
+const Rigid_Body_Circle_Material rigid_body_circle_materials[] =
+{
+	create_basic_rigid_body_circle_material(vec3(0.0, 0.5, 1.0), true),
+};
+
+const uint rigid_body_circle_material_count = rigid_body_circle_materials.length();
+
 uint align_up(uint address)
 {
 	return (address + align_up_addition) & align_up_mask;
@@ -216,6 +238,10 @@ FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 	uint rigid_body_triangle_vertex_base;
 
 	uint rigid_body_circle_body_position_radius_base;
+	uint rigid_body_circle_material_base;
+
+	vec4 rigid_body_circle_material_albedos[rigid_body_circle_material_count];
+	vec4 rigid_body_circle_material_emissions[rigid_body_circle_material_count];
 
 	uint leaf_bounding_box_parent_pad_pad_type_bases[leaf_bounding_box_type_count];
 	uint inner_bounding_box_parent_children_height_base;

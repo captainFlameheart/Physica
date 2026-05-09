@@ -11,6 +11,8 @@ const vec2 offsets[6u] = vec2[6u]
 
 out vec2 offset;
 out float radius;
+out vec4 material_albedo;
+out vec4 material_emission;
 
 const float density = 1.0 / (0.05 * pi);
 const float pi_times_density = pi * density;
@@ -55,4 +57,10 @@ void main()
 	camera_offset.xyz *= length_unit_in_meters;
 	camera_offset.xy += vertex;
 	gl_Position = camera_offset_to_clip_coordinates * camera_offset;
+
+	uint material_base = fixed_data.rigid_body_circle_material_base;
+	uint material = uint_data.data[material_base + index];
+
+	material_albedo = fixed_data.rigid_body_circle_material_albedos[material];//vec4(0.0, 0.5, 1.0, default_reflectivity);
+	material_emission = fixed_data.rigid_body_circle_material_emissions[material];//vec4(material_albedo.rgb * default_emission_scalar, default_alpha_emission);
 }
