@@ -81,11 +81,11 @@ const uint draw_arrays_command_enabled_mask = 1u << draw_arrays_command_enabled_
 
 const float default_reflectivity = 0.8;
 
-const float default_emission_scalar = 0.7;
+const float default_emission_scalar = 0.5;
 const float default_alpha_emission_factor = 0.3;
 const float default_alpha_emission = default_emission_scalar * default_alpha_emission_factor;
 
-const float default_attenuation_scalar = 4.0;
+const float default_attenuation_scalar = 1.0;
 const vec4 default_attenuation = vec4(default_attenuation_scalar);
 
 const float default_scattering_scalar = 0.0;
@@ -129,7 +129,17 @@ Rigid_Body_Circle_Material create_basic_rigid_body_circle_material(in vec3 albed
 
 const Rigid_Body_Circle_Material rigid_body_circle_materials[] =
 {
+	create_basic_rigid_body_circle_material(vec3(0.0, 0.5, 1.0), false),
 	create_basic_rigid_body_circle_material(vec3(0.0, 0.5, 1.0), true),
+	
+	create_basic_rigid_body_circle_material(vec3(1.0, 0.5, 1.0), false),
+	create_basic_rigid_body_circle_material(vec3(1.0, 0.5, 1.0), true),
+	
+	create_basic_rigid_body_circle_material(vec3(1.0, 0.1, 0.1), false),
+	create_basic_rigid_body_circle_material(vec3(1.0, 0.1, 0.1), true),
+
+	create_basic_rigid_body_circle_material(vec3(0.1, 1.0, 0.1), false),
+	create_basic_rigid_body_circle_material(vec3(0.1, 1.0, 0.1), true),
 };
 
 const uint rigid_body_circle_material_count = rigid_body_circle_materials.length();

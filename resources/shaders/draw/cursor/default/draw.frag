@@ -24,6 +24,6 @@ void main()
     }
 
     emission = vec4(0.0);
-    attenuation = default_attenuation;
+    attenuation = default_attenuation * 10u;
     unlit_color = vec4(icon_fill_bit);
 }

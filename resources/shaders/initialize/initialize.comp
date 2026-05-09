@@ -248,7 +248,7 @@ void main()
 	fixed_data.point_mass_write_flags_base = point_mass_write_flags_base;
 	fixed_data.point_mass_write_position_velocity_base = point_mass_write_position_velocity_base;
 
-	capacities[rigid_body_type_index] = 5000u;
+	capacities[rigid_body_type_index] = 1000u;
 
 	uint rigid_body_inverse_mass_inertia_base_address = align_up(point_mass_write_position_velocity_base_address + capacities[point_mass_type_index] * uvec4_data_array_stride);
 	uint rigid_body_constraint_start_base_address = align_up(rigid_body_inverse_mass_inertia_base_address + capacities[rigid_body_type_index] * vec2_data_array_stride);
@@ -704,6 +704,19 @@ void main()
 		vec2_data.data[vertex_index + 2u] = radius * vec2(base_x_offset, -0.5);
 	}
 
+	const uint unlit_count_factor = 5u;
+	uint rigid_body_circle_material_indices[(rigid_body_circle_material_count / 2u) * (unlit_count_factor + 1u)];
+	uint i = 0u;
+	for (uint material_index = 0u; material_index < rigid_body_circle_material_count; material_index += 2u)
+	{
+		for (uint j = 0u; j < unlit_count_factor; ++j)
+		{
+			rigid_body_circle_material_indices[i++] = material_index;
+		}
+
+		rigid_body_circle_material_indices[i++] = material_index + 1u;
+	}
+
 	for (uint rigid_body_circle_index = 0u; rigid_body_circle_index < rigid_body_circle_count; ++rigid_body_circle_index)
 	{
 		uvec4_data.data[rigid_body_circle_body_position_radius_base + rigid_body_circle_index] = uvec4
@@ -711,7 +724,7 @@ void main()
 			rigid_body_circle_index,
 			floatBitsToUint(vec3(0.0, 0.0, 0.5))
 		);
-		uint_data.data[rigid_body_circle_material_base + rigid_body_circle_index] = 0u;
+		uint_data.data[rigid_body_circle_material_base + rigid_body_circle_index] = rigid_body_circle_material_indices[rigid_body_circle_index % rigid_body_circle_material_indices.length()];
 
 		uvec4_data.data[leaf_bounding_box_parent_pad_pad_type_bases[rigid_body_circle_bounding_box_type] + rigid_body_circle_index] =
 			uvec4(null_uint, 0u, 0u, rigid_body_circle_bounding_box_type);
