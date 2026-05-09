@@ -123,6 +123,11 @@ uint compute_contact_type(in uvec4 parent_pad_pad_type_0, in uvec4 parent_pad_pa
 
 #if WRITING_ALLOWED
 
+	void toggle_draw_arrays_program(uint index)
+	{
+		fixed_data.draw_arrays_command_flags[index] ^= draw_arrays_command_enabled_mask;
+	}
+
 	uint spawn(in uint entity_type, in uint count)
 	{	// IMPORTANT TODO: Do we need to clear the death index of each spawned entity?
 		return atomicAdd(fixed_data.write_counts[entity_type], count);

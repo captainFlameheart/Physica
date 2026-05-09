@@ -91,6 +91,13 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uint mouse_button_middle = " STRINGIFY(GLFW_MOUSE_BUTTON_MIDDLE) ";\n"
 
 			"const uint mouse_button_count = " STRINGIFY(GLFW_MOUSE_BUTTON_LAST + 1) ";\n"
+
+			"const uint mod_shift = " STRINGIFY(GLFW_MOD_SHIFT) ";\n"
+			"const uint mod_control = " STRINGIFY(GLFW_MOD_CONTROL) ";\n"
+			"const uint mod_alt = " STRINGIFY(GLFW_MOD_ALT) ";\n"
+			"const uint mod_super = " STRINGIFY(GLFW_MOD_SUPER) ";\n"
+			"const uint mod_caps_lock = " STRINGIFY(GLFW_MOD_CAPS_LOCK) ";\n"
+			"const uint mod_num_lock = " STRINGIFY(GLFW_MOD_NUM_LOCK) ";\n"
 		);
 	}
 }

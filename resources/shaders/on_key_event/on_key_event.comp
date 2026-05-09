@@ -12,23 +12,35 @@ void main()
 
 	if (key_scancode_action_mods.z == press)
 	{
-		switch (key_scancode_action_mods.x)
+		if ((key_scancode_action_mods.w & mod_control) != 0u)
 		{
-			case key_0:
-				fixed_data.visible_source_image_layer = 0u;
-				break;
-			case key_1:
-				fixed_data.visible_source_image_layer = 1u;
-				break;
-			case key_2:
-				fixed_data.visible_source_image_layer = 2u;
-				break;
-			case key_3:
-				fixed_data.visible_source_image_layer = 3u;
-				break;
-			case key_4:
-				fixed_data.visible_source_image_layer = 4u;
-				break;
+			switch (key_scancode_action_mods.x)
+			{
+				case key_i:
+					toggle_draw_arrays_program(draw_inner_bounding_boxes_program_index);
+					break;
+			}
+		}
+		else
+		{
+			switch (key_scancode_action_mods.x)
+			{
+				case key_0:
+					fixed_data.visible_source_image_layer = 0u;
+					break;
+				case key_1:
+					fixed_data.visible_source_image_layer = 1u;
+					break;
+				case key_2:
+					fixed_data.visible_source_image_layer = 2u;
+					break;
+				case key_3:
+					fixed_data.visible_source_image_layer = 3u;
+					break;
+				case key_4:
+					fixed_data.visible_source_image_layer = 4u;
+					break;
+			}
 		}
 	}
 }
