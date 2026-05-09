@@ -30,7 +30,7 @@ void main()
 
 		const float k = 2.0;
 		float f = 0.5;
-		fixed_data.camera_velocity.zw = ivec2(vec2(fixed_data.camera_velocity.zw) * (1.0 - f) + vec2(-grabbed_point_delta) * (1.0 / 20.0) * f); //ivec2(mix(vec2(fixed_data.camera_velocity.zw), vec2(-grabbed_point_delta), 1.0));
+		fixed_data.camera_velocity.zw = ivec2(vec2(fixed_data.camera_velocity.zw) * (1.0 - f) + vec2(-grabbed_point_delta) * (1.0 / ticks_per_frame) * f); //ivec2(mix(vec2(fixed_data.camera_velocity.zw), vec2(-grabbed_point_delta), 1.0));
 		//fixed_data.camera_velocity.zw = ivec2(mix(vec2(fixed_data.camera_velocity.zw), vec2(-grabbed_point_delta), 1 - exp(-delta_time * k)));//ivec2(-grabbed_point_delta * 0.01);
 	}
 }

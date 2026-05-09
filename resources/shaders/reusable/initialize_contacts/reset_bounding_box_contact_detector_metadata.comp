@@ -2,7 +2,7 @@ layout(local_size_x = 1u) in;
 void main()
 {
 	const uint max_detectors_per_bounding_box = 10u;
-	const uint ticks_between_resets = 5u * 60u * 20u;	// IMPORTANT TODO: Base on tick rate.
+	const uint ticks_between_resets = uint(5.0 * frames_per_second * ticks_per_frame);
 
 	uint inner_bounding_box_count = fixed_data.read_counts[inner_bounding_box_type];
 	uint detector_count = fixed_data.read_counts[bounding_box_contact_detector_type];

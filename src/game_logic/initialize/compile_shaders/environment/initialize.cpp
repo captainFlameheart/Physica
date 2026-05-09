@@ -614,6 +614,8 @@ namespace game_logic::initialize::compile_shaders::environment
 			initialize_input_constants(environment) +
 
 			"const float delta_time = " + std::to_string(game_state::units::time_unit_in_seconds) + ";\n"
+			"const float frames_per_second = " + std::to_string(game_state::units::frames_per_second) + ";\n"
+			"const float ticks_per_frame = " + std::to_string(game_state::units::ticks_per_frame) + ";\n"
 
 			"const float meter_in_length_units = " + std::to_string(game_state::units::meter_in_length_units) + ";\n"
 			"const float length_unit_in_meters = " + std::to_string(game_state::units::length_unit_in_meters) + ";\n"
