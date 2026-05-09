@@ -100,6 +100,8 @@ namespace game_logic::initialize::compile_shaders
 		compile_draw_rigid_body_circle_bounding_boxes(environment, compile_environment);
 		compile_draw_inner_bounding_boxes(environment, compile_environment);
 
+		compile_draw_world_border(environment, compile_environment);
+
 		compile_draw_cursor(environment, compile_environment);
 
 		compile_draw_default_skycircle_elements(environment, compile_environment);

@@ -29,6 +29,9 @@ namespace game_logic::draw
 			);
 		}
 
+		glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::draw::world_border::Indices::world_border)]);
+		glDrawArrays(GL_TRIANGLES, 0, 24u);
+
 		glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::draw::cursor::Indices::cursor)]);
 		glDrawArrays(GL_TRIANGLES, 0, 6u);
 	}
