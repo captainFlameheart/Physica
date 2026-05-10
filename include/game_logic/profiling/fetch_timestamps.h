@@ -5,5 +5,5 @@
 
 namespace game_logic::profiling
 {
-	void place_timestamp(::game_environment::Environment& environment, ::game_state::profiling::Timestamp_Type type, std::string name, bool is_start = false);
+	void fetch_timestamps(::game_environment::Environment& environment);
 }

@@ -41,6 +41,7 @@ namespace game_logic::profiling
 		for (GLuint timestamp{ 0u }; timestamp < environment.state.profiling.time_measurement->timestamp_capacity; ++timestamp)
 		{
 			environment.state.profiling.time_measurement->timestamp_metadata[timestamp].next = timestamp;
+			environment.state.profiling.time_measurement->timestamp_metadata[timestamp].name = "";
 		}
 	}
 }

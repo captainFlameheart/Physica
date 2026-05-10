@@ -5,7 +5,7 @@
 
 namespace game_logic::profiling
 {
-	void place_timestamp(::game_environment::Environment& environment, ::game_state::profiling::Timestamp_Type type, std::string name, bool is_start = false)
+	void place_timestamp(::game_environment::Environment& environment, ::game_state::profiling::Timestamp_Type type, std::string name, bool is_start)
 	{
 		if (environment.state.profiling.time_measurement == nullptr)
 		{

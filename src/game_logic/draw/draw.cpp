@@ -4,6 +4,7 @@
 #include "game_state/bindings/include.h"
 #include "game_state/texture_units/include.h"
 #include "game_logic/holographic_radiance_cascades/include.h"
+#include "game_logic/profiling/include.h"
 #include <iostream>
 
 namespace game_logic::draw
@@ -387,6 +388,8 @@ namespace game_logic::draw
 		// IMPORTANT TODO: We might not need GL_SHADER_STORAGE_BARRIER_BIT!
 		glMemoryBarrier(GL_COMMAND_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
 
+		::game_logic::profiling::place_timestamp(environment, ::game_state::profiling::Timestamp_Type::draw_source, "draw_source_start", true);
+		
 		if (environment.state.holographic_radiance_cascades.enabled)
 		{
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, environment.state.holographic_radiance_cascades.source_framebuffer);
@@ -406,6 +409,8 @@ namespace game_logic::draw
 		glClearTexImage(environment.state.holographic_radiance_cascades.skycircle_texture, 0, GL_RGBA, GL_FLOAT, clear_color);
 		glViewport(0, 0, environment.state.holographic_radiance_cascades.skycircle_length, 1u);
 		draw_skycircle(environment);
+		
+		::game_logic::profiling::place_timestamp(environment, ::game_state::profiling::Timestamp_Type::draw_source, "draw_source");
 
 		if (environment.state.holographic_radiance_cascades.enabled)
 		{
@@ -425,6 +430,8 @@ namespace game_logic::draw
 				glDrawArrays(GL_TRIANGLES, 0, 6u);
 			}
 		}
+
+		::game_logic::profiling::flush_timestamps(environment);
 
 		++environment.state.draw_count;
 	}
