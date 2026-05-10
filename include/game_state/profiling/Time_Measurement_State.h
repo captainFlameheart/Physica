@@ -21,18 +21,22 @@ namespace game_state::profiling
 	{
 		Timestamp_Type type;
 		GLuint previous;
+		GLuint next;
 		std::string name;
 	};
 
 	struct Time_Measurement_State
 	{
 		GLuint timestamp_capacity;
+		GLuint query_capacity;
 
 		GLuint measured_type_count;
 		bool measured_types[Timestamp_Type::count];
 		GLuint previous_timestamps[Timestamp_Type::count];
 
 		GLuint next;
+		GLuint base_query;
+		GLuint next_query;
 
 		GLuint buffer;
 		GLuint* queries;

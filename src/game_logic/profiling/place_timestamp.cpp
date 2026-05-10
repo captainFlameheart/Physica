@@ -13,16 +13,29 @@ namespace game_logic::profiling
 		}
 		if (environment.state.profiling.time_measurement->measured_types[type])
 		{
-			glQueryCounter(environment.state.profiling.time_measurement->queries[environment.state.profiling.time_measurement->next], GL_TIMESTAMP);
+			glQueryCounter(environment.state.profiling.time_measurement->queries[environment.state.profiling.time_measurement->next_query], GL_TIMESTAMP);
 			
+			GLuint old_next = environment.state.profiling.time_measurement->timestamp_metadata[environment.state.profiling.time_measurement->next].next;
+			environment.state.profiling.time_measurement->timestamp_metadata[old_next].previous = null_uint;
+			if (environment.state.profiling.time_measurement->previous_timestamps[environment.state.profiling.time_measurement->timestamp_metadata[environment.state.profiling.time_measurement->next].type] == environment.state.profiling.time_measurement->next)
+			{
+				environment.state.profiling.time_measurement->previous_timestamps[environment.state.profiling.time_measurement->timestamp_metadata[environment.state.profiling.time_measurement->next].type] = null_uint;
+			}
+
 			environment.state.profiling.time_measurement->timestamp_metadata[environment.state.profiling.time_measurement->next].type = type;
-			environment.state.profiling.time_measurement->timestamp_metadata[environment.state.profiling.time_measurement->next].previous =
-				(is_start ? null_uint : environment.state.profiling.time_measurement->previous_timestamps[type]);
+			GLuint previous = is_start ? null_uint : environment.state.profiling.time_measurement->previous_timestamps[type];
+			environment.state.profiling.time_measurement->timestamp_metadata[environment.state.profiling.time_measurement->next].previous = previous;
+			environment.state.profiling.time_measurement->timestamp_metadata[environment.state.profiling.time_measurement->next].next = environment.state.profiling.time_measurement->next;
 			environment.state.profiling.time_measurement->timestamp_metadata[environment.state.profiling.time_measurement->next].name = name;
 			
+			if (!is_start)
+			{
+				environment.state.profiling.time_measurement->timestamp_metadata[previous].next = environment.state.profiling.time_measurement->next;
+			}
 			environment.state.profiling.time_measurement->previous_timestamps[type] = environment.state.profiling.time_measurement->next;
 
-			++environment.state.profiling.time_measurement->next;
+			environment.state.profiling.time_measurement->next = ((environment.state.profiling.time_measurement->next + 1u) % environment.state.profiling.time_measurement->timestamp_capacity);
+			environment.state.profiling.time_measurement->next_query = ((environment.state.profiling.time_measurement->next_query + 1u) % environment.state.profiling.time_measurement->query_capacity);
 		}
 	}
 }
