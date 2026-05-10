@@ -1,4 +1,5 @@
 #pragma once
+#include "fetch_timestamps.h"
 #include "flush_timestamps.h"
 #include "free_state.h"
 #include "free_time_measurement_state.h"

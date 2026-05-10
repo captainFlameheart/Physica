@@ -3,6 +3,7 @@
 #include "game_environment/Environment.h"
 #include "game_state/profiling/include.h"
 #include <iostream>
+#include "global/include.h"
 
 namespace game_logic::profiling
 {
@@ -29,8 +30,26 @@ namespace game_logic::profiling
 				timestamps + i * ::game_state::profiling::timestamp_value_size,
 				::game_state::profiling::timestamp_value_size
 			);
-			std::cout << timestamp << std::endl;
+			::game_state::profiling::Timestamp_Metadata& metadata{ environment.state.profiling.time_measurement->timestamp_metadata[i] };
+			if (metadata.name != "")
+			{
+				std::cout << i << ", " << metadata.name << ": " << timestamp << '\n';
+				if (metadata.previous != null_uint)
+				{
+					GLuint64 previous_timestamp;
+					std::memcpy
+					(
+						&previous_timestamp,
+						timestamps + metadata.previous * ::game_state::profiling::timestamp_value_size,
+						::game_state::profiling::timestamp_value_size
+					);
+
+					GLuint64 elapsed_time = timestamp - previous_timestamp;
+					std::cout << "	" << elapsed_time << " ns = " << elapsed_time * (1.0 / 1000000.0) << " ms.";
+				}
+			}
 		}
+		std::cout << std::endl;
 		
 		delete[] timestamps;
 	}

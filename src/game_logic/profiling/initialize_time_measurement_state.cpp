@@ -8,7 +8,7 @@ namespace game_logic::profiling
 	void initialize_time_measurement_state(::game_environment::Environment& environment)
 	{
 		environment.state.profiling.time_measurement = new ::game_state::profiling::Time_Measurement_State();
-		environment.state.profiling.time_measurement->timestamp_capacity = 1000000u;
+		environment.state.profiling.time_measurement->timestamp_capacity = 1000u;
 		environment.state.profiling.time_measurement->query_capacity = 1000u;
 		
 		environment.state.profiling.time_measurement->measured_type_count = 0u;
@@ -40,6 +40,7 @@ namespace game_logic::profiling
 
 		for (GLuint timestamp{ 0u }; timestamp < environment.state.profiling.time_measurement->timestamp_capacity; ++timestamp)
 		{
+			environment.state.profiling.time_measurement->timestamp_metadata[timestamp].type = ::game_state::profiling::Timestamp_Type::individual_command;
 			environment.state.profiling.time_measurement->timestamp_metadata[timestamp].next = timestamp;
 			environment.state.profiling.time_measurement->timestamp_metadata[timestamp].name = "";
 		}

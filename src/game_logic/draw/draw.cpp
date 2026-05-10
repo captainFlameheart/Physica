@@ -432,6 +432,7 @@ namespace game_logic::draw
 		}
 
 		::game_logic::profiling::flush_timestamps(environment);
+		::game_logic::profiling::fetch_timestamps(environment);
 
 		++environment.state.draw_count;
 	}

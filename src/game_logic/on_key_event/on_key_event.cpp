@@ -59,64 +59,80 @@ namespace game_logic::on_key_event
 
 		if (action == GLFW_PRESS)
 		{
-			switch (key)
+			if ((mods & GLFW_MOD_ALT) != 0u)
 			{
-			case GLFW_KEY_P:
-				environment.state.is_debugging = !environment.state.is_debugging;
-				if (environment.state.is_debugging)
+				switch (key)
 				{
-					std::cout << "Debug started." << std::endl;
+				case GLFW_KEY_S:
+					::game_logic::profiling::set_time_measurement_type_enabled(environment, ::game_state::profiling::Timestamp_Type::draw_source, true);
+					break;
 				}
-				else
+			}
+			else if ((mods & GLFW_MOD_CONTROL) != 0u)
+			{
+
+			}
+			else
+			{
+				switch (key)
 				{
-					std::cout << "Debug ended." << std::endl;
+				case GLFW_KEY_P:
+					environment.state.is_debugging = !environment.state.is_debugging;
+					if (environment.state.is_debugging)
+					{
+						std::cout << "Debug started." << std::endl;
+					}
+					else
+					{
+						std::cout << "Debug ended." << std::endl;
+					}
+					break;
+				case GLFW_KEY_H:
+					::game_logic::holographic_radiance_cascades::toggle(environment);
+					break;
+				case GLFW_KEY_0:
+					environment.state.holographic_radiance_cascades.visible_source_layer = 0u;
+					::game_logic::holographic_radiance_cascades::enable(environment);
+					break;
+				case GLFW_KEY_1:
+					environment.state.holographic_radiance_cascades.visible_source_layer = 1u;
+					::game_logic::holographic_radiance_cascades::enable(environment);
+					break;
+				case GLFW_KEY_2:
+					environment.state.holographic_radiance_cascades.visible_source_layer = 2u;
+					::game_logic::holographic_radiance_cascades::enable(environment);
+					break;
+				case GLFW_KEY_3:
+					environment.state.holographic_radiance_cascades.visible_source_layer = 3u;
+					::game_logic::holographic_radiance_cascades::enable(environment);
+					break;
+				case GLFW_KEY_9:
+					environment.state.holographic_radiance_cascades.draw_skycircle_ring = !environment.state.holographic_radiance_cascades.draw_skycircle_ring;
+					break;
+				case GLFW_KEY_L:
+					environment.state.holographic_radiance_cascades.enabled_directions[0u][0u] = !environment.state.holographic_radiance_cascades.enabled_directions[0u][0u];
+					break;
+				case GLFW_KEY_J:
+					environment.state.holographic_radiance_cascades.enabled_directions[0u][1u] = !environment.state.holographic_radiance_cascades.enabled_directions[0u][1u];
+					break;
+				case GLFW_KEY_I:
+					environment.state.holographic_radiance_cascades.enabled_directions[1u][0u] = !environment.state.holographic_radiance_cascades.enabled_directions[1u][0u];
+					break;
+				case GLFW_KEY_K:
+					environment.state.holographic_radiance_cascades.enabled_directions[1u][1u] = !environment.state.holographic_radiance_cascades.enabled_directions[1u][1u];
+					break;
+				case GLFW_KEY_O:
+					::game_logic::debug::print_fixed_data(environment);
+					break;
+				case GLFW_KEY_COMMA:
+					environment.state.tick_paused = !environment.state.tick_paused;
+					break;
+				case GLFW_KEY_PERIOD:
+					::game_logic::tick::tick(environment);
+					break;
+				default:
+					break;
 				}
-				break;
-			case GLFW_KEY_H:
-				::game_logic::holographic_radiance_cascades::toggle(environment);
-				break;
-			case GLFW_KEY_0:
-				environment.state.holographic_radiance_cascades.visible_source_layer = 0u;
-				::game_logic::holographic_radiance_cascades::enable(environment);
-				break;
-			case GLFW_KEY_1:
-				environment.state.holographic_radiance_cascades.visible_source_layer = 1u;
-				::game_logic::holographic_radiance_cascades::enable(environment);
-				break;
-			case GLFW_KEY_2:
-				environment.state.holographic_radiance_cascades.visible_source_layer = 2u;
-				::game_logic::holographic_radiance_cascades::enable(environment);
-				break;
-			case GLFW_KEY_3:
-				environment.state.holographic_radiance_cascades.visible_source_layer = 3u;
-				::game_logic::holographic_radiance_cascades::enable(environment);
-				break;
-			case GLFW_KEY_9:
-				environment.state.holographic_radiance_cascades.draw_skycircle_ring = !environment.state.holographic_radiance_cascades.draw_skycircle_ring;
-				break;
-			case GLFW_KEY_L:
-				environment.state.holographic_radiance_cascades.enabled_directions[0u][0u] = !environment.state.holographic_radiance_cascades.enabled_directions[0u][0u];
-				break;
-			case GLFW_KEY_J:
-				environment.state.holographic_radiance_cascades.enabled_directions[0u][1u] = !environment.state.holographic_radiance_cascades.enabled_directions[0u][1u];
-				break;
-			case GLFW_KEY_I:
-				environment.state.holographic_radiance_cascades.enabled_directions[1u][0u] = !environment.state.holographic_radiance_cascades.enabled_directions[1u][0u];
-				break;
-			case GLFW_KEY_K:
-				environment.state.holographic_radiance_cascades.enabled_directions[1u][1u] = !environment.state.holographic_radiance_cascades.enabled_directions[1u][1u];
-				break;
-			case GLFW_KEY_O:
-				::game_logic::debug::print_fixed_data(environment);
-				break;
-			case GLFW_KEY_COMMA:
-				environment.state.tick_paused = !environment.state.tick_paused;
-				break;
-			case GLFW_KEY_PERIOD:
-				::game_logic::tick::tick(environment);
-				break;
-			default:
-				break;
 			}
 		}
 	}
