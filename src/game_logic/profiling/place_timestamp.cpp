@@ -11,9 +11,15 @@ namespace game_logic::profiling
 		{
 			return;
 		}
+		if (environment.state.profiling.time_measurement->query_count == environment.state.profiling.time_measurement->query_capacity)
+		{
+			std::cerr << "Timestamp query capacity exceeded!" << std::endl;
+			return;
+		}
 		if (environment.state.profiling.time_measurement->measured_types[type])
 		{
-			glQueryCounter(environment.state.profiling.time_measurement->queries[environment.state.profiling.time_measurement->next_query], GL_TIMESTAMP);
+			GLuint next_query = (environment.state.profiling.time_measurement->base_query + environment.state.profiling.time_measurement->query_count) % environment.state.profiling.time_measurement->query_capacity;
+			glQueryCounter(environment.state.profiling.time_measurement->queries[next_query], GL_TIMESTAMP);
 			
 			GLuint old_next = environment.state.profiling.time_measurement->timestamp_metadata[environment.state.profiling.time_measurement->next].next;
 			environment.state.profiling.time_measurement->timestamp_metadata[old_next].previous = null_uint;
@@ -35,7 +41,7 @@ namespace game_logic::profiling
 			environment.state.profiling.time_measurement->previous_timestamps[type] = environment.state.profiling.time_measurement->next;
 
 			environment.state.profiling.time_measurement->next = ((environment.state.profiling.time_measurement->next + 1u) % environment.state.profiling.time_measurement->timestamp_capacity);
-			environment.state.profiling.time_measurement->next_query = ((environment.state.profiling.time_measurement->next_query + 1u) % environment.state.profiling.time_measurement->query_capacity);
+			++environment.state.profiling.time_measurement->query_count;
 		}
 	}
 }

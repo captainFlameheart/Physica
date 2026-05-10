@@ -18,9 +18,10 @@ namespace game_logic::profiling
 			environment.state.profiling.time_measurement->previous_timestamps[type] = null_uint;
 		}
 
+		environment.state.profiling.time_measurement->timestamp_base = 0u;
 		environment.state.profiling.time_measurement->next = 0u;
 		environment.state.profiling.time_measurement->base_query = 0u;
-		environment.state.profiling.time_measurement->next_query = 0u;
+		environment.state.profiling.time_measurement->query_count = 0u;
 
 		glCreateBuffers(1u, &environment.state.profiling.time_measurement->buffer);
 		glNamedBufferStorage

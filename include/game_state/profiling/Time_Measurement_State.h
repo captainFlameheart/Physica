@@ -34,9 +34,10 @@ namespace game_state::profiling
 		bool measured_types[Timestamp_Type::count];
 		GLuint previous_timestamps[Timestamp_Type::count];
 
+		GLuint timestamp_base;
 		GLuint next;
 		GLuint base_query;
-		GLuint next_query;
+		GLuint query_count;
 
 		GLuint buffer;
 		GLuint* queries;
