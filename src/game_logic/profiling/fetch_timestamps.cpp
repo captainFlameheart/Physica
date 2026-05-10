@@ -45,7 +45,7 @@ namespace game_logic::profiling
 					);
 
 					GLuint64 elapsed_time = timestamp - previous_timestamp;
-					std::cout << "	" << elapsed_time << " ns = " << elapsed_time * (1.0 / 1000000.0) << " ms.";
+					std::cout << "	" << elapsed_time << " ns = " << elapsed_time * (1.0 / 1000000.0) << " ms.\n";
 				}
 			}
 		}

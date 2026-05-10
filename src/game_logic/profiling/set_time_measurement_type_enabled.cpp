@@ -7,6 +7,8 @@ namespace game_logic::profiling
 {
 	void set_time_measurement_type_enabled(::game_environment::Environment& environment, ::game_state::profiling::Timestamp_Type type, bool enabled)
 	{
+		std::cout << "Set time measurement of type " << ::game_state::profiling::timestamp_type_names[static_cast<GLuint>(type)] << " to " << (enabled ? "enabled." : "disabled.") << std::endl;
+
 		if (environment.state.profiling.time_measurement == nullptr && enabled == true)
 		{
 			initialize_time_measurement_state(environment);

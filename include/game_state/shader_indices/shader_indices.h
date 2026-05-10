@@ -792,7 +792,7 @@ namespace game_state::shader_indices
 
 		names[static_cast<GLuint>(tick::update_counts::Indices::on_update_counts)] = "on_update_tick_counts"sv;
 		names[static_cast<GLuint>(tick::update_counts::Indices::update_counts)] = "update_tick_counts"sv;
-
+		
 		names[static_cast<GLuint>(tick::process_entities::bodies::Indices::rigid_bodies)] = "tick_rigid_bodes"sv;
 		names[static_cast<GLuint>(tick::process_entities::bodies::Indices::point_masses)] = "point_masses"sv;
 
