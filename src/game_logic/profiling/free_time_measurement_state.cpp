@@ -12,6 +12,10 @@ namespace game_logic::profiling
 		}
 
 		glDeleteBuffers(1u, &environment.state.profiling.time_measurement->buffer);
+		
+		glDeleteQueries(environment.state.profiling.time_measurement->timestamp_capacity, environment.state.profiling.time_measurement->queries);
+		delete[] environment.state.profiling.time_measurement->queries;
+		
 		delete[] environment.state.profiling.time_measurement->timestamp_metadata;
 
 		delete environment.state.profiling.time_measurement;

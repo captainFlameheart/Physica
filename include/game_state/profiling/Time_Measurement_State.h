@@ -21,7 +21,6 @@ namespace game_state::profiling
 	{
 		Timestamp_Type type;
 		GLuint previous;
-		bool is_start;
 		std::string name;
 	};
 
@@ -36,6 +35,7 @@ namespace game_state::profiling
 		GLuint next;
 
 		GLuint buffer;
+		GLuint* queries;
 		Timestamp_Metadata* timestamp_metadata;
 	};
 }
