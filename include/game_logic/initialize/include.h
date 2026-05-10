@@ -8,3 +8,4 @@
 #include "game_state/local_sizes/include.h"
 #include "game_logic/debug/include.h"
 #include "game_logic/tasks/include.h"
+#include "game_logic/profiling/include.h"

@@ -6,6 +6,7 @@
 #include "holographic_radiance_cascades/include.h"
 #include "shader_indices/include.h"
 #include "glfw/include.h"
+#include "profiling/include.h"
 
 namespace game_state
 {
@@ -15,6 +16,8 @@ namespace game_state
 
 		bool is_debugging;
 		bool tick_paused;
+
+		profiling::State profiling;
 
 		GLuint vertex_array;	// Required for drawing anything at all
 

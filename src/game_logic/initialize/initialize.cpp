@@ -10,6 +10,8 @@ namespace game_logic::initialize
 	{
 		environment.state.debug_flag = 0u;
 
+		::game_logic::profiling::initialize_state(environment);
+
 		glfw::initialize(environment);
 
 		glCreateVertexArrays(1u, &environment.state.vertex_array);

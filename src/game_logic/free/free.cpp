@@ -5,6 +5,7 @@ namespace game_logic::free
 {
 	void free(game_environment::Environment& environment)
 	{
+		profiling::free_state(environment);
 		buffers::free(environment);
 		shaders::free(environment);
 		holographic_radiance_cascades::free(environment);
