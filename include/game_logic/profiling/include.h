@@ -1,4 +1,6 @@
 #pragma once
+#include "disable_timing.h"
+#include "enable_timing.h"
 #include "fetch_timestamps.h"
 #include "flush_timestamps.h"
 #include "free_state.h"
@@ -7,4 +9,6 @@
 #include "initialize_time_measurement_state.h"
 #include "place_timestamp.h"
 #include "set_time_measurement_type_enabled.h"
+#include "toggle_timing.h"
+#include "game_state/profiling/include.h"
 #include <iostream>
