@@ -17,10 +17,12 @@ namespace game_logic::profiling
 			environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->timestamp_capacity = 1000u;
 			environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->generation_capacity = 1000u;
 			environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->query_capacity = 1000u;
+			environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->generation_query_capacity = 1000u;
 
 			environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->generation = 0u;
 			environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->next_timestamp = 0u;
 			environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->query_count = 0u;
+			environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->generation_query_count = 0u;
 
 			glCreateBuffers
 			(
@@ -49,6 +51,12 @@ namespace game_logic::profiling
 				GL_TIMESTAMP,
 				environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->query_capacity,
 				environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->queries
+			);
+			glCreateQueries
+			(
+				GL_TIMESTAMP,
+				environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->generation_query_capacity,
+				environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->generation_queries
 			);
 
 			GLuint timestamp_capacity = environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->timestamp_capacity;

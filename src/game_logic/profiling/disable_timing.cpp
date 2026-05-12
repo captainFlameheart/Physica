@@ -19,6 +19,11 @@ namespace game_logic::profiling
 				environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->query_capacity,
 				environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->queries
 			);
+			glDeleteQueries
+			(
+				environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->generation_query_capacity,
+				environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->generation_queries
+			);
 
 			glDeleteBuffers
 			(

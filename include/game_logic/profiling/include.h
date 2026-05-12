@@ -10,6 +10,7 @@
 #include "place_timestamp.h"
 #include "put_timestamp.h"
 #include "set_time_measurement_type_enabled.h"
+#include "start_next_generation.h"
 #include "toggle_timing.h"
 #include "game_state/profiling/include.h"
 #include <iostream>
