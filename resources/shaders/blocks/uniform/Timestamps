@@ -1,0 +1,5 @@
+layout(std430, binding = timestamps_binding) restrict writeonly
+uniform Timestamps
+{
+	uint64_t timestamps[];
+} timestamps;

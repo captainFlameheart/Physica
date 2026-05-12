@@ -1,0 +1,20 @@
+struct Timestamp_Metadata
+{
+	vec4 color;
+	uint generation;
+	uint name_base;
+}
+
+layout(shared, binding = timestamp_metadata_binding)
+uniform Timestamp_Metadata
+{
+	uint timestamp_capacity;
+	uint generation_capacity;
+	uint query_capacity;
+	uint generation_query_capacity;
+
+	uint generation;
+	uint next_timestamp;
+
+	Timestamp_Metadata metadata[];
+} timestamp_metadata;
