@@ -30,10 +30,15 @@ namespace game_logic::profiling
 				environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->buffers
 			);
 
+			GLuint total_timestamp_capacity
+			{
+				environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->timestamp_capacity +
+				environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->generation_capacity
+			};
 			glNamedBufferStorage
 			(
 				environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->buffer,
-				environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->timestamp_capacity * ::game_state::profiling::timestamp_value_size,
+				total_timestamp_capacity * ::game_state::profiling::timestamp_value_size,
 				nullptr,
 				0
 			);
