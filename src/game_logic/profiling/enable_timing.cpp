@@ -3,6 +3,7 @@
 #include "game_environment/Environment.h"
 #include "game_state/profiling/include.h"
 #include <array>
+#include "global/include.h"
 
 namespace game_logic::profiling
 {
@@ -65,10 +66,11 @@ namespace game_logic::profiling
 					metadata_buffer_size,
 					GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT
 				);
+			environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->next_metadata_fence_index = 0u;
 			for (GLuint fence_index{ 0u }; fence_index < ::game_state::profiling::metadata_fence_count; ++fence_index)
 			{
 				environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->metadata_fences[fence_index] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-				environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->metadata_fence_timestamps[fence_index] = 0u;
+				environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->metadata_fence_timestamps[fence_index] = null_uint;
 			}
 
 			glCreateQueries

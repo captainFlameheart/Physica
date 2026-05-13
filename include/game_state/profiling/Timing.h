@@ -38,6 +38,7 @@ namespace game_state::profiling
 		};
 
 		GLbyte* metadata_mapping;
+		GLuint next_metadata_fence_index;
 		GLsync metadata_fences[metadata_fence_count];
 		GLuint metadata_fence_timestamps[metadata_fence_count];
 
