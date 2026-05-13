@@ -6,6 +6,8 @@ namespace game_state::bindings::uniform
 	{
 		fixed_data,
 		private_input,
+		timestamp,
+		timestamp_metadata,
 
 		count
 	};

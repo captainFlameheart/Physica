@@ -37,7 +37,7 @@ namespace game_logic::initialize
 		glDispatchCompute(1u, 1u, 1u);
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
-		//::game_logic::tasks::initialize_contacts(environment);
+		::game_logic::tasks::initialize_contacts(environment);
 
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);
 

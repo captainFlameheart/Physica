@@ -10,6 +10,7 @@
 #include "query_mouse_button_event_layout.h"
 #include "query_on_events_polled_data_layout.h"
 #include "query_scroll_event_layout.h"
+#include "query_timestamp_metadata_layout.h"
 #include "query_uint_data_layout.h"
 #include "query_uvec2_data_layout.h"
 #include "query_uvec4_data_layout.h"

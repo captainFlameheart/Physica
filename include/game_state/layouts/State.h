@@ -12,6 +12,7 @@
 #include "key_event/include.h"
 #include "on_events_polled_data/include.h"
 #include "scroll_event/include.h"
+#include "timestamp_metadata/include.h"
 #include "vec2_data/include.h"
 
 namespace game_state::layouts
@@ -37,5 +38,7 @@ namespace game_state::layouts
 		merge_fluence_data::State merge_fluence_data;
 
 		bounding_volume_hierarchy::State bounding_volume_hierarchy;
+
+		timestamp_metadata::State timestamp_metadata;
 	};
 }
