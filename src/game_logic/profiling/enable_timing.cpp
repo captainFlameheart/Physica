@@ -15,6 +15,7 @@ namespace game_logic::profiling
 			environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)] = new ::game_state::profiling::Timing();
 			
 			environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->timestamp_capacity = 1000u;
+			environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->metadata_stage_capacity = 1000u;
 			environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->generation_capacity = 1000u;
 			environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->query_capacity = 1000u;
 			environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->generation_query_capacity = 1000u;
@@ -43,13 +44,32 @@ namespace game_logic::profiling
 				0
 			);
 
-			/*glNamedBufferStorage
+			GLuint total_metadata_capacity
+			{
+				environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->timestamp_capacity +
+				environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->metadata_stage_capacity
+			};
+			GLuint metadata_buffer_size{ total_metadata_capacity * ::game_state::profiling::timestamp_value_size };
+			glNamedBufferStorage
 			(
-				environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)].metadata_buffer,
-				environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)].timestamp_capacity * ::game_state::profiling::timestamp_value_size,
+				environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->metadata_buffer,
+				metadata_buffer_size,
 				nullptr,
-				0
-			);*/
+				GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT
+			);
+			environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->metadata_mapping = (GLbyte*)
+				glMapNamedBufferRange
+				(
+					environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->metadata_buffer,
+					0,
+					metadata_buffer_size,
+					GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT
+				);
+			for (GLuint fence_index{ 0u }; fence_index < ::game_state::profiling::metadata_fence_count; ++fence_index)
+			{
+				environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->metadata_fences[fence_index] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+				environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->metadata_fence_timestamps[fence_index] = 0u;
+			}
 
 			glCreateQueries
 			(

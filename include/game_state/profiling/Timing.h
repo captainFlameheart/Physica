@@ -17,6 +17,7 @@ namespace game_state::profiling
 	struct Timing
 	{
 		GLuint timestamp_capacity;
+		GLuint metadata_stage_capacity;
 		GLuint generation_capacity;
 		GLuint query_capacity;
 		GLuint generation_query_capacity;
@@ -35,7 +36,11 @@ namespace game_state::profiling
 			};
 			GLuint buffers[2u];
 		};
-		
+
+		GLbyte* metadata_mapping;
+		GLsync metadata_fences[metadata_fence_count];
+		GLuint metadata_fence_timestamps[metadata_fence_count];
+
 		GLuint* queries;
 		GLuint* generation_queries;
 		
