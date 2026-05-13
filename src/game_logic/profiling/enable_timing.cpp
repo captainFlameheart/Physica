@@ -127,7 +127,7 @@ namespace game_logic::profiling
 				nullptr,
 				GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT
 			);
-			environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->timestamp_metadata_mapping = (GLbyte*)
+			environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->timestamp_metadata_mapping = (GLubyte*)
 				glMapNamedBufferRange
 				(
 					environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->timestamp_metadata_buffer,
