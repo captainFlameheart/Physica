@@ -9,33 +9,33 @@ namespace game_logic::initialize::query_layouts
 	{
 		::game_logic::shader_util::query::query_uniform_variable_offset
 		(
-			program, "Timestamp_Metadata.timestamp_capacity",
+			program, "Timing_Configuration.timestamp_capacity",
 			environment.state.layouts.timestamp_metadata.timestamp_capacity_properties
 		);
 		::game_logic::shader_util::query::query_uniform_variable_offset
 		(
-			program, "Timestamp_Metadata.generation_capacity",
+			program, "Timing_Configuration.generation_capacity",
 			environment.state.layouts.timestamp_metadata.generation_capacity_properties
 		);
 		::game_logic::shader_util::query::query_uniform_variable_offset
 		(
-			program, "Timestamp_Metadata.query_capacity",
+			program, "Timing_Configuration.query_capacity",
 			environment.state.layouts.timestamp_metadata.query_capacity_properties
 		);
 		::game_logic::shader_util::query::query_uniform_variable_offset
 		(
-			program, "Timestamp_Metadata.generation_query_capacity",
+			program, "Timing_Configuration.generation_query_capacity",
 			environment.state.layouts.timestamp_metadata.generation_query_capacity_properties
 		);
 
 		::game_logic::shader_util::query::query_uniform_variable_offset
 		(
-			program, "Timestamp_Metadata.generation",
+			program, "Timing_Metadata.generation",
 			environment.state.layouts.timestamp_metadata.generation_properties
 		);
 		::game_logic::shader_util::query::query_uniform_variable_offset
 		(
-			program, "Timestamp_Metadata.next_timestamp",
+			program, "Timing_Metadata.next_timestamp",
 			environment.state.layouts.timestamp_metadata.next_timestamp_properties
 		);
 

@@ -1,0 +1,6 @@
+layout(shared, binding = timing_metadata_binding)
+uniform Timing_Metadata
+{
+	uint generation;
+	uint next_timestamp;
+} timing_metadata;

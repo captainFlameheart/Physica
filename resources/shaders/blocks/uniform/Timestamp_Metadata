@@ -1,9 +1,9 @@
-struct Timestamp_Metadata
+struct _Timestamp_Metadata
 {
 	vec4 color;
 	uint generation;
 	uint name_base;
-}
+};
 
 layout(shared, binding = timestamp_metadata_binding)
 uniform Timestamp_Metadata
@@ -16,5 +16,5 @@ uniform Timestamp_Metadata
 	uint generation;
 	uint next_timestamp;
 
-	Timestamp_Metadata metadata[];
+	_Timestamp_Metadata metadata[];
 } timestamp_metadata;

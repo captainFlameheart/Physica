@@ -1,0 +1,8 @@
+layout(shared, binding = timing_configuration_binding)
+uniform Timing_Configuration
+{
+	uint timestamp_capacity;
+	uint generation_capacity;
+	uint query_capacity;
+	uint generation_query_capacity;
+} timing_configuration;
