@@ -50,6 +50,7 @@ namespace game_logic::profiling
 			++next_timestamp;
 		}
 
+		glMemoryBarrier(GL_QUERY_BUFFER_BARRIER_BIT);
 		environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->generation_query_count = 0u;
 		environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->query_count = 0u;
 
