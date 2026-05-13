@@ -7,6 +7,11 @@ namespace game_state::layouts::timestamp_metadata
 		GLint offset;
 	};
 
+	struct metadata_stage_capacity
+	{
+		GLint offset;
+	};
+
 	struct generation_capacity
 	{
 		GLint offset;
@@ -48,7 +53,12 @@ namespace game_state::layouts::timestamp_metadata
 		GLint offset;
 	};
 
-	struct Block
+	struct Timing_Configuration_Block
+	{
+		GLint buffer_data_size;
+	};
+
+	struct Timing_Metadata_Block
 	{
 		GLint buffer_data_size;
 	};
@@ -59,6 +69,11 @@ namespace game_state::layouts::timestamp_metadata
 		{
 			timestamp_capacity timestamp_capacity_state;
 			GLint timestamp_capacity_properties[sizeof(timestamp_capacity) / sizeof(GLint)];
+		};
+		union
+		{
+			metadata_stage_capacity metadata_stage_capacity_state;
+			GLint metadata_stage_capacity_properties[sizeof(metadata_stage_capacity) / sizeof(GLint)];
 		};
 		union
 		{
@@ -105,8 +120,13 @@ namespace game_state::layouts::timestamp_metadata
 
 		union
 		{
-			Block block_state;
-			GLint block_properties[sizeof(Block) / sizeof(GLint)];
+			Timing_Configuration_Block timing_configuration_block_state;
+			GLint timing_configuration_block_properties[sizeof(Timing_Configuration_Block) / sizeof(GLint)];
+		};
+		union
+		{
+			Timing_Metadata_Block timing_metadata_block_state;
+			GLint timing_metadata_block_properties[sizeof(Timing_Metadata_Block) / sizeof(GLint)];
 		};
 	};
 }

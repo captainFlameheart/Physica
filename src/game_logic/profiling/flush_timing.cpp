@@ -95,7 +95,7 @@ namespace game_logic::profiling
 				fenced_start_timestamp_metadata_physical_index = fenced_start_timestamp % total_metadata_capacity;
 			}
 
-			GLbyte* metadata_mapping{ environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->metadata_mapping };
+			GLbyte* timestamp_metadata_mapping{ environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->timestamp_metadata_mapping };
 			// TODO: Write metadata through mapping.
 
 			++next_timestamp;

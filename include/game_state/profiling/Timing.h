@@ -31,13 +31,15 @@ namespace game_state::profiling
 		{
 			struct
 			{
+				GLuint timing_configuration_buffer;
+				GLuint timing_metadata_buffer;
 				GLuint buffer;
-				GLuint metadata_buffer;
+				GLuint timestamp_metadata_buffer;
 			};
 			GLuint buffers[2u];
 		};
 
-		GLbyte* metadata_mapping;
+		GLbyte* timestamp_metadata_mapping;
 		GLuint next_metadata_fence_index;
 		GLsync metadata_fences[metadata_fence_count];
 		GLuint metadata_fence_timestamps[metadata_fence_count];

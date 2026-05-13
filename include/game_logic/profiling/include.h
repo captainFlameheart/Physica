@@ -13,4 +13,5 @@
 #include "start_next_generation.h"
 #include "toggle_timing.h"
 #include "game_state/profiling/include.h"
+#include "game_logic/binding_util/include.h"
 #include <iostream>

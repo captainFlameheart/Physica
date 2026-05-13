@@ -14,6 +14,11 @@ namespace game_logic::initialize::query_layouts
 		);
 		::game_logic::shader_util::query::query_uniform_variable_offset
 		(
+			program, "Timing_Configuration.metadata_stage_capacity",
+			environment.state.layouts.timestamp_metadata.metadata_stage_capacity_properties
+		);
+		::game_logic::shader_util::query::query_uniform_variable_offset
+		(
 			program, "Timing_Configuration.generation_capacity",
 			environment.state.layouts.timestamp_metadata.generation_capacity_properties
 		);
@@ -53,6 +58,17 @@ namespace game_logic::initialize::query_layouts
 		(
 			program, "Timestamp_Metadata.metadata[0].name_base",
 			environment.state.layouts.timestamp_metadata.metadata_name_base_properties
+		);
+
+		::game_logic::shader_util::query::query_uniform_buffer_data_size
+		(
+			program, "Timestamp_Configuration",
+			environment.state.layouts.timestamp_metadata.timing_configuration_block_properties
+		);
+		::game_logic::shader_util::query::query_uniform_buffer_data_size
+		(
+			program, "Timestamp_Metadata",
+			environment.state.layouts.timestamp_metadata.timing_metadata_block_properties
 		);
 	}
 }

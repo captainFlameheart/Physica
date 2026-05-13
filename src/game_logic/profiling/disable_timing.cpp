@@ -32,7 +32,7 @@ namespace game_logic::profiling
 
 			glDeleteBuffers
 			(
-				2u,
+				std::size(environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->buffers),
 				environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->buffers
 			);
 

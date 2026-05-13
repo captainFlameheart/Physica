@@ -28,9 +28,78 @@ namespace game_logic::profiling
 
 			glCreateBuffers
 			(
-				2u,
+				std::size(environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->buffers),
 				environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->buffers
 			);
+
+			GLubyte* timing_configuration = new GLubyte[environment.state.layouts.timestamp_metadata.timing_configuration_block_state.buffer_data_size];
+			std::memcpy
+			(
+				timing_configuration + environment.state.layouts.timestamp_metadata.timestamp_capacity_state.offset,
+				&environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->timestamp_capacity,
+				sizeof(GLuint)
+			);
+			std::memcpy
+			(
+				timing_configuration + environment.state.layouts.timestamp_metadata.metadata_stage_capacity_state.offset,
+				&environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->metadata_stage_capacity,
+				sizeof(GLuint)
+			);
+			std::memcpy
+			(
+				timing_configuration + environment.state.layouts.timestamp_metadata.generation_capacity_state.offset,
+				&environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->generation_capacity,
+				sizeof(GLuint)
+			);
+			std::memcpy
+			(
+				timing_configuration + environment.state.layouts.timestamp_metadata.query_capacity_state.offset,
+				&environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->query_capacity,
+				sizeof(GLuint)
+			);
+			std::memcpy
+			(
+				timing_configuration + environment.state.layouts.timestamp_metadata.generation_query_capacity_state.offset,
+				&environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->generation_query_capacity,
+				sizeof(GLuint)
+			);
+			glNamedBufferStorage
+			(
+				environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->timing_configuration_buffer,
+				environment.state.layouts.timestamp_metadata.timing_configuration_block_state.buffer_data_size,
+				timing_configuration,
+				0
+			);
+			delete[] timing_configuration;
+
+			GLuint timing_metadata_buffer_size{
+				::game_logic::binding_util::align_uniform_block_size
+				(
+					environment,
+					environment.state.layouts.timestamp_metadata.timing_metadata_block_state.buffer_data_size
+				) * ::game_state::profiling::metadata_fence_count
+			};
+			GLubyte* timing_metadata = new GLubyte[timing_metadata_buffer_size];
+			std::memcpy
+			(
+				timing_metadata + environment.state.layouts.timestamp_metadata.generation_state.offset,
+				&environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->generation,
+				sizeof(GLuint)
+			);
+			std::memcpy
+			(
+				timing_metadata + environment.state.layouts.timestamp_metadata.next_timestamp_state.offset,
+				&environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->next_timestamp,
+				sizeof(GLuint)
+			);
+			glNamedBufferStorage
+			(
+				environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->timing_metadata_buffer,
+				timing_metadata_buffer_size,
+				timing_metadata,
+				0	// TODO: Mapping
+			);
+			delete[] timing_metadata;
 
 			GLuint total_timestamp_capacity
 			{
@@ -53,15 +122,15 @@ namespace game_logic::profiling
 			GLuint metadata_buffer_size{ total_metadata_capacity * ::game_state::profiling::timestamp_value_size };
 			glNamedBufferStorage
 			(
-				environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->metadata_buffer,
+				environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->timestamp_metadata_buffer,
 				metadata_buffer_size,
 				nullptr,
 				GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT
 			);
-			environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->metadata_mapping = (GLbyte*)
+			environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->timestamp_metadata_mapping = (GLbyte*)
 				glMapNamedBufferRange
 				(
-					environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->metadata_buffer,
+					environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->timestamp_metadata_buffer,
 					0,
 					metadata_buffer_size,
 					GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT
