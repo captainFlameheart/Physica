@@ -14,7 +14,7 @@ void main()
         min(position_in_box.x, size.x - position_in_box.x),
         min(position_in_box.y, size.y - position_in_box.y)
     );
-    const float stroke_width = 0.1 * meter_in_length_units;
+    const float stroke_width = 0.2 * meter_in_length_units;
     #if DISCARD_CENTER == 1
         if (distance_from_edge >= stroke_width)
         {
