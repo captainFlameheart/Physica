@@ -15,3 +15,4 @@
 #include "game_state/profiling/include.h"
 #include "game_logic/binding_util/include.h"
 #include <iostream>
+#include "game_state/bindings/include.h"
