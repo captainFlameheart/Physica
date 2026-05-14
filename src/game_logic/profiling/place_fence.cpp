@@ -14,6 +14,8 @@ namespace game_logic::profiling
 
 		GLuint fence_index{ environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->next_metadata_fence_index };
 		environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->metadata_fences[fence_index] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+		GLuint next_timestamp{ environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->next_timestamp };
+		environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->metadata_fence_timestamps[fence_index] = next_timestamp;
 		++environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->next_metadata_fence_index;
 	}
 }
