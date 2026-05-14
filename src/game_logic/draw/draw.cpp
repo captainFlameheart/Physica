@@ -388,8 +388,9 @@ namespace game_logic::draw
 		// IMPORTANT TODO: We might not need GL_SHADER_STORAGE_BARRIER_BIT!
 		glMemoryBarrier(GL_COMMAND_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
 
-		::game_logic::profiling::place_timestamp(environment, ::game_state::profiling::Timestamp_Type::draw_source, "draw_source_start", true);
-		
+		//::game_logic::profiling::place_timestamp(environment, ::game_state::profiling::Timestamp_Type::draw_source, "draw_source_start", true);
+		::game_logic::profiling::start_next_generation(environment, ::game_state::profiling::Timestamp_Type::draw_source);
+
 		if (environment.state.holographic_radiance_cascades.enabled)
 		{
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, environment.state.holographic_radiance_cascades.source_framebuffer);
@@ -410,7 +411,8 @@ namespace game_logic::draw
 		glViewport(0, 0, environment.state.holographic_radiance_cascades.skycircle_length, 1u);
 		draw_skycircle(environment);
 		
-		::game_logic::profiling::place_timestamp(environment, ::game_state::profiling::Timestamp_Type::draw_source, "draw_source");
+		//::game_logic::profiling::place_timestamp(environment, ::game_state::profiling::Timestamp_Type::draw_source, "draw_source");
+		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::draw_source, "draw_source", 1.0, 1.0, 1.0);
 
 		if (environment.state.holographic_radiance_cascades.enabled)
 		{
@@ -431,7 +433,7 @@ namespace game_logic::draw
 			}
 		}
 
-		::game_logic::profiling::flush_timestamps(environment);
+		//::game_logic::profiling::flush_timestamps(environment);
 
 		++environment.state.draw_count;
 	}

@@ -27,7 +27,5 @@ namespace game_logic::profiling
 		environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->metadata[timestamp_index].color[2u] = blue;
 		environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->metadata[timestamp_index].color[3u] = alpha;
 		environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->metadata[timestamp_index].name = name;
-
-		// TODO: Write to metadata buffer.
 	}
 }
