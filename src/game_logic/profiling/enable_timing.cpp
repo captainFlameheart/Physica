@@ -97,9 +97,17 @@ namespace game_logic::profiling
 				environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->timing_metadata_buffer,
 				timing_metadata_buffer_size,
 				timing_metadata,
-				0	// TODO: Mapping
+				GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT
 			);
 			delete[] timing_metadata;
+			environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->timing_metadata_mapping = (GLubyte*)
+				glMapNamedBufferRange
+				(
+					environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->timing_metadata_buffer,
+					0,
+					timing_metadata_buffer_size,
+					GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT
+				);
 
 			GLuint total_timestamp_capacity
 			{
