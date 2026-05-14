@@ -119,7 +119,11 @@ namespace game_logic::profiling
 				environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->timestamp_capacity +
 				environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->metadata_stage_capacity
 			};
-			GLuint metadata_buffer_size{ total_metadata_capacity * ::game_state::profiling::timestamp_value_size };
+			GLuint metadata_buffer_size
+			{
+				environment.state.layouts.timestamp_metadata.metadata_color_state.offset +
+				total_metadata_capacity * environment.state.layouts.timestamp_metadata.metadata_color_state.top_level_array_stride
+			};
 			glNamedBufferStorage
 			(
 				environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->timestamp_metadata_buffer,
