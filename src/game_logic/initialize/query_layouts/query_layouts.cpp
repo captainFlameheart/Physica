@@ -35,8 +35,8 @@ namespace game_logic::initialize::query_layouts
 			"const uint private_input_binding = " + std::to_string(::game_state::bindings::uniform::private_input) + ";\n"
 			"const uint timing_configuration_binding = " + std::to_string(::game_state::bindings::uniform::timing_configuration) + ";\n"
 			"const uint timing_metadata_binding = " + std::to_string(::game_state::bindings::uniform::timing_metadata) + ";\n"
-			"const uint timestamp_binding = " + std::to_string(::game_state::bindings::uniform::timestamp) + ";\n"
-			"const uint timestamp_metadata_binding = " + std::to_string(::game_state::bindings::uniform::timestamp_metadata) + ";\n"
+			"const uint timestamp_binding = " + std::to_string(::game_state::bindings::shader_storage::timestamp) + ";\n"
+			"const uint timestamp_metadata_binding = " + std::to_string(::game_state::bindings::shader_storage::timestamp_metadata) + ";\n"
 			"const uint entity_type_count = " + std::to_string(::game_state::entity_type_indices::count) + ";\n"
 			"const uint leaf_bounding_box_type_count = " + std::to_string(::game_state::leaf_bounding_box_types::count) + ";\n"
 			"const uint contact_type_count = " + std::to_string(contact_type_count) + ";\n"
@@ -176,7 +176,7 @@ namespace game_logic::initialize::query_layouts
 				prefix,
 				::util::shader::file_to_string("blocks/uniform/Timing_Configuration"),
 				::util::shader::file_to_string("blocks/uniform/Timing_Metadata"),
-				::util::shader::file_to_string("blocks/uniform/Timestamp_Metadata")
+				::util::shader::file_to_string("blocks/shader_storage/Timestamp_Metadata")
 			);
 			GLuint program{ ::util::shader::create_program(compute_shader) };
 

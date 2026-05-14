@@ -44,17 +44,18 @@ namespace game_logic::initialize::query_layouts
 			environment.state.layouts.timestamp_metadata.next_timestamp_properties
 		);
 
-		::game_logic::shader_util::query::query_uniform_variable_offset_top_level_array_stride
+		::game_logic::shader_util::query::query_shader_storage_variable_offset_top_level_array_stride
 		(
 			program, "Timestamp_Metadata.metadata[0].color",
 			environment.state.layouts.timestamp_metadata.metadata_color_properties
 		);
-		::game_logic::shader_util::query::query_uniform_variable_offset
+
+		::game_logic::shader_util::query::query_shader_storage_variable_offset
 		(
 			program, "Timestamp_Metadata.metadata[0].generation",
 			environment.state.layouts.timestamp_metadata.metadata_generation_properties
 		);
-		::game_logic::shader_util::query::query_uniform_variable_offset
+		::game_logic::shader_util::query::query_shader_storage_variable_offset
 		(
 			program, "Timestamp_Metadata.metadata[0].name_base",
 			environment.state.layouts.timestamp_metadata.metadata_name_base_properties
@@ -62,12 +63,12 @@ namespace game_logic::initialize::query_layouts
 
 		::game_logic::shader_util::query::query_uniform_buffer_data_size
 		(
-			program, "Timestamp_Configuration",
+			program, "Timing_Configuration",
 			environment.state.layouts.timestamp_metadata.timing_configuration_block_properties
 		);
 		::game_logic::shader_util::query::query_uniform_buffer_data_size
 		(
-			program, "Timestamp_Metadata",
+			program, "Timing_Metadata",
 			environment.state.layouts.timestamp_metadata.timing_metadata_block_properties
 		);
 	}

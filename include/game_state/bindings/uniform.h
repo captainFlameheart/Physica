@@ -8,8 +8,6 @@ namespace game_state::bindings::uniform
 		private_input,
 		timing_configuration,
 		timing_metadata,
-		timestamp,
-		timestamp_metadata,
 
 		count
 	};

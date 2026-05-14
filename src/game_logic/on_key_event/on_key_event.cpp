@@ -64,10 +64,9 @@ namespace game_logic::on_key_event
 				switch (key)
 				{
 				case GLFW_KEY_S:
-					::game_logic::profiling::set_time_measurement_type_enabled(environment, ::game_state::profiling::Timestamp_Type::draw_source, true);
+					::game_logic::profiling::toggle_timing(environment, ::game_state::profiling::Timestamp_Type::draw_source);
 					break;
 				case GLFW_KEY_O:
-					::game_logic::profiling::fetch_timestamps(environment);
 					break;
 				}
 			}

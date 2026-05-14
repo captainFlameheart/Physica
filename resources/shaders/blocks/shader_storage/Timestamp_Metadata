@@ -5,8 +5,8 @@ struct _Timestamp_Metadata
 	uint name_base;
 };
 
-layout(shared, binding = timestamp_metadata_binding)
-uniform Timestamp_Metadata
+layout(shared, binding = timestamp_metadata_binding) restrict readonly
+buffer Timestamp_Metadata
 {
 	_Timestamp_Metadata metadata[];
 } timestamp_metadata;

@@ -1,5 +1,0 @@
-layout(std430, binding = timestamps_binding)
-uniform Timestamps
-{
-	uint64_t timestamps[];
-} timestamps;

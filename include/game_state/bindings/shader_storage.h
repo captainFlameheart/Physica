@@ -18,4 +18,6 @@ namespace game_state::bindings::shader_storage
 	};
 
 	constexpr GLuint bounding_volume_hierarchy = 8u;//bindings::commands;	// TODO: Reuse binding for maximum compatibility.
+	constexpr GLuint timestamp = 9u;
+	constexpr GLuint timestamp_metadata = 10u;
 }
