@@ -19,11 +19,14 @@ namespace game_logic::profiling
 				environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->query_capacity,
 				environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->queries
 			);
+			delete[] environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->queries;
+
 			glDeleteQueries
 			(
 				environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->generation_query_capacity,
 				environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->generation_queries
 			);
+			delete[] environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->generation_queries;
 
 			for (GLuint fence_index{ 0u }; fence_index < ::game_state::profiling::metadata_fence_count; ++fence_index)
 			{

@@ -154,12 +154,15 @@ namespace game_logic::profiling
 				environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->metadata_fence_timestamps[fence_index] = null_uint;
 			}
 
+			environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->queries = new GLuint[environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->query_capacity];
 			glCreateQueries
 			(
 				GL_TIMESTAMP,
 				environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->query_capacity,
 				environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->queries
 			);
+
+			environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->generation_queries = new GLuint[environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->generation_query_capacity];
 			glCreateQueries
 			(
 				GL_TIMESTAMP,
