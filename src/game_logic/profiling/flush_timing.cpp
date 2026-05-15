@@ -12,6 +12,13 @@ namespace game_logic::profiling
 		{
 			return;
 		}
+
+		glBindBufferBase
+		(
+			GL_UNIFORM_BUFFER,
+			::game_state::bindings::uniform::timing_configuration,
+			environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->timing_configuration_buffer
+		);
 	
 		GLuint timestamp_capacity
 		{
@@ -206,6 +213,19 @@ namespace game_logic::profiling
 			::game_state::bindings::uniform::timing_metadata,
 			environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->timing_metadata_buffer,
 			timing_metadata_region_offset, environment.state.layouts.timestamp_metadata.timing_metadata_block_state.buffer_data_size
+		);
+
+		glBindBufferBase
+		(
+			GL_SHADER_STORAGE_BUFFER,
+			::game_state::bindings::shader_storage::timestamp,
+			environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->buffer
+		);
+		glBindBufferBase
+		(
+			GL_SHADER_STORAGE_BUFFER,
+			::game_state::bindings::shader_storage::timestamp_metadata,
+			environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->timestamp_metadata_buffer
 		);
 
 		environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->generation_query_count = 0u;
