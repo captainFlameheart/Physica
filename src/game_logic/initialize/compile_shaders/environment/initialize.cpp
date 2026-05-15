@@ -701,6 +701,10 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uint commands_binding = " + ::std::to_string(::game_state::bindings::shader_storage::commands) + ";\n"
 			"const uint private_input_binding = " + ::std::to_string(::game_state::bindings::uniform::private_input) + ";\n"
 			"const uint bounding_volume_hierarchy_binding = " + ::std::to_string(::game_state::bindings::shader_storage::bounding_volume_hierarchy) + ";\n"
+			"const uint timing_configuration_binding = " + ::std::to_string(::game_state::bindings::uniform::timing_configuration) + ";\n"
+			"const uint timing_metadata_binding = " + ::std::to_string(::game_state::bindings::uniform::timing_metadata) + ";\n"
+			"const uint timestamp_binding = " + ::std::to_string(::game_state::bindings::shader_storage::timestamp) + ";\n"
+			"const uint timestamp_metadata_binding = " + ::std::to_string(::game_state::bindings::shader_storage::timestamp_metadata) + ";\n"
 
 			"const uint initialize_bounding_box_contact_detectors_local_size = " + ::std::to_string(initialize_bounding_box_contact_detectors_local_size) + ";\n"
 			"const uint set_clear_invalid_contact_commands_local_size = " + ::std::to_string(set_clear_invalid_contact_commands_local_size) + ";\n"

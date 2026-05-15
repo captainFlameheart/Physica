@@ -12,10 +12,19 @@ namespace game_logic::initialize::compile_shaders
 		game_environment::Environment& environment, ::game_state::initialize::compile_shaders::environment::Environment compile_environment
 	)
 	{
+		std::string blocks
+		{
+			::util::shader::file_to_string("blocks/uniform/Timing_Configuration") +
+			::util::shader::file_to_string("blocks/uniform/Timing_Metadata") +
+			::util::shader::file_to_string("blocks/shader_storage/Timestamp") +
+			::util::shader::file_to_string("blocks/shader_storage/Timestamp_Metadata")
+		};
+
 		::util::shader::set_shader_statically
 		(
 			compile_environment.shader_group.vertex_shader,
 			compile_environment.readonly_prefix_source,
+			blocks,
 			::util::shader::file_to_string("draw/profiling/timing/bar_chart/draw.vert")
 		);
 
@@ -23,6 +32,7 @@ namespace game_logic::initialize::compile_shaders
 		(
 			compile_environment.shader_group.fragment_shader,
 			compile_environment.readonly_prefix_source,
+			blocks,
 			::util::shader::file_to_string("draw/profiling/timing/bar_chart/draw.frag")
 		);
 
