@@ -115,7 +115,7 @@ namespace game_logic::profiling
 			);
 			std::memcpy
 			(
-				timestamp_metadata_mapping + environment.state.layouts.timestamp_metadata.generation_state.offset,
+				timestamp_metadata_mapping + environment.state.layouts.timestamp_metadata.metadata_generation_state.offset,
 				&environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->metadata[next_timestamp_metadata_physical_index].generation,
 				sizeof(GLuint)
 			);
@@ -230,5 +230,39 @@ namespace game_logic::profiling
 
 		environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->generation_query_count = 0u;
 		environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->query_count = 0u;
+/*
+		glMemoryBarrier(GL_ALL_BARRIER_BITS);
+		GLuint timestamp_metadata_buffer_size{ total_metadata_capacity * environment.state.layouts.timestamp_metadata.metadata_color_state.top_level_array_stride + environment.state.layouts.timestamp_metadata.metadata_color_state.offset };
+		GLubyte* temp = new GLubyte[timestamp_metadata_buffer_size];
+		glGetNamedBufferSubData
+		(
+			environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->timestamp_metadata_buffer,
+			0, timestamp_metadata_buffer_size,
+			temp
+		);
+
+		for (GLuint i{ 0u }; i < 10u; ++i)
+		{
+			GLfloat color[4u];
+			std::memcpy
+			(
+				&color,
+				temp + i * environment.state.layouts.timestamp_metadata.metadata_color_state.top_level_array_stride + environment.state.layouts.timestamp_metadata.metadata_color_state.offset,
+				sizeof(GLfloat[4u])
+			);
+
+			GLuint generation;
+			std::memcpy
+			(
+				&generation,
+				temp + i * environment.state.layouts.timestamp_metadata.metadata_color_state.top_level_array_stride + environment.state.layouts.timestamp_metadata.metadata_generation_state.offset,
+				sizeof(GLuint)
+			);
+
+			std::cout << i << ": color: (" << color[0u] << ", " << color[1u] << ", " << color[2u] << ", " << color[3u] << "), " << "generation: " << generation << "\n";
+		}
+		std::cout << std::endl;
+
+		delete[] temp;*/
 	}
 }
