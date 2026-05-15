@@ -106,7 +106,7 @@ namespace game_logic::profiling
 					environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->timing_metadata_buffer,
 					0,
 					timing_metadata_buffer_size,
-					GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT
+					GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_FLUSH_EXPLICIT_BIT
 				);
 
 			GLuint total_timestamp_capacity
@@ -145,7 +145,7 @@ namespace game_logic::profiling
 					environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->timestamp_metadata_buffer,
 					0,
 					metadata_buffer_size,
-					GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT
+					GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_FLUSH_EXPLICIT_BIT
 				);
 			environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->next_metadata_fence_index = 0u;
 			for (GLuint fence_index{ 0u }; fence_index < ::game_state::profiling::metadata_fence_count; ++fence_index)
@@ -170,8 +170,7 @@ namespace game_logic::profiling
 				environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->generation_queries
 			);
 
-			GLuint timestamp_capacity = environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->timestamp_capacity;
-			environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->metadata = new ::game_state::profiling::Timestamp_Metadata1[timestamp_capacity];
+			environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->metadata = new ::game_state::profiling::Timestamp_Metadata1[total_timestamp_capacity];
 			
 			GLuint generation_capacity = environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->generation_capacity;
 			environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->generation_start_timestamps = new GLuint[generation_capacity];
