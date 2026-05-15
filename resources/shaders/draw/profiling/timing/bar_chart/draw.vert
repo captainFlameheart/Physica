@@ -18,7 +18,7 @@ void main()
 	uint timestamp_index = gl_VertexID / vertices_per_timestamp;
 	uint local_index = gl_VertexID - timestamp_index * vertices_per_timestamp;
 
-	bar_vertex = bar_vertices[local_index];
+	vec2 bar_vertex = bar_vertices[local_index];
 	
 	const float bar_half_width = 0.1;
 	const float bar_height = 0.5;

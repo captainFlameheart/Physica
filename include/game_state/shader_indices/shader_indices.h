@@ -714,9 +714,24 @@ namespace game_state::shader_indices
 			constexpr GLuint count{ end - base };
 		}
 
-		namespace cursor
+		namespace profiling
 		{
 			constexpr GLuint base{ ::game_state::shader_indices::draw::world_border::end };
+
+			enum struct Indices : GLuint
+			{
+				timing_bar_chart = base,
+
+				end
+			};
+
+			constexpr GLuint end{ static_cast<GLuint>(Indices::end) };
+			constexpr GLuint count{ end - base };
+		}
+
+		namespace cursor
+		{
+			constexpr GLuint base{ ::game_state::shader_indices::draw::profiling::end };
 
 			enum struct Indices : GLuint
 			{

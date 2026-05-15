@@ -23,6 +23,7 @@
 #include "compile_draw_rigid_body_circle_contact_constraint_spawners.h"
 #include "compile_draw_rigid_body_triangles.h"
 #include "compile_draw_skycircle_ring.h"
+#include "compile_draw_timing_bar_chart.h"
 #include "compile_draw_source_image_layer.h"
 #include "compile_draw_world_border.h"
 #include "compile_find_highlighted_hovered_leafs.h"
