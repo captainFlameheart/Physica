@@ -369,6 +369,11 @@ namespace game_logic::draw
 		apply_fluence(environment);
 	}
 
+	void draw_timing(game_environment::Environment& environment, GLuint type)
+	{
+
+	}
+
 	void draw(game_environment::Environment& environment)
 	{
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_UNIFORM_BARRIER_BIT);
@@ -434,6 +439,16 @@ namespace game_logic::draw
 		}
 
 		//::game_logic::profiling::flush_timestamps(environment);
+		for (GLuint timing_type{ 0u }; timing_type < ::game_state::profiling::Timestamp_Type::count; ++timing_type)
+		{
+			if (environment.state.profiling.timing_set.timings[timing_type] == nullptr)
+			{
+				continue;
+			}
+			::game_logic::profiling::flush_timing(environment, timing_type);
+			draw_timing(environment, timing_type);
+			::game_logic::profiling::place_fence(environment, timing_type);
+		}
 
 		++environment.state.draw_count;
 	}

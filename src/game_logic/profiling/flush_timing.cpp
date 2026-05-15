@@ -6,7 +6,7 @@
 
 namespace game_logic::profiling
 {
-	void flush_timing(::game_environment::Environment& environment, ::game_state::profiling::Timing_Type type)
+	void flush_timing(::game_environment::Environment& environment, GLuint type)
 	{
 		if (environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)] == nullptr)
 		{
@@ -27,7 +27,7 @@ namespace game_logic::profiling
 
 		GLuint generation
 		{
-			environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->generation - environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->generation_query_count
+			environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->next_generation - environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->generation_query_count
 		};
 		GLuint generation_capacity{ environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->generation_capacity };
 		for (GLuint i{ 0u }; i < environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->generation_query_count; ++i)
@@ -192,7 +192,7 @@ namespace game_logic::profiling
 		std::memcpy
 		(
 			timing_metadata_mapping + environment.state.layouts.timestamp_metadata.generation_state.offset,
-			&environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->generation,
+			&environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->next_generation,
 			sizeof(GLuint)
 		);
 		std::memcpy

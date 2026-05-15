@@ -22,7 +22,7 @@ namespace game_state::profiling
 		GLuint query_capacity;
 		GLuint generation_query_capacity;
 
-		GLuint generation;
+		GLuint next_generation;
 		GLuint next_timestamp;
 		GLuint query_count;
 		GLuint generation_query_count;

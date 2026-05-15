@@ -17,9 +17,9 @@ namespace game_logic::profiling
 			return;
 		}
 
-		++environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->generation;
-
 		GLuint generation_query_index{ environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->generation_query_count++ };
 		glQueryCounter(environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->generation_queries[generation_query_index], GL_TIMESTAMP);
+
+		++environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->next_generation;
 	}
 }

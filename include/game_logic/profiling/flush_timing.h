@@ -5,5 +5,5 @@
 
 namespace game_logic::profiling
 {
-	void place_fence(::game_environment::Environment& environment, GLuint type);
+	void flush_timing(::game_environment::Environment& environment, GLuint type);
 }

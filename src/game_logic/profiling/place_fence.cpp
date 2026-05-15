@@ -5,7 +5,7 @@
 
 namespace game_logic::profiling
 {
-	void place_fence(::game_environment::Environment& environment, ::game_state::profiling::Timestamp_Type type)
+	void place_fence(::game_environment::Environment& environment, GLuint type)
 	{
 		if (environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)] == nullptr)
 		{

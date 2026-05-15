@@ -21,7 +21,7 @@ namespace game_logic::profiling
 			environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->query_capacity = 1000u;
 			environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->generation_query_capacity = 1000u;
 
-			environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->generation = 0u;
+			environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->next_generation = 0u;
 			environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->next_timestamp = 0u;
 			environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->query_count = 0u;
 			environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->generation_query_count = 0u;
@@ -83,7 +83,7 @@ namespace game_logic::profiling
 			std::memcpy
 			(
 				timing_metadata + environment.state.layouts.timestamp_metadata.generation_state.offset,
-				&environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->generation,
+				&environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->next_generation,
 				sizeof(GLuint)
 			);
 			std::memcpy

@@ -21,7 +21,7 @@ namespace game_logic::profiling
 		glQueryCounter(environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->queries[query_index], GL_TIMESTAMP);
 
 		GLuint timestamp_index{ environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->next_timestamp++ };
-		environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->metadata[timestamp_index].generation = environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->generation;
+		environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->metadata[timestamp_index].generation = environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->next_generation - 1u;
 		environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->metadata[timestamp_index].color[0u] = red;
 		environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->metadata[timestamp_index].color[1u] = green;
 		environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->metadata[timestamp_index].color[2u] = blue;
