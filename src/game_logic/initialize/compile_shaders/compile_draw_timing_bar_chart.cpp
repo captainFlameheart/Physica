@@ -16,7 +16,7 @@ namespace game_logic::initialize::compile_shaders
 		{
 			::util::shader::file_to_string("blocks/uniform/Timing_Configuration") +
 			::util::shader::file_to_string("blocks/uniform/Timing_Metadata") +
-			::util::shader::file_to_string("blocks/shader_storage/Timestamp") +
+			::util::shader::file_to_string("blocks/shader_storage/Timestamps") +
 			::util::shader::file_to_string("blocks/shader_storage/Timestamp_Metadata")
 		};
 

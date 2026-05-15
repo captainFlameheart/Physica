@@ -20,6 +20,8 @@ namespace game_logic::initialize::query_layouts
 		std::string prefix
 		{
 			"#version " + std::string{ ::game_state::device_requirements::OpenGL_versions::version_string } + "\n"
+			"#extension GL_ARB_gpu_shader_int64 : require\n"
+
 			"#define FIXED_DATA_RESTRICT_PLACEHOLDER restrict\n"
 			"#define FIXED_DATA_BUFFER_PLACEHOLDER buffer\n"
 			"#define READ_ONLY_PLACEHOLDER \n"
