@@ -36,7 +36,7 @@ namespace game_state::profiling
 				GLuint buffer;
 				GLuint timestamp_metadata_buffer;
 			};
-			GLuint buffers[2u];
+			GLuint buffers[4u];
 		};
 
 		GLubyte* timing_metadata_mapping;
