@@ -1,6 +1,7 @@
 #include "glad_glfw.h"
 #include "game_logic/on_events_polled/include.h"
 #include "game_environment/environment.h"
+#include "game_logic/profiling/include.h"
 
 namespace game_logic::on_events_polled
 {
@@ -56,5 +57,7 @@ namespace game_logic::on_events_polled
 			(environment.state.buffers.uniform.on_events_polled_index + 1u) % ::game_state::buffers::uniform::on_events_polled_capacity;
 
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+		::game_logic::profiling::start_next_generation(environment, ::game_state::profiling::Timestamp_Type::individual_command);
 	}
 }

@@ -136,6 +136,8 @@ namespace game_runner
 			game_logic::_draw(game_environment);
 			glfwSwapBuffers(window);
 
+			//glFinish();	// MUST TODO REMOVE!!!!!
+
 			glfwPollEvents();
 			game_logic::_on_events_polled(game_environment);
 		}

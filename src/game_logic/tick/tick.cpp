@@ -638,6 +638,8 @@ namespace game_logic::tick
 			tick_constraints(environment);
 		}
 
+		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "tick", 1.0f, 0.0, 0.0f);
+
 		++environment.state.tick_count;
 	}
 }
