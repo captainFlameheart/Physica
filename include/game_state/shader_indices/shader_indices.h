@@ -721,6 +721,7 @@ namespace game_state::shader_indices
 			enum struct Indices : GLuint
 			{
 				timing_bar_chart = base,
+				deadline,
 
 				end
 			};
