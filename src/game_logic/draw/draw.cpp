@@ -30,11 +30,17 @@ namespace game_logic::draw
 			);
 		}
 
+		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "draw_entities", 0.0f, 0.0, 1.0f);
+
 		glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::draw::world_border::Indices::world_border)]);
 		glDrawArrays(GL_TRIANGLES, 0, 24u);
 
+		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "draw_world_border", 1.0f, 1.0, 0.0f);
+
 		glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::draw::cursor::Indices::cursor)]);
 		glDrawArrays(GL_TRIANGLES, 0, 6u);
+
+		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "draw_cursor", 0.0f, 1.0, 1.0f);
 	}
 
 	void draw_skycircle(game_environment::Environment& environment)
@@ -379,6 +385,8 @@ namespace game_logic::draw
 
 	void draw(game_environment::Environment& environment)
 	{
+		::game_logic::profiling::start_next_generation(environment, ::game_state::profiling::Timestamp_Type::individual_command);
+
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_UNIFORM_BARRIER_BIT);
 
 		//glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::draw::highlight_hovered_objects::Indices::find_highlighted_hovered_leafs)]);
@@ -396,6 +404,8 @@ namespace game_logic::draw
 		// IMPORTANT TODO: We might not need GL_SHADER_STORAGE_BARRIER_BIT!
 		glMemoryBarrier(GL_COMMAND_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
 
+		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "update_draw_counts", 1.0f, 0.0, 0.0f);
+
 		//::game_logic::profiling::place_timestamp(environment, ::game_state::profiling::Timestamp_Type::draw_source, "draw_source_start", true);
 		::game_logic::profiling::start_next_generation(environment, ::game_state::profiling::Timestamp_Type::draw_source);
 
@@ -411,6 +421,9 @@ namespace game_logic::draw
 			glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 			glClear(GL_COLOR_BUFFER_BIT);
 		}
+
+		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "clear_source_image", 0.0f, 1.0, 0.0f);
+
 		draw_source_image(environment);
 
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, environment.state.holographic_radiance_cascades.skycircle_framebuffer);

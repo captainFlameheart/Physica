@@ -63,6 +63,9 @@ namespace game_logic::on_key_event
 			{
 				switch (key)
 				{
+				case GLFW_KEY_T:
+					::game_logic::profiling::toggle_timing(environment, ::game_state::profiling::Timestamp_Type::individual_command);
+					break;
 				case GLFW_KEY_S:
 					::game_logic::profiling::toggle_timing(environment, ::game_state::profiling::Timestamp_Type::draw_source);
 					break;
