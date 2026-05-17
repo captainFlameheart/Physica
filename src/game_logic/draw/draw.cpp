@@ -373,7 +373,7 @@ namespace game_logic::draw
 	{
 		{
 			glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::draw::profiling::Indices::timing_bar_chart)]);
-			glDrawArrays(GL_TRIANGLES, 0, 6u);
+			glDrawArrays(GL_TRIANGLES, 0, 1u * 6u);
 		}
 	}
 
