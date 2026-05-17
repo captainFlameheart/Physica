@@ -420,7 +420,15 @@ namespace game_logic::draw
 		draw_skycircle(environment);
 		
 		//::game_logic::profiling::place_timestamp(environment, ::game_state::profiling::Timestamp_Type::draw_source, "draw_source");
-		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::draw_source, "draw_source", 1.0, 1.0, 1.0);
+		GLfloat r{ 1.0f };
+		GLfloat g{ 0.0f };
+		GLfloat b{ 0.0f };
+		if (environment.state.tick_count > 5u * 60u)
+		{
+			g = 1.0;
+			r = 0.0;
+		}
+		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::draw_source, "draw_source", r, g, b);
 
 		if (environment.state.holographic_radiance_cascades.enabled)
 		{
