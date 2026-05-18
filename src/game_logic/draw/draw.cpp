@@ -398,6 +398,7 @@ namespace game_logic::draw
 
 	void draw(game_environment::Environment& environment)
 	{
+		std::cout << "Draw" << std::endl;
 		//::game_logic::profiling::start_next_generation(environment, ::game_state::profiling::Timestamp_Type::individual_command);
 
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_UNIFORM_BARRIER_BIT);

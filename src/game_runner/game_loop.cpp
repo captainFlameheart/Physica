@@ -108,10 +108,22 @@ namespace game_runner
 		}
 #else
 		constexpr GLuint max_ticks_per_frame{ 40u };	// TODO: Increase.
+		GLuint frame_count{ 0u };
+		double last_time{ glfwGetTime() };
 		while (!glfwWindowShouldClose(window))
 		{
+			++frame_count;
+			double current_time{ glfwGetTime() };
+			double elapsed_time{ current_time - last_time };
+			if (elapsed_time >= 1.0)
+			{
+				std::cout << "FPS: " << frame_count << std::endl;
+				frame_count = 0u;
+				last_time = current_time;
+			}
+
 			game_environment.ticks_this_frame = 0u;
-			while
+			/*while
 			(
 				(game_environment.lag = static_cast<GLfloat>(glfwGetTime()) >= ::game_state::units::time_unit_in_seconds) &&
 				game_environment.ticks_this_frame < max_ticks_per_frame
@@ -123,6 +135,15 @@ namespace game_runner
 				}
 				game_logic::_tick(game_environment);
 				glfwSetTime(glfwGetTime() - static_cast<double>(::game_state::units::time_unit_in_seconds));
+				++game_environment.ticks_this_frame;
+			}*/
+			for (GLuint i = 0u; i < 1u; ++i)
+			{
+				if (i != 0u)
+				{
+					game_logic::_between_ticks(game_environment);
+				}
+				game_logic::_tick(game_environment);
 				++game_environment.ticks_this_frame;
 			}
 

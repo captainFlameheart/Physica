@@ -563,6 +563,7 @@ namespace game_logic::tick
 
 	void tick(game_environment::Environment& environment)
 	{
+		std::cout << "Tick" << std::endl;
 		if (environment.state.tick_count % 1u == 0u)	// TODO: Make into proper feature
 		{
 			tick_bodies(environment);
