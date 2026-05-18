@@ -30,17 +30,17 @@ namespace game_logic::draw
 			);
 		}
 
-		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "draw_entities", 0.0f, 0.0, 1.0f);
+		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "draw_entities", 1.00, 0.20, 0.20);
 
 		glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::draw::world_border::Indices::world_border)]);
 		glDrawArrays(GL_TRIANGLES, 0, 24u);
 
-		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "draw_world_border", 1.0f, 1.0, 0.0f);
+		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "draw_world_border", 1.00, 0.30, 0.25);
 
 		glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::draw::cursor::Indices::cursor)]);
 		glDrawArrays(GL_TRIANGLES, 0, 6u);
 
-		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "draw_cursor", 0.0f, 1.0, 1.0f);
+		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "draw_cursor", 1.00, 0.35, 0.15);
 	}
 
 	void draw_skycircle(game_environment::Environment& environment)
@@ -71,7 +71,7 @@ namespace game_logic::draw
 
 		glDisable(GL_BLEND);
 
-		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "draw_skycircle", 1.0f, 0.0, 0.0f);
+		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "draw_skycircle", 1.00, 0.50, 0.15);
 	}
 
 	void trace_rays
@@ -100,7 +100,7 @@ namespace game_logic::draw
 			glDrawArrays(GL_TRIANGLES, 0, 3u);
 		}
 
-		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "trace_rays", 0.0f, 1.0, 0.0f);
+		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "trace_rays", 1.00, 0.80, 0.15);
 	}
 
 	void merge_rays
@@ -145,7 +145,7 @@ namespace game_logic::draw
 			++cascade;
 		}
 
-		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "trace_rays", 0.0f, 0.0, 1.0f);
+		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "merge_rays", 1.00, 0.85, 0.20);
 	}
 
 	void compute_rays
@@ -185,7 +185,7 @@ namespace game_logic::draw
 
 		glDrawArrays(GL_TRIANGLES, 0, 3u);
 
-		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "gather_fluence_from_skycircle", 1.0f, 1.0, 0.0f);
+		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "gather_fluence_from_skycircle", 1.00, 0.90, 0.30);
 	}
 
 	void merge_intermediate_fluence
@@ -304,7 +304,7 @@ namespace game_logic::draw
 		merge_intermediate_fluence(environment, bidirection, orthogonal_bidirection, direction, cascade_count, probe_grid_length, orthogonal_probe_grid_length, cascade);
 		merge_final_fluence(environment, bidirection, orthogonal_bidirection, direction, cascade_count, probe_grid_length, orthogonal_probe_grid_length, keep_fluence, cascade);
 		
-		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "merge_fluence", 0.0f, 1.0, 1.0f);
+		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "merge_fluence", 0.95, 0.95, 0.40);
 	}
 
 	void gather_fluence
@@ -375,7 +375,7 @@ namespace game_logic::draw
 		glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::draw::holographic_radiance_cascades::Indices::apply_fluence)]);
 		glDrawArrays(GL_TRIANGLES, 0, 3u);	// TODO: 6u when zoomed out.
 
-		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "apply_fluence", 1.0f, 1.0, 1.0f);
+		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "apply_fluence", 0.45, 0.10, 0.05);
 	}
 
 	void generate_and_apply_fluence(game_environment::Environment& environment)
@@ -418,7 +418,7 @@ namespace game_logic::draw
 		// IMPORTANT TODO: We might not need GL_SHADER_STORAGE_BARRIER_BIT!
 		glMemoryBarrier(GL_COMMAND_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
 
-		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "update_draw_counts", 1.0f, 0.0, 0.0f);
+		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "update_draw_counts", 0.85, 0.10, 0.10);
 
 		//::game_logic::profiling::place_timestamp(environment, ::game_state::profiling::Timestamp_Type::draw_source, "draw_source_start", true);
 		::game_logic::profiling::start_next_generation(environment, ::game_state::profiling::Timestamp_Type::draw_source);
@@ -436,7 +436,7 @@ namespace game_logic::draw
 			glClear(GL_COLOR_BUFFER_BIT);
 		}
 
-		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "clear_source_image", 0.0f, 1.0, 0.0f);
+		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "clear_source_image", 0.95, 0.15, 0.15);
 
 		draw_source_image(environment);
 
@@ -445,7 +445,7 @@ namespace game_logic::draw
 		glClearTexImage(environment.state.holographic_radiance_cascades.skycircle_texture, 0, GL_RGBA, GL_FLOAT, clear_color);
 		glViewport(0, 0, environment.state.holographic_radiance_cascades.skycircle_length, 1u);
 		
-		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "clear_skycircle", 1.0f, 1.0, 1.0f);
+		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "clear_skycircle", 1.00, 0.45, 0.10);
 
 		draw_skycircle(environment);
 
