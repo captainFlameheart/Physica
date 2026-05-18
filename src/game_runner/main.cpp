@@ -59,7 +59,7 @@ namespace game_runner
 
 		gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 
-		glfwSwapInterval(1);
+		glfwSwapInterval(0);
 
 #if OPENGL_DEBUG_MODE != OPENGL_NO_DEBUG
 		glEnable(GL_DEBUG_OUTPUT);

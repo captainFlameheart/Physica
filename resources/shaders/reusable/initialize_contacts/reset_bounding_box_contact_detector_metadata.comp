@@ -13,10 +13,10 @@ void main()
 	bool should_reset =
 	(
 		detector_count > max_detectors_per_bounding_box * inner_bounding_box_count
-		|| tick - previous_reset_tick > ticks_between_resets
+		//|| tick - previous_reset_tick > ticks_between_resets
 		|| detector_count == 0u
 	);
-	//should_reset = true;
+	//should_reset = false;
 
 	fixed_data.contact_detection_flags = uint(should_reset) * contact_detection_is_resetting_mask;
 

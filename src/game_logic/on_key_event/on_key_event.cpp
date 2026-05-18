@@ -4,6 +4,23 @@
 
 namespace game_logic::on_key_event
 {
+	void toggle_fullscreen(
+		game_environment::Environment& environment
+	)
+	{
+		GLFWmonitor* window_monitor{ glfwGetWindowMonitor(environment.window) };
+		if (window_monitor == nullptr)
+		{
+			GLFWmonitor* primary_monitor{ glfwGetPrimaryMonitor() };
+			GLFWvidmode const* video_mode{ glfwGetVideoMode(primary_monitor) };
+			glfwSetWindowMonitor(environment.window, primary_monitor, 0, 0, video_mode->width, video_mode->height, video_mode->refreshRate);
+		}
+		else
+		{
+			glfwSetWindowMonitor(environment.window, nullptr, 0, 0, 600, 400, GLFW_DONT_CARE);
+		}
+	}
+
 	void on_key_event(
 		game_environment::Environment& environment,
 		int const key,
@@ -134,6 +151,12 @@ namespace game_logic::on_key_event
 					break;
 				case GLFW_KEY_PERIOD:
 					::game_logic::tick::tick(environment);
+					break;
+				case GLFW_KEY_F11:
+					toggle_fullscreen(environment);
+					break;
+				case GLFW_KEY_ESCAPE:
+					glfwSetWindowShouldClose(environment.window, GLFW_TRUE);
 					break;
 				default:
 					break;
