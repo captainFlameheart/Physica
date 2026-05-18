@@ -15,7 +15,7 @@ namespace game_logic::profiling
 
 			environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)] = new ::game_state::profiling::Timing();
 			
-			environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->timestamp_capacity = 16000u;
+			environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->timestamp_capacity = 64000u;
 			environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->metadata_stage_capacity = 1000u;
 			environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->generation_capacity = 1000u;
 			environment.state.profiling.timing_set.timings[static_cast<GLuint>(type)]->query_capacity = 1000u;

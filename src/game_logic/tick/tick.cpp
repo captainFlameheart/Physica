@@ -17,6 +17,7 @@ namespace game_logic::tick
 			};
 			glDispatchComputeIndirect(static_cast<GLintptr>(command_offset));
 		}
+		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "tick_bodies", 0.10, 0.25, 0.95);
 	}
 
 	GLsync send_bounding_volume_hierarchy_metadata_to_CPU(game_environment::Environment& environment)
@@ -41,6 +42,7 @@ namespace game_logic::tick
 			};
 			glDispatchComputeIndirect(static_cast<GLintptr>(command_offset));
 		}
+		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "tick_bounding_volume_hierarchy_leafs", 0.25, 0.70, 1.00);
 	}
 
 	void find_inner_bounding_box_height_changes(game_environment::Environment& environment)
@@ -53,6 +55,7 @@ namespace game_logic::tick
 			index_in_tick_entities_shader_array * environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.top_level_array_stride
 		};
 		glDispatchComputeIndirect(command_offset);
+		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "find_inner_bounding_box_height_changes", 0.35, 0.75, 1.00);
 	}
 
 	void tick_skycircle_elements(game_environment::Environment& environment)
@@ -68,6 +71,7 @@ namespace game_logic::tick
 			};
 			glDispatchComputeIndirect(static_cast<GLintptr>(command_offset));
 		}
+		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "tick_skycircle_elements", 0.15, 0.35, 1.00);
 	}
 
 	void wait_for_fence
@@ -110,6 +114,7 @@ namespace game_logic::tick
 	{
 		glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::initialize_inner_bounding_box_traversal::Indices::migrate_inner_bounding_boxes)]);
 		glDispatchCompute(1u, 1u, 1u);
+		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "migrate_inner_bounding_boxes", 0.45, 0.80, 1.00);
 	}
 
 	void initialize_inner_bounding_box_traversal(game_environment::Environment& environment, GLuint bounding_volume_hierarchy_height)
@@ -124,6 +129,7 @@ namespace game_logic::tick
 			constexpr GLuint local_size{ ::game_state::local_sizes::process_entities_local_sizes[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::initialize_inner_bounding_box_traversal::Indices::set_commands) - static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::base)] };
 			glDispatchCompute((thread_count + local_size - 1u) / local_size, 1u, 1u);
 		}
+		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "initialize_inner_bounding_box_traversal", 0.10, 0.85, 1.00);
 	}
 
 	void tick_inner_bounding_boxes(game_environment::Environment& environment, GLuint bounding_volume_hierarchy_height)
@@ -134,7 +140,9 @@ namespace game_logic::tick
 			environment.state.layouts.commands.remaining_dispatch_commands_work_group_count_x_state.offset
 		};
 		glDispatchComputeIndirect(static_cast<GLintptr>(command_offset));
+		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "tick_bottom_inner_bounding_boxes", 0.15, 0.90, 0.95);
 
+		GLfloat pass_colors[2u][3u]{ { 0.20, 1.00, 0.90 }, { 0.30, 1.00, 0.85 } };
 		for (GLuint height_level{ 1u }; height_level <= bounding_volume_hierarchy_height; ++height_level) {
 			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 			
@@ -150,6 +158,9 @@ namespace game_logic::tick
 				height_level * environment.state.layouts.commands.remaining_dispatch_commands_work_group_count_x_state.top_level_array_stride
 			};
 			glDispatchComputeIndirect(static_cast<GLintptr>(command_offset));
+
+			GLfloat(&color)[3u]{ pass_colors[height_level % std::size(pass_colors)] };
+			::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "tick_inner_bounding_box_level", color[0u], color[1u], color[2u]);
 		}
 	}
 
@@ -160,6 +171,7 @@ namespace game_logic::tick
 			environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::pre_bounding_box_contact_detectors::commit_counts::Indices::commit_counts)]
 		);
 		glDispatchCompute(1u, 1u, 1u);
+		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "commit_bounding_box_contact_detector_counts", 0.00, 0.75, 0.65);
 	}
 
 	void clear_bounding_box_contact_detector_deaths(game_environment::Environment& environment)
@@ -222,6 +234,7 @@ namespace game_logic::tick
 				::game_logic::debug::print_constraint_spawner_compaction_plan(environment);
 			}
 		}
+		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "tick_bounding_box_contact_detectors", 0.20, 0.85, 0.75);
 
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
@@ -259,6 +272,8 @@ namespace game_logic::tick
 		}
 
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);	// TODO: Is this needed?
+
+		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "merge_bounding_box_contact_detectors", 0.30, 0.90, 0.80);
 	}
 
 	void commit_detector_counts(game_environment::Environment& environment)
@@ -420,6 +435,8 @@ namespace game_logic::tick
 			};
 			glDispatchComputeIndirect(command_offset);
 		}
+
+		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "reset_bounding_box_contact_detectors_if_needed", 0.05, 0.15, 0.45);
 	}
 
 	void tick_detectors(game_environment::Environment& environment)
@@ -447,6 +464,7 @@ namespace game_logic::tick
 				::game_logic::debug::print_fixed_data(environment);
 			}
 		}
+		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "tick_specific_contact_detectors", 0.10, 0.35, 0.65);
 	}
 
 	void OLD_update_tick_counts(game_environment::Environment& environment)
@@ -466,6 +484,8 @@ namespace game_logic::tick
 
 		glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::tick::update_counts::Indices::on_update_counts)]);
 		glDispatchCompute(1u, 1u, 1u);
+
+		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "OLD_update_tick_counts", 1.0, 1.0, 1.0);
 	}
 
 	void commit_constraint_counts(game_environment::Environment& environment)
@@ -559,6 +579,7 @@ namespace game_logic::tick
 			};
 			glDispatchComputeIndirect(command_offset);
 		}
+		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "tick_constraints", 1.0, 1.0, 1.0);
 	}
 
 	void tick(game_environment::Environment& environment)
@@ -571,6 +592,7 @@ namespace game_logic::tick
 			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
 			GLsync bounding_volume_hierarchy_fence{ send_bounding_volume_hierarchy_metadata_to_CPU(environment) };
+			::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "send_bounding_volume_hierarchy_metadata_to_CPU", 0.20, 0.60, 0.95);
 
 			tick_bounding_volume_hierarchy_leafs(environment);
 			find_inner_bounding_box_height_changes(environment);
@@ -601,6 +623,7 @@ namespace game_logic::tick
 			perform_bounding_box_contact_detector_compaction(environment);
 
 			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+			::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "bounding_box_contact_detector_compaction", 0.10, 0.80, 0.70);
 
 			tick_bounding_box_contact_detectors(environment);
 
@@ -618,6 +641,7 @@ namespace game_logic::tick
 			perform_detector_compaction(environment);
 
 			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+			::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "specific_contact_detector_compaction", 0.05, 0.25, 0.55);
 
 			tick_detectors(environment);
 
@@ -635,11 +659,12 @@ namespace game_logic::tick
 			perform_constraint_compaction(environment);
 
 			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+			::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "constraint_compaction", 0.10, 0.45, 0.75);
 
 			tick_constraints(environment);
 		}
 
-		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "tick", 0.10, 0.25, 0.95);
+		//::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "tick", 0.10, 0.25, 0.95);
 
 		++environment.state.tick_count;
 	}
