@@ -22,7 +22,7 @@ const float millisecond_in_nanoseconds = 1000000.0;
 const float nanosecond_in_milliseconds = 1.0 / millisecond_in_nanoseconds;
 
 const float step_wise_bar_half_width = 0.01;
-const float smooth_bar_half_width = 0.001;
+const float smooth_bar_half_width = 0.002;
 
 void main()
 {
