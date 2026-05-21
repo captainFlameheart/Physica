@@ -10,6 +10,14 @@
 #define SWAP_4_ALLOWED GRANDCHILD_GRANDCHILD_SWAP_ALLOWED
 #define SWAP_5_ALLOWED GRANDCHILD_GRANDCHILD_SWAP_ALLOWED
 
+void profile(in uint index, in int minimum_cost_reduction, in int best_cost_reduction, in uint best_swap)
+{
+	#if IS_COLLECTING_BOUNDING_VOLUME_HIERARCHY_ROTATIONS
+		bool swap_performed = (best_cost_reduction > minimum_cost_reduction);
+		uvec4_data.data[fixed_data.inner_bounding_box_rotation_base + index] = uvec4(minimum_cost_reduction, uint(best_cost_reduction), uint(best_swap), uint(swap_performed));
+	#endif
+}
+
 layout(local_size_x = tick_inner_bounding_boxes_local_size) in;
 void main()
 {
@@ -333,4 +341,6 @@ void main()
 
 	parent_children_height.w = uint(1 + max(child_heights[0u], child_heights[1u]));
 	uvec4_data.data[parent_children_height_index] = parent_children_height;
+
+	profile(index, minimum_cost_reduction, best_cost_reduction, best_swap);
 }

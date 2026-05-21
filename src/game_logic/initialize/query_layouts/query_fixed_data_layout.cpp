@@ -9,6 +9,12 @@ namespace game_logic::initialize::query_layouts
 	{
 		::game_logic::shader_util::query::query_shader_storage_variable_offset
 		(
+			program, "Fixed_Data.inner_bounding_box_rotation_base",
+			environment.state.layouts.fixed_data.inner_bounding_box_rotation_base_properties
+		);
+
+		::game_logic::shader_util::query::query_shader_storage_variable_offset
+		(
 			program, "Fixed_Data.temp",
 			environment.state.layouts.fixed_data.temp_properties
 		);

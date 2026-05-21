@@ -8,6 +8,9 @@ namespace game_logic::initialize
 {
 	void initialize(game_environment::Environment& environment)
 	{
+		environment.state.is_profiling_inner_bounding_box_migrations = false;
+		environment.state.is_profiling_bounding_volume_hierarchy_rotations = true;
+
 		environment.state.debug_flag = 0u;
 
 		::game_logic::profiling::initialize_state(environment);

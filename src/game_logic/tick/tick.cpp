@@ -661,6 +661,11 @@ namespace game_logic::tick
 			::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "constraint_compaction", 0.10, 0.45, 0.75);
 
 			tick_constraints(environment);
+
+			if (environment.state.is_profiling_bounding_volume_hierarchy_rotations)
+			{
+				::game_logic::debug::print_profiling_data(environment);
+			}
 		}
 
 		//::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "tick", 0.10, 0.25, 0.95);

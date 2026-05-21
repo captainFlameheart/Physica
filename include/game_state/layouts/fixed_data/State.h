@@ -8,6 +8,16 @@ namespace game_state::layouts::fixed_data
 		GLint offset;
 	};
 
+	struct inner_bounding_box_migration_base
+	{
+		GLint offset;
+	};
+
+	struct inner_bounding_box_rotation_base
+	{
+		GLint offset;
+	};
+
 	struct camera_position
 	{
 		GLint offset;
@@ -394,6 +404,11 @@ namespace game_state::layouts::fixed_data
 
 	struct State
 	{
+		union
+		{
+			inner_bounding_box_rotation_base inner_bounding_box_rotation_base_state;
+			GLint inner_bounding_box_rotation_base_properties[sizeof(inner_bounding_box_rotation_base) / sizeof(GLint)];
+		};
 		union
 		{
 			temp temp_state;

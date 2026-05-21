@@ -13,6 +13,8 @@ namespace game_state
 	struct Game
 	{
 		GLuint debug_flag;
+		bool is_profiling_inner_bounding_box_migrations;
+		bool is_profiling_bounding_volume_hierarchy_rotations;
 
 		bool is_debugging;
 		bool tick_paused;
