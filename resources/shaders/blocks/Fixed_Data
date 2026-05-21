@@ -1,3 +1,8 @@
+#define IS_PROFILING 1
+
+#define IS_COLLECTING_INNER_BOUNDING_BOX_MIGRATIONS IS_PROFILING && 0
+#define IS_COLLECTING_BOUNDING_VOLUME_HIERARCHY_ROTATIONS IS_PROFILING && 1
+
 // IMPORTANT TODO: Switch to std430 layout if shared layout does not match needs!
 const float pi = 3.141592653589793;
 const float half_pi = pi * 0.5;
@@ -154,6 +159,11 @@ uint align_up_to_common_base(uint base)
 	return (base + align_up_to_common_base_addition) & align_up_to_common_base_mask;
 }
 
+uint address_to_index(in uint address, in uint element_size_shift)
+{
+	return address >> element_size_shift;
+}
+
 uint address_to_uvec4_index(uint address)
 {
 	return address >> uvec4_size_shift;
@@ -197,6 +207,15 @@ vec2 lerp(vec2 start, vec2 end, float remaining_error_fraction_per_second, float
 layout(shared, binding = fixed_data_binding) FIXED_DATA_RESTRICT_PLACEHOLDER
 FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 {
+	#if IS_COLLECTING_INNER_BOUNDING_BOX_MIGRATIONS
+		bool is_collecting_inner_bounding_box_migrations;
+		uint inner_bounding_box_migration_base;
+	#endif
+	#if IS_COLLECTING_BOUNDING_VOLUME_HIERARCHY_ROTATIONS
+		bool is_collecting_bounding_volume_hierarchy_rotations;
+		uint inner_bounding_box_rotation_base;
+	#endif
+
 	uint cursor_icons[cursor_array_length];
 	vec4 cursor_icon_offset_scales[cursor_icon_count];
 

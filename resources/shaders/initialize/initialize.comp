@@ -1,3 +1,39 @@
+uint allocate_array(inout uint end_address, in uint capacity, in uint element_size, in uint element_size_shift)
+{
+	end_address = align_up(fixed_data.end_address);
+	uint base = address_to_index(end_address, element_size_shift);
+	end_address += capacity * element_size;
+	return base;
+}
+
+uint allocate_uvec4_array(inout uint end_address, in uint capacity)
+{
+	return allocate_array(end_address, capacity, uvec4_size, uvec4_size_shift);
+}
+
+uint allocate_cleared_uvec4_array(in uint entity_type, uvec4 clear_value)
+{
+	uint capacity = fixed_data.capacities[entity_type];
+	uint base = allocate_uvec4_array(fixed_data.end_address, capacity);
+	for (uint i = 0; i < capacity; ++i)
+	{
+		uvec4_data.data[base + i] = clear_value;
+	}
+	return base;
+}
+
+void initialize_profiling_data()
+{
+	#if IS_COLLECTING_INNER_BOUNDING_BOX_MIGRATIONS
+		fixed_data.is_collecting_inner_bounding_box_migrations = false;
+		fixed_data.inner_bounding_box_migration_base = allocate_cleared_uvec4_array(inner_bounding_box_type, uvec4(null_uint));
+	#endif
+	#if IS_COLLECTING_BOUNDING_VOLUME_HIERARCHY_ROTATIONS
+		fixed_data.is_collecting_bounding_volume_hierarchy_rotations = false;
+		fixed_data.inner_bounding_box_rotation_base = allocate_cleared_uvec4_array(inner_bounding_box_type, uvec4(null_uint));
+	#endif
+}
+
 const uint cursor_icons[cursor_array_length] = uint[cursor_array_length]
 (
 	// Arrow
@@ -926,4 +962,6 @@ void main()
 	}
 
 	fixed_data.temp = null_uint;
+
+	initialize_profiling_data();
 }
