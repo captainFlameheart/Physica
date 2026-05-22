@@ -113,14 +113,14 @@ namespace game_runner
 		while (!glfwWindowShouldClose(window))
 		{
 			++frame_count;
-			double current_time{ glfwGetTime() };
+			/*double current_time{glfwGetTime()};
 			double elapsed_time{ current_time - last_time };
 			if (elapsed_time >= 1.0)
 			{
 				std::cout << "FPS: " << frame_count << std::endl;
 				frame_count = 0u;
 				last_time = current_time;
-			}
+			}*/
 
 			game_environment.ticks_this_frame = 0u;
 			/*while

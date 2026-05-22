@@ -284,7 +284,7 @@ void main()
 	fixed_data.point_mass_write_flags_base = point_mass_write_flags_base;
 	fixed_data.point_mass_write_position_velocity_base = point_mass_write_position_velocity_base;
 
-	capacities[rigid_body_type_index] = 1000u;//50000u;
+	capacities[rigid_body_type_index] = 50000u;//50000u;//50000u;
 
 	uint rigid_body_inverse_mass_inertia_base_address = align_up(point_mass_write_position_velocity_base_address + capacities[point_mass_type_index] * uvec4_data_array_stride);
 	uint rigid_body_constraint_start_base_address = align_up(rigid_body_inverse_mass_inertia_base_address + capacities[rigid_body_type_index] * vec2_data_array_stride);
@@ -662,6 +662,11 @@ void main()
 		commands.draw_arrays_commands[draw_arrays_program_index].first = 0u;
 		commands.draw_arrays_commands[draw_arrays_program_index].base_instance = 0u;
 	}
+
+	fixed_data.draw_arrays_command_flags[draw_rigid_body_circle_bounding_boxes_program_index] = 0u;
+	fixed_data.draw_arrays_command_flags[draw_inner_bounding_boxes_program_index] = 0u;
+	fixed_data.draw_arrays_command_flags[draw_bounding_box_contact_detectors_program_index] = 0u;
+	fixed_data.draw_arrays_command_flags[draw_rigid_body_circle_contact_detectors_program_index] = 0u;
 
 	// TODO: Parallelize
 	for (uint remaining_dispatch_program_index = 0u; remaining_dispatch_program_index < commands.remaining_dispatch_commands.length(); ++remaining_dispatch_program_index)

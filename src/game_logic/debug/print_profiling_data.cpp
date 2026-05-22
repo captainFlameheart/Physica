@@ -43,7 +43,10 @@ namespace game_logic::debug
 				inner_bounding_box_rotations
 			);
 
-			std::cout << "Inner Bounding Box Rotations:\n";
+			//std::cout << "Inner Bounding Box Rotations:\n";
+			GLuint rotation_count{ 0u };
+			GLuint child_grandchild_rotation_count{ 0u };
+			GLuint grandchild_grandchild_rotation_count{ 0u };
 			for (GLuint i{ 0u }; i < inner_bounding_box_capacity; ++i)
 			{
 				GLuint rotation[4u];
@@ -55,12 +58,74 @@ namespace game_logic::debug
 				);
 				if (rotation[3u] == 1u)
 				{
-					std::cout << i << ": (" << rotation[0u] << ", " << rotation[1u] << ", " << rotation[2u] << ", " << rotation[3u] << ")\n";
+					++rotation_count;
+					if (rotation[2u] < 4u)
+					{
+						++child_grandchild_rotation_count;
+					}
+					else
+					{
+						++grandchild_grandchild_rotation_count;
+					}
+					//std::cout << i << ": (" << rotation[0u] << ", " << rotation[1u] << ", " << rotation[2u] << ", " << rotation[3u] << ")\n";
 				}
 			}
-			std::cout << std::endl;
+			//std::cout << "Rotation Count: " << rotation_count << '\n';
+			//std::cout << "Child-Grandchild rotation count: " << child_grandchild_rotation_count << '\n';
+			//std::cout << "Grandchild-Grandchild rotation count: " << grandchild_grandchild_rotation_count << '\n';
+			//std::cout << std::endl;
 
 			delete[] inner_bounding_box_rotations;
+
+			GLuint inner_bounding_box_migration_list_base;
+			std::memcpy
+			(
+				&inner_bounding_box_migration_list_base,
+				fixed_data + environment.state.layouts.fixed_data.inner_bounding_box_migration_list_base_state.offset,
+				sizeof(GLuint)
+			);
+
+			GLuint inner_bounding_box_migration_count;
+			std::memcpy
+			(
+				&inner_bounding_box_migration_count,
+				fixed_data + environment.state.layouts.fixed_data.inner_bounding_box_migration_count_state.offset,
+				sizeof(GLuint)
+			);
+
+			GLubyte* inner_bounding_box_migration_list = new GLubyte[inner_bounding_box_capacity * environment.state.layouts.uvec4_data.state.array_stride];
+			glGetNamedBufferSubData
+			(
+				environment.state.buffers.GPU_only.buffers[environment.state.buffers.GPU_only.current],
+				environment.state.layouts.uvec4_data.state.offset + inner_bounding_box_migration_list_base * environment.state.layouts.uvec4_data.state.array_stride,
+				inner_bounding_box_capacity * environment.state.layouts.uvec4_data.state.array_stride,
+				inner_bounding_box_migration_list
+			);
+
+			//std::cout << "Inner Bounding Box Migration List:\n";
+			
+			GLuint total_migration_steps{ 0u };
+			for (GLuint i{ 0u }; i < inner_bounding_box_migration_count; ++i)
+			{
+				GLuint migration[4u];
+				std::memcpy
+				(
+					&migration,
+					inner_bounding_box_migration_list + i * environment.state.layouts.uvec4_data.state.array_stride,
+					sizeof(GLuint[4u])
+				);
+				total_migration_steps += abs(static_cast<GLint>(migration[2u]) - static_cast<GLint>(migration[1u]));
+				//std::cout << i << ": (" << migration[0u] << ", " << migration[1u] << ", " << migration[2u] << ", " << migration[3u] << ")\n";
+			}
+			//std::cout << "Rotation Count: " << rotation_count << '\n';
+			//std::cout << child_grandchild_rotation_count << " " << grandchild_grandchild_rotation_count << std::endl;
+			//std::cout << "Child-Grandchild rotation count: " << child_grandchild_rotation_count << '\n';
+			//std::cout << "Grandchild-Grandchild rotation count: " << grandchild_grandchild_rotation_count << '\n';
+			//std::cout << std::endl;
+
+			delete[] inner_bounding_box_migration_list;
+
+			std::cout << child_grandchild_rotation_count << " " << grandchild_grandchild_rotation_count << " " << inner_bounding_box_migration_count << " " << total_migration_steps << std::endl;
 		}
 
 		delete[] fixed_data;

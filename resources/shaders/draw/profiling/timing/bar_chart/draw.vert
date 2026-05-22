@@ -23,13 +23,14 @@ const float nanosecond_in_milliseconds = 1.0 / millisecond_in_nanoseconds;
 
 const float step_wise_bar_half_width = 0.01;
 const float smooth_bar_half_width = 0.002;
+const float ten_second_bar_half_width = 0.5 / (5.0 * 60.0);
 
 void main()
 {
 	const float chart_base = -1.0;
-	const float bar_half_width = smooth_bar_half_width;
+	const float bar_half_width = ten_second_bar_half_width;
 	const float bar_width = 2.0 * bar_half_width;
-	const float deadline_height = 0.5;//1.9;
+	const float deadline_height = 1.9;
 	const float deadline_milliseconds = 1000.0 / 60.0;
 	const float millisecond_height = deadline_height / deadline_milliseconds;
 	const float nanosecond_height = nanosecond_in_milliseconds * millisecond_height;

@@ -115,6 +115,7 @@ namespace game_logic::tick
 		glUseProgram(environment.state.shaders[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::initialize_inner_bounding_box_traversal::Indices::migrate_inner_bounding_boxes)]);
 		glDispatchCompute(1u, 1u, 1u);
 		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "migrate_inner_bounding_boxes", 0.45, 0.80, 1.00);
+		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::bounding_volume_hierarchy, "migrate_inner_bounding_boxes", 1.0f, 0.0f, 0.0f);
 	}
 
 	void initialize_inner_bounding_box_traversal(game_environment::Environment& environment, GLuint bounding_volume_hierarchy_height)
@@ -130,6 +131,7 @@ namespace game_logic::tick
 			glDispatchCompute((thread_count + local_size - 1u) / local_size, 1u, 1u);
 		}
 		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "initialize_inner_bounding_box_traversal", 0.10, 0.85, 1.00);
+		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::bounding_volume_hierarchy, "initialize_inner_bounding_box_traversal", 0.0f, 1.0f, 0.0f);
 	}
 
 	void tick_inner_bounding_boxes(game_environment::Environment& environment, GLuint bounding_volume_hierarchy_height)
@@ -141,8 +143,10 @@ namespace game_logic::tick
 		};
 		glDispatchComputeIndirect(static_cast<GLintptr>(command_offset));
 		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "tick_bottom_inner_bounding_boxes", 0.15, 0.90, 0.95);
+		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::bounding_volume_hierarchy, "tick_bottom_inner_bounding_boxes", 0.0f, 0.0f, 1.0f);
 
 		GLfloat pass_colors[2u][3u]{ { 0.20, 1.00, 0.90 }, { 0.30, 1.00, 0.85 } };
+		GLfloat other_pass_colors[2u][3u]{ { 0.0f, 0.0f, 1.0f }, { 1.0f, 1.0f, 1.0f } };
 		for (GLuint height_level{ 1u }; height_level <= bounding_volume_hierarchy_height; ++height_level) {
 			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 			
@@ -161,6 +165,8 @@ namespace game_logic::tick
 
 			GLfloat(&color)[3u]{ pass_colors[height_level % std::size(pass_colors)] };
 			::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "tick_inner_bounding_box_level", color[0u], color[1u], color[2u]);
+			GLfloat(&other_color)[3u]{ other_pass_colors[height_level % std::size(other_pass_colors)] };
+			::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::bounding_volume_hierarchy, "tick_bottom_inner_bounding_boxes", other_color[0u], other_color[1u], other_color[2u]);
 		}
 	}
 
@@ -602,7 +608,23 @@ namespace game_logic::tick
 			wait_for_fence(bounding_volume_hierarchy_fence, "Failed to wait on bounding volume hierarchy fence!", "Had to wait on bounding volume hierarchy fence!", false);
 			GLuint bounding_volume_hierarchy_height{ get_bounding_volume_hierarchy_height(environment) };
 
+			::game_logic::profiling::start_next_generation(environment,::game_state::profiling::Timestamp_Type::bounding_volume_hierarchy);
+
+			/* IMPORTANT TODO: MOVE UP!!! */
+			//find_inner_bounding_box_height_changes(environment);
+			//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+			///////////////////////////////////////////////////
+
 			migrate_inner_bounding_boxes(environment);	// TODO: Can currently be done before waiting for BVH height, but maybe not when properly parallelized.
+
+			if (environment.state.is_profiling_bounding_volume_hierarchy_rotations)
+			{
+				//::game_logic::debug::print_profiling_data(environment);
+				if (environment.state.tick_count == 700u)//static_cast<GLuint>(20.0 * 60))
+				{
+					environment.state.tick_paused = true;
+				}
+			}
 
 			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
@@ -661,11 +683,6 @@ namespace game_logic::tick
 			::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "constraint_compaction", 0.10, 0.45, 0.75);
 
 			tick_constraints(environment);
-
-			if (environment.state.is_profiling_bounding_volume_hierarchy_rotations)
-			{
-				::game_logic::debug::print_profiling_data(environment);
-			}
 		}
 
 		//::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "tick", 0.10, 0.25, 0.95);

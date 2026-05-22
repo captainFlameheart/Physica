@@ -59,6 +59,8 @@ namespace game_logic::initialize
 			glMemoryBarrier(GL_ALL_BARRIER_BITS);
 		}
 
+		::game_logic::GLFW::toggle_fullscreen(environment);
+		::game_logic::profiling::enable_timing(environment, static_cast<GLuint>(::game_state::profiling::Timestamp_Type::bounding_volume_hierarchy));
 		//::game_logic::debug::print_fixed_data(environment);
 	}
 }

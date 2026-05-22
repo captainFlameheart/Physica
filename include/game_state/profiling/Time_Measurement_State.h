@@ -17,6 +17,8 @@ namespace game_state::profiling
 		draw,
 		frame,
 
+		bounding_volume_hierarchy,
+
 		count
 	};
 
@@ -31,6 +33,8 @@ namespace game_state::profiling
 		names[static_cast<GLuint>(Timestamp_Type::illuminate_source)] = "illuminate_source"sv;
 		names[static_cast<GLuint>(Timestamp_Type::draw)] = "draw"sv;
 		names[static_cast<GLuint>(Timestamp_Type::frame)] = "frame"sv;
+
+		names[static_cast<GLuint>(Timestamp_Type::bounding_volume_hierarchy)] = "bounding_volume_hierarchy"sv;
 
 		return names;
 	}

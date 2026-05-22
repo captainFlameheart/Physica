@@ -9,3 +9,5 @@
 #include "game_logic/debug/include.h"
 #include "game_logic/tasks/include.h"
 #include "game_logic/profiling/include.h"
+#include "game_logic/GLFW/include.h"
+#include "game_logic/profiling/include.h"

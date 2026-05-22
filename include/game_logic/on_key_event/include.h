@@ -6,5 +6,6 @@
 #include "game_logic/debug/include.h"
 #include "game_logic/tick/include.h"
 #include "game_logic/holographic_radiance_cascades/include.h"
+#include "game_logic/GLFW/include.h"
 #include "game_logic/profiling/include.h"
 #include <iostream>
