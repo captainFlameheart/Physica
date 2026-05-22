@@ -600,33 +600,43 @@ namespace game_logic::tick
 			::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "send_bounding_volume_hierarchy_metadata_to_CPU", 0.20, 0.60, 0.95);
 
 			tick_bounding_volume_hierarchy_leafs(environment);
-			find_inner_bounding_box_height_changes(environment);
+			if (environment.state.profiling.timing_set.timings[static_cast<GLuint>(::game_state::profiling::Timestamp_Type::bounding_volume_hierarchy)] == nullptr)
+			{
+				find_inner_bounding_box_height_changes(environment);
+			}
 			tick_skycircle_elements(environment);
 
 			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);	// Dependency in mind: find_inner_bounding_box_height_changes -> migrate_inner_bounding_boxes
+
+			if (environment.state.profiling.timing_set.timings[static_cast<GLuint>(::game_state::profiling::Timestamp_Type::bounding_volume_hierarchy)] == nullptr)
+			{
+				migrate_inner_bounding_boxes(environment);	// TODO: Can currently be done before waiting for BVH height, but maybe not when properly parallelized.
+				glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+			}
 
 			wait_for_fence(bounding_volume_hierarchy_fence, "Failed to wait on bounding volume hierarchy fence!", "Had to wait on bounding volume hierarchy fence!", false);
 			GLuint bounding_volume_hierarchy_height{ get_bounding_volume_hierarchy_height(environment) };
 
 			::game_logic::profiling::start_next_generation(environment,::game_state::profiling::Timestamp_Type::bounding_volume_hierarchy);
 
-			/* IMPORTANT TODO: MOVE UP!!! */
-			//find_inner_bounding_box_height_changes(environment);
-			//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-			///////////////////////////////////////////////////
-
-			migrate_inner_bounding_boxes(environment);	// TODO: Can currently be done before waiting for BVH height, but maybe not when properly parallelized.
-
-			if (environment.state.is_profiling_bounding_volume_hierarchy_rotations)
+			if (environment.state.profiling.timing_set.timings[static_cast<GLuint>(::game_state::profiling::Timestamp_Type::bounding_volume_hierarchy)] != nullptr)
 			{
-				//::game_logic::debug::print_profiling_data(environment);
-				if (environment.state.tick_count == 700u)//static_cast<GLuint>(20.0 * 60))
-				{
-					environment.state.tick_paused = true;
-				}
-			}
+				find_inner_bounding_box_height_changes(environment);
 
-			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+				glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+				migrate_inner_bounding_boxes(environment);	// TODO: Can currently be done before waiting for BVH height, but maybe not when properly parallelized.
+
+				if (environment.state.is_profiling_bounding_volume_hierarchy_rotations)
+				{
+					//::game_logic::debug::print_profiling_data(environment);
+					if (environment.state.tick_count == 700u)//static_cast<GLuint>(20.0 * 60))
+					{
+						environment.state.tick_paused = true;
+					}
+				}
+				glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+			}
 
 			initialize_inner_bounding_box_traversal(environment, bounding_volume_hierarchy_height);
 			
