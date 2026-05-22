@@ -667,6 +667,7 @@ void main()
 	fixed_data.draw_arrays_command_flags[draw_inner_bounding_boxes_program_index] = 0u;
 	fixed_data.draw_arrays_command_flags[draw_bounding_box_contact_detectors_program_index] = 0u;
 	fixed_data.draw_arrays_command_flags[draw_rigid_body_circle_contact_detectors_program_index] = 0u;
+	fixed_data.draw_arrays_command_flags[draw_rigid_body_circle_contact_constraint_contact_points_program_index] = 0u;
 
 	// TODO: Parallelize
 	for (uint remaining_dispatch_program_index = 0u; remaining_dispatch_program_index < commands.remaining_dispatch_commands.length(); ++remaining_dispatch_program_index)

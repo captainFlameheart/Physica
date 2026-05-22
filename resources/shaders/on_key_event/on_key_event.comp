@@ -28,6 +28,11 @@ void main()
 					set_draw_arrays_program_enabled(draw_rigid_body_circle_contact_detectors_program_index, enabled);
 					break;
 				}
+				case key_c:
+				{
+					bool enabled = toggle_draw_arrays_program(draw_rigid_body_circle_contact_constraint_contact_points_program_index);
+					break;
+				}
 			}
 		}
 		else
