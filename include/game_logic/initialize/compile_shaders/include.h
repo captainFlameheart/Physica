@@ -20,6 +20,7 @@
 #include "compile_draw_rigid_bodies.h"
 #include "compile_draw_rigid_body_circles.h"
 #include "compile_draw_rigid_body_circle_bounding_boxes.h"
+#include "compile_draw_rigid_body_circle_contact_constraints.h"
 #include "compile_draw_rigid_body_circle_contact_constraint_spawners.h"
 #include "compile_draw_rigid_body_triangles.h"
 #include "compile_draw_skycircle_ring.h"

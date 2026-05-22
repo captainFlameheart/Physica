@@ -1,15 +1,19 @@
+float gl_CullDistance[1u];
+
 const float radius = 0.1 * meter_in_length_units;
 
 const vec2 vertices[6u] =
 {
-	vec2(radius, radius),
-	vec2(-radius, radius),
-	vec2(-radius, -radius),
+	vec2(1.0, 1.0),
+	vec2(-1.0, 1.0),
+	vec2(-1.0, -1.0),
 
-	vec2(-radius, -radius),
-	vec2(radius, -radius),
-	vec2(radius, radius),
+	vec2(-1.0, -1.0),
+	vec2(1.0, -1.0),
+	vec2(1.0, 1.0),
 };
+
+out vec2 offset;
 
 void main()
 {
@@ -41,8 +45,8 @@ void main()
 	
 	vec3 rigid_body_circle_position_radius[2u] =
 	{
-		vec3(rigid_body_circle_body_position_radius[0u]),
-		vec3(rigid_body_circle_body_position_radius[1u]),
+		uintBitsToFloat(rigid_body_circle_body_position_radius[0u].yzw),
+		uintBitsToFloat(rigid_body_circle_body_position_radius[1u].yzw),
 	};
 
 	uint rigid_body_position_flags_base = fixed_data.rigid_body_write_position_flags_base;
@@ -87,7 +91,11 @@ void main()
 	vec2 body_0_contact_point_offset = body_0_radius_fraction * (body_position_difference + (offsets[1u] - offsets[0u]));
 
 	vec4 camera_offset = vec4(ivec2(rigid_body_position_flags[0u].xy - camera_position.xy), int(-camera_position.z), 1.0f);
-	camera_offset.xyz *= length_unit_in_meters;
+	offset = vertices[vertex_index];
+	camera_offset.xy += offset * radius;
 	camera_offset.xy += body_0_contact_point_offset;
+	camera_offset.xyz *= length_unit_in_meters;
 	gl_Position = camera_offset_to_clip_coordinates * camera_offset;
+
+	gl_CullDistance[0u] = 1.0;
 }
