@@ -32,6 +32,14 @@ void initialize_profiling_data()
 		fixed_data.is_collecting_bounding_volume_hierarchy_rotations = true;
 		fixed_data.inner_bounding_box_rotation_base = allocate_cleared_uvec4_array(inner_bounding_box_type, uvec4(null_uint));
 	#endif
+	#if IS_COLLECTING_CONTACT_STATISTICS
+		fixed_data.is_collecting_contact_statistics = true;
+		
+		fixed_data.bounding_box_contact_detector_forced_split_count = 0u;
+		fixed_data.bounding_box_contact_detector_split_count = 0u;
+		fixed_data.mergeable_bounding_box_contact_detector_count = 0u;
+		fixed_data.bounding_box_contact_detector_merge_count = 0u;
+	#endif
 }
 
 const uint cursor_icons[cursor_array_length] = uint[cursor_array_length]

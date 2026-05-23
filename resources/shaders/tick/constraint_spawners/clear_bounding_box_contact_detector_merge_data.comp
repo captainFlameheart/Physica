@@ -1,3 +1,13 @@
+void register_merge(in uint index, in uint merge_partner)
+{
+	#if IS_COLLECTING_CONTACT_STATISTICS
+		if (fixed_data.is_collecting_contact_statistics)
+		{
+			atomicAdd(fixed_data.bounding_box_contact_detector_merge_count, 1u);
+		}
+	#endif
+}
+
 layout(local_size_x = clear_bounding_box_contact_detector_merge_data_local_size) in;
 void main()
 {
@@ -29,6 +39,8 @@ void main()
 	uint merge_partner = indices_source_flags.w >> 2u;
 	if (merge_partner != (null_uint >> 2u) && (uvec4_data.data[indices_source_flags_base + merge_partner].w >> 2u) == index)
 	{
+		register_merge(index, merge_partner);
+
 		if (index < merge_partner)
 		{
 			kill(bounding_box_contact_detector_type, index);

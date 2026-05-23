@@ -6,4 +6,14 @@ void main()
 	vec4 cursor_icon_offset_scale = fixed_data.cursor_icon_offset_scales[cursor_icon_index];
 	cursor_scale = lerp(cursor_scale, cursor_icon_offset_scale.z, 0.00001, delta_time);
 	fixed_data.cursor_scale = cursor_scale;
+
+	#if IS_COLLECTING_CONTACT_STATISTICS
+		if (fixed_data.is_collecting_contact_statistics)
+		{
+			fixed_data.bounding_box_contact_detector_forced_split_count = 0u;
+			fixed_data.bounding_box_contact_detector_split_count = 0u;
+			fixed_data.mergeable_bounding_box_contact_detector_count = 0u;
+			fixed_data.bounding_box_contact_detector_merge_count = 0u;
+		}
+	#endif
 }

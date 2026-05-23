@@ -348,6 +348,16 @@ uint compute_contact_type(in uvec4 parent_pad_pad_type_0, in uvec4 parent_pad_pa
 		maybe_convert_to_bounding_box_contact_detector(bounding_box_base, bounding_box_base, contact_detector_type, index, indices);
 	}
 
+	void register_split()
+	{
+		#if IS_COLLECTING_CONTACT_STATISTICS
+			if (fixed_data.is_collecting_contact_statistics)
+			{
+				atomicAdd(fixed_data.bounding_box_contact_detector_split_count, 1u);
+			}
+		#endif
+	}
+
 	void spawn_specific_detector
 	(
 		in uint bounding_box_parent_children_height_base, in uint inner_bounding_box_base, uvec2 indices
@@ -499,6 +509,8 @@ uint compute_contact_type(in uvec4 parent_pad_pad_type_0, in uvec4 parent_pad_pa
 				\
 				if (any(is_inner))\
 				{	/* Split. */\
+					register_split();\
+					\
 					uint costs[2u] = uint[2u]\
 					(\
 						uint(compute_bounding_box_cost(bounding_boxes[0u])),\

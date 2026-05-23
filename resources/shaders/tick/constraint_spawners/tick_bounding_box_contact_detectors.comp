@@ -1,3 +1,26 @@
+void register_forced_splits(in uint detector_count)
+{
+	#if IS_COLLECTING_CONTACT_STATISTICS
+		if (fixed_data.is_collecting_contact_statistics)
+		{
+			if (detector_count > 1u)
+			{
+				atomicAdd(fixed_data.bounding_box_contact_detector_forced_split_count, detector_count - 1u);
+			}
+		}
+	#endif
+}
+
+void register_mergeable_detector()
+{
+	#if IS_COLLECTING_CONTACT_STATISTICS
+		if (fixed_data.is_collecting_contact_statistics)
+		{
+			atomicAdd(fixed_data.mergeable_bounding_box_contact_detector_count, 1u);
+		}
+	#endif
+}
+
 const uint shared_cache_capacity = 6u;	// Both caches do not necessarily have to share this capacity.
 const uint stack_cache_capacity = shared_cache_capacity;	// Must be >= 1u.
 const uint flush_cache_capacity = shared_cache_capacity;	// Must be >= 1u.
@@ -192,6 +215,8 @@ void tick_detector
 
 			if (indices_source_flags.w != 0u)
 			{
+				register_mergeable_detector();
+				
 		#endif
 				uint lookup_table_capacity = fixed_data.mergeable_bounding_box_contact_detector_lookup_table_capacity;
 				uint lookup_index = compute_mergeable_contact_detector_lookup_index(indices_source_flags.x, indices_source_flags.y, lookup_table_capacity);
@@ -362,4 +387,6 @@ void main()
 			indices_source_flags_array[detector]
 		);
 	}
+
+	register_forced_splits(detector_count);
 }

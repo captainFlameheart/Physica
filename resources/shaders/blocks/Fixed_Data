@@ -1,7 +1,9 @@
 #define IS_PROFILING 1
 
 #define IS_COLLECTING_INNER_BOUNDING_BOX_MIGRATIONS IS_PROFILING && 0
-#define IS_COLLECTING_BOUNDING_VOLUME_HIERARCHY_ROTATIONS IS_PROFILING && 1
+#define IS_COLLECTING_BOUNDING_VOLUME_HIERARCHY_ROTATIONS IS_PROFILING && 0
+
+#define IS_COLLECTING_CONTACT_STATISTICS IS_PROFILING && 1
 
 // IMPORTANT TODO: Switch to std430 layout if shared layout does not match needs!
 const float pi = 3.141592653589793;
@@ -214,6 +216,21 @@ FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 	#if IS_COLLECTING_BOUNDING_VOLUME_HIERARCHY_ROTATIONS
 		bool is_collecting_bounding_volume_hierarchy_rotations;
 		uint inner_bounding_box_rotation_base;
+	#endif
+	#if IS_COLLECTING_CONTACT_STATISTICS
+		bool is_collecting_contact_statistics;
+		
+		//uint bounding_box_contact_detector_forced_splits_base;
+		uint bounding_box_contact_detector_forced_split_count;
+		
+		//uint bounding_box_contact_detector_splits_base;
+		uint bounding_box_contact_detector_split_count;
+
+		//uint mergeable_bounding_box_contact_detectors_base;
+		uint mergeable_bounding_box_contact_detector_count;
+
+		//uint bounding_box_contact_detector_merges_base;
+		uint bounding_box_contact_detector_merge_count;
 	#endif
 
 	uint cursor_icons[cursor_array_length];
