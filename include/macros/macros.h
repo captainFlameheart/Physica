@@ -9,7 +9,7 @@
 #define RELEASE 0
 #define DEBUG 1
 
-#define MODE RELEASE//DEBUG
+#define MODE DEBUG//RELEASE//DEBUG
 
 #define USE_GPU_ENGINE 1
 

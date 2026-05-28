@@ -292,7 +292,7 @@ void main()
 	fixed_data.point_mass_write_flags_base = point_mass_write_flags_base;
 	fixed_data.point_mass_write_position_velocity_base = point_mass_write_position_velocity_base;
 
-	capacities[rigid_body_type_index] = 50000u;//50000u;//50000u;
+	capacities[rigid_body_type_index] = 50000u;//50000u;
 
 	uint rigid_body_inverse_mass_inertia_base_address = align_up(point_mass_write_position_velocity_base_address + capacities[point_mass_type_index] * uvec4_data_array_stride);
 	uint rigid_body_constraint_start_base_address = align_up(rigid_body_inverse_mass_inertia_base_address + capacities[rigid_body_type_index] * vec2_data_array_stride);
@@ -753,6 +753,10 @@ void main()
 		const float base_x_offset = 0.5 * sqrt(3.0);
 		vec2_data.data[vertex_index + 1u] = radius * vec2(-base_x_offset, -0.5);
 		vec2_data.data[vertex_index + 2u] = radius * vec2(base_x_offset, -0.5);
+
+		uvec4_data.data[leaf_bounding_box_parent_pad_pad_type_bases[rigid_body_triangle_bounding_box_type] + rigid_body_triangle_index] =
+			uvec4(null_uint, 0u, 0u, rigid_body_triangle_bounding_box_type);
+		uvec4_data.data[leaf_bounding_box_bases[rigid_body_triangle_bounding_box_type] + rigid_body_triangle_index] = uvec4(0u);
 	}
 
 	const uint unlit_count_factor = 5u;
