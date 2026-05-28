@@ -8,6 +8,26 @@ namespace game_state::layouts::fixed_data
 		GLint offset;
 	};
 
+	struct bounding_box_contact_detector_forced_split_count
+	{
+		GLint offset;
+	};
+
+	struct bounding_box_contact_detector_split_count
+	{
+		GLint offset;
+	};
+
+	struct mergeable_bounding_box_contact_detector_count
+	{
+		GLint offset;
+	};
+
+	struct bounding_box_contact_detector_merge_count
+	{
+		GLint offset;
+	};
+
 	struct inner_bounding_box_migration_base
 	{
 		GLint offset;
@@ -404,6 +424,27 @@ namespace game_state::layouts::fixed_data
 
 	struct State
 	{
+		union
+		{
+			bounding_box_contact_detector_forced_split_count bounding_box_contact_detector_forced_split_count_state;
+			GLint bounding_box_contact_detector_forced_split_count_properties[sizeof(bounding_box_contact_detector_forced_split_count) / sizeof(GLint)];
+		};
+		union
+		{
+			bounding_box_contact_detector_split_count bounding_box_contact_detector_split_count_state;
+			GLint bounding_box_contact_detector_split_count_properties[sizeof(bounding_box_contact_detector_split_count) / sizeof(GLint)];
+		};
+		union
+		{
+			mergeable_bounding_box_contact_detector_count mergeable_bounding_box_contact_detector_count_state;
+			GLint mergeable_bounding_box_contact_detector_count_properties[sizeof(mergeable_bounding_box_contact_detector_count) / sizeof(GLint)];
+		};
+		union
+		{
+			bounding_box_contact_detector_merge_count bounding_box_contact_detector_merge_count_state;
+			GLint bounding_box_contact_detector_merge_count_properties[sizeof(bounding_box_contact_detector_merge_count) / sizeof(GLint)];
+		};
+
 		union
 		{
 			inner_bounding_box_rotation_base inner_bounding_box_rotation_base_state;

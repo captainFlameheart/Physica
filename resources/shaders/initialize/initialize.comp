@@ -97,7 +97,7 @@ const ivec4 default_skycircle_element_end_points_velocity_flags[default_skycircl
 
 const vec4 default_skycircle_element_radiance[default_skycircle_element_capacity] =
 {
-	vec4(0.85, 1.0, 1.0, 0.0) * 1.1,
+	vec4(0.85, 1.0, 1.0, 0.0) * 1.1 * 0.0,
 	vec4(0.0, 0.0, 0.0, 0.0),
 };
 

@@ -18,6 +18,7 @@ namespace game_state::profiling
 		frame,
 
 		bounding_volume_hierarchy,
+		contacts,
 
 		count
 	};

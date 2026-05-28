@@ -13,7 +13,16 @@ namespace game_logic::debug
 			0u, environment.state.layouts.fixed_data.block_state.buffer_data_size, fixed_data
 		);
 
+		GLubyte* write_counts = fixed_data + environment.state.layouts.fixed_data.write_counts_state.offset;
 		GLubyte* capacities = fixed_data + environment.state.layouts.fixed_data.capacities_state.offset;
+
+		GLuint bounding_box_contact_detector_write_count;
+		std::memcpy
+		(
+			&bounding_box_contact_detector_write_count,
+			write_counts + static_cast<GLuint>(::game_state::entity_type_indices::constraint_spawners::Indices::bounding_box_contact_detector) * environment.state.layouts.fixed_data.write_counts_state.array_stride,
+			sizeof(GLuint)
+		);
 
 		GLuint inner_bounding_box_capacity;
 		std::memcpy
@@ -22,6 +31,7 @@ namespace game_logic::debug
 			capacities + static_cast<GLuint>(::game_state::entity_type_indices::bounding_volume_hierarchy::Indices::inner_bounding_box) * environment.state.layouts.fixed_data.capacities_state.array_stride,
 			sizeof(GLuint)
 		);
+
 		--inner_bounding_box_capacity;	// TODO: REMOVE AT SOME POINT
 
 		if (environment.state.is_profiling_bounding_volume_hierarchy_rotations)
@@ -126,6 +136,55 @@ namespace game_logic::debug
 			delete[] inner_bounding_box_migration_list;
 
 			std::cout << child_grandchild_rotation_count << " " << grandchild_grandchild_rotation_count << " " << inner_bounding_box_migration_count << " " << total_migration_steps << std::endl;
+		}
+
+		if (environment.state.is_profiling_contacts)
+		{
+			GLuint bounding_box_contact_detector_forced_split_count;
+			std::memcpy
+			(
+				&bounding_box_contact_detector_forced_split_count,
+				fixed_data + environment.state.layouts.fixed_data.bounding_box_contact_detector_forced_split_count_state.offset,
+				sizeof(GLuint)
+			);
+			GLuint bounding_box_contact_detector_split_count;
+			std::memcpy
+			(
+				&bounding_box_contact_detector_split_count,
+				fixed_data + environment.state.layouts.fixed_data.bounding_box_contact_detector_split_count_state.offset,
+				sizeof(GLuint)
+			);
+			GLuint mergeable_bounding_box_contact_detector_count;
+			std::memcpy
+			(
+				&mergeable_bounding_box_contact_detector_count,
+				fixed_data + environment.state.layouts.fixed_data.mergeable_bounding_box_contact_detector_count_state.offset,
+				sizeof(GLuint)
+			);
+			GLuint bounding_box_contact_detector_merge_count;
+			std::memcpy
+			(
+				&bounding_box_contact_detector_merge_count,
+				fixed_data + environment.state.layouts.fixed_data.bounding_box_contact_detector_merge_count_state.offset,
+				sizeof(GLuint)
+			);
+
+			// IMPORTANT TODO: INVESTIGATE WHY MERGE COUNT IS SOMETIMES ODD!!!
+
+			std::cout
+				<< bounding_box_contact_detector_write_count << " "
+				<< bounding_box_contact_detector_forced_split_count << " "
+				<< bounding_box_contact_detector_split_count << " "
+				<< mergeable_bounding_box_contact_detector_count << " "
+				<< (bounding_box_contact_detector_merge_count / 2u);
+
+			/*std::cout << "bounding_box_contact_detector_write_count: " << bounding_box_contact_detector_write_count << '\n';
+			std::cout << "bounding_box_contact_detector_forced_split_count: " << bounding_box_contact_detector_forced_split_count << '\n';
+			std::cout << "bounding_box_contact_detector_split_count: " << bounding_box_contact_detector_split_count << '\n';
+			std::cout << "mergeable_bounding_box_contact_detector_count: " << mergeable_bounding_box_contact_detector_count << '\n';
+			std::cout << "bounding_box_contact_detector_merge_count: " << bounding_box_contact_detector_merge_count << '\n';*/
+
+			std::cout << std::endl;
 		}
 
 		delete[] fixed_data;

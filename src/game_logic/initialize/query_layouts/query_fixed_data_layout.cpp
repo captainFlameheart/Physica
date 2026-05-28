@@ -9,6 +9,27 @@ namespace game_logic::initialize::query_layouts
 	{
 		::game_logic::shader_util::query::query_shader_storage_variable_offset
 		(
+			program, "Fixed_Data.bounding_box_contact_detector_forced_split_count",
+			environment.state.layouts.fixed_data.bounding_box_contact_detector_forced_split_count_properties
+		);
+		::game_logic::shader_util::query::query_shader_storage_variable_offset
+		(
+			program, "Fixed_Data.bounding_box_contact_detector_split_count",
+			environment.state.layouts.fixed_data.bounding_box_contact_detector_split_count_properties
+		);
+		::game_logic::shader_util::query::query_shader_storage_variable_offset
+		(
+			program, "Fixed_Data.mergeable_bounding_box_contact_detector_count",
+			environment.state.layouts.fixed_data.mergeable_bounding_box_contact_detector_count_properties
+		);
+		::game_logic::shader_util::query::query_shader_storage_variable_offset
+		(
+			program, "Fixed_Data.bounding_box_contact_detector_merge_count",
+			environment.state.layouts.fixed_data.bounding_box_contact_detector_merge_count_properties
+		);
+
+		::game_logic::shader_util::query::query_shader_storage_variable_offset
+		(
 			program, "Fixed_Data.inner_bounding_box_rotation_base",
 			environment.state.layouts.fixed_data.inner_bounding_box_rotation_base_properties
 		);

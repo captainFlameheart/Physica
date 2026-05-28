@@ -9,7 +9,8 @@ namespace game_logic::initialize
 	void initialize(game_environment::Environment& environment)
 	{
 		environment.state.is_profiling_inner_bounding_box_migrations = false;
-		environment.state.is_profiling_bounding_volume_hierarchy_rotations = true;
+		environment.state.is_profiling_bounding_volume_hierarchy_rotations = false;
+		environment.state.is_profiling_contacts = false;
 
 		environment.state.debug_flag = 0u;
 
@@ -60,7 +61,7 @@ namespace game_logic::initialize
 		}
 
 		::game_logic::GLFW::toggle_fullscreen(environment);
-		//::game_logic::profiling::enable_timing(environment, static_cast<GLuint>(::game_state::profiling::Timestamp_Type::bounding_volume_hierarchy));
+		//::game_logic::profiling::enable_timing(environment, static_cast<GLuint>(::game_state::profiling::Timestamp_Type::contacts));
 		//::game_logic::debug::print_fixed_data(environment);
 	}
 }

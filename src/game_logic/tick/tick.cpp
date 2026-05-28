@@ -241,6 +241,7 @@ namespace game_logic::tick
 			}
 		}
 		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "tick_bounding_box_contact_detectors", 0.20, 0.85, 0.75);
+		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::contacts, "tick_bounding_box_contact_detectors", 0.0f, 1.0f, 0.0f);
 
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
@@ -262,6 +263,7 @@ namespace game_logic::tick
 			};
 			glDispatchComputeIndirect(command_offset);
 		}
+		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::contacts, "merge_bounding_box_contact_detectors", 0.0f, 0.0f, 1.0f);
 
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
@@ -276,6 +278,7 @@ namespace game_logic::tick
 			};
 			glDispatchComputeIndirect(command_offset);
 		}
+		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::contacts, "clear_merge_bounding_box_contact_detector_merge_data", 1.0f, 1.0f, 0.0f);
 
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);	// TODO: Is this needed?
 
@@ -443,6 +446,7 @@ namespace game_logic::tick
 		}
 
 		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "reset_bounding_box_contact_detectors_if_needed", 0.05, 0.15, 0.45);
+		::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::contacts, "reset_bounding_box_contact_detectors_if_needed", 0.0f, 1.0f, 1.0f);
 	}
 
 	void tick_detectors(game_environment::Environment& environment)
@@ -627,14 +631,6 @@ namespace game_logic::tick
 
 				migrate_inner_bounding_boxes(environment);	// TODO: Can currently be done before waiting for BVH height, but maybe not when properly parallelized.
 
-				if (environment.state.is_profiling_bounding_volume_hierarchy_rotations)
-				{
-					//::game_logic::debug::print_profiling_data(environment);
-					if (environment.state.tick_count == 700u)//static_cast<GLuint>(20.0 * 60))
-					{
-						environment.state.tick_paused = true;
-					}
-				}
 				glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 			}
 
@@ -646,6 +642,8 @@ namespace game_logic::tick
 
 			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);	// TODO: Is this needed?
 
+			::game_logic::profiling::start_next_generation(environment, ::game_state::profiling::Timestamp_Type::contacts);
+
 			commit_bounding_box_contact_detector_counts(environment);
 
 			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_COMMAND_BARRIER_BIT);
@@ -654,6 +652,7 @@ namespace game_logic::tick
 			perform_bounding_box_contact_detector_compaction(environment);
 
 			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+			::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::contacts, "bounding_box_contact_detector_compaction", 1.0f, 0.0f, 0.0f);
 			::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "bounding_box_contact_detector_compaction", 0.10, 0.80, 0.70);
 
 			tick_bounding_box_contact_detectors(environment);
@@ -677,6 +676,17 @@ namespace game_logic::tick
 			tick_detectors(environment);
 
 			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+			::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::contacts, "tick_specific_detectors", 1.0f, 1.0f, 1.0f);
+
+			//if (environment.state.is_profiling_contacts)
+			//{
+				/*::game_logic::debug::print_profiling_data(environment);
+				if (environment.state.tick_count == 750u)//500u)//static_cast<GLuint>(20.0 * 60))
+				{
+					environment.state.tick_paused = true;
+				}*/
+			//}
 
 			OLD_update_tick_counts(environment);	// TODO: Remove.
 
