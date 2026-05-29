@@ -7,7 +7,7 @@ namespace game_logic::task_graph
 	Task* add_task
 	(
 		::game_state::task_graph::Task_Graph<Global_State>& task_graph,
-		void (*run)(::game_environment::Environment& environment, Global_State& state),
+		void (*run)(Task* task, ::game_environment::Environment& environment, Global_State& state),
 		std::initializer_list<::game_state::task_graph::Incoming_Dependency> incoming_dependencies
 	)
 	{
@@ -15,6 +15,7 @@ namespace game_logic::task_graph
 		task->run = run;
 		task->incoming_dependencies = nullptr;
 		task->outgoing_dependencies = nullptr;
+		task->next = nullptr;
 
 		for (::game_state::task_graph::Incoming_Dependency& incoming_dependency : incoming_dependencies)
 		{
@@ -53,6 +54,16 @@ namespace game_logic::task_graph
 				}
 			}
 		}
-		task_graph.tasks.push_back(task);
+		return task;
+	}
+
+	template<typename Global_State>
+	Task* add_task
+	(
+		::game_state::task_graph::Task_Graph<Global_State>& task_graph,
+		void (*run)(::game_environment::Environment& environment, Global_State& state),
+	)
+	{
+		return add_task(task_graph, state, { { task_graph.root_task, 0u } });
 	}
 }
