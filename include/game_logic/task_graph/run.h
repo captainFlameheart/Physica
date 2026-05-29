@@ -1,5 +1,6 @@
 #pragma once
 #include "game_state/task_graph/include.h"
+#include <iostream>
 
 namespace game_logic::task_graph
 {
@@ -7,14 +8,20 @@ namespace game_logic::task_graph
 	Task* run
 	(
 		::game_environment::Environment& environment, Global_State& global_state,
-		::game_state::task_graph::Task_Graph<Global_State>&task_graph
+		::game_state::task_graph::Task_Graph<Global_State>& task_graph
 	)
 	{
-		Task* current_task = task_graph.root_task;
+		std::cout << "Run task graph \"" << task_graph.name << "\":\n";
+
+		Task* current_task = &task_graph.root_task;
 		GLbitfield next_barriers = 0u;
 		Task* next_tasks = nullptr;
 		do
 		{
+			if (task_graph.is_logged)
+			{
+				std::cout << "	Run task \"" << current_task << "\"\n";
+			}
 			current_task->run(current_task, environment, global_state);
 			
 			while (current_task->outgoing_dependencies != nullptr)
@@ -33,6 +40,10 @@ namespace game_logic::task_graph
 
 			if (current_task == nullptr)
 			{
+				if (task_graph.is_logged)
+				{
+					std::cout << "\n	Place memory barrier " << next_barriers << "\n";
+				}
 				if (next_barriers != 0u)
 				{
 					glMemoryBarrier(next_barriers);

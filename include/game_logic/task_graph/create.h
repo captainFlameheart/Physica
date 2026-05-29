@@ -13,10 +13,14 @@ namespace game_logic::task_graph
 	Task_Graph<Global_State> create()
 	{
 		Task_Graph<Global_State> task_graph;
+
+		task_graph.is_logged = false;
+		
 		task_graph.root_task.run = do_nothing;
 		task_graph.root_task.incoming_dependencies = nullptr;
 		task_graph.root_task.outgoing_dependencies = nullptr;
 		task_graph.root_task.next = nullptr;
+		
 		return task_graph;
 	}
 }
