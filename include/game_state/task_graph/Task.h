@@ -10,6 +10,9 @@ namespace game_state::task_graph
 	struct Task
 	{
 		void (*run)(Task* task, ::game_environment::Environment& environment, Global_State& state);
+		GLuint (*approximate_execution_time)();
+
+		GLuint (*approximate_readback_time)();
 
 		Dependency* incoming_dependencies;
 		Dependency* outgoing_dependencies;

@@ -8,11 +8,13 @@ namespace game_logic::task_graph
 	(
 		::game_state::task_graph::Task_Graph<Global_State>& task_graph,
 		void (*run)(Task* task, ::game_environment::Environment& environment, Global_State& state),
+		bool controls_flow,
 		std::initializer_list<::game_state::task_graph::Incoming_Dependency> incoming_dependencies
 	)
 	{
 		Task* task = new Task{};
 		task->run = run;
+		task->controls_flow = controls_flow;
 		task->incoming_dependencies = nullptr;
 		task->outgoing_dependencies = nullptr;
 		task->next = nullptr;
@@ -62,8 +64,9 @@ namespace game_logic::task_graph
 	(
 		::game_state::task_graph::Task_Graph<Global_State>& task_graph,
 		void (*run)(::game_environment::Environment& environment, Global_State& state),
+		bool controls_flow
 	)
 	{
-		return add_task(task_graph, state, { { task_graph.root_task, 0u } });
+		return add_task(task_graph, run, controls_flow, { { task_graph.root_task, 0u } });
 	}
 }

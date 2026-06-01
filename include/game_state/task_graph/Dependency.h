@@ -8,11 +8,19 @@ namespace game_state::task_graph
 		Task* task_0;
 		Task* task_1;
 		GLbitfield barriers;
+		bool task_0_completed;
 
 		Dependency* previous_incoming;
 		Dependency* next_incoming;
 
-		Dependency* previous_outgoing;
-		Dependency* next_outgoing;
+		union
+		{
+			Dependency* previous_outgoing;
+		}
+		union
+		{
+			Dependency* next_outgoing;
+			Dependency* next_finishable;
+		};
 	};
 }
