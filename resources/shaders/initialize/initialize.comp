@@ -116,8 +116,9 @@ void initialize_cursor_icons()
 void create_balanced_bounding_volume_hierarchy
 (
 	in uint end_address,
-	in uint rigid_body_circle_count,
+	in uint leaf_count,
 	in uint leaf_bounding_box_local_bases[leaf_bounding_box_type_count],
+	in uint leaf_bounding_box_counts[leaf_bounding_box_type_count],
 	in uint next_bounding_box_local_base,
 	in uint inner_bounding_box_parent_children_height_base,
 	in uint inner_bounding_box_split_indices_base,
@@ -128,81 +129,76 @@ void create_balanced_bounding_volume_hierarchy
 	in uint inner_bounding_box_height_delimiters_capacity
 )
 {
+	uint current_base = address_to_uint_index(align_up(end_address));
+	uint next_base = current_base + leaf_count;
+	
+	uint current_node_count = 0u;
+	uint next_node_count = 0u;
+
 	for (uint leaf_bounding_box_type = 0u; leaf_bounding_box_type < leaf_bounding_box_type_count; ++leaf_bounding_box_type)
 	{
-		// TODO: Generalize
-		if (leaf_bounding_box_type != rigid_body_circle_bounding_box_type)
-		{
-			continue;
-		}
-
-		uint leaf_count = rigid_body_circle_count;
 		uint base = leaf_bounding_box_local_bases[leaf_bounding_box_type] - next_bounding_box_local_base;
-	
-		uint current_base = address_to_uint_index(align_up(end_address));
-		uint next_base = current_base + leaf_count;
-		uint current_node_count = leaf_count;
-		uint next_node_count = 0u;
 
-		for (uint i = 0u; i < leaf_count; ++i)
+		for (uint i = 0u; i < leaf_bounding_box_counts[leaf_bounding_box_type]; i++)
 		{
-			uint_data.data[current_base + i] = base + i;
+			uint_data.data[current_base + current_node_count] = base + i;
+			current_node_count++;
 		}
+	}
 
-		uint inner_node_count = 0u;
+	uint inner_node_count = 0u;
 
-		uint next_height = 0u;
-		while (current_node_count > 1u)
+	uint next_height = 0u;
+	while (current_node_count > 1u)
+	{
+		for (uint i = 0u; i < current_node_count; i += 2u)
 		{
-			for (uint i = 0u; i < current_node_count; i += 2u)
+			if (i + 1u < current_node_count)
 			{
-				if (i + 1u < current_node_count)
-				{
-					uint child_0 = uint_data.data[current_base + i];
-					uint child_1 = uint_data.data[current_base + i + 1u];
+				uint child_0 = uint_data.data[current_base + i];
+				uint child_1 = uint_data.data[current_base + i + 1u];
 
-					int height_0 = (int(child_0) < 0 ? -1 : int(uvec4_data.data[inner_bounding_box_parent_children_height_base + child_0].w));
-					int height_1 = (int(child_1) < 0 ? -1 : int(uvec4_data.data[inner_bounding_box_parent_children_height_base + child_1].w));
+				int height_0 = (int(child_0) < 0 ? -1 : int(uvec4_data.data[inner_bounding_box_parent_children_height_base + child_0].w));
+				int height_1 = (int(child_1) < 0 ? -1 : int(uvec4_data.data[inner_bounding_box_parent_children_height_base + child_1].w));
 					
-					uint height = uint(max(height_0, height_1) + 1);
+				uint height = uint(max(height_0, height_1) + 1);
 
-					uvec4_data.data[inner_bounding_box_parent_children_height_base + child_0].x = inner_node_count;
-					uvec4_data.data[inner_bounding_box_parent_children_height_base + child_1].x = inner_node_count;
+				uvec4_data.data[inner_bounding_box_parent_children_height_base + child_0].x = inner_node_count;
+				uvec4_data.data[inner_bounding_box_parent_children_height_base + child_1].x = inner_node_count;
 
-					uvec4_data.data[inner_bounding_box_parent_children_height_base + inner_node_count] = uvec4(null_uint, child_0, child_1, height);
-					uvec2_data.data[inner_bounding_box_split_indices_base + inner_node_count] = uvec2(positive_null_uint);
-					uint_data.data[inner_bounding_box_migration_entry_base + inner_node_count] = null_uint;
-					uint_data.data[inner_bounding_box_old_height_base + inner_node_count] = height;
+				uvec4_data.data[inner_bounding_box_parent_children_height_base + inner_node_count] = uvec4(null_uint, child_0, child_1, height);
+				uvec2_data.data[inner_bounding_box_split_indices_base + inner_node_count] = uvec2(positive_null_uint);
+				uint_data.data[inner_bounding_box_migration_entry_base + inner_node_count] = null_uint;
+				uint_data.data[inner_bounding_box_old_height_base + inner_node_count] = height;
 
-					uvec4_data.data[bounding_box_contact_detector_indices_source_flags_base + inner_node_count] = uvec4(child_0, child_1, null_uint, 0u);
+				uvec4_data.data[bounding_box_contact_detector_indices_source_flags_base + inner_node_count] = uvec4(child_0, child_1, null_uint, 0u);
 
-					uint_data.data[next_base + next_node_count] = inner_node_count;
-					++next_node_count;
+				uint_data.data[next_base + next_node_count] = inner_node_count;
+				++next_node_count;
 
-					++inner_node_count;
-				}
-				else
-				{
-					uint_data.data[next_base + next_node_count] = uint_data.data[current_base + i];
-					++next_node_count;
-				}
+				++inner_node_count;
 			}
-
-			uint old_current_base = current_base;
-			current_base = next_base;
-			next_base = old_current_base;
-			current_node_count = next_node_count;
-			next_node_count = 0u;
-
-			uint_data.data[inner_bounding_box_height_delimiters_base + next_height] = inner_node_count;
-			++next_height;
+			else
+			{
+				uint_data.data[next_base + next_node_count] = uint_data.data[current_base + i];
+				++next_node_count;
+			}
 		}
 
-		while (next_height < inner_bounding_box_height_delimiters_capacity)
-		{
-			uint_data.data[inner_bounding_box_height_delimiters_base + next_height] = inner_node_count;
-			++next_height;
-		}
+		uint old_current_base = current_base;
+		current_base = next_base;
+		next_base = old_current_base;
+		current_node_count = next_node_count;
+		next_node_count = 0u;
+
+		uint_data.data[inner_bounding_box_height_delimiters_base + next_height] = inner_node_count;
+		++next_height;
+	}
+
+	while (next_height < inner_bounding_box_height_delimiters_capacity)
+	{
+		uint_data.data[inner_bounding_box_height_delimiters_base + next_height] = inner_node_count;
+		++next_height;
 	}
 }
 
@@ -292,7 +288,7 @@ void main()
 	fixed_data.point_mass_write_flags_base = point_mass_write_flags_base;
 	fixed_data.point_mass_write_position_velocity_base = point_mass_write_position_velocity_base;
 
-	capacities[rigid_body_type_index] = 50000u;//50000u;
+	capacities[rigid_body_type_index] = 1000u;//50000u;//50000u;
 
 	uint rigid_body_inverse_mass_inertia_base_address = align_up(point_mass_write_position_velocity_base_address + capacities[point_mass_type_index] * uvec4_data_array_stride);
 	uint rigid_body_constraint_start_base_address = align_up(rigid_body_inverse_mass_inertia_base_address + capacities[rigid_body_type_index] * vec2_data_array_stride);
@@ -320,14 +316,16 @@ void main()
 
 	capacities[rigid_body_triangle_type_index] = capacities[rigid_body_type_index];
 	
-	uint rigid_body_triangle_body_base_address = align_up(rigid_body_write_velocity_flags_base_address + capacities[rigid_body_type_index] * uvec4_data_array_stride);
-	uint rigid_body_triangle_vertex_base_address = align_up(rigid_body_triangle_body_base_address + capacities[rigid_body_triangle_type_index] * uint_data_array_stride);
+	uint rigid_body_triangle_body_material_vertex_0_base_address = align_up(rigid_body_write_velocity_flags_base_address + capacities[rigid_body_type_index] * uvec4_data_array_stride);
+	uint rigid_body_triangle_vertex_1_2_base_address = align_up(rigid_body_triangle_body_material_vertex_0_base_address + capacities[rigid_body_triangle_type_index] * uvec4_data_array_stride);
+	//uint rigid_body_triangle_body_base_address = align_up(rigid_body_write_velocity_flags_base_address + capacities[rigid_body_type_index] * uvec4_data_array_stride);
+	//uint rigid_body_triangle_vertex_base_address = align_up(rigid_body_triangle_body_base_address + capacities[rigid_body_triangle_type_index] * uint_data_array_stride);
 
-	uint rigid_body_triangle_body_base = address_to_uint_index(rigid_body_triangle_body_base_address);
-	uint rigid_body_triangle_vertex_base = address_to_vec2_index(rigid_body_triangle_vertex_base_address);
+	uint rigid_body_triangle_body_material_vertex_0_base = address_to_uvec4_index(rigid_body_triangle_body_material_vertex_0_base_address);
+	uint rigid_body_triangle_vertex_1_2_base = address_to_vec4_index(rigid_body_triangle_vertex_1_2_base_address);
 
-	fixed_data.rigid_body_triangle_body_base = rigid_body_triangle_body_base;
-	fixed_data.rigid_body_triangle_vertex_base = rigid_body_triangle_vertex_base;
+	fixed_data.rigid_body_triangle_body_material_vertex_0_base = rigid_body_triangle_body_material_vertex_0_base;
+	fixed_data.rigid_body_triangle_vertex_1_2_base = rigid_body_triangle_vertex_1_2_base;
 
 	capacities[rigid_body_circle_type_index] = capacities[rigid_body_type_index];
 
@@ -339,7 +337,7 @@ void main()
 	next_bounding_box_local_base = align_up_to_common_base(next_bounding_box_local_base);
 	leaf_bounding_box_local_bases[rigid_body_circle_bounding_box_type] = next_bounding_box_local_base;
 
-	uint rigid_body_circle_body_position_radius_base_address = align_up(rigid_body_triangle_vertex_base_address + capacities[rigid_body_triangle_type_index] * 3u * vec2_data_array_stride);
+	uint rigid_body_circle_body_position_radius_base_address = align_up(rigid_body_triangle_vertex_1_2_base_address + capacities[rigid_body_triangle_type_index] * vec4_data_array_stride);
 	uint rigid_body_circle_material_base_address = align_up(rigid_body_circle_body_position_radius_base_address + capacities[rigid_body_circle_type_index] * uvec4_data_array_stride);
 
 	uint rigid_body_circle_body_position_radius_base = address_to_uvec4_index(rigid_body_circle_body_position_radius_base_address);
@@ -588,8 +586,8 @@ void main()
 	
 	uint point_mass_count = capacities[point_mass_type_index];//capacities[point_mass_type_index];
 	uint rigid_body_count = capacities[rigid_body_type_index];//capacities[rigid_body_type_index];
-	uint rigid_body_triangle_count = capacities[rigid_body_triangle_type_index] * 0u;//capacities[rigid_body_triangle_type_index] * 0u;
-	uint rigid_body_circle_count = capacities[rigid_body_circle_type_index];//capacities[rigid_body_circle_type_index];
+	uint rigid_body_triangle_count = capacities[rigid_body_triangle_type_index] * 1u;//capacities[rigid_body_triangle_type_index] * 0u;
+	uint rigid_body_circle_count = capacities[rigid_body_circle_type_index] * 0u;//capacities[rigid_body_circle_type_index];
 	//uint rigid_body_circle_contact_constraint_spawner_count = capacities[rigid_body_circle_contact_constraint_spawner_type_index];//rigid_body_circle_contact_constraint_spawner_capacity;
 	uint point_mass_distance_constraint_count = capacities[point_mass_distance_constraint_type_index];//capacities[point_mass_distance_constraint_type_index];
 	uint rigid_body_circle_contact_constraint_count = 0u;
@@ -746,13 +744,21 @@ void main()
 
 	for (uint rigid_body_triangle_index = 0u; rigid_body_triangle_index < rigid_body_triangle_count; ++rigid_body_triangle_index)
 	{
-		uint_data.data[rigid_body_triangle_body_base + rigid_body_triangle_index] = rigid_body_triangle_index;
-		uint vertex_index = rigid_body_triangle_vertex_base + rigid_body_triangle_index * 3u;
 		const float radius = 0.5;
-		vec2_data.data[vertex_index] = radius * vec2(0.0, 1.0);
 		const float base_x_offset = 0.5 * sqrt(3.0);
-		vec2_data.data[vertex_index + 1u] = radius * vec2(-base_x_offset, -0.5);
-		vec2_data.data[vertex_index + 2u] = radius * vec2(base_x_offset, -0.5);
+		uvec4_data.data[rigid_body_triangle_body_material_vertex_0_base + rigid_body_triangle_index] =
+			uvec4(rigid_body_triangle_index, 0u, floatBitsToUint(radius * vec2(0.0, 1.0)));
+		vec4_data.data[rigid_body_triangle_vertex_1_2_base + rigid_body_triangle_index] = vec4
+		(
+			radius * vec2(-base_x_offset, -0.5),
+			radius * vec2(base_x_offset, -0.5)
+		);
+		
+		//uint_data.data[rigid_body_triangle_body_base + rigid_body_triangle_index] = rigid_body_triangle_index;
+		//uint vertex_index = rigid_body_triangle_vertex_base + rigid_body_triangle_index * 3u;
+		//vec2_data.data[vertex_index] = radius * vec2(0.0, 1.0);
+		//vec2_data.data[vertex_index + 1u] = radius * vec2(-base_x_offset, -0.5);
+		//vec2_data.data[vertex_index + 2u] = radius * vec2(base_x_offset, -0.5);
 
 		uvec4_data.data[leaf_bounding_box_parent_pad_pad_type_bases[rigid_body_triangle_bounding_box_type] + rigid_body_triangle_index] =
 			uvec4(null_uint, 0u, 0u, rigid_body_triangle_bounding_box_type);
@@ -903,11 +909,16 @@ void main()
 
 	next_bounding_box_local_base = align_up_to_common_base(next_bounding_box_local_base);
 
+	// TODO: Get array automatically.
+	uint leaf_bounding_box_counts[leaf_bounding_box_type_count];
+	leaf_bounding_box_counts[rigid_body_triangle_bounding_box_type] = rigid_body_triangle_count;
+	leaf_bounding_box_counts[rigid_body_circle_bounding_box_type] = rigid_body_circle_count;
 	create_balanced_bounding_volume_hierarchy
 	(
 		end_base_address,
-		rigid_body_circle_count,
+		leaf_bounding_box_count,
 		leaf_bounding_box_local_bases,
+		leaf_bounding_box_counts,
 		next_bounding_box_local_base,
 		inner_bounding_box_parent_children_height_base,
 		inner_bounding_box_split_indices_base,

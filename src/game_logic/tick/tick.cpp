@@ -599,7 +599,7 @@ namespace game_logic::tick
 			tick_bodies(environment);
 
 			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-
+			
 			GLsync bounding_volume_hierarchy_fence{ send_bounding_volume_hierarchy_metadata_to_CPU(environment) };
 			::game_logic::profiling::put_timestamp(environment, ::game_state::profiling::Timestamp_Type::individual_command, "send_bounding_volume_hierarchy_metadata_to_CPU", 0.20, 0.60, 0.95);
 
@@ -641,6 +641,8 @@ namespace game_logic::tick
 			tick_inner_bounding_boxes(environment, bounding_volume_hierarchy_height);
 
 			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);	// TODO: Is this needed?
+
+			return;
 
 			::game_logic::profiling::start_next_generation(environment, ::game_state::profiling::Timestamp_Type::contacts);
 
