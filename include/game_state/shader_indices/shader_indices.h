@@ -226,7 +226,8 @@ namespace game_state::shader_indices
 
 					enum struct Indices : GLuint
 					{
-						rigid_body_circles = base,
+						rigid_body_triangles = base,
+						rigid_body_circles,
 
 						end
 					};

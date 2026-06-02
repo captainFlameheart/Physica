@@ -11,12 +11,10 @@ void main()
 	uint body_material_vertex_0_base = fixed_data.rigid_body_triangle_body_material_vertex_0_base;
 	uint vertex_1_2_base = fixed_data.rigid_body_triangle_vertex_1_2_base;
 	uint bounding_box_base = fixed_data.leaf_bounding_box_bases[rigid_body_triangle_bounding_box_type];
-	//uint body_position_radius_base = fixed_data.rigid_body_circle_body_position_radius_base;
 
 	uint body_material_vertex_0_index = body_material_vertex_0_base + index;
 	uint vertex_1_2_index = vertex_1_2_base + index;
 	uint bounding_box_index = bounding_box_base + index;
-	//uint body_position_radius_index = body_position_radius_base + index;
 
 	uvec4 body_material_vertex_0 = uvec4_data.data[body_material_vertex_0_index];
 	vec4 vertex_1_2 = vec4_data.data[vertex_1_2_index];
@@ -27,9 +25,6 @@ void main()
 		vertex_1_2.xy,
 		vertex_1_2.zw,
 	};
-
-	//uvec4 body_position_radius = uvec4_data.data[body_position_radius_index];
-	//vec3 position_radius = uintBitsToFloat(body_position_radius.yzw);
 
 	uint rigid_body_read_position_flags_base = fixed_data.rigid_body_read_position_flags_base;
 
@@ -52,24 +47,11 @@ void main()
 		local_to_offset * vertices[1u] * meter_in_length_units,
 		local_to_offset * vertices[2u] * meter_in_length_units,
 	};
-	/*vec2 offset = mat2
-	(
-		angle_cos, angle_sin,
-		-angle_sin, angle_cos
-	) * position_radius.xy * meter_in_length_units;*/	// TODO: Store all lengths in length units.
 
 	uvec4 bounding_box = uvec4
 	(
 		rigid_body_position_flags.xy + uvec2(ivec2(min(vertex_offsets[0u], min(vertex_offsets[1u], vertex_offsets[2u])))),
-		rigid_body_position_flags.xy + uvec2(ivec2(max(vertex_offsets[0u], max(vertex_offsets[1u], vertex_offsets[2u])))),
+		rigid_body_position_flags.xy + uvec2(ivec2(max(vertex_offsets[0u], max(vertex_offsets[1u], vertex_offsets[2u]))))
 	);
 	uvec4_data.data[bounding_box_index] = bounding_box;
-
-	/*vec2 half_size = vec2(position_radius.z * meter_in_length_units);
-	uvec4 bounding_box = uvec4
-	(
-		rigid_body_position_flags.xy + uvec2(ivec2(offset - half_size)),
-		rigid_body_position_flags.xy + uvec2(ivec2(offset + half_size))
-	);
-	uvec4_data.data[bounding_box_index] = bounding_box;*/
 }

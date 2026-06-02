@@ -522,6 +522,9 @@ namespace game_logic::initialize::compile_shaders::environment
 			static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::skycircle_elements::Indices::default_elements) - tick_entities_local_size_base
 		] };
 
+		constexpr GLuint tick_rigid_body_triangles_local_size{ ::game_state::local_sizes::process_entities_local_sizes[
+			static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::leafs::Indices::rigid_body_triangles) - tick_entities_local_size_base
+		] };
 		constexpr GLuint tick_rigid_body_circles_local_size{ ::game_state::local_sizes::process_entities_local_sizes[
 			static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::leafs::Indices::rigid_body_circles) - tick_entities_local_size_base
 		] };
@@ -726,6 +729,7 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uint tick_rigid_bodies_local_size = " + ::std::to_string(tick_rigid_bodies_local_size) + ";\n"
 			"const uint tick_default_skycircle_elements_local_size = " + ::std::to_string(tick_default_skycircle_elements_local_size) + ";\n"
 			"const uint swap_leaf_bounding_box_buffers_local_size = " + ::std::to_string(swap_leaf_bounding_box_buffers_local_size) + ";\n"
+			"const uint tick_rigid_body_triangles_local_size = " + ::std::to_string(tick_rigid_body_triangles_local_size) + ";\n"
 			"const uint tick_rigid_body_circles_local_size = " + ::std::to_string(tick_rigid_body_circles_local_size) + ";\n"
 			"const uint find_inner_bounding_box_height_changes_local_size = " + ::std::to_string(find_inner_bounding_box_height_changes_local_size) + ";\n"
 			"const uint set_inner_bounding_box_tick_commands_local_size = " + ::std::to_string(set_inner_bounding_box_tick_commands_local_size) + ";\n"
