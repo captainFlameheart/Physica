@@ -282,8 +282,6 @@ FIXED_DATA_BUFFER_PLACEHOLDER Fixed_Data
 
 	uint rigid_body_triangle_body_material_vertex_0_base;
 	uint rigid_body_triangle_vertex_1_2_base;
-	//uint rigid_body_triangle_body_base;
-	//uint rigid_body_triangle_vertex_base;
 
 	uint rigid_body_circle_body_position_radius_base;
 	uint rigid_body_circle_material_base;

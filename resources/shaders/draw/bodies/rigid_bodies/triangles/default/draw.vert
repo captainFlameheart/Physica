@@ -8,18 +8,12 @@ void main()
 
 	uint body_material_vertex_0_base = fixed_data.rigid_body_triangle_body_material_vertex_0_base;
 	uint vertex_1_2_base = fixed_data.rigid_body_triangle_vertex_1_2_base;
-	//uint body_base = fixed_data.rigid_body_triangle_body_base;
-	//uint vertex_base = fixed_data.rigid_body_triangle_vertex_base;
 
 	uint body_material_vertex_0_index = body_material_vertex_0_base + index;
 	uint vertex_1_2_index = vertex_1_2_base + index;
-	//uint body_index = body_base + index;
-	//uint vertex_index = vertex_base + gl_VertexID;
 
 	uvec4 body_material_vertex_0 = uvec4_data.data[body_material_vertex_0_index];
 	vec4 vertex_1_2 = vec4_data.data[vertex_1_2_index];
-	//uint body = uint_data.data[body_index];
-	//vec2 vertex = vec2_data.data[vertex_index];
 
 	vec2 vertices[3u] =
 	{
