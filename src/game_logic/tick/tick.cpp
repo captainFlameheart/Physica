@@ -312,7 +312,8 @@ namespace game_logic::tick
 		for (GLuint clear_constraint_spawner_deaths_shader_index{ ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::clear_deaths::base }; clear_constraint_spawner_deaths_shader_index < ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::clear_deaths::end; ++clear_constraint_spawner_deaths_shader_index)
 		{
 			if (
-				clear_constraint_spawner_deaths_shader_index != static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::clear_deaths::Indices::clear_rigid_body_circle_contact_constraint_spawner_deaths)
+				clear_constraint_spawner_deaths_shader_index != static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::clear_deaths::Indices::clear_rigid_body_circle_contact_constraint_spawner_deaths) &&
+				clear_constraint_spawner_deaths_shader_index != static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::clear_deaths::Indices::clear_rigid_body_triangle_contact_detector_deaths)
 			)
 			{
 				continue;
@@ -340,7 +341,8 @@ namespace game_logic::tick
 		for (GLuint perform_constraint_spawner_compaction_shader_index{ ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::perform_compaction::base }; perform_constraint_spawner_compaction_shader_index < ::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::perform_compaction::end; ++perform_constraint_spawner_compaction_shader_index)
 		{
 			if (
-				perform_constraint_spawner_compaction_shader_index != static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::perform_compaction::Indices::perform_rigid_body_circle_contact_constraint_spawner_compaction)
+				perform_constraint_spawner_compaction_shader_index != static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::perform_compaction::Indices::perform_rigid_body_circle_contact_constraint_spawner_compaction) &&
+				perform_constraint_spawner_compaction_shader_index != static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::pre_constraint_spawners::perform_compaction::Indices::perform_rigid_body_triangle_contact_detector_compaction)
 			)
 			{
 				continue;
@@ -454,7 +456,8 @@ namespace game_logic::tick
 		for (GLuint tick_constraint_spawners_shader_index{ static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraint_spawners::Indices::rigid_body_triangle_contact_detectors) }; tick_constraint_spawners_shader_index < ::game_state::shader_indices::tick::process_entities::constraint_spawners::end; ++tick_constraint_spawners_shader_index)
 		{
 			if (
-				tick_constraint_spawners_shader_index != static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraint_spawners::Indices::rigid_body_circle_contact_constraint_spawners)
+				tick_constraint_spawners_shader_index != static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraint_spawners::Indices::rigid_body_circle_contact_constraint_spawners) &&
+				tick_constraint_spawners_shader_index != static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraint_spawners::Indices::rigid_body_triangle_contact_detectors)
 			)
 			{
 				continue;
@@ -466,7 +469,7 @@ namespace game_logic::tick
 			{
 				environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.offset +
 				index_in_tick_entities_shader_array * environment.state.layouts.commands.dispatch_commands_work_group_count_x_state.top_level_array_stride
-			};
+ 			};
 			glDispatchComputeIndirect(command_offset);
 
 			if (environment.state.debug_flag == 1u)
