@@ -148,6 +148,8 @@ namespace game_state::shader_to_entity_type
 
 		shader_to_entity_type[static_cast<GLuint>(::game_state::shader_indices::draw::entities::constraint_spawners::Indices::bounding_box_contact_detectors) - base] =
 			static_cast<GLuint>(::game_state::entity_type_indices::constraint_spawners::Indices::bounding_box_contact_detector);
+		shader_to_entity_type[static_cast<GLuint>(::game_state::shader_indices::draw::entities::constraint_spawners::Indices::rigid_body_triangle_contact_detectors) - base] =
+			static_cast<GLuint>(::game_state::entity_type_indices::rigid_body_triangle_contact_detector);
 		shader_to_entity_type[static_cast<GLuint>(::game_state::shader_indices::draw::entities::constraint_spawners::Indices::rigid_body_circle_contact_constraint_spawners) - base] =
 			static_cast<GLuint>(::game_state::entity_type_indices::rigid_body_circle_contact_detector);
 

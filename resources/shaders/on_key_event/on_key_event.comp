@@ -26,6 +26,7 @@ void main()
 				case key_d:
 				{
 					bool enabled = toggle_draw_arrays_program(draw_bounding_box_contact_detectors_program_index);
+					set_draw_arrays_program_enabled(draw_rigid_body_triangle_contact_detectors_program_index, enabled);
 					set_draw_arrays_program_enabled(draw_rigid_body_circle_contact_detectors_program_index, enabled);
 					break;
 				}

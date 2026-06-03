@@ -110,6 +110,11 @@ namespace game_logic::initialize::compile_shaders::environment
 			static_cast<GLuint>(::game_state::shader_indices::draw::entities::constraint_spawners::Indices::bounding_box_contact_detectors)
 			- ::game_state::shader_indices::draw::entities::base
 		};
+		constexpr GLuint draw_rigid_body_triangle_contact_detectors_program_index
+		{
+			static_cast<GLuint>(::game_state::shader_indices::draw::entities::constraint_spawners::Indices::rigid_body_triangle_contact_detectors)
+			- ::game_state::shader_indices::draw::entities::base
+		};
 		constexpr GLuint draw_rigid_body_circle_contact_detectors_program_index
 		{
 			static_cast<GLuint>(::game_state::shader_indices::draw::entities::constraint_spawners::Indices::rigid_body_circle_contact_constraint_spawners)
@@ -677,6 +682,7 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uint draw_rigid_body_circle_bounding_boxes_program_index = " + std::to_string(draw_rigid_body_circle_bounding_boxes_program_index) + ";\n"
 			"const uint draw_inner_bounding_boxes_program_index = " + std::to_string(draw_inner_bounding_boxes_program_index) + ";\n"
 			"const uint draw_bounding_box_contact_detectors_program_index = " + std::to_string(draw_bounding_box_contact_detectors_program_index) + ";\n"
+			"const uint draw_rigid_body_triangle_contact_detectors_program_index = " + std::to_string(draw_rigid_body_triangle_contact_detectors_program_index) + ";\n"
 			"const uint draw_rigid_body_circle_contact_detectors_program_index = " + std::to_string(draw_rigid_body_circle_contact_detectors_program_index) + ";\n"
 			"const uint draw_rigid_body_circle_contact_constraint_contact_points_program_index = " + std::to_string(draw_rigid_body_circle_contact_constraint_contact_points_program_index) + ";\n"
 

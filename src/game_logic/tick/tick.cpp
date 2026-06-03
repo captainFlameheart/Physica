@@ -642,8 +642,6 @@ namespace game_logic::tick
 
 			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);	// TODO: Is this needed?
 
-			return;
-
 			::game_logic::profiling::start_next_generation(environment, ::game_state::profiling::Timestamp_Type::contacts);
 
 			commit_bounding_box_contact_detector_counts(environment);
