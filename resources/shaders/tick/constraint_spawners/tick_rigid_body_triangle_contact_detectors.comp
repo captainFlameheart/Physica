@@ -1,0 +1,87 @@
+layout(local_size_x = tick_rigid_body_triangle_contact_detectors_local_size) in;
+void main()
+{
+	// REALLY FRICKIN COOL TODO: Make constraints "pull" the memory addresses of their bodies towards each other!
+
+	uint index = gl_GlobalInvocationID.x;
+	uint count = fixed_data.read_counts[rigid_body_triangle_contact_detector_type];
+	if (index >= count)
+	{
+		return;
+	}
+	
+	uint indices_base = fixed_data.specific_contact_detector_indices_bases[rigid_body_triangle_contact_type];
+	uint indices_index = indices_base + index;
+	uvec2 indices = uvec2_data.data[indices_index];
+
+	MAYBE_CONVERT_UNARY_CONTACT_DETECTOR_TO_BOUNDING_BOX_CONTACT_DETECTOR(rigid_body_triangle_bounding_box_type, rigid_body_triangle_contact_detector_type, index, indices)
+
+	/*
+	uint circle_body_position_radius_base = fixed_data.rigid_body_circle_body_position_radius_base;
+
+	uint circle_body_position_radius_index_0 = circle_body_position_radius_base + indices.x;
+	uint circle_body_position_radius_index_1 = circle_body_position_radius_base + indices.y;
+
+	uvec4 circle_body_position_radius_0 = uvec4_data.data[circle_body_position_radius_index_0];
+	uvec4 circle_body_position_radius_1 = uvec4_data.data[circle_body_position_radius_index_1];
+
+	vec3 circle_position_radius_0 = uintBitsToFloat(circle_body_position_radius_0.yzw);
+	vec3 circle_position_radius_1 = uintBitsToFloat(circle_body_position_radius_1.yzw);
+
+	uint body_read_position_flags_base = fixed_data.rigid_body_read_position_flags_base;
+
+	uint body_read_position_flags_index_0 = body_read_position_flags_base + circle_body_position_radius_0.x;
+	uint body_read_position_flags_index_1 = body_read_position_flags_base + circle_body_position_radius_1.x;
+
+	uvec4 body_position_flags_0 = uvec4_data.data[body_read_position_flags_index_0];
+	uvec4 body_position_flags_1 = uvec4_data.data[body_read_position_flags_index_1];
+
+	// TODO: Consider circle position.
+	vec2 displacement = vec2(ivec2(body_position_flags_0.xy - body_position_flags_1.xy));
+	float distance_squared = dot(displacement, displacement) * (length_unit_in_meters * length_unit_in_meters);
+	float hit_distance = circle_position_radius_0.z + circle_position_radius_1.z;
+	if (distance_squared < hit_distance * hit_distance)
+	{
+		// TODO: Spawn constraint and despawn this spawner.
+		uint constraint_index = atomicAdd(fixed_data.write_counts[rigid_body_circle_contact_constraint_type_index], 1u);
+		if (constraint_index >= fixed_data.capacities[rigid_body_circle_contact_constraint_type_index])
+		{
+			// TODO: Replace this atomic add with extra logic at commit count shader.
+			atomicAdd(fixed_data.write_counts[rigid_body_circle_contact_constraint_type_index], decrement_uint);
+			return;
+		}
+
+		uint tick = fixed_data.tick;
+
+		uint body_constraint_start_base = fixed_data.rigid_body_constraint_start_base;
+
+		uint body_constraint_start_index_0 = body_constraint_start_base + circle_body_position_radius_0.x;
+		uint body_constraint_start_index_1 = body_constraint_start_base + circle_body_position_radius_1.x;
+
+		uint turn_0 = tick + atomicAdd(uint_data.data[body_constraint_start_index_0], decrement_uint);
+		uint turn_1 = tick + atomicAdd(uint_data.data[body_constraint_start_index_1], decrement_uint);
+
+		uint constraint_flags_base = fixed_data.rigid_body_circle_contact_constraint_flags_base;
+		uint constraint_indices_turns_base = fixed_data.rigid_body_circle_contact_constraint_indices_turns_base;
+		uint constraint_impulse_base = fixed_data.rigid_body_circle_contact_constraint_impulse_base;
+		uint constraint_death_index_base = fixed_data.death_index_bases[rigid_body_circle_contact_constraint_type_index];
+
+		uint constraint_flags_index = constraint_flags_base + constraint_index;
+		uint constraint_indices_turns_index = constraint_indices_turns_base + constraint_index;
+		uint constraint_impulse_index = constraint_impulse_base + constraint_index;
+		uint constraint_death_index_index = constraint_death_index_base + constraint_index;
+
+		uint_data.data[constraint_flags_index] = 0u;
+		uvec4_data.data[constraint_indices_turns_index] = uvec4(indices, turn_0, turn_1);
+		vec4_data.data[constraint_impulse_index] = vec4(0.0);
+		uint_data.data[constraint_death_index_index] = null_uint;
+		
+		// TODO: Make into reusable function/macro.
+		uint death_index = atomicAdd(fixed_data.kill_counts[rigid_body_circle_contact_constraint_spawner_type_index], 1u);
+		uint death_index_base = fixed_data.death_index_bases[rigid_body_circle_contact_constraint_spawner_type_index];
+		uint_data.data[death_index_base + index] = death_index;
+		uint killed_base = fixed_data.killed_bases[rigid_body_circle_contact_constraint_spawner_type_index];	// TODO: Merge with kill_index.
+		uint_data.data[killed_base + death_index] = index;
+	}
+	*/
+}

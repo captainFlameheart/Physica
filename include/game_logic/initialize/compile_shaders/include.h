@@ -65,6 +65,7 @@
 #include "compile_tick_rigid_body_circle_contact_constraints.h"
 #include "compile_tick_rigid_body_circle_contact_constraint_spawners.h"
 #include "compile_tick_rigid_body_triangles.h";
+#include "compile_tick_rigid_body_triangle_contact_detectors.h"
 #include "compile_update_draw_counts.h"
 #include "compile_update_tick_counts.h"
 #include "compile_shaders.h"
