@@ -1,0 +1,13 @@
+layout(local_size_x = perform_rigid_body_triangle_contact_detector_compaction_local_size) in;
+void main()
+{
+	uint killed;
+	uint source;
+
+	PRE_TICK_ENTITIES_PERFORM_COMPACTION_DETERMINE_FLOW(rigid_body_triangle_contact_detector_type, killed, source);
+
+	// Copy source -> killed.
+	uint indices_base = fixed_data.specific_contact_detector_indices_bases[rigid_body_triangle_contact_type];
+	
+	uvec2_data.data[indices_base + killed] = uvec2_data.data[indices_base + source];
+}
