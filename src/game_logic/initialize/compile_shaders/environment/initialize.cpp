@@ -90,6 +90,11 @@ namespace game_logic::initialize::compile_shaders::environment
 			- ::game_state::shader_indices::tick::process_entities::base
 		};
 
+		constexpr GLuint draw_rigid_body_triangle_bounding_boxes_program_index
+		{
+			static_cast<GLuint>(::game_state::shader_indices::draw::entities::bounding_volume_hierarchy::Indices::rigid_body_triangle_bounding_boxes)
+			- ::game_state::shader_indices::draw::entities::base
+		};
 		constexpr GLuint draw_rigid_body_circle_bounding_boxes_program_index
 		{
 			static_cast<GLuint>(::game_state::shader_indices::draw::entities::bounding_volume_hierarchy::Indices::rigid_body_circle_bounding_boxes)
@@ -349,7 +354,7 @@ namespace game_logic::initialize::compile_shaders::environment
 			GLuint local_size{ ::game_state::local_sizes::process_entities_local_sizes[base + i] };
 			dispatch_command_blueprints += "	uvec2(" + std::to_string(entity_type) + ", " + std::to_string(local_size) + "),\n";
 		}
-
+		dispatch_command_blueprints += "// START\n";
 		for (GLuint i{ 0u }; i < ::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::leafs::count; ++i)
 		{
 			GLuint entity_type{ static_cast<GLuint>(::game_state::shader_to_entity_type::tick_bounding_box_leaf_shader_to_entity_type[i]) };
@@ -357,6 +362,7 @@ namespace game_logic::initialize::compile_shaders::environment
 			GLuint local_size{ ::game_state::local_sizes::process_entities_local_sizes[base + i] };
 			dispatch_command_blueprints += "	uvec2(" + std::to_string(entity_type) + ", " + std::to_string(local_size) + "),\n";
 		}
+		dispatch_command_blueprints += "// END\n";
 
 		for (GLuint i{ 0u }; i < ::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::initialize_inner_bounding_box_traversal::count; ++i)
 		{
@@ -667,6 +673,7 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uint merge_bounding_box_contact_detectors_program_index = " + std::to_string(merge_bounding_box_contact_detectors_program_index) + ";\n"
 			"const uint clear_bounding_box_contact_detector_merge_data_program_index = " + std::to_string(clear_bounding_box_contact_detector_merge_data_program_index) + ";\n"
 
+			"const uint draw_rigid_body_triangle_bounding_boxes_program_index = " + std::to_string(draw_rigid_body_triangle_bounding_boxes_program_index) + ";\n"
 			"const uint draw_rigid_body_circle_bounding_boxes_program_index = " + std::to_string(draw_rigid_body_circle_bounding_boxes_program_index) + ";\n"
 			"const uint draw_inner_bounding_boxes_program_index = " + std::to_string(draw_inner_bounding_boxes_program_index) + ";\n"
 			"const uint draw_bounding_box_contact_detectors_program_index = " + std::to_string(draw_bounding_box_contact_detectors_program_index) + ";\n"

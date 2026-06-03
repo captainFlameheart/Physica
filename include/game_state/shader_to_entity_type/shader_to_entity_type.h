@@ -49,6 +49,8 @@ namespace game_state::shader_to_entity_type
 
 		constexpr GLuint base{ ::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::leafs::base };
 
+		shader_to_entity_type[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::leafs::Indices::rigid_body_triangles) - base] =
+			::game_state::entity_type_indices::body_attachments::Indices::rigid_body_triangle;
 		shader_to_entity_type[static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::bounding_volume_hierarchy::leafs::Indices::rigid_body_circles) - base] =
 			::game_state::entity_type_indices::body_attachments::Indices::rigid_body_circle;
 
@@ -154,6 +156,8 @@ namespace game_state::shader_to_entity_type
 		shader_to_entity_type[static_cast<GLuint>(::game_state::shader_indices::draw::entities::constraints::Indices::rigid_body_circle_contact_constraint_contact_points) - base] =
 			static_cast<GLuint>(::game_state::entity_type_indices::constraints::Indices::rigid_body_circle_contact_constraint);
 
+		shader_to_entity_type[static_cast<GLuint>(::game_state::shader_indices::draw::entities::bounding_volume_hierarchy::Indices::rigid_body_triangle_bounding_boxes) - base] =
+			static_cast<GLuint>(::game_state::entity_type_indices::body_attachments::Indices::rigid_body_triangle);
 		shader_to_entity_type[static_cast<GLuint>(::game_state::shader_indices::draw::entities::bounding_volume_hierarchy::Indices::rigid_body_circle_bounding_boxes) - base] =
 			static_cast<GLuint>(::game_state::entity_type_indices::body_attachments::Indices::rigid_body_circle);
 		shader_to_entity_type[static_cast<GLuint>(::game_state::shader_indices::draw::entities::bounding_volume_hierarchy::Indices::inner_bounding_boxes) - base] =

@@ -334,6 +334,9 @@ void main()
 	uint leaf_bounding_box_local_bases[leaf_bounding_box_type_count];
 	leaf_bounding_box_local_bases[rigid_body_triangle_bounding_box_type] = 0u;
 
+	leaf_bounding_box_capacity += capacities[rigid_body_triangle_type_index];
+	next_bounding_box_local_base += capacities[rigid_body_triangle_type_index];
+
 	next_bounding_box_local_base = align_up_to_common_base(next_bounding_box_local_base);
 	leaf_bounding_box_local_bases[rigid_body_circle_bounding_box_type] = next_bounding_box_local_base;
 
@@ -669,6 +672,7 @@ void main()
 		commands.draw_arrays_commands[draw_arrays_program_index].base_instance = 0u;
 	}
 
+	fixed_data.draw_arrays_command_flags[draw_rigid_body_triangle_bounding_boxes_program_index] = 0u;
 	fixed_data.draw_arrays_command_flags[draw_rigid_body_circle_bounding_boxes_program_index] = 0u;
 	fixed_data.draw_arrays_command_flags[draw_inner_bounding_boxes_program_index] = 0u;
 	fixed_data.draw_arrays_command_flags[draw_bounding_box_contact_detectors_program_index] = 0u;
