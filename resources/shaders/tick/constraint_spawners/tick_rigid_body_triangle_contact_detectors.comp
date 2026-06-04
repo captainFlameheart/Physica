@@ -146,32 +146,48 @@ void main()
 		return;
 	}
 
-	/*
-	uint circle_body_position_radius_base = fixed_data.rigid_body_circle_body_position_radius_base;
-
-	uint circle_body_position_radius_index_0 = circle_body_position_radius_base + indices.x;
-	uint circle_body_position_radius_index_1 = circle_body_position_radius_base + indices.y;
-
-	uvec4 circle_body_position_radius_0 = uvec4_data.data[circle_body_position_radius_index_0];
-	uvec4 circle_body_position_radius_1 = uvec4_data.data[circle_body_position_radius_index_1];
-
-	vec3 circle_position_radius_0 = uintBitsToFloat(circle_body_position_radius_0.yzw);
-	vec3 circle_position_radius_1 = uintBitsToFloat(circle_body_position_radius_1.yzw);
-
-	uint body_read_position_flags_base = fixed_data.rigid_body_read_position_flags_base;
-
-	uint body_read_position_flags_index_0 = body_read_position_flags_base + circle_body_position_radius_0.x;
-	uint body_read_position_flags_index_1 = body_read_position_flags_base + circle_body_position_radius_1.x;
-
-	uvec4 body_position_flags_0 = uvec4_data.data[body_read_position_flags_index_0];
-	uvec4 body_position_flags_1 = uvec4_data.data[body_read_position_flags_index_1];
-
-	// TODO: Consider circle position.
-	vec2 displacement = vec2(ivec2(body_position_flags_0.xy - body_position_flags_1.xy));
-	float distance_squared = dot(displacement, displacement) * (length_unit_in_meters * length_unit_in_meters);
-	float hit_distance = circle_position_radius_0.z + circle_position_radius_1.z;
-	if (distance_squared < hit_distance * hit_distance)
+	uint constraint_index = atomicAdd(fixed_data.write_counts[rigid_body_triangle_contact_constraint_type], 1u);
+	if (constraint_index >= fixed_data.capacities[rigid_body_triangle_contact_constraint_type])
 	{
+		atomicAdd(fixed_data.write_counts[rigid_body_triangle_contact_constraint_type], decrement_uint);
+		return;
+	}
+
+	uint tick = fixed_data.tick;
+
+	uint body_constraint_start_base = fixed_data.rigid_body_constraint_start_base;
+	
+	uint body_constraint_start_index[2u] =
+	{
+		body_constraint_start_base + triangle_body_material_vertex_0[0u].x,
+		body_constraint_start_base + triangle_body_material_vertex_0[1u].x,
+	};
+
+	// MUST TODO: Use decrement by one for circles as well!
+	uint turn_0 = tick + atomicAdd(uint_data.data[body_constraint_start_index[0u]], decrement_uint) - 1u;
+	uint turn_1 = tick + atomicAdd(uint_data.data[body_constraint_start_index[1u]], decrement_uint) - 1u;
+
+	uint constraint_indices_turns_base = fixed_data.rigid_body_triangle_contact_indices_turns_base;
+	uint constraint_point_0_delta_position_velocity_base = fixed_data.rigid_body_triangle_contact_point_0_delta_position_velocity_base;
+	uint constraint_point_1_delta_position_velocity_base = fixed_data.rigid_body_triangle_contact_point_1_delta_position_velocity_base;
+	uint constraint_applied_acceleration_flags_0_base = fixed_data.rigid_body_triangle_contact_applied_acceleration_flags_0_base;
+	uint constraint_applied_acceleration_flags_1_base = fixed_data.rigid_body_triangle_contact_applied_acceleration_flags_1_base;
+
+	uint constraint_indices_turns_index = constraint_indices_turns_base + constraint_index;
+	uint constraint_point_0_delta_position_velocity_index = constraint_point_0_delta_position_velocity_base + constraint_index;
+	uint constraint_point_1_delta_position_velocity_index = constraint_point_1_delta_position_velocity_base + constraint_index;
+	uint constraint_applied_acceleration_flags_0_index = constraint_applied_acceleration_flags_0_base + constraint_index;
+	uint constraint_applied_acceleration_flags_1_index = constraint_applied_acceleration_flags_1_base + constraint_index;
+
+	uvec4_data.data[constraint_indices_turns_index] = uvec4(indices, turn_0, turn_1);
+	vec4_data.data[constraint_point_0_delta_position_velocity_index] = vec4(0.0);
+	vec4_data.data[constraint_point_1_delta_position_velocity_index] = vec4(0.0);
+	uvec4_data.data[constraint_applied_acceleration_flags_0_index] = uvec4(0u);
+	uvec4_data.data[constraint_applied_acceleration_flags_1_index] = uvec4(0u);
+
+	kill(rigid_body_triangle_contact_detector_type, index);
+
+	/*
 		// TODO: Spawn constraint and despawn this spawner.
 		uint constraint_index = atomicAdd(fixed_data.write_counts[rigid_body_circle_contact_constraint_type_index], 1u);
 		if (constraint_index >= fixed_data.capacities[rigid_body_circle_contact_constraint_type_index])
@@ -212,6 +228,5 @@ void main()
 		uint_data.data[death_index_base + index] = death_index;
 		uint killed_base = fixed_data.killed_bases[rigid_body_circle_contact_constraint_spawner_type_index];	// TODO: Merge with kill_index.
 		uint_data.data[killed_base + death_index] = index;
-	}
 	*/
 }
