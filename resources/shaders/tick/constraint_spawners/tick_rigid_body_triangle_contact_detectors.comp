@@ -98,9 +98,53 @@ void main()
 	vertex_offsets[1u][1u] += displacement;
 	vertex_offsets[1u][2u] += displacement;
 
+	vec2 normal = vertex_offsets[0u][0u] - vertex_offsets[0u][1u];
+	normal = vec2(-normal.y, normal.x);
+	float normal_offset = dot(normal, vertex_offsets[0u][0u]);
+	if (min(dot(normal, vertex_offsets[1u][0u]), min(dot(normal, vertex_offsets[1u][1u]), dot(normal, vertex_offsets[1u][2u]))) > normal_offset)
+	{
+		return;
+	}
 
+	normal = vertex_offsets[0u][1u] - vertex_offsets[0u][2u];
+	normal = vec2(-normal.y, normal.x);
+	normal_offset = dot(normal, vertex_offsets[0u][1u]);
+	if (min(dot(normal, vertex_offsets[1u][0u]), min(dot(normal, vertex_offsets[1u][1u]), dot(normal, vertex_offsets[1u][2u]))) > normal_offset)
+	{
+		return;
+	}
 
-	//vec2 vertex_offsets
+	normal = vertex_offsets[0u][2u] - vertex_offsets[0u][0u];
+	normal = vec2(-normal.y, normal.x);
+	normal_offset = dot(normal, vertex_offsets[0u][2u]);
+	if (min(dot(normal, vertex_offsets[1u][0u]), min(dot(normal, vertex_offsets[1u][1u]), dot(normal, vertex_offsets[1u][2u]))) > normal_offset)
+	{
+		return;
+	}
+
+	normal = vertex_offsets[1u][0u] - vertex_offsets[1u][1u];
+	normal = vec2(-normal.y, normal.x);
+	normal_offset = dot(normal, vertex_offsets[1u][0u]);
+	if (min(dot(normal, vertex_offsets[0u][0u]), min(dot(normal, vertex_offsets[0u][1u]), dot(normal, vertex_offsets[0u][2u]))) > normal_offset)
+	{
+		return;
+	}
+
+	normal = vertex_offsets[1u][1u] - vertex_offsets[1u][2u];
+	normal = vec2(-normal.y, normal.x);
+	normal_offset = dot(normal, vertex_offsets[1u][1u]);
+	if (min(dot(normal, vertex_offsets[0u][0u]), min(dot(normal, vertex_offsets[0u][1u]), dot(normal, vertex_offsets[0u][2u]))) > normal_offset)
+	{
+		return;
+	}
+
+	normal = vertex_offsets[1u][2u] - vertex_offsets[1u][0u];
+	normal = vec2(-normal.y, normal.x);
+	normal_offset = dot(normal, vertex_offsets[1u][2u]);
+	if (min(dot(normal, vertex_offsets[0u][0u]), min(dot(normal, vertex_offsets[0u][1u]), dot(normal, vertex_offsets[0u][2u]))) > normal_offset)
+	{
+		return;
+	}
 
 	/*
 	uint circle_body_position_radius_base = fixed_data.rigid_body_circle_body_position_radius_base;
