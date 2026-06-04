@@ -37,10 +37,10 @@ void main()
 		uvec4_data.data[triangle_body_material_vertex_0_index[1u]],
 	};
 
-	uvec4 triangle_vertex_1_2[2u] =
+	vec4 triangle_vertex_1_2[2u] =
 	{
-		uvec4_data.data[triangle_vertex_1_2_index[0u]],
-		uvec4_data.data[triangle_vertex_1_2_index[1u]],
+		vec4_data.data[triangle_vertex_1_2_index[0u]],
+		vec4_data.data[triangle_vertex_1_2_index[1u]],
 	};
 
 	uint body_position_flags_base = fixed_data.rigid_body_write_position_flags_base;
@@ -57,7 +57,50 @@ void main()
 		ivec4(uvec4_data.data[body_position_flags_index[1u]]),
 	};
 
+	vec2 displacement = vec2(body_position_flags[0u].xy - body_position_flags[1u].xy);
 	
+	vec2 vertices[2u][3u] =
+	{
+		vec2[3u](uintBitsToFloat(triangle_body_material_vertex_0[0u].zw), triangle_vertex_1_2[0u].xy, triangle_vertex_1_2[0u].zw),
+		vec2[3u](uintBitsToFloat(triangle_body_material_vertex_0[1u].zw), triangle_vertex_1_2[1u].xy, triangle_vertex_1_2[1u].zw),
+	};
+
+	// TODO: Handle large angle precision.
+	float angles[2u] =
+	{
+		float(body_position_flags[0u].z) * angle_unit_in_radians,
+		float(body_position_flags[1u].z) * angle_unit_in_radians,
+	};
+	vec2 right[2u] =
+	{
+		vec2(cos(angles[0u]), sin(angles[0u])),
+		vec2(cos(angles[1u]), sin(angles[1u])),
+	};
+	mat2 local_to_offset[2u] =
+	{
+		mat2
+		(
+			right[0u].x, right[0u].y,
+			-right[0u].y, right[0u].x
+		) * meter_in_length_units,	// TODO: Store all lengths in length units.
+		mat2
+		(
+			right[1u].x, right[1u].y,
+			-right[1u].y, right[1u].x
+		) * meter_in_length_units,	// TODO: Store all lengths in length units.
+	};
+	vec2 vertex_offsets[2u][3u] =
+	{
+		vec2[3u](local_to_offset[0u] * vertices[0u][0u], local_to_offset[0u] * vertices[0u][1u], local_to_offset[0u] * vertices[0u][2u]),
+		vec2[3u](local_to_offset[1u] * vertices[1u][0u], local_to_offset[1u] * vertices[1u][1u], local_to_offset[1u] * vertices[1u][2u]),
+	};
+	vertex_offsets[1u][0u] += displacement;
+	vertex_offsets[1u][1u] += displacement;
+	vertex_offsets[1u][2u] += displacement;
+
+
+
+	//vec2 vertex_offsets
 
 	/*
 	uint circle_body_position_radius_base = fixed_data.rigid_body_circle_body_position_radius_base;
