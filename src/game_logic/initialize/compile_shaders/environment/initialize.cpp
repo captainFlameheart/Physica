@@ -721,6 +721,7 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uint rigid_body_triangle_contact_detector_type = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::rigid_body_triangle_contact_detector)) + ";\n"
 			"const uint rigid_body_circle_contact_constraint_spawner_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::rigid_body_circle_contact_detector)) + ";\n"
 			"const uint point_mass_distance_constraint_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::constraints::Indices::point_mass_distance_constraint)) + ";\n"
+			"const uint rigid_body_triangle_contact_constraint_type = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::constraints::Indices::rigid_body_triangle_contact_constraint)) + ";\n"
 			"const uint rigid_body_circle_contact_constraint_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::constraints::Indices::rigid_body_circle_contact_constraint)) + ";\n"
 			"const uint default_skycircle_element_type = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::skycircle_elements::Indices::default_skycircle_element)) + ";\n"
 
