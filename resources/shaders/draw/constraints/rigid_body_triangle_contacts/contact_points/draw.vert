@@ -17,8 +17,9 @@ out vec2 offset;
 
 void main()
 {
-	uint index = gl_VertexID / 12u;
-	uint vertex_index = gl_VertexID - index * 6u;
+	uint contact_point_index = gl_VertexID / 6u;
+	uint index = contact_point_index >> 1u;
+	uint vertex_index = gl_VertexID - contact_point_index * 6u;
 
 	uvec4 camera_position = fixed_data.camera_position;
 	mat4 camera_offset_to_clip_coordinates = fixed_data.camera_offset_to_clip_coordinates;

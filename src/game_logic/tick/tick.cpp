@@ -528,7 +528,10 @@ namespace game_logic::tick
 		for (GLuint clear_constraint_deaths_shader_index{ ::game_state::shader_indices::tick::process_entities::pre_constraints::clear_deaths::base }; clear_constraint_deaths_shader_index < ::game_state::shader_indices::tick::process_entities::pre_constraints::clear_deaths::end; ++clear_constraint_deaths_shader_index)
 		{
 			// TODO: REMOVE.
-			if (clear_constraint_deaths_shader_index != static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::pre_constraints::clear_deaths::Indices::clear_rigid_body_circle_contact_constraint_deaths))
+			if (
+				clear_constraint_deaths_shader_index != static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::pre_constraints::clear_deaths::Indices::clear_rigid_body_circle_contact_constraint_deaths) &&
+				clear_constraint_deaths_shader_index != static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::pre_constraints::clear_deaths::Indices::clear_rigid_body_triangle_contact_deaths)
+			)
 			{
 				continue;
 			}
@@ -550,7 +553,10 @@ namespace game_logic::tick
 		for (GLuint perform_constraint_compaction_shader_index{ ::game_state::shader_indices::tick::process_entities::pre_constraints::perform_compaction::base }; perform_constraint_compaction_shader_index < ::game_state::shader_indices::tick::process_entities::pre_constraints::perform_compaction::end; ++perform_constraint_compaction_shader_index)
 		{
 			// TODO: REMOVE.
-			if (perform_constraint_compaction_shader_index != static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::pre_constraints::perform_compaction::Indices::perform_rigid_body_circle_contact_constraint_compaction))
+			if (
+				perform_constraint_compaction_shader_index != static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::pre_constraints::perform_compaction::Indices::perform_rigid_body_circle_contact_constraint_compaction) &&
+				perform_constraint_compaction_shader_index != static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::pre_constraints::perform_compaction::Indices::perform_rigid_body_triangle_contact_compaction)
+			)
 			{
 				continue;
 			}
@@ -578,6 +584,7 @@ namespace game_logic::tick
 			(
 				tick_constraints_shader_index != static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraints::Indices::point_mass_distance_constraints) &&
 				tick_constraints_shader_index != static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraints::Indices::rigid_body_circle_contact_constraints)
+				//tick_constraints_shader_index != static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::constraints::Indices::rigid_body_triangle_contact_constraints)
 			)
 			{
 				continue;
