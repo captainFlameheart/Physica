@@ -50,6 +50,7 @@
 #include "compile_perform_bounding_box_contact_detector_compaction.h"
 #include "compile_perform_rigid_body_circle_contact_constraint_compaction.h"
 #include "compile_perform_rigid_body_circle_contact_constraint_spawner_compaction.h"
+#include "compile_perform_rigid_body_triangle_contact_compaction.h"
 #include "compile_perform_rigid_body_triangle_contact_detector_compaction.h"
 #include "compile_plan_rigid_body_circle_contact_constraint_compaction.h"
 #include "compile_plan_rigid_body_circle_contact_constraint_spawner_compaction.h"
