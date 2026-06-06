@@ -5,6 +5,7 @@
 #include "compile_clear_invalid_rigid_body_circle_contact_detectors.h"
 #include "compile_clear_rigid_body_circle_contact_constraint_deaths.h"
 #include "compile_clear_rigid_body_circle_contact_constraint_spawner_deaths.h"
+#include "compile_clear_rigid_body_triangle_contact_deaths.h"
 #include "compile_clear_rigid_body_triangle_contact_detector_deaths.h"
 #include "compile_commit_bounding_box_contact_detector_counts.h"
 #include "compile_commit_bounding_box_contact_detector_spawns.h"

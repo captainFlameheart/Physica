@@ -75,7 +75,8 @@ namespace game_logic::initialize::compile_shaders
 		compile_tick_rigid_body_circle_contact_constraint_spawners(environment, compile_environment);
 
 		compile_commit_constraint_counts(environment, compile_environment);
-
+		
+		compile_clear_rigid_body_triangle_contact_deaths(environment, compile_environment);
 		compile_clear_rigid_body_circle_contact_constraint_deaths(environment, compile_environment);
 
 		compile_perform_rigid_body_triangle_contact_compaction(environment, compile_environment);

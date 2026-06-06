@@ -609,6 +609,9 @@ namespace game_logic::initialize::compile_shaders::environment
 			static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::pre_constraints::plan_compaction::Indices::plan_rigid_body_circle_contact_constraint_compaction) - tick_entities_local_size_base
 		] };
 
+		constexpr GLuint clear_rigid_body_triangle_contact_deaths_local_size{ ::game_state::local_sizes::process_entities_local_sizes[
+			static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::pre_constraints::clear_deaths::Indices::clear_rigid_body_triangle_contact_deaths) - tick_entities_local_size_base
+		] };
 		constexpr GLuint clear_rigid_body_circle_contact_constraint_deaths_local_size{ ::game_state::local_sizes::process_entities_local_sizes[
 			static_cast<GLuint>(::game_state::shader_indices::tick::process_entities::pre_constraints::clear_deaths::Indices::clear_rigid_body_circle_contact_constraint_deaths) - tick_entities_local_size_base
 		] };
@@ -709,7 +712,7 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uint constraint_tick_entities_program_base = " + std::to_string(constraint_tick_entities_program_base) + ";\n"
 
 			"const uint rigid_body_triangle_contact_type  = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::rigid_body_triangle_contact)) + ";\n"
-			"const uint rigid_body_triangle_circle_contact_type  = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::rigid_body_triangle_circle_contact)) + ";\n"
+			"const uint rigid_body_triangle_circle_contact_type = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::rigid_body_triangle_circle_contact)) + ";\n"
 			"const uint rigid_body_circle_contact_type  = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::rigid_body_circle_contact)) + ";\n"
 
 			"const uint point_mass_type_index = " + std::to_string(static_cast<GLuint>(::game_state::entity_type_indices::bodies::Indices::point_mass)) + ";\n"
@@ -773,6 +776,7 @@ namespace game_logic::initialize::compile_shaders::environment
 			"const uint tick_rigid_body_circle_contact_constraint_spawners_local_size = " + ::std::to_string(tick_rigid_body_circle_contact_constraint_spawners_local_size) + ";\n"
 			"const uint commit_constraint_counts_local_size = " + ::std::to_string(commit_constraint_counts_local_size) + ";\n"
 			"const uint plan_rigid_body_circle_contact_constraint_compaction_local_size = " + ::std::to_string(plan_rigid_body_circle_contact_constraint_compaction_local_size) + ";\n"
+			"const uint clear_rigid_body_triangle_contact_deaths_local_size = " + ::std::to_string(clear_rigid_body_triangle_contact_deaths_local_size) + ";\n"
 			"const uint clear_rigid_body_circle_contact_constraint_deaths_local_size = " + ::std::to_string(clear_rigid_body_circle_contact_constraint_deaths_local_size) + ";\n"
 			"const uint perform_rigid_body_circle_contact_constraint_compaction_local_size = " + ::std::to_string(perform_rigid_body_circle_contact_constraint_compaction_local_size) + ";\n"
 			"const uint tick_point_mass_distance_constraints_local_size = " + ::std::to_string(process_point_mass_distance_constraints_local_size) + ";\n"

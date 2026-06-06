@@ -497,8 +497,8 @@ namespace game_state::shader_indices
 					enum struct Indices : GLuint
 					{
 						clear_point_mass_distance_constraint_deaths = base,
-						clear_rigid_body_triangle_contact_constraint_deaths,
-						clear_rigid_body_triangle_circle_contact_constraint_deaths,
+						clear_rigid_body_triangle_contact_deaths,
+						clear_rigid_body_triangle_circle_contact_deaths,
 						clear_rigid_body_circle_contact_constraint_deaths,
 
 						end
