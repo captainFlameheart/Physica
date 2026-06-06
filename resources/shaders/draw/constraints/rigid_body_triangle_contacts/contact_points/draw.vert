@@ -40,8 +40,8 @@ void main()
 
 	uint triangle_vertex_1_2_index[2u] =
 	{
-		triangle_vertex_1_2_base + indices[0u],
-		triangle_vertex_1_2_base + indices[1u],
+		triangle_vertex_1_2_base + indices_turns[0u],
+		triangle_vertex_1_2_base + indices_turns[1u],
 	};
 
 	uvec4 triangle_body_material_vertex_0[2u] =
@@ -70,13 +70,13 @@ void main()
 		ivec4(uvec4_data.data[body_position_flags_index[1u]]),
 	};
 
-	vec2 body_position_difference = vec2(ivec2(rigid_body_position_flags[1u].xy) - ivec2(rigid_body_position_flags[0u].xy));
+	vec2 body_position_difference = vec2(ivec2(body_position_flags[1u].xy) - ivec2(body_position_flags[0u].xy));
 
 	// TODO: Handle large angle precision.
 	float angles[2u] =
 	{
-		float(int(rigid_body_position_flags[0u].z)) * angle_unit_in_radians,
-		float(int(rigid_body_position_flags[1u].z)) * angle_unit_in_radians,
+		float(int(body_position_flags[0u].z)) * angle_unit_in_radians,
+		float(int(body_position_flags[1u].z)) * angle_unit_in_radians,
 	};
 	vec2 rights[2u] =
 	{
@@ -97,7 +97,7 @@ void main()
 	float body_0_radius_fraction = 0.5;
 	vec2 body_0_contact_point_offset = body_0_radius_fraction * (body_position_difference + (offsets[1u] - offsets[0u]));
 
-	vec4 camera_offset = vec4(ivec2(rigid_body_position_flags[0u].xy - camera_position.xy), int(-camera_position.z), 1.0f);
+	vec4 camera_offset = vec4(ivec2(body_position_flags[0u].xy - camera_position.xy), int(-camera_position.z), 1.0f);
 	offset = vertices[vertex_index];
 	camera_offset.xy += offset * radius;
 	camera_offset.xy += body_0_contact_point_offset;

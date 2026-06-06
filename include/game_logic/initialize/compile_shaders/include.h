@@ -27,6 +27,7 @@
 #include "compile_draw_rigid_body_triangles.h"
 #include "compile_draw_rigid_body_triangle_bounding_boxes.h"
 #include "compile_draw_rigid_body_triangle_contact_detectors.h"
+#include "compile_draw_rigid_body_triangle_contact_points.h"
 #include "compile_draw_skycircle_ring.h"
 #include "compile_draw_timing_bar_chart.h"
 #include "compile_draw_timing_deadline.h"

@@ -658,6 +658,7 @@ namespace game_state::shader_indices
 				enum struct Indices : GLuint
 				{
 					point_mass_distance_constraints = base,
+					rigid_body_triangle_contact_points,
 					rigid_body_circle_contact_constraint_contact_points,
 
 					end

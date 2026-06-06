@@ -103,6 +103,7 @@ namespace game_logic::initialize::compile_shaders
 		compile_draw_rigid_bodies(environment, compile_environment);
 
 		compile_draw_point_mass_distance_constraints(environment, compile_environment);
+		compile_draw_rigid_body_triangle_contact_points(environment, compile_environment);
 		compile_draw_rigid_body_circle_contact_constraints(environment, compile_environment);
 
 		compile_draw_rigid_body_triangle_bounding_boxes(environment, compile_environment);
