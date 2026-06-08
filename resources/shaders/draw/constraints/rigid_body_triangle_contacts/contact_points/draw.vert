@@ -168,14 +168,46 @@ void main()
 		return;
 	}
 
-	vec2 offsets[2u] =
+	uint reference_body = uint(reference_edge > 2u);
+	uint incident_body = reference_body ^ 1u;
+
+	reference_edge -= reference_body * 3u;
+
+	vec2 reference_vertex_offsets[2u] =
+	{
+		triangle_vertex_offsets[reference_body][reference_edge],
+		triangle_vertex_offsets[reference_body][uint(reference_edge < 2u) * (reference_edge + 1u)],
+	};
+	normal = reference_vertex_offsets[0u] - reference_vertex_offsets[1u];
+	normal = normalize(vec2(-normal.y, normal.x));
+
+	uint primary_incident_vertex_index = 0u;
+	float min_incident_projection = dot(normal, triangle_vertex_offsets[incident_body][0u]);
+
+	float incident_projection = dot(normal, triangle_vertex_offsets[incident_body][1u]);
+	if (incident_projection < min_incident_projection)
+	{
+		primary_incident_vertex_index = 1u;
+		min_incident_projection = incident_projection;
+	}
+
+	if (dot(normal, triangle_vertex_offsets[incident_body][2u]) < min_incident_projection)
+	{
+		primary_incident_vertex_index = 2u;
+	}
+
+	vec2 primary_incident_vertex_offset = triangle_vertex_offsets[incident_body][primary_incident_vertex_index];
+
+	vec2 body_0_contact_point_offset = primary_incident_vertex_offset;
+
+	/*vec2 offsets[2u] =
 	{
 		body_local_to_offset_transforms[0u] * (meter_in_length_units * vec2(0.0)),
 		body_local_to_offset_transforms[1u] * (meter_in_length_units * vec2(0.0)),
 	};
 
 	float body_0_radius_fraction = 0.5;
-	vec2 body_0_contact_point_offset = body_0_radius_fraction * (body_position_difference + (offsets[1u] - offsets[0u]));
+	vec2 body_0_contact_point_offset = body_0_radius_fraction * (body_position_difference + (offsets[1u] - offsets[0u]));*/
 
 	vec4 camera_offset = vec4(ivec2(body_position_flags[0u].xy - camera_position.xy), int(-camera_position.z), 1.0f);
 	offset = vertices[vertex_index];
