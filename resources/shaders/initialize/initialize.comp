@@ -288,7 +288,7 @@ void main()
 	fixed_data.point_mass_write_flags_base = point_mass_write_flags_base;
 	fixed_data.point_mass_write_position_velocity_base = point_mass_write_position_velocity_base;
 
-	capacities[rigid_body_type_index] = 1000u;//50000u;//50000u;
+	capacities[rigid_body_type_index] = 10u;//1000u;//50000u;//50000u;
 
 	uint rigid_body_inverse_mass_inertia_base_address = align_up(point_mass_write_position_velocity_base_address + capacities[point_mass_type_index] * uvec4_data_array_stride);
 	uint rigid_body_constraint_start_base_address = align_up(rigid_body_inverse_mass_inertia_base_address + capacities[rigid_body_type_index] * vec2_data_array_stride);
@@ -609,8 +609,8 @@ void main()
 	
 	uint point_mass_count = capacities[point_mass_type_index];//capacities[point_mass_type_index];
 	uint rigid_body_count = capacities[rigid_body_type_index];//capacities[rigid_body_type_index];
-	uint rigid_body_triangle_count = capacities[rigid_body_triangle_type_index] * 1u;//capacities[rigid_body_triangle_type_index] * 0u;
-	uint rigid_body_circle_count = capacities[rigid_body_circle_type_index] * 0u;//capacities[rigid_body_circle_type_index];
+	uint rigid_body_triangle_count = capacities[rigid_body_triangle_type_index] * 0u;//capacities[rigid_body_triangle_type_index] * 0u;
+	uint rigid_body_circle_count = capacities[rigid_body_circle_type_index] * 1u;//capacities[rigid_body_circle_type_index];
 	//uint rigid_body_circle_contact_constraint_spawner_count = capacities[rigid_body_circle_contact_constraint_spawner_type_index];//rigid_body_circle_contact_constraint_spawner_capacity;
 	uint point_mass_distance_constraint_count = capacities[point_mass_distance_constraint_type_index];//capacities[point_mass_distance_constraint_type_index];
 	uint rigid_body_circle_contact_constraint_count = 0u;
@@ -746,7 +746,7 @@ void main()
 		uint_data.data[rigid_body_constraint_end_base + rigid_body_index] = 0u;
 		uvec4_data.data[rigid_body_read_position_flags_base + rigid_body_index] = uvec4(0u);
 		uvec4_data.data[rigid_body_read_velocity_flags_base + rigid_body_index] = uvec4(0u);
-		const uint rigid_body_columns = 300u;
+		const uint rigid_body_columns = 5u;//300u;
 		uvec4_data.data[rigid_body_write_position_flags_base + rigid_body_index] = uvec4
 		(
 			ivec4
