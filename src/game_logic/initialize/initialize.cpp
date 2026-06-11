@@ -22,7 +22,7 @@ namespace game_logic::initialize
 		glBindVertexArray(environment.state.vertex_array);
 
 		environment.state.is_debugging = false;
-		environment.state.tick_paused = false;
+		environment.state.tick_paused = true;
 
 		environment.state.tick_count = 0u;
 		environment.state.draw_count = 0u;
